@@ -1,5 +1,5 @@
 // File: filter.cc
-// Date: Thu Apr 11 13:36:59 2013 +0800
+// Date: Sun Apr 14 17:01:52 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "filter.hh"
@@ -63,5 +63,10 @@ shared_ptr<GreyImg> Filter::GreyScale(const shared_ptr<Img> img) {
 	return move(ret);
 }
 
-real_t Filter::to_grey(const ::Color& c)
-{ return 0.299 * c.x + 0.587 * c.y + 0.114 * c.z; }
+real_t Filter::to_grey(const ::Color& c) {
+	real_t ret = 0.299 * c.x + 0.587 * c.y + 0.114 * c.z;
+	/*
+	 *real_t ret = (c.x + c.y + c.z) / 3;
+	 */
+	return ret;
+}

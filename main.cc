@@ -1,5 +1,5 @@
 // File: main.cc
-// Date: Sun Apr 14 00:29:02 2013 +0800
+// Date: Sun Apr 14 16:30:19 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "image.hh"
@@ -32,7 +32,7 @@ int main(int argc, char* argv[]) {
 		/*
 		 *cout << i << endl;
 		 */
-		pld.cross(~i, 3);
+		pld.cross(i, 3);
 	}
 	r->finish();
 	/*

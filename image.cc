@@ -1,5 +1,5 @@
 // File: image.cc
-// Date: Thu Apr 11 11:01:51 2013 +0800
+// Date: Sun Apr 14 16:48:25 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "image.hh"
@@ -54,27 +54,36 @@ Img Img::get_resized(real_t factor) const {
 }
 
 
-const ::Color& Img::get_pixel(int i, int j) const {
-	::Color *dest = pixel + i * w + j;
+#define between(a, b, c) ((a >= b) && (a < c))
+
+const ::Color& Img::get_pixel(int r, int c) const {
+	m_assert(between(r, 0, h) && between(c, 0, w));
+	::Color *dest = pixel + r * w + c;
 	return *dest;
-
 }
 
-void Img::set_pixel(int i, int j, const ::Color& c) {
-	::Color *dest = pixel + i * w + j;
-	dest->x = c.x, dest->y = c.y, dest->z = c.z;
+void Img::set_pixel(int r, int c, const ::Color& val) {
+	m_assert(between(r, 0, h) && between(c, 0, w));
+	::Color *dest = pixel + r * w + c;
+	dest->x = val.x, dest->y = val.y, dest->z = val.z;
 }
 
-real_t GreyImg::get_pixel(int x, int y) const
-{ return *(pixel + x * w + y); }
+real_t GreyImg::get_pixel(int r, int c) const {
+	m_assert(between(r, 0, h) && between(c, 0, w));
+	return *(pixel + r * w + c);
+}
 
-void GreyImg::set_pixel(int x, int y, real_t c)
-{ *(pixel + x * w + y) = c; }
+void GreyImg::set_pixel(int r, int c, real_t val) {
+	m_assert(between(r, 0, h) && between(c, 0, w));
+	*(pixel + r * w + c) = val;
+}
+
+#undef between
+
 
 void GreyImg::init_from_img(const Img& img) {
 	init(img.w, img.h);
 	for (int i = 0; i < h; i ++)
-		for (int j = 0; j < w; j ++) {
+		for (int j = 0; j < w; j ++)
 			set_pixel(i, j, Filter::to_grey(img.get_pixel(i, j)));
-		}
 }

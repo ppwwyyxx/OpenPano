@@ -1,5 +1,5 @@
 // File: sift.hh
-// Date: Sun Apr 14 00:25:00 2013 +0800
+// Date: Sun Apr 14 20:06:41 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
@@ -97,12 +97,12 @@ class Extrema {
 
 		void detect_extrema();
 
-		void judge_extrema(std::shared_ptr<GreyImg>, int no, int ns);
+		void judge_extrema(int no, int ns);
 
 		bool judge_extrema(real_t center, int no, int ns, int i, int j);
 
 		void get_feature(int nowo, int nows, int i, int j);
 
-		void interpolation_offset(int, int, int, int, real_t*, real_t*, real_t*, real_t*, real_t*, real_t*);
+		Vec interpolation_offset(int, int, int, std::shared_ptr<DOG>&, real_t*, real_t*, real_t*);
 
 };
