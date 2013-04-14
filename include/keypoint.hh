@@ -1,8 +1,9 @@
 // File: keypoint.hh
-// Date: Sun Apr 14 20:46:31 2013 +0800
+// Date: Sun Apr 14 23:17:35 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
+#include "feature.hh"
 #include "sift.hh"
 
 class Extrema {
@@ -10,6 +11,8 @@ class Extrema {
 		const DOGSpace& dogsp;
 		int noctave, nscale;
 		std::vector<Coor> keyp;
+
+		std::vector<Feature> features;
 
 		Extrema(const DOGSpace&);
 

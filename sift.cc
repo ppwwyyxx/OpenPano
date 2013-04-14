@@ -1,5 +1,5 @@
 // File: sift.cc
-// Date: Sun Apr 14 20:23:05 2013 +0800
+// Date: Sun Apr 14 23:34:43 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include <omp.h>
@@ -25,6 +25,7 @@ Octave::~Octave()
 
 ScaleSpace::ScaleSpace(const shared_ptr<Img>& img, int num_octave, int num_scale):
 	noctave(num_octave), nscale(num_scale){
+	origw = img->w, origh = img->h;
 	octaves = new shared_ptr<Octave>[noctave];
 	octaves[0] = shared_ptr<Octave>(new Octave(img, nscale));
 
@@ -48,7 +49,6 @@ DOG::DOG(const shared_ptr<Octave>& o) {
 DOG::~DOG()
 { delete[] data; }
 
-// XXX what to do with diff?
 shared_ptr<GreyImg> DOG::diff(const shared_ptr<GreyImg>& img1, const shared_ptr<GreyImg>& img2) {
 	int w = img1->w, h = img1->h;
 	m_assert(w == img2->w && h == img2->h);
@@ -61,12 +61,10 @@ shared_ptr<GreyImg> DOG::diff(const shared_ptr<GreyImg>& img1, const shared_ptr<
 	return move(ret);
 }
 
-DOGSpace::DOGSpace(const shared_ptr<Img>& img, int num_octave, int num_scale):
-	noctave(num_octave), nscale(num_scale) {
-	origw = img->w, origh = img->h;
+DOGSpace::DOGSpace(ScaleSpace& ss):
+	noctave(ss.noctave), nscale(ss.nscale) {
+	origw = ss.origw, origh = ss.origh;
 	dogs = new shared_ptr<DOG>[noctave];
-	ScaleSpace ss(img, noctave, nscale);
-	print_debug("finish constructing scalespace\n");
 #pragma omp parallel for schedule(dynamic)
 	for (int i = 0; i < noctave; i ++)
 		dogs[i] = shared_ptr<DOG>(new DOG(ss.octaves[i]));

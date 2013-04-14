@@ -1,12 +1,12 @@
 // File: keypoint.cc
-// Date: Sun Apr 14 20:54:29 2013 +0800
+// Date: Sun Apr 14 23:17:41 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "keypoint.hh"
 #include "matrix.hh"
 using namespace std;
-
 #define D(x, y, s) nowdog->get(s)->get_pixel(y, x)
+
 Extrema::Extrema(const DOGSpace& m_dog):dogsp(m_dog)
 { noctave = dogsp.noctave, nscale = dogsp.nscale; }
 
@@ -28,9 +28,6 @@ void Extrema::judge_extrema(int nowo, int nows) {
 				get_feature(nowo, nows, i, j);		// i is h
 				/*
 				 *keyp.push_back(Coor((real_t)j / w * dogsp.origw, (real_t)i / h * dogsp.origh));
-				 */
-				/*
-				 *continue;
 				 */
 			}
 		}
@@ -74,6 +71,13 @@ void Extrema::get_feature(int nowo, int nows, int r, int c) {
 	if (on_edge(newx, newy, nowdog->get(news)))
 		return;
 
+	Feature f;
+	f.coor = Coor(newx, newy);
+	f.real_coor = Coor((real_t)newx / w * dogsp.origw,
+			(real_t)newy / h * dogsp.origh);
+	f.ns = news, f.no = nowo;
+
+	features.push_back(f);
 	keyp.push_back(Coor((real_t)newx / w * dogsp.origw, (real_t)newy / h * dogsp.origh));
 }
 
@@ -126,7 +130,7 @@ Vec Extrema::calc_offset(int x, int y, int nows, shared_ptr<DOG>& nowdog,
 	if (inverse(m, inv))
 		ret = Vec(-mul(0), -mul(1), -mul(2)); 		// seem better?
 #undef mul
-	return move(ret);
+	return ret;
 }
 
 bool Extrema::judge_extrema(real_t center, int no, int ns, int nowi, int nowj) {

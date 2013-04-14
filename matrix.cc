@@ -1,5 +1,5 @@
 // File: matrix.cc
-// Date: Sun Apr 14 00:27:05 2013 +0800
+// Date: Sun Apr 14 22:37:48 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 #include <boost/numeric/ublas/vector.hpp>
 #include <boost/numeric/ublas/vector_proxy.hpp>
@@ -39,6 +39,7 @@ bool inverse(const Mat& A, Mat& Res) {
 		for (int j = 0; j < A.h; j ++) {
 			in(j, i) = A.get(i, j);
 		}
+
 	matrix<real_t> ret(A.w, A.h);
 	if (!InvertMatrix(in, ret))
 		return false;

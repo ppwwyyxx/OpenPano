@@ -1,5 +1,5 @@
 // File: sift.hh
-// Date: Sun Apr 14 20:19:08 2013 +0800
+// Date: Sun Apr 14 23:34:47 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
@@ -7,17 +7,7 @@
 #include <memory>
 
 #include "image.hh"
-#define DESC_LEN 128
-
-class Feature {
-	public:
-		int nh, nw;	// coor
-		int no, ns; // octave / scale id
-		int oh, ow; // coor under original scale
-		int dir;
-		float descriptor[DESC_LEN];
-};
-
+// TODO: add mag and ori in Octave data
 class Octave {
 	private:
 		int nscale;
@@ -43,9 +33,10 @@ class Octave {
 };
 
 class ScaleSpace {
-	private:
-		int noctave, nscale;
 	public:
+		int noctave, nscale;
+		int origw, origh;
+
 		std::shared_ptr<Octave> *octaves;	// len = noctave
 
 		ScaleSpace(const std::shared_ptr<Img>&, int num_octave, int num_scale);
@@ -53,7 +44,7 @@ class ScaleSpace {
 		~ScaleSpace();
 };
 
-class DOG {
+class DOG {		// diff[0] = orig[1] - orig[0]
 	private:
 		int nscale;
 		std::shared_ptr<GreyImg> *data;  // length is nscale - 1
@@ -81,7 +72,7 @@ class DOGSpace {
 
 		std::shared_ptr<DOG> *dogs;		// len = noctave
 
-		DOGSpace(const std::shared_ptr<Img>&, int, int);
+		DOGSpace(ScaleSpace&);
 
 		~DOGSpace();
 

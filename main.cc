@@ -1,5 +1,5 @@
 // File: main.cc
-// Date: Sun Apr 14 20:19:55 2013 +0800
+// Date: Sun Apr 14 23:34:49 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "image.hh"
@@ -24,7 +24,8 @@ int main(int argc, char* argv[]) {
 	PlaneDrawer pld(r);
 
 	shared_ptr<Img> ptr(new Img(test));
-	DOGSpace sp(ptr, NUM_OCTAVE, NUM_SCALE);
+	ScaleSpace ss(ptr, NUM_OCTAVE, NUM_SCALE);
+	DOGSpace sp(ss);
 	Extrema ex(sp);
 	ex.detect_extrema();
 	cout << ex.keyp.size() << endl;
