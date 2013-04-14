@@ -1,9 +1,9 @@
 // File: main.cc
-// Date: Sun Apr 14 16:30:19 2013 +0800
+// Date: Sun Apr 14 20:19:55 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "image.hh"
-#include "sift.hh"
+#include "keypoint.hh"
 #include "render/filerender.hh"
 #include "planedrawer.hh"
 #include "filter.hh"

@@ -1,5 +1,5 @@
 // File: sift.hh
-// Date: Sun Apr 14 20:06:41 2013 +0800
+// Date: Sun Apr 14 20:19:08 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
@@ -84,25 +84,5 @@ class DOGSpace {
 		DOGSpace(const std::shared_ptr<Img>&, int, int);
 
 		~DOGSpace();
-
-};
-
-class Extrema {
-	public:
-		const DOGSpace& dogsp;
-		int noctave, nscale;
-		std::vector<Coor> keyp;
-
-		Extrema(const DOGSpace&);
-
-		void detect_extrema();
-
-		void judge_extrema(int no, int ns);
-
-		bool judge_extrema(real_t center, int no, int ns, int i, int j);
-
-		void get_feature(int nowo, int nows, int i, int j);
-
-		Vec interpolation_offset(int, int, int, std::shared_ptr<DOG>&, real_t*, real_t*, real_t*);
 
 };
