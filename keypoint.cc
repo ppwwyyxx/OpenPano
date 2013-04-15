@@ -1,5 +1,5 @@
 // File: keypoint.cc
-// Date: Mon Apr 15 23:00:11 2013 +0800
+// Date: Mon Apr 15 23:20:10 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "keypoint.hh"
@@ -7,7 +7,8 @@
 using namespace std;
 #define D(x, y, s) nowpic->get(s)->get_pixel(y, x)
 
-KeyPoint::KeyPoint(const DOGSpace& m_dog):dogsp(m_dog)
+KeyPoint::KeyPoint(const DOGSpace& m_dog, const ScaleSpace& m_ss):
+	dogsp(m_dog),ss(m_ss)
 { noctave = dogsp.noctave, nscale = dogsp.nscale; }
 
 void KeyPoint::detect_extrema() {
@@ -159,6 +160,21 @@ bool KeyPoint::judge_extrema(real_t center, int no, int ns, int nowi, int nowj) 
 
 void KeyPoint::calc_dir() {
 	m_assert(features.size()); // require get_feature finished
+	for (auto &feat : features)
+		calc_dir(feat);
+}
+
+void KeyPoint::calc_dir(Feature& feat) {
+	int no = feat.no, ns = feat.ns;
+	Coor now = feat.coor;
+
+	calc_hist(ss.octaves[no], ns, now, feat.sig_octave);
+}
+
+void KeyPoint::calc_hist(shared_ptr<Octave> oct, int ns, Coor coor, real_t orig_sig) {
+	real_t sig = orig_sig * ORI_WINDOW_FACTOR;
+	int rad = orig_sig * ORI_RADIUS + 0.5;
+
 }
 
 #undef D

@@ -1,5 +1,5 @@
 // File: keypoint.hh
-// Date: Mon Apr 15 23:00:15 2013 +0800
+// Date: Mon Apr 15 23:20:14 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
@@ -9,12 +9,13 @@
 class KeyPoint {
 	public:
 		const DOGSpace& dogsp;
+		const ScaleSpace& ss;
 		int noctave, nscale;
 		std::vector<Coor> keyp;
 
 		std::vector<Feature> features;
 
-		KeyPoint(const DOGSpace&);
+		KeyPoint(const DOGSpace&, const ScaleSpace& ss);
 
 		void detect_extrema();
 
@@ -29,5 +30,9 @@ class KeyPoint {
 		bool on_edge(int, int, const std::shared_ptr<GreyImg>&);
 
 		void calc_dir();
+
+		void calc_dir(Feature&);
+
+		void calc_hist(std::shared_ptr<Octave> oct, int ns, Coor coor, real_t orig_sig);
 
 };

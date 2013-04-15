@@ -1,5 +1,5 @@
 // File: main.cc
-// Date: Mon Apr 15 23:00:58 2013 +0800
+// Date: Mon Apr 15 23:20:43 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "image.hh"
@@ -26,7 +26,7 @@ int main(int argc, char* argv[]) {
 	shared_ptr<Img> ptr(new Img(test));
 	ScaleSpace ss(ptr, NUM_OCTAVE, NUM_SCALE);
 	DOGSpace sp(ss);
-	KeyPoint ex(sp);
+	KeyPoint ex(sp, ss);
 	ex.detect_extrema();
 	cout << ex.keyp.size() << endl;
 	for (auto i : ex.keyp) {
