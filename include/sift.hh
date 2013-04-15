@@ -1,5 +1,5 @@
 // File: sift.hh
-// Date: Sun Apr 14 23:34:47 2013 +0800
+// Date: Mon Apr 15 22:58:06 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
@@ -12,6 +12,8 @@ class Octave {
 	private:
 		int nscale;
 		std::shared_ptr<GreyImg> *data; // len = nscale
+		std::shared_ptr<GreyImg> *mag; // len = nscale
+		std::shared_ptr<GreyImg> *ort; // len = nscale
 		int w, h;
 
 	public:
@@ -25,8 +27,20 @@ class Octave {
 			return data[i];
 		}
 
+		const std::shared_ptr<GreyImg>& get_mag(int i) const {
+			m_assert(i >= 0 && i < NUM_SCALE);
+			return mag[i];
+		}
+
+		const std::shared_ptr<GreyImg>& get_ort(int i) const {
+			m_assert(i >= 0 && i < NUM_SCALE);
+			return ort[i];
+		}
+
 		int get_len() const
 		{ return nscale; }
+
+		void cal_mag_ort(int);
 
 		~Octave();
 

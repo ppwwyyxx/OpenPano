@@ -1,5 +1,5 @@
 // File: common.hh
-// Date: Sun Apr 14 20:23:36 2013 +0800
+// Date: Mon Apr 15 22:43:24 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
@@ -24,6 +24,7 @@ const real_t CONTRAST_THRES = 7e-3;
 const real_t PRE_COLOR_THRES = 3e-5;
 const real_t SCALE_FACTOR = sqrt(2);
 const real_t EDGE_RATIO = 10;
+const real_t GAUSS_SIGMA = SCALE_FACTOR;
 
 template<typename T>
 bool update_min(T &dest, const T &val) {

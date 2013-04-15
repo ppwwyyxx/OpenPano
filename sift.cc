@@ -1,23 +1,45 @@
 // File: sift.cc
-// Date: Sun Apr 14 23:34:43 2013 +0800
+// Date: Mon Apr 15 22:43:25 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
-#include <omp.h>
 #include "sift.hh"
 #include "filter.hh"
 using namespace std;
 
+#define between(a, b, c) ((a >= b) && (a < c))
 
 Octave::Octave(const shared_ptr<GreyImg>& img, int num_scale):
 	nscale(num_scale){
 	w = img->w, h = img->h;
 	data = new shared_ptr<GreyImg>[nscale];
+	mag = new shared_ptr<GreyImg>[nscale];
+	ort = new shared_ptr<GreyImg>[nscale];
 	data[0] = img;
 
 	for (int i = 1; i < nscale; i ++) {
-		real_t s = pow(SCALE_FACTOR, i);
-		data[i] = Filter::GaussianBlur(data[i-1], s);
+		real_t s = pow(SCALE_FACTOR, i - 1) * GAUSS_SIGMA;
+		data[i] = Filter::GaussianBlur(data[i-1], s);	// sigma needs a better one
+		cal_mag_ort(i);
 	}
+}
+
+void Octave::cal_mag_ort(int i) {
+	shared_ptr<GreyImg> orig = data[i];
+	int w = orig->w, h = orig->h;
+	mag[i] = shared_ptr<GreyImg>(new GreyImg(w, h));
+	ort[i] = shared_ptr<GreyImg>(new GreyImg(w, h));
+	for (int x = 0; x < w; x ++)
+		for (int y = 0; y < h; y ++) {
+			if (between(x, 1, w - 1) && between(y, 1, h - 1)) {
+				real_t dx = orig->get_pixel(x + 1, y) - orig->get_pixel(x - 1, y),
+					   dy = orig->get_pixel(x, y + 1) - orig->get_pixel(x, y - 1);
+				mag[i]->set_pixel(x, y, hypot(dx, dy));
+				if (dx == 0 && dy == 0)
+					ort[i]->set_pixel(x, y, 0);
+				else
+					ort[i]->set_pixel(x, y, atan2(dy, dx));
+			}
+		}
 }
 
 Octave::~Octave()
@@ -72,3 +94,5 @@ DOGSpace::DOGSpace(ScaleSpace& ss):
 
 DOGSpace::~DOGSpace()
 { delete[] dogs; }
+
+#undef between

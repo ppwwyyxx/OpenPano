@@ -1,5 +1,5 @@
 // File: feature.hh
-// Date: Sun Apr 14 23:18:50 2013 +0800
+// Date: Mon Apr 15 22:46:50 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
@@ -14,8 +14,10 @@ class Feature {
 		int no, ns; // octave / scale id
 		Coor real_coor;
 		int dir;
-		int sub_scale;
+		int sub_scale;		// to be more precise?
 		real_t descriptor[DESC_LEN];
+		real_t sig_octave;
+		real_t sig_space;
 
 		Feature(){}
 

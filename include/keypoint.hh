@@ -1,5 +1,5 @@
 // File: keypoint.hh
-// Date: Sun Apr 14 23:17:35 2013 +0800
+// Date: Mon Apr 15 22:56:22 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
@@ -27,5 +27,7 @@ class Extrema {
 		Vec calc_offset(int, int, int, std::shared_ptr<DOG>&, real_t*, real_t*, real_t*);
 
 		bool on_edge(int, int, const std::shared_ptr<GreyImg>&);
+
+		void calc_dir();
 
 };

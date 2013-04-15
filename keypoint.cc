@@ -1,11 +1,11 @@
 // File: keypoint.cc
-// Date: Sun Apr 14 23:17:41 2013 +0800
+// Date: Mon Apr 15 22:57:49 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "keypoint.hh"
 #include "matrix.hh"
 using namespace std;
-#define D(x, y, s) nowdog->get(s)->get_pixel(y, x)
+#define D(x, y, s) nowpic->get(s)->get_pixel(y, x)
 
 Extrema::Extrema(const DOGSpace& m_dog):dogsp(m_dog)
 { noctave = dogsp.noctave, nscale = dogsp.nscale; }
@@ -29,14 +29,15 @@ void Extrema::judge_extrema(int nowo, int nows) {
 				/*
 				 *keyp.push_back(Coor((real_t)j / w * dogsp.origw, (real_t)i / h * dogsp.origh));
 				 */
+				// to get original keypoints
 			}
 		}
 }
 
 void Extrema::get_feature(int nowo, int nows, int r, int c) {
-	shared_ptr<DOG> nowdog = dogsp.dogs[nowo];
-	int w = nowdog->get(nows)->w,
-		h = nowdog->get(nows)->h;
+	shared_ptr<DOG> nowpic = dogsp.dogs[nowo];
+	int w = nowpic->get(nows)->w,
+		h = nowpic->get(nows)->h;
 	int depth = 0;
 	int newx = c, newy = r, news = nows;
 	Vec offset,		// x~
@@ -50,7 +51,7 @@ void Extrema::get_feature(int nowo, int nows, int r, int c) {
 			return;
 #undef between
 
-		offset = calc_offset(newx, newy, news, nowdog, &dx, &dy, &ds);
+		offset = calc_offset(newx, newy, news, nowpic, &dx, &dy, &ds);
 		if (offset.get_abs_max() < OFFSET_THRES) // found
 			break;
 
@@ -65,17 +66,18 @@ void Extrema::get_feature(int nowo, int nows, int r, int c) {
 
 	real_t dextr = offset.dot(Vec(dx, dy, ds));		// calc D(x~)
 	dextr = D(newx, newy, news) + dextr / 2;
-	if (dextr < CONTRAST_THRES)
-		return;			// contrast too low
+	if (dextr < CONTRAST_THRES) return;			// contrast too low
 
-	if (on_edge(newx, newy, nowdog->get(news)))
-		return;
+	if (on_edge(newx, newy, nowpic->get(news))) return;
 
 	Feature f;
 	f.coor = Coor(newx, newy);
 	f.real_coor = Coor((real_t)newx / w * dogsp.origw,
 			(real_t)newy / h * dogsp.origh);
 	f.ns = news, f.no = nowo;
+	f.sig_octave = GAUSS_SIGMA * pow(SCALE_FACTOR,
+			(offset.z + news) / nscale);
+	f.sig_space = f.sig_octave * pow(SCALE_FACTOR, nowo);
 
 	features.push_back(f);
 	keyp.push_back(Coor((real_t)newx / w * dogsp.origw, (real_t)newy / h * dogsp.origh));
@@ -99,7 +101,7 @@ bool Extrema::on_edge(int x, int y, const shared_ptr<GreyImg>& img) {
 	return true;
 }
 
-Vec Extrema::calc_offset(int x, int y, int nows, shared_ptr<DOG>& nowdog,
+Vec Extrema::calc_offset(int x, int y, int nows, shared_ptr<DOG>& nowpic,
 		real_t* dx, real_t* dy, real_t* ds)
 {
 	Vec ret = Vector::get_zero();
@@ -154,4 +156,9 @@ bool Extrema::judge_extrema(real_t center, int no, int ns, int nowi, int nowj) {
 	return true;
 
 }
+
+void calc_dir() {
+
+}
+
 #undef D
