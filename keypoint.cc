@@ -1,5 +1,5 @@
 // File: keypoint.cc
-// Date: Mon Apr 15 22:57:49 2013 +0800
+// Date: Mon Apr 15 23:00:11 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "keypoint.hh"
@@ -7,16 +7,16 @@
 using namespace std;
 #define D(x, y, s) nowpic->get(s)->get_pixel(y, x)
 
-Extrema::Extrema(const DOGSpace& m_dog):dogsp(m_dog)
+KeyPoint::KeyPoint(const DOGSpace& m_dog):dogsp(m_dog)
 { noctave = dogsp.noctave, nscale = dogsp.nscale; }
 
-void Extrema::detect_extrema() {
+void KeyPoint::detect_extrema() {
 	for (int i = 0; i < noctave; i ++)
 		for (int j = 1; j < nscale - 2; j ++)
 			judge_extrema(i, j);
 }
 
-void Extrema::judge_extrema(int nowo, int nows) {
+void KeyPoint::judge_extrema(int nowo, int nows) {
 	shared_ptr<GreyImg> now = dogsp.dogs[nowo]->get(nows);
 	int w = now->w, h = now->h;
 	for (int i = 1; i < h - 1; i ++)
@@ -34,7 +34,7 @@ void Extrema::judge_extrema(int nowo, int nows) {
 		}
 }
 
-void Extrema::get_feature(int nowo, int nows, int r, int c) {
+void KeyPoint::get_feature(int nowo, int nows, int r, int c) {
 	shared_ptr<DOG> nowpic = dogsp.dogs[nowo];
 	int w = nowpic->get(nows)->w,
 		h = nowpic->get(nows)->h;
@@ -83,7 +83,7 @@ void Extrema::get_feature(int nowo, int nows, int r, int c) {
 	keyp.push_back(Coor((real_t)newx / w * dogsp.origw, (real_t)newy / h * dogsp.origh));
 }
 
-bool Extrema::on_edge(int x, int y, const shared_ptr<GreyImg>& img) {
+bool KeyPoint::on_edge(int x, int y, const shared_ptr<GreyImg>& img) {
 	real_t dxx, dxy, dyy;
 	real_t val = img->get_pixel(y, x);
 
@@ -101,7 +101,7 @@ bool Extrema::on_edge(int x, int y, const shared_ptr<GreyImg>& img) {
 	return true;
 }
 
-Vec Extrema::calc_offset(int x, int y, int nows, shared_ptr<DOG>& nowpic,
+Vec KeyPoint::calc_offset(int x, int y, int nows, shared_ptr<DOG>& nowpic,
 		real_t* dx, real_t* dy, real_t* ds)
 {
 	Vec ret = Vector::get_zero();
@@ -135,7 +135,7 @@ Vec Extrema::calc_offset(int x, int y, int nows, shared_ptr<DOG>& nowpic,
 	return ret;
 }
 
-bool Extrema::judge_extrema(real_t center, int no, int ns, int nowi, int nowj) {
+bool KeyPoint::judge_extrema(real_t center, int no, int ns, int nowi, int nowj) {
 	bool max = true, min = true;
 #define judge(level)\
 	do {\
@@ -157,8 +157,8 @@ bool Extrema::judge_extrema(real_t center, int no, int ns, int nowi, int nowj) {
 
 }
 
-void calc_dir() {
-
+void KeyPoint::calc_dir() {
+	m_assert(features.size()); // require get_feature finished
 }
 
 #undef D
