@@ -1,5 +1,5 @@
 // File: keypoint.cc
-// Date: Tue Apr 16 10:58:14 2013 +0800
+// Date: Tue Apr 16 13:31:05 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include <cstring>
@@ -83,9 +83,6 @@ void KeyPoint::get_feature(int nowo, int nows, int r, int c) {
 	f.sig_space = f.sig_octave * pow(SCALE_FACTOR, nowo);
 
 	features.push_back(f);
-	/*
-	 *keyp.push_back(Coor((real_t)newx / w * dogsp.origw, (real_t)newy / h * dogsp.origh));
-	 */
 }
 
 bool KeyPoint::on_edge(int x, int y, const shared_ptr<GreyImg>& img) {
@@ -98,11 +95,9 @@ bool KeyPoint::on_edge(int x, int y, const shared_ptr<GreyImg>& img) {
 			img->get_pixel(y + 1, x - 1) - img->get_pixel(y - 1, x + 1)) / 4;
 
 	real_t det = dxx * dyy - dxy * dxy;
-	if (det <= 0)
-		return true;
+	if (det <= 0) return true;
 	real_t tr = sqr(dxx + dyy);
-	if (tr / det < sqr(EDGE_RATIO + 1) / EDGE_RATIO)
-		return false;
+	if (tr / det < sqr(EDGE_RATIO + 1) / EDGE_RATIO) return false;
 	return true;
 }
 
@@ -135,7 +130,7 @@ Vec KeyPoint::calc_offset(int x, int y, int nows, shared_ptr<DOG>& nowpic,
 	Mat inv(3, 3);			// formula 3
 #define mul(l) inv.get(l, 0) * (*dx) + inv.get(l, 1) * (*dy) + inv.get(l, 2) * (*ds)
 	if (inverse(m, inv))
-		ret = Vec(-mul(0), -mul(1), -mul(2)); 		// seem better?
+		ret = Vec(+mul(0), +mul(1), +mul(2)); 		// which is better?
 #undef mul
 	return ret;
 }
@@ -162,6 +157,8 @@ void KeyPoint::calc_dir() {
 	vector<Feature> update_feature;
 	for (auto &feat : features)
 		calc_dir(feat, update_feature);
+	cout << "before assign: " << features.size() << endl;
+	cout << "after assign: " << update_feature.size() << endl;
 	features = move(update_feature);
 }
 
@@ -191,6 +188,8 @@ vector<real_t> KeyPoint::calc_hist(shared_ptr<Octave> oct, int ns, Coor coor, re
 		for (int yy = -rad; yy < rad; yy ++) {
 			int newy = coor.y + yy;
 			if (! between(newy, 1, oct->h - 1))
+				continue;
+			if (sqr(xx) + sqr(yy) > sqr(rad))		// use a circular gaussian window
 				continue;
 			int bin = round(HIST_BIN_NUM / 2 * (oct->get_ort(ns)->get_pixel(newy, newx)) / M_PI);
 			if (bin == HIST_BIN_NUM) bin = 0;

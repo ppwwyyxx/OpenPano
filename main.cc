@@ -1,5 +1,5 @@
 // File: main.cc
-// Date: Tue Apr 16 10:54:38 2013 +0800
+// Date: Tue Apr 16 13:08:29 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "image.hh"
@@ -9,7 +9,7 @@
 #include "filter.hh"
 using namespace std;
 
-#define LABEL_LEN 5
+#define LABEL_LEN 7
 
 void show(shared_ptr<GreyImg> img) {
 	Img res(*img);
@@ -19,7 +19,7 @@ void show(shared_ptr<GreyImg> img) {
 }
 
 int main(int argc, char* argv[]) {
-	Img test("lenna.png");
+	Img test(argv[1]);
 	RenderBase* r = new FileRender(&test, "out.png");
 	r->write(&test);
 	cout << r->get_geo().w << r->get_geo().h << endl;

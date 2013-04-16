@@ -1,5 +1,5 @@
 // File: sift.cc
-// Date: Tue Apr 16 10:57:29 2013 +0800
+// Date: Tue Apr 16 11:18:45 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "sift.hh"
@@ -52,12 +52,15 @@ ScaleSpace::ScaleSpace(const shared_ptr<Img>& img, int num_octave, int num_scale
 	noctave(num_octave), nscale(num_scale){
 	origw = img->w, origh = img->h;
 	octaves = new shared_ptr<Octave>[noctave];
-	octaves[0] = shared_ptr<Octave>(new Octave(img, nscale));
 
 #pragma omp parallel for schedule(dynamic)
-	for (int i = 1; i < noctave; i ++) {
-		Img now = img->get_resized(pow(SCALE_FACTOR, -i));
-		octaves[i] = shared_ptr<Octave>(new Octave(make_shared<Img>(now), nscale));
+	for (int i = 0; i < noctave; i ++) {
+		if (!i)
+			octaves[i] = shared_ptr<Octave>(new Octave(img, nscale));
+		else {
+			Img now = img->get_resized(pow(SCALE_FACTOR, -i));
+			octaves[i] = shared_ptr<Octave>(new Octave(make_shared<Img>(now), nscale));
+		}
 	}
 }
 
@@ -90,6 +93,7 @@ DOGSpace::DOGSpace(ScaleSpace& ss):
 	noctave(ss.noctave), nscale(ss.nscale) {
 	origw = ss.origw, origh = ss.origh;
 	dogs = new shared_ptr<DOG>[noctave];
+
 #pragma omp parallel for schedule(dynamic)
 	for (int i = 0; i < noctave; i ++)
 		dogs[i] = shared_ptr<DOG>(new DOG(ss.octaves[i]));
