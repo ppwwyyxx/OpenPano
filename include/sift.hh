@@ -1,5 +1,5 @@
 // File: sift.hh
-// Date: Mon Apr 15 22:58:06 2013 +0800
+// Date: Tue Apr 16 09:23:49 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
@@ -13,10 +13,11 @@ class Octave {
 		int nscale;
 		std::shared_ptr<GreyImg> *data; // len = nscale
 		std::shared_ptr<GreyImg> *mag; // len = nscale
-		std::shared_ptr<GreyImg> *ort; // len = nscale
-		int w, h;
+		std::shared_ptr<GreyImg> *ort; // len = nscale, value \in [0, 2 * pi]
 
 	public:
+		int w, h;
+
 		Octave(){}
 		Octave(const std::shared_ptr<GreyImg>&, int num_scale);
 		Octave(const std::shared_ptr<Img>& img, int num_scale):

@@ -1,5 +1,5 @@
 // File: main.cc
-// Date: Mon Apr 15 23:20:43 2013 +0800
+// Date: Tue Apr 16 10:29:52 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "image.hh"
@@ -28,12 +28,13 @@ int main(int argc, char* argv[]) {
 	DOGSpace sp(ss);
 	KeyPoint ex(sp, ss);
 	ex.detect_extrema();
-	cout << ex.keyp.size() << endl;
-	for (auto i : ex.keyp) {
+	ex.calc_dir();
+	cout << ex.features.size() << endl;
+	for (auto i : ex.features) {
 		/*
 		 *cout << i << endl;
 		 */
-		pld.cross(i, 3);
+		pld.cross(i.real_coor, 3);
 	}
 	r->finish();
 	/*

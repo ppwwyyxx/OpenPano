@@ -1,11 +1,15 @@
 // File: keypoint.cc
-// Date: Mon Apr 15 23:20:10 2013 +0800
+// Date: Tue Apr 16 10:30:25 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
+#include <cstring>
 #include "keypoint.hh"
 #include "matrix.hh"
+
 using namespace std;
+
 #define D(x, y, s) nowpic->get(s)->get_pixel(y, x)
+#define between(a, b, c) ((a >= b) && (a < c))
 
 KeyPoint::KeyPoint(const DOGSpace& m_dog, const ScaleSpace& m_ss):
 	dogsp(m_dog),ss(m_ss)
@@ -45,12 +49,10 @@ void KeyPoint::get_feature(int nowo, int nows, int r, int c) {
 		delta;		// partial(d) / partial(x)
 	real_t dx, dy, ds;
 	while (depth < CALC_OFFSET_DEPTH) {
-#define between(a, b, c) ((a >= b) && (a < c))
 		if (!between(newx, 1, w - 1) ||
 				!between(newy, 1, h - 1) ||
 				!between(news, 1, nscale - 2))	// nscale - 1?
 			return;
-#undef between
 
 		offset = calc_offset(newx, newy, news, nowpic, &dx, &dy, &ds);
 		if (offset.get_abs_max() < OFFSET_THRES) // found
@@ -77,11 +79,13 @@ void KeyPoint::get_feature(int nowo, int nows, int r, int c) {
 			(real_t)newy / h * dogsp.origh);
 	f.ns = news, f.no = nowo;
 	f.sig_octave = GAUSS_SIGMA * pow(SCALE_FACTOR,
-			(offset.z + news) / nscale);
+			(real_t)(offset.z + news) / nscale);
 	f.sig_space = f.sig_octave * pow(SCALE_FACTOR, nowo);
 
 	features.push_back(f);
-	keyp.push_back(Coor((real_t)newx / w * dogsp.origw, (real_t)newy / h * dogsp.origh));
+	/*
+	 *keyp.push_back(Coor((real_t)newx / w * dogsp.origw, (real_t)newy / h * dogsp.origh));
+	 */
 }
 
 bool KeyPoint::on_edge(int x, int y, const shared_ptr<GreyImg>& img) {
@@ -138,43 +142,98 @@ Vec KeyPoint::calc_offset(int x, int y, int nows, shared_ptr<DOG>& nowpic,
 
 bool KeyPoint::judge_extrema(real_t center, int no, int ns, int nowi, int nowj) {
 	bool max = true, min = true;
-#define judge(level)\
-	do {\
-		for (int di = -1; di <= 1; di ++)\
-			for (int dj = -1; dj <= 1; dj ++) {\
-				if (!di && !dj && level == ns) continue;\
-				real_t newval = dogsp.dogs[no]->get(level)->get_pixel(nowi + di, nowj + dj);\
-				if (newval >= center - JUDGE_EXTREMA_DIFF_THRES) max = false;\
-				if (newval <= center + JUDGE_EXTREMA_DIFF_THRES) min = false;\
-				if (!max && !min)\
-					return false;\
-			}\
-	} while (0)
 
-	judge(ns);		// ns first
-	judge(ns - 1); judge(ns + 1);
-#undef judge
+	for (int level : {ns, ns - 1, ns + 1})
+		for (int di = -1; di <= 1; di ++)
+			for (int dj = -1; dj <= 1; dj ++) {
+				if (!di && !dj && level == ns) continue;
+				real_t newval = dogsp.dogs[no]->get(level)->get_pixel(nowi + di, nowj + dj);
+				if (newval >= center - JUDGE_EXTREMA_DIFF_THRES) max = false;
+				if (newval <= center + JUDGE_EXTREMA_DIFF_THRES) min = false;
+				if (!max && !min)
+					return false;
+			}
 	return true;
 
 }
 
 void KeyPoint::calc_dir() {
-	m_assert(features.size()); // require get_feature finished
+	m_assert(features.size());  // require get_feature finished
+	vector<Feature> update_feature;
 	for (auto &feat : features)
-		calc_dir(feat);
+		calc_dir(feat, update_feature);
+	features = move(update_feature);
 }
 
-void KeyPoint::calc_dir(Feature& feat) {
+void KeyPoint::calc_dir(Feature& feat, vector<Feature>& update_feat) {
 	int no = feat.no, ns = feat.ns;
 	Coor now = feat.coor;
 
-	calc_hist(ss.octaves[no], ns, now, feat.sig_octave);
+	for (auto ori : calc_hist(ss.octaves[no], ns, now, feat.sig_octave)) {
+		Feature newf(feat);
+		newf.dir = ori;
+		update_feat.push_back(move(newf));
+	}
 }
 
-void KeyPoint::calc_hist(shared_ptr<Octave> oct, int ns, Coor coor, real_t orig_sig) {
-	real_t sig = orig_sig * ORI_WINDOW_FACTOR;
+vector<real_t> KeyPoint::calc_hist(shared_ptr<Octave> oct, int ns, Coor coor, real_t orig_sig) {		// coor is under scaled space
+	real_t sigma = orig_sig * ORI_WINDOW_FACTOR;
 	int rad = orig_sig * ORI_RADIUS + 0.5;
 
+	real_t exp_denom = 2 * sqr(sigma);
+	real_t hist[HIST_BIN_NUM];
+	memset(hist, 0, sizeof(hist));
+
+	for (int xx = -rad; xx < rad; xx ++) {
+		int newx = coor.x + xx;
+		if (! between(newx, 1, oct->w - 1))		// because mag/ort on the border is zero
+			continue;
+		for (int yy = -rad; yy < rad; yy ++) {
+			int newy = coor.y + yy;
+			if (! between(newy, 1, oct->h - 1))
+				continue;
+			int bin = round(HIST_BIN_NUM / 2 * (oct->get_ort(ns)->get_pixel(newx, newy)) / M_PI);
+			if (bin == HIST_BIN_NUM) bin = 0;
+
+			m_assert(bin < HIST_BIN_NUM);
+
+			real_t weight = exp(-(sqr(xx) + sqr(yy)) / exp_denom);
+			hist[bin] += weight * oct->get_mag(ns)->get_pixel(newy, newx);
+
+			m_assert(hist[bin] >= 0);
+		}
+	}
+
+
+	for (int kk = HIST_SMOOTH_COUNT; kk --;)		// smooth by interpolation
+		for (int i = 0; i < HIST_BIN_NUM; i ++) {
+			real_t prev = hist[i == 0 ? HIST_BIN_NUM - 1 : i - 1];
+			real_t next = hist[i == HIST_BIN_NUM - 1 ? 0 : i + 1];
+			hist[i] = hist[i] * 0.5 + (prev + next) * 0.25;
+		}
+
+	real_t maxbin = 0;
+	for (auto i : hist) update_max(maxbin, i);
+
+	real_t thres = maxbin * HIST_PEAK_RATIO;
+	vector<real_t> ret;
+
+	for (int i = 0; i < HIST_BIN_NUM; i ++) {
+		real_t prev = hist[i == 0 ? HIST_BIN_NUM - 1 : i - 1];
+		real_t next = hist[i == HIST_BIN_NUM - 1 ? 0 : i + 1];
+		if (hist[i] > thres && hist[i] > max(prev, next)) {
+			real_t newbin = i + (prev - next) / (prev + next - 2 * hist[i]) / 2;		// interpolation
+			if (newbin < 0)
+				newbin += HIST_BIN_NUM;
+			else if (newbin >= HIST_BIN_NUM)
+				newbin -= HIST_BIN_NUM;
+			real_t ort = newbin / HIST_BIN_NUM * 2 * M_PI;
+			ret.push_back(ort);
+		}
+	}
+	m_assert(ret.size());
+	return move(ret);
 }
 
 #undef D
+#undef between

@@ -1,8 +1,9 @@
 // File: keypoint.hh
-// Date: Mon Apr 15 23:20:14 2013 +0800
+// Date: Tue Apr 16 10:05:50 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
+#include <vector>
 #include "feature.hh"
 #include "sift.hh"
 
@@ -31,8 +32,8 @@ class KeyPoint {
 
 		void calc_dir();
 
-		void calc_dir(Feature&);
+		void calc_dir(Feature&, std::vector<Feature>&);
 
-		void calc_hist(std::shared_ptr<Octave> oct, int ns, Coor coor, real_t orig_sig);
+		std::vector<real_t> calc_hist(std::shared_ptr<Octave> oct, int ns, Coor coor, real_t orig_sig);
 
 };
