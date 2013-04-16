@@ -1,5 +1,5 @@
 // File: main.cc
-// Date: Tue Apr 16 10:29:52 2013 +0800
+// Date: Tue Apr 16 10:54:38 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "image.hh"
@@ -8,6 +8,8 @@
 #include "planedrawer.hh"
 #include "filter.hh"
 using namespace std;
+
+#define LABEL_LEN 5
 
 void show(shared_ptr<GreyImg> img) {
 	Img res(*img);
@@ -34,7 +36,7 @@ int main(int argc, char* argv[]) {
 		/*
 		 *cout << i << endl;
 		 */
-		pld.cross(i.real_coor, 3);
+		pld.arrow(i.real_coor, i.dir, LABEL_LEN);
 	}
 	r->finish();
 	/*

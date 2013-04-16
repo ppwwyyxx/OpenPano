@@ -1,5 +1,5 @@
 // File: sift.cc
-// Date: Tue Apr 16 10:16:18 2013 +0800
+// Date: Tue Apr 16 10:57:29 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "sift.hh"
@@ -31,16 +31,16 @@ void Octave::cal_mag_ort(int i) {
 	for (int x = 0; x < w; x ++)
 		for (int y = 0; y < h; y ++) {
 			if (between(x, 1, w - 1) && between(y, 1, h - 1)) {
-				real_t dx = orig->get_pixel(x + 1, y) - orig->get_pixel(x - 1, y),
-					   dy = orig->get_pixel(x, y + 1) - orig->get_pixel(x, y - 1);
-				mag[i]->set_pixel(x, y, hypot(dx, dy));
+				real_t dy = orig->get_pixel(y + 1, x) - orig->get_pixel(y - 1, x),
+					   dx = orig->get_pixel(y, x + 1) - orig->get_pixel(y, x - 1);
+				mag[i]->set_pixel(y, x, hypot(dx, dy));
 				if (dx == 0 && dy == 0)
-					ort[i]->set_pixel(x, y, M_PI);
+					ort[i]->set_pixel(y, x, M_PI);
 				else
-					ort[i]->set_pixel(x, y, atan2(dy, dx) + M_PI);
+					ort[i]->set_pixel(y, x, atan2(dy, dx) + M_PI);
 			} else {
-				mag[i]->set_pixel(x, y, 0);
-				ort[i]->set_pixel(x, y, M_PI);
+				mag[i]->set_pixel(y, x, 0);
+				ort[i]->set_pixel(y, x, M_PI);
 			}
 		}
 }

@@ -1,5 +1,5 @@
 // File: keypoint.cc
-// Date: Tue Apr 16 10:30:25 2013 +0800
+// Date: Tue Apr 16 10:58:14 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include <cstring>
@@ -140,7 +140,7 @@ Vec KeyPoint::calc_offset(int x, int y, int nows, shared_ptr<DOG>& nowpic,
 	return ret;
 }
 
-bool KeyPoint::judge_extrema(real_t center, int no, int ns, int nowi, int nowj) {
+bool KeyPoint::judge_extrema(real_t center, int no, int ns, int nowi, int nowj) {		// i is h
 	bool max = true, min = true;
 
 	for (int level : {ns, ns - 1, ns + 1})
@@ -192,7 +192,7 @@ vector<real_t> KeyPoint::calc_hist(shared_ptr<Octave> oct, int ns, Coor coor, re
 			int newy = coor.y + yy;
 			if (! between(newy, 1, oct->h - 1))
 				continue;
-			int bin = round(HIST_BIN_NUM / 2 * (oct->get_ort(ns)->get_pixel(newx, newy)) / M_PI);
+			int bin = round(HIST_BIN_NUM / 2 * (oct->get_ort(ns)->get_pixel(newy, newx)) / M_PI);
 			if (bin == HIST_BIN_NUM) bin = 0;
 
 			m_assert(bin < HIST_BIN_NUM);

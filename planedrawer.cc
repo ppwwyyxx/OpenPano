@@ -1,5 +1,5 @@
 // File: planedrawer.cc
-// Date: Fri Apr 12 16:36:41 2013 +0800
+// Date: Tue Apr 16 10:54:43 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include <vector>
@@ -50,5 +50,12 @@ void PlaneDrawer::circle(Coor o, int r) {
 void PlaneDrawer::cross(Coor o, int r) {
 	line(o - Coor(r, r), o + Coor(r, r));
 	line(o - Coor(r, -r), o + Coor(r, -r));
+}
+
+void PlaneDrawer::arrow(Coor o, real_t dir, int r) {
+	circle(o, 2);
+	real_t dx = r * cos(dir),
+		   dy = r * sin(dir);
+	line(o, o + Coor(dx, dy));
 }
 

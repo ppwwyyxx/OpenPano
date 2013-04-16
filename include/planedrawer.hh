@@ -1,5 +1,5 @@
 // File: planedrawer.hh
-// Date: Fri Apr 12 16:37:26 2013 +0800
+// Date: Tue Apr 16 10:51:46 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #ifndef __HEAD__PLANE_DRAWER
@@ -42,6 +42,8 @@ class PlaneDrawer {
 		void circle(Coor o, int r);
 
 		void cross(Coor o, int r);
+
+		void arrow(Coor o, real_t dir, int r);
 
 		void polygon(Polygon p) {
 			for (unsigned int i = 0; i < p.size() - 1; i++)
