@@ -1,5 +1,5 @@
 // File: common.hh
-// Date: Tue Apr 16 13:31:08 2013 +0800
+// Date: Tue Apr 16 20:17:05 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
@@ -33,10 +33,12 @@ const real_t OFFSET_THRES = 0.6;
 const real_t ORI_WINDOW_FACTOR = 1.5;		// lowe
 const real_t ORI_RADIUS = 3 * ORI_WINDOW_FACTOR;
 
-const int HIST_BIN_NUM = 36;		// lowe
-const int HIST_SMOOTH_COUNT = 2;
-const real_t HIST_PEAK_RATIO = 0.8;		// lowe
+const int ORT_HIST_BIN_NUM = 36;		// lowe
+const int ORT_HIST_SMOOTH_COUNT = 2;
+const real_t ORT_HIST_PEAK_RATIO = 0.8;		// lowe
 
+const int DESC_HIST_WIDTH = 4;
+const int DESC_HIST_BIN_NUM = 8;
 
 template<typename T>
 bool update_min(T &dest, const T &val) {

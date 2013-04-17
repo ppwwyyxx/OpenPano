@@ -1,5 +1,5 @@
 // File: keypoint.cc
-// Date: Tue Apr 16 13:31:05 2013 +0800
+// Date: Wed Apr 17 16:10:01 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include <cstring>
@@ -178,7 +178,7 @@ vector<real_t> KeyPoint::calc_hist(shared_ptr<Octave> oct, int ns, Coor coor, re
 	int rad = orig_sig * ORI_RADIUS + 0.5;
 
 	real_t exp_denom = 2 * sqr(sigma);
-	real_t hist[HIST_BIN_NUM];
+	real_t hist[ORT_HIST_BIN_NUM];
 	memset(hist, 0, sizeof(hist));
 
 	for (int xx = -rad; xx < rad; xx ++) {
@@ -191,10 +191,10 @@ vector<real_t> KeyPoint::calc_hist(shared_ptr<Octave> oct, int ns, Coor coor, re
 				continue;
 			if (sqr(xx) + sqr(yy) > sqr(rad))		// use a circular gaussian window
 				continue;
-			int bin = round(HIST_BIN_NUM / 2 * (oct->get_ort(ns)->get_pixel(newy, newx)) / M_PI);
-			if (bin == HIST_BIN_NUM) bin = 0;
+			int bin = round(ORT_HIST_BIN_NUM / 2 * (oct->get_ort(ns)->get_pixel(newy, newx)) / M_PI);
+			if (bin == ORT_HIST_BIN_NUM) bin = 0;
 
-			m_assert(bin < HIST_BIN_NUM);
+			m_assert(bin < ORT_HIST_BIN_NUM);
 
 			real_t weight = exp(-(sqr(xx) + sqr(yy)) / exp_denom);
 			hist[bin] += weight * oct->get_mag(ns)->get_pixel(newy, newx);
@@ -204,34 +204,65 @@ vector<real_t> KeyPoint::calc_hist(shared_ptr<Octave> oct, int ns, Coor coor, re
 	}
 
 
-	for (int kk = HIST_SMOOTH_COUNT; kk --;)		// smooth by interpolation
-		for (int i = 0; i < HIST_BIN_NUM; i ++) {
-			real_t prev = hist[i == 0 ? HIST_BIN_NUM - 1 : i - 1];
-			real_t next = hist[i == HIST_BIN_NUM - 1 ? 0 : i + 1];
+	for (int kk = ORT_HIST_SMOOTH_COUNT; kk --;)		// smooth by interpolation
+		for (int i = 0; i < ORT_HIST_BIN_NUM; i ++) {
+			real_t prev = hist[i == 0 ? ORT_HIST_BIN_NUM - 1 : i - 1];
+			real_t next = hist[i == ORT_HIST_BIN_NUM - 1 ? 0 : i + 1];
 			hist[i] = hist[i] * 0.5 + (prev + next) * 0.25;
 		}
 
 	real_t maxbin = 0;
 	for (auto i : hist) update_max(maxbin, i);
 
-	real_t thres = maxbin * HIST_PEAK_RATIO;
+	real_t thres = maxbin * ORT_HIST_PEAK_RATIO;
 	vector<real_t> ret;
 
-	for (int i = 0; i < HIST_BIN_NUM; i ++) {
-		real_t prev = hist[i == 0 ? HIST_BIN_NUM - 1 : i - 1];
-		real_t next = hist[i == HIST_BIN_NUM - 1 ? 0 : i + 1];
+	for (int i = 0; i < ORT_HIST_BIN_NUM; i ++) {
+		real_t prev = hist[i == 0 ? ORT_HIST_BIN_NUM - 1 : i - 1];
+		real_t next = hist[i == ORT_HIST_BIN_NUM - 1 ? 0 : i + 1];
 		if (hist[i] > thres && hist[i] > max(prev, next)) {
 			real_t newbin = i + (prev - next) / (prev + next - 2 * hist[i]) / 2;		// interpolation
 			if (newbin < 0)
-				newbin += HIST_BIN_NUM;
-			else if (newbin >= HIST_BIN_NUM)
-				newbin -= HIST_BIN_NUM;
-			real_t ort = newbin / HIST_BIN_NUM * 2 * M_PI;
+				newbin += ORT_HIST_BIN_NUM;
+			else if (newbin >= ORT_HIST_BIN_NUM)
+				newbin -= ORT_HIST_BIN_NUM;
+			real_t ort = newbin / ORT_HIST_BIN_NUM * 2 * M_PI;
 			ret.push_back(ort);
 		}
 	}
 	m_assert(ret.size());
 	return move(ret);
+}
+
+void KeyPoint::calc_descriptor() {
+	for (auto &feat: features)
+		calc_descriptor(feat);
+}
+
+void KeyPoint::calc_descriptor(Feature& feat) {
+	real_t hist[DESC_HIST_BIN_NUM];
+
+	Coor coor = feat.coor;
+	real_t ort = feat.dir,
+		   hist_w = feat.sig_octave * DESC_HIST_WIDTH,
+		   exp_denom = 2 * sqr(DESC_HIST_WIDTH / 2);
+
+	real_t cosort = cos(ort),
+		   sinort = sin(ort);
+
+	int no = feat.no,
+		ns = feat.ns,
+		radius = (int)(sqrt(2) * hist_w * (DESC_HIST_WIDTH + 1) / 2 + 0.5);
+
+	shared_ptr<Octave> octave = ss.octaves[no];
+	int w = octave->w, h = octave->h;
+
+	for (int xx = -radius; xx <= radius; xx ++)
+		for (int yy = -radius; yy <= radius; yy ++) {
+			Coor newcoor = coor + Coor(xx, yy);
+			// TODO judge contain
+		}
+
 }
 
 #undef D

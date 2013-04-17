@@ -1,5 +1,5 @@
 // File: filter.cc
-// Date: Mon Apr 15 23:06:55 2013 +0800
+// Date: Tue Apr 16 19:42:48 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "filter.hh"
@@ -50,7 +50,7 @@ shared_ptr<GreyImg> Filter::GaussianBlur(const shared_ptr<GreyImg> img, real_t s
 					int dj = y - center + j,
 						di = x - center + i;
 					real_t curr = img->get_pixel(di, dj);
-					newvalue += curr * (kernel[x][y] * compensation);
+					newvalue += curr * kernel[x][y] * compensation;
 				}
 			ret->set_pixel(i, j, newvalue);
 		}
