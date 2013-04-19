@@ -1,5 +1,5 @@
 // File: main.cc
-// Date: Tue Apr 16 13:08:29 2013 +0800
+// Date: Fri Apr 19 23:22:22 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "image.hh"
@@ -29,14 +29,16 @@ int main(int argc, char* argv[]) {
 	ScaleSpace ss(ptr, NUM_OCTAVE, NUM_SCALE);
 	DOGSpace sp(ss);
 	KeyPoint ex(sp, ss);
-	ex.detect_extrema();
-	ex.calc_dir();
+	ex.work();
 	cout << ex.features.size() << endl;
 	for (auto i : ex.features) {
 		/*
 		 *cout << i << endl;
 		 */
 		pld.arrow(i.real_coor, i.dir, LABEL_LEN);
+		for (real_t x : i.descriptor)
+			cout << x << " ";
+		cout << endl;
 	}
 	r->finish();
 	/*

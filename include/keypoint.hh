@@ -1,5 +1,5 @@
 // File: keypoint.hh
-// Date: Tue Apr 16 21:01:47 2013 +0800
+// Date: Fri Apr 19 23:22:19 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
@@ -39,5 +39,11 @@ class KeyPoint {
 		void calc_descriptor();
 
 		void calc_descriptor(Feature&);
+
+		void work() {
+			detect_extrema();
+			calc_dir();
+			calc_descriptor();
+		}
 
 };
