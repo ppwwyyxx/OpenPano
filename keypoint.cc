@@ -1,5 +1,5 @@
 // File: keypoint.cc
-// Date: Fri Apr 19 23:03:22 2013 +0800
+// Date: Sat Apr 20 01:52:12 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include <cstring>
@@ -78,8 +78,9 @@ void KeyPoint::get_feature(int nowo, int nows, int r, int c) {
 	f.real_coor = Coor((real_t)newx / w * dogsp.origw,
 			(real_t)newy / h * dogsp.origh);
 	f.ns = news, f.no = nowo;
-	f.sig_octave = GAUSS_SIGMA * pow(SCALE_FACTOR,
-			(real_t)(offset.z + news) / nscale);
+	f.sig_octave = GAUSS_SIGMA * pow(SCALE_FACTOR, (real_t)(offset.z + news) / nscale);
+	cout << news << " " << offset.z << endl;
+	cout << f.sig_octave << endl;
 
 	features.push_back(f);
 }
@@ -156,14 +157,15 @@ void KeyPoint::calc_dir() {
 	vector<Feature> update_feature;
 	for (auto &feat : features)
 		calc_dir(feat, update_feature);
-	cout << "before assign: " << features.size() << endl;
-	cout << "after assign: " << update_feature.size() << endl;
+	cout << "before assign ort: " << features.size() << endl;
+	cout << "after assign ort: " << update_feature.size() << endl;
 	features = move(update_feature);
 }
 
 void KeyPoint::calc_dir(Feature& feat, vector<Feature>& update_feat) {
 	int no = feat.no, ns = feat.ns;
 	Coor now = feat.coor;
+
 
 	for (auto ori : calc_hist(ss.octaves[no], ns, now, feat.sig_octave)) {
 		Feature newf(feat);
@@ -238,20 +240,19 @@ void KeyPoint::calc_descriptor() {
 
 void KeyPoint::calc_descriptor(Feature& feat) {
 	Coor coor = feat.coor;
-	real_t ort = feat.dir,
-		   hist_w = feat.sig_octave * DESC_HIST_WIDTH,
+	real_t pi2 = 2 * M_PI,
+		   ort = feat.dir,
+		   hist_w = feat.sig_octave * DESC_HIST_REAL_WIDTH,
 		   exp_denom = 2 * sqr(DESC_HIST_WIDTH / 2);		// from lowe
 
-	/*
-	 *real_t cosort = cos(ort),
-	 *       sinort = sin(ort);
-	 */
+	real_t cosort = cos(ort),
+		   sinort = sin(ort);
 
 	int no = feat.no,
 		ns = feat.ns,
 		radius = (int)(sqrt(2) * hist_w * (DESC_HIST_WIDTH + 1) / 2 + 0.5);
 
-	static real_t nbin_per_rad = DESC_HIST_BIN_NUM / 2 / M_PI;
+	static real_t nbin_per_rad = DESC_HIST_BIN_NUM / pi2;
 
 	shared_ptr<Octave> octave = ss.octaves[no];
 	int w = octave->w, h = octave->h;
@@ -265,35 +266,33 @@ void KeyPoint::calc_descriptor(Feature& feat) {
 		for (int yy = -radius; yy <= radius; yy ++) {
 			int newy = coor.y + yy;
 			if (!between(newy, 1, h - 1)) continue;
-			if (sqr(xx) + sqr(yy) > sqr(radius)) continue;
-
 			/*
-			 *real_t y_rot = (-xx * sinort - yy * cosort) / hist_w,		// yy is up->down
-			 *       x_rot = (xx * cosort - yy * sinort) / hist_w;		// to be circle
+			 *if (sqr(xx) + sqr(yy) > sqr(radius)) continue;
 			 */
-			real_t ybin_r = (real_t)yy / hist_w + DESC_HIST_WIDTH / 2 - 0.5,
-				   xbin_r = (real_t)xx / hist_w + DESC_HIST_WIDTH / 2 - 0.5;
+
+			real_t y_rot = (-xx * sinort + yy * cosort) / hist_w,		// yy is up->down
+				   x_rot = (xx * cosort + yy * sinort) / hist_w;		// to be circle
+			real_t ybin_r = y_rot + DESC_HIST_WIDTH / 2 - 0.5,
+				   xbin_r = x_rot + DESC_HIST_WIDTH / 2 - 0.5;
 
 			real_t pic_mag = octave->get_mag(ns)->get_pixel(newy, newx),
 				   pic_ort = octave->get_ort(ns)->get_pixel(newy, newx);
 
 			if (between(ybin_r, -1, DESC_HIST_WIDTH) && between(xbin_r, -1, DESC_HIST_WIDTH)) {
-				real_t descort = pic_ort - ort;							// for rotation invariance
-				real_t pi2 = 2 * M_PI;
-				if (descort < 0) descort += pi2;
-				if (descort > pi2) descort -= pi2;
+				pic_ort -= ort;							// for rotation invariance
+				if (pic_ort < 0) pic_ort += pi2;
+				if (pic_ort > pi2) pic_ort -= pi2;
 
-				real_t nowbin_r = descort * nbin_per_rad;
+				real_t nowbin_r = pic_ort * nbin_per_rad;
 				int ybin = floor(ybin_r),
 					xbin = floor(xbin_r),
 					nowbin = floor(nowbin_r);
+				real_t win = exp(-(sqr(x_rot) + sqr(y_rot)) / exp_denom);
+
+				// trilinear
 				real_t ybin_d = ybin_r - ybin,
 					   xbin_d = xbin_r - xbin,
 					   nowbin_d = nowbin_r - nowbin;		// to split a point to two block
-
-				real_t win = exp(-(sqr(xx) + sqr(yy)) / exp_denom);
-
-				// trilinear
 				for (int r : {0, 1})
 					if (between(ybin + r, 0, DESC_HIST_WIDTH)) {
 						real_t v_y = pic_mag * (r ? ybin_d : 1 - ybin_d) * win;
@@ -303,14 +302,14 @@ void KeyPoint::calc_descriptor(Feature& feat) {
 								for (int o : {0, 1}) {
 									int ob = (nowbin + o) % DESC_HIST_BIN_NUM;
 									real_t v_o = v_x * (o ? nowbin_d : 1 - nowbin_d);
-									/*
-									 *print_debug("ybin: %d, xbin: %d, ob: %d\n", ybin + r, xbin + c, ob);
-									 */
 									hist[(ybin + r) * DESC_HIST_WIDTH + (xbin + c)][ob] += v_o;
 								}
 							}
-					}
-				// end of trilinear
+					} // end of trilinear
+				/*
+				 *if (between(ybin, 0, DESC_HIST_WIDTH) && between(xbin, 0, DESC_HIST_WIDTH))
+				 *    hist[ybin * DESC_HIST_WIDTH + xbin][nowbin % DESC_HIST_BIN_NUM] += pic_mag * win;
+				 */
 			}
 		}
 	}

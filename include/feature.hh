@@ -1,12 +1,11 @@
 // File: feature.hh
-// Date: Fri Apr 19 23:03:25 2013 +0800
+// Date: Sat Apr 20 00:04:09 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
 
 #include "geometry.hh"
 #include <cstring>
-#define DESC_LEN 128
 
 class Feature {
 	public:

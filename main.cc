@@ -1,21 +1,35 @@
 // File: main.cc
-// Date: Fri Apr 19 23:40:07 2013 +0800
+// Date: Sat Apr 20 01:48:33 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
-#include "image.hh"
 #include "keypoint.hh"
 #include "render/filerender.hh"
 #include "planedrawer.hh"
 #include "filter.hh"
+#include "gallery.hh"
+#include <ctime>
+
 using namespace std;
+using namespace Magick;
 
 #define LABEL_LEN 7
+
+inline real_t gen_rand()
+{ return (real_t)rand() / RAND_MAX; }
 
 void show(shared_ptr<GreyImg> img) {
 	Img res(*img);
 	FileRender r(&res, "out.png");
 	r.write(&res);
 	r.finish();
+}
+
+vector<Feature> get_feature(shared_ptr<Img> ptr) {
+	ScaleSpace ss(ptr, NUM_OCTAVE, NUM_SCALE);
+	DOGSpace sp(ss);
+	KeyPoint ex(sp, ss);
+	ex.work();
+	return move(ex.features);
 }
 
 void test_feature(const char* fname) {
@@ -26,12 +40,9 @@ void test_feature(const char* fname) {
 	PlaneDrawer pld(r);
 
 	shared_ptr<Img> ptr(new Img(test));
-	ScaleSpace ss(ptr, NUM_OCTAVE, NUM_SCALE);
-	DOGSpace sp(ss);
-	KeyPoint ex(sp, ss);
-	ex.work();
-	cout << ex.features.size() << endl;
-	for (auto i : ex.features) {
+	vector<Feature> ans = get_feature(ptr);
+	cout << ans.size() << endl;
+	for (auto i : ans) {
 		pld.arrow(i.real_coor, i.dir, LABEL_LEN);
 		for (real_t x : i.descriptor)
 			cout << x << " ";
@@ -44,6 +55,62 @@ void test_feature(const char* fname) {
 	 */
 }
 
+int cal_dist(Feature& x, Feature& y) {
+	int ans = 0;
+	for (int i = 0; i < DESC_LEN; i ++)
+		ans += abs(x.descriptor[i] - y.descriptor[i]);
+	return ans;
+}
+
+void gallery(const char* f1, const char* f2) {
+	list<Image> imagelist;
+	Image pic1(f1);
+	Image pic2(f2);
+	imagelist.push_back(pic1);
+	imagelist.push_back(pic2);
+	Gallery ga(imagelist);
+
+	Img test(ga.get());
+	RenderBase* r = new FileRender(&test, "out.png");
+	PlaneDrawer pld(r);
+	r->write(&test);
+
+	shared_ptr<Img> ptr(new Img(test));
+	vector<Feature> ans = get_feature(ptr);
+	for (auto i : ans) pld.arrow(i.real_coor, i.dir, LABEL_LEN);
+
+	shared_ptr<Img> ptr1(new Img(pic1));
+	shared_ptr<Img> ptr2(new Img(pic2));
+	vector<Feature> feat1 = get_feature(ptr1);
+	vector<Feature> feat2 = get_feature(ptr2);
+
+	for (auto i : feat1) {
+
+		int min = numeric_limits<int>::max();
+		Coor mincoor;
+		for (auto &j : feat2) {
+			int dist = cal_dist(i, j);
+			if (dist < min) {
+				min = dist;
+				mincoor = j.real_coor;
+			}
+		}
+		if (min > 400) continue;
+		mincoor.x += ptr1->w;
+
+		pld.set_color(::Color(gen_rand(), gen_rand(), gen_rand()));
+		pld.circle(i.real_coor, LABEL_LEN);
+		pld.circle(mincoor, LABEL_LEN);
+		pld.line(i.real_coor, mincoor);
+	}
+
+	r->finish();
+}
+
 int main(int argc, char* argv[]) {
-	test_feature(argv[1]);
+	srand(time(NULL));
+	/*
+	 *test_feature(argv[1]);
+	 */
+	gallery(argv[1], argv[2]);
 }
