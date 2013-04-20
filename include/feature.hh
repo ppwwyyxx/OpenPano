@@ -1,5 +1,5 @@
 // File: feature.hh
-// Date: Sat Apr 20 00:04:09 2013 +0800
+// Date: Sat Apr 20 10:18:03 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
@@ -15,7 +15,7 @@ class Feature {
 		int sub_scale;		// to be more precise?
 
 		real_t descriptor[DESC_LEN];
-		real_t sig_octave;
+		real_t scale_factor;
 		real_t dir;
 
 		Feature(){}
@@ -27,7 +27,7 @@ class Feature {
 			real_coor = r.real_coor;
 			dir = r.dir;
 			sub_scale = r.sub_scale;
-			sig_octave = r.sig_octave;
+			scale_factor = r.scale_factor;
 			memcpy(descriptor, r.descriptor, DESC_LEN * sizeof(real_t));
 		}
 };

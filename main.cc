@@ -1,5 +1,5 @@
 // File: main.cc
-// Date: Sat Apr 20 01:48:33 2013 +0800
+// Date: Sat Apr 20 10:38:57 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "keypoint.hh"
@@ -84,8 +84,10 @@ void gallery(const char* f1, const char* f2) {
 	vector<Feature> feat1 = get_feature(ptr1);
 	vector<Feature> feat2 = get_feature(ptr2);
 
-	for (auto i : feat1) {
-
+	int cnt = 0, len = feat1.size();
+#pragma omp parallel for schedule(dynamic)
+	for (int k = 0; k < len; k ++) {
+		Feature& i = feat1[k];
 		int min = numeric_limits<int>::max();
 		Coor mincoor;
 		for (auto &j : feat2) {
@@ -98,11 +100,16 @@ void gallery(const char* f1, const char* f2) {
 		if (min > 400) continue;
 		mincoor.x += ptr1->w;
 
-		pld.set_color(::Color(gen_rand(), gen_rand(), gen_rand()));
-		pld.circle(i.real_coor, LABEL_LEN);
-		pld.circle(mincoor, LABEL_LEN);
-		pld.line(i.real_coor, mincoor);
+#pragma omp critical
+		{
+			pld.set_color(::Color(gen_rand(), gen_rand(), gen_rand()));
+			pld.circle(i.real_coor, LABEL_LEN);
+			pld.circle(mincoor, LABEL_LEN);
+			pld.line(i.real_coor, mincoor);
+			cnt ++;
+		}
 	}
+	cout << "match: " << cnt << endl;
 
 	r->finish();
 }
