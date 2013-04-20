@@ -1,13 +1,17 @@
 // File: matcher.cc
-// Date: Sat Apr 20 14:54:04 2013 +0800
+// Date: Sat Apr 20 15:02:41 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include <limits>
 #include "matcher.hh"
 using namespace std;
 
-vector<pair<Coor, Coor>> Matcher::match() const {
-	vector<pair<Coor, Coor>> ret;
+void MatchData::add(Coor x, Coor y) {
+	data.push_back({x, y});
+}
+
+MatchData Matcher::match() const {
+	MatchData ret;
 	int l1 = feat1.size();
 
 #pragma omp parallel for schedule(dynamic)
@@ -25,7 +29,7 @@ vector<pair<Coor, Coor>> Matcher::match() const {
 		if (min > 100) continue;
 
 #pragma omp critical
-		ret.push_back({i.real_coor, mincoor});
+		ret.add(i.real_coor, mincoor);
 	}
 	cout << "match: " << ret.size() << endl;
 	return move(ret);
@@ -34,6 +38,6 @@ vector<pair<Coor, Coor>> Matcher::match() const {
 real_t Matcher::cal_dist(const Feature& x, const Feature& y) const {
 	real_t ans = 0;
 	for (int i = 0; i < DESC_LEN; i ++)
-		ans += sqr(x.descriptor[i] - y.descriptor[i]);
+		ans += sqr(x.descriptor[i] - y.descriptor[i]);		// use euclidean
 	return sqrt(ans);
 }

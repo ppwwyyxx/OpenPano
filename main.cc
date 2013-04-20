@@ -1,5 +1,5 @@
 // File: main.cc
-// Date: Sat Apr 20 14:50:19 2013 +0800
+// Date: Sat Apr 20 15:02:53 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "keypoint.hh"
@@ -81,7 +81,7 @@ void gallery(const char* f1, const char* f2) {
 
 	Matcher match(feat1, feat2);
 	auto ret = match.match();
-	for (auto &x : ret) {
+	for (auto &x : ret.data) {
 		pld.set_color(::Color(gen_rand(), gen_rand(), gen_rand()));
 		pld.circle(x.first, LABEL_LEN);
 		pld.circle(x.second + Coor(ptr1->w, 0), LABEL_LEN);
