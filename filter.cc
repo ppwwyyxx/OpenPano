@@ -1,5 +1,5 @@
 // File: filter.cc
-// Date: Tue Apr 16 19:42:48 2013 +0800
+// Date: Sat Apr 20 14:30:49 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "filter.hh"
@@ -33,7 +33,8 @@ shared_ptr<GreyImg> Filter::GaussianBlur(const shared_ptr<GreyImg> img, real_t s
 
 	for (int i = 0; i < h; i ++)
 		for (int j = 0; j < w; j ++) {
-			int x_bound = min(kw, h + center - i), y_bound = min(kw, w + center - j);
+			int x_bound = min(kw, h + center - i),
+				y_bound = min(kw, w + center - j);
 			real_t kernel_tot = 0;
 			if (j >= center && x_bound == kw && i >= center && y_bound == kw)
 				kernel_tot = kernel_tot_all;

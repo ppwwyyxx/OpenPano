@@ -1,11 +1,12 @@
 // File: main.cc
-// Date: Sat Apr 20 10:38:57 2013 +0800
+// Date: Sat Apr 20 14:50:19 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "keypoint.hh"
 #include "render/filerender.hh"
 #include "planedrawer.hh"
 #include "filter.hh"
+#include "matcher.hh"
 #include "gallery.hh"
 #include <ctime>
 
@@ -55,12 +56,6 @@ void test_feature(const char* fname) {
 	 */
 }
 
-int cal_dist(Feature& x, Feature& y) {
-	int ans = 0;
-	for (int i = 0; i < DESC_LEN; i ++)
-		ans += abs(x.descriptor[i] - y.descriptor[i]);
-	return ans;
-}
 
 void gallery(const char* f1, const char* f2) {
 	list<Image> imagelist;
@@ -84,32 +79,14 @@ void gallery(const char* f1, const char* f2) {
 	vector<Feature> feat1 = get_feature(ptr1);
 	vector<Feature> feat2 = get_feature(ptr2);
 
-	int cnt = 0, len = feat1.size();
-#pragma omp parallel for schedule(dynamic)
-	for (int k = 0; k < len; k ++) {
-		Feature& i = feat1[k];
-		int min = numeric_limits<int>::max();
-		Coor mincoor;
-		for (auto &j : feat2) {
-			int dist = cal_dist(i, j);
-			if (dist < min) {
-				min = dist;
-				mincoor = j.real_coor;
-			}
-		}
-		if (min > 400) continue;
-		mincoor.x += ptr1->w;
-
-#pragma omp critical
-		{
-			pld.set_color(::Color(gen_rand(), gen_rand(), gen_rand()));
-			pld.circle(i.real_coor, LABEL_LEN);
-			pld.circle(mincoor, LABEL_LEN);
-			pld.line(i.real_coor, mincoor);
-			cnt ++;
-		}
+	Matcher match(feat1, feat2);
+	auto ret = match.match();
+	for (auto &x : ret) {
+		pld.set_color(::Color(gen_rand(), gen_rand(), gen_rand()));
+		pld.circle(x.first, LABEL_LEN);
+		pld.circle(x.second + Coor(ptr1->w, 0), LABEL_LEN);
+		pld.line(x.first, x.second + Coor(ptr1->w, 0));
 	}
-	cout << "match: " << cnt << endl;
 
 	r->finish();
 }

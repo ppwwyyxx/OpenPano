@@ -1,5 +1,5 @@
 // File: common.hh
-// Date: Sat Apr 20 10:20:56 2013 +0800
+// Date: Sat Apr 20 14:55:52 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
@@ -14,6 +14,8 @@
 
 typedef double real_t;
 const real_t EPS = 1e-6;
+inline real_t sqr(real_t x) { return x * x; }
+
 
 const int NUM_OCTAVE = 4;
 const int NUM_SCALE = 6;
@@ -39,10 +41,9 @@ const real_t ORT_HIST_PEAK_RATIO = 0.8;		// lowe
 
 const int DESC_HIST_WIDTH = 4;
 const int DESC_HIST_REAL_WIDTH = 3;
-const int DESC_HIST_BIN_NUM = 8;
-const real_t DESC_NORM_THRESH = 0.2;		// lowe
+const int DESC_HIST_BIN_NUM = 8; const real_t DESC_NORM_THRESH = 0.2;		// lowe
 const int DESC_INT_FACTOR = 512;
-const int DESC_LEN = 128;
+const int DESC_LEN = sqr(DESC_HIST_WIDTH) * DESC_HIST_BIN_NUM;
 
 template<typename T>
 bool update_min(T &dest, const T &val) {
@@ -51,9 +52,6 @@ bool update_min(T &dest, const T &val) {
 	}
 	return false;
 }
-
-inline real_t sqr(real_t x)
-{ return x * x; }
 
 template<typename T>
 bool update_max(T &dest, const T &val) {
