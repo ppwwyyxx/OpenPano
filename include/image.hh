@@ -1,16 +1,17 @@
 // File: image.hh
-// Date: Thu Apr 11 10:51:37 2013 +0800
+// Date: Sat Apr 20 15:50:03 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
 
 #include <cstring>
+#include <memory>
 #include <Magick++.h>
 #include "color.hh"
 
 class GreyImg;
 
-class Img {
+class Img : public std::enable_shared_from_this<Img> {
 	protected:
 		void init(int m_w, int m_h);
 
@@ -57,6 +58,8 @@ class GreyImg {
 
 		void init_from_img(const Img& img);
 
+		void init_from_image(const Magick::Image img);
+
 	public:
 		int w, h;
 		real_t* pixel;
@@ -75,10 +78,15 @@ class GreyImg {
 		GreyImg(const Img& img)
 		{ init_from_img(img); }
 
+		GreyImg(const Magick::Image& img)
+		{ init_from_image(img); }
+
 		~GreyImg()
 		{ delete[] pixel; }
 
-		real_t get_pixel(int x, int y) const ;
+		std::shared_ptr<Img> to_img() const;
+
+		real_t get_pixel(int x, int y) const;
 
 		void set_pixel(int x, int y, real_t c);
 

@@ -1,22 +1,30 @@
 // File: filter.cc
-// Date: Sat Apr 20 14:30:49 2013 +0800
+// Date: Sat Apr 20 15:57:55 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "filter.hh"
 #include "utils.hh"
 #include "render/MImageRender.hh"
+using namespace Magick;
 using namespace std;
 
 shared_ptr<GreyImg> Filter::GaussianBlur(const shared_ptr<GreyImg> img, real_t sigma) {
 	print_debug("gaussian with sigma %lf\n", sigma);
 	HWTimer timer;
-	int w = img->w, h = img->h;
-	shared_ptr<GreyImg> ret(new GreyImg(*img));
+	const int w = img->w, h = img->h;
+	shared_ptr<GreyImg> ret(new GreyImg(w, h));
 
 	const int kw = ceil(GAUSS_WINDOW_FACTOR * sigma + 0.5);	// XXX window size
-	const int center = kw / 2;
 
-	real_t normalization_factor = 2 * M_PI * sqr(sigma);
+	/*
+	 *Image mimg = MImg(img).get_img();
+	 *mimg.quantizeColorSpace(GRAYColorspace);
+	 *mimg.gaussianBlur(kw, sigma);
+	 *shared_ptr<GreyImg> ret(new GreyImg(Img(mimg)));
+	 */
+
+	const int center = kw / 2;
+	const real_t normalization_factor = 2 * M_PI * sqr(sigma);
 	real_t kernel_tot_all = 0;
 
 	real_t ** kernel = new real_t*[kw];

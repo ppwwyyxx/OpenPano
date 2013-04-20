@@ -1,5 +1,5 @@
 // File: common.hh
-// Date: Sat Apr 20 15:03:57 2013 +0800
+// Date: Sat Apr 20 15:09:47 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
@@ -45,6 +45,8 @@ const int DESC_HIST_BIN_NUM = 8;
 const real_t DESC_NORM_THRESH = 0.2;		// lowe
 const int DESC_INT_FACTOR = 512;
 const int DESC_LEN = 128;
+
+const real_t MATCH_REJECT_NEXT_RATIO = 0.8; // lowe
 
 template<typename T>
 bool update_min(T &dest, const T &val) {

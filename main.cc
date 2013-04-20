@@ -1,5 +1,5 @@
 // File: main.cc
-// Date: Sat Apr 20 15:02:53 2013 +0800
+// Date: Sat Apr 20 15:46:32 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "keypoint.hh"
@@ -18,13 +18,6 @@ using namespace Magick;
 inline real_t gen_rand()
 { return (real_t)rand() / RAND_MAX; }
 
-void show(shared_ptr<GreyImg> img) {
-	Img res(*img);
-	FileRender r(&res, "out.png");
-	r.write(&res);
-	r.finish();
-}
-
 vector<Feature> get_feature(shared_ptr<Img> ptr) {
 	ScaleSpace ss(ptr, NUM_OCTAVE, NUM_SCALE);
 	DOGSpace sp(ss);
@@ -34,14 +27,13 @@ vector<Feature> get_feature(shared_ptr<Img> ptr) {
 }
 
 void test_feature(const char* fname) {
-	Img test(fname);
-	RenderBase* r = new FileRender(&test, "out.png");
-	r->write(&test);
+	shared_ptr<Img> test(new Img(fname));
+	RenderBase* r = new FileRender(test, "out.png");
+	r->write(test);
 	cout << r->get_geo().w << r->get_geo().h << endl;
 	PlaneDrawer pld(r);
 
-	shared_ptr<Img> ptr(new Img(test));
-	vector<Feature> ans = get_feature(ptr);
+	vector<Feature> ans = get_feature(test);
 	cout << ans.size() << endl;
 	for (auto i : ans) {
 		pld.arrow(i.real_coor, i.dir, LABEL_LEN);
@@ -65,13 +57,12 @@ void gallery(const char* f1, const char* f2) {
 	imagelist.push_back(pic2);
 	Gallery ga(imagelist);
 
-	Img test(ga.get());
-	RenderBase* r = new FileRender(&test, "out.png");
+	shared_ptr<Img> test(new Img(ga.get()));
+	RenderBase* r = new FileRender(test, "out.png");
 	PlaneDrawer pld(r);
-	r->write(&test);
+	r->write(test);
 
-	shared_ptr<Img> ptr(new Img(test));
-	vector<Feature> ans = get_feature(ptr);
+	vector<Feature> ans = get_feature(test);
 	for (auto i : ans) pld.arrow(i.real_coor, i.dir, LABEL_LEN);
 
 	shared_ptr<Img> ptr1(new Img(pic1));

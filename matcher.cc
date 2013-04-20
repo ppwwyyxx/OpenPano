@@ -1,5 +1,5 @@
 // File: matcher.cc
-// Date: Sat Apr 20 15:02:41 2013 +0800
+// Date: Sat Apr 20 15:15:25 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include <limits>
@@ -17,16 +17,24 @@ MatchData Matcher::match() const {
 #pragma omp parallel for schedule(dynamic)
 	for (int k = 0; k < l1; k ++) {
 		const Feature& i = feat1[k];
-		int min = numeric_limits<int>::max();
+		real_t min = numeric_limits<int>::max(),
+			minn = min;
 		Coor mincoor;
 		for (auto &j : feat2) {
 			real_t dist = cal_dist(i, j);
 			if (dist < min) {
+				minn = min;
 				min = dist;
 				mincoor = j.real_coor;
+			} else {
+				update_min(minn, dist);
 			}
 		}
-		if (min > 100) continue;
+		if (min / minn > MATCH_REJECT_NEXT_RATIO || min > 200)
+			continue;
+		/*
+		 *if (min > 100) continue;
+		 */
 
 #pragma omp critical
 		ret.add(i.real_coor, mincoor);

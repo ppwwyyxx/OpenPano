@@ -1,5 +1,5 @@
 // File: MImageRender.hh
-// Date: Fri Apr 12 16:24:39 2013 +0800
+// Date: Sat Apr 20 15:43:24 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
@@ -26,9 +26,13 @@ class MImg : public RenderBase {
 		MImg(int w, int h):
 			MImg(Geometry(w, h)){}
 
-		MImg(const Img* r):
+		MImg(const std::shared_ptr<const Img> r):
 			MImg(r->w, r->h)
 		{ write(r); }
+
+		MImg(const std::shared_ptr<GreyImg> r):
+			MImg(r->w, r->h)
+		{ write(r->to_img()); }
 
 		~MImg()
 		{ delete view; }

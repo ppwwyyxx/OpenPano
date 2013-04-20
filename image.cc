@@ -1,5 +1,5 @@
 // File: image.cc
-// Date: Sun Apr 14 16:48:25 2013 +0800
+// Date: Sat Apr 20 15:42:46 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "image.hh"
@@ -48,7 +48,7 @@ Img::Img(const GreyImg& gr) {
 Img Img::get_resized(real_t factor) const {
 	int neww = ceil(w * factor),
 		newh = ceil(h * factor);
-	Image img = MImg(this).get_img();
+	Image img = MImg(shared_from_this()).get_img();
 	img.resize(Magick::Geometry(neww, newh));
 	return Img(img);
 }
@@ -86,4 +86,14 @@ void GreyImg::init_from_img(const Img& img) {
 	for (int i = 0; i < h; i ++)
 		for (int j = 0; j < w; j ++)
 			set_pixel(i, j, Filter::to_grey(img.get_pixel(i, j)));
+}
+
+shared_ptr<Img> GreyImg::to_img() const {
+	shared_ptr<Img> ret(new Img(w, h));
+	for (int i = 0; i < h; i ++)
+		for (int j = 0; j < w; j ++) {
+			real_t grey = get_pixel(i, j);
+			ret->set_pixel(i, j, ::Color(grey, grey, grey));
+		}
+	return ret;
 }

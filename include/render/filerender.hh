@@ -1,5 +1,5 @@
 // File: filerender.hh
-// Date: Fri Apr 12 16:24:46 2013 +0800
+// Date: Sat Apr 20 15:45:02 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
@@ -30,7 +30,7 @@ class FileRender : public RenderBase {
 		FileRender(int w, int h, const char* fname):
 			FileRender(::Geometry(w, h), fname){}
 
-		FileRender(const Img* img, const char* fname):
+		FileRender(std::shared_ptr<Img> img, const char* fname):
 			FileRender(img->w, img->h, fname){}
 
 		~FileRender()

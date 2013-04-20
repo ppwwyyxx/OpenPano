@@ -1,10 +1,11 @@
 // File: render.hh
-// Date: Sat Apr 13 13:40:24 2013 +0800
+// Date: Sat Apr 20 15:36:43 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 
 #pragma once
 
+#include <memory>
 #include "common.hh"
 #include "matrix.hh"
 #include "color.hh"
@@ -45,7 +46,7 @@ class RenderBase {
 					write(i, j, m.get(j, i));
 		}
 
-		void write(const Img* r) {
+		void write(std::shared_ptr<const Img> r) {
 			m_assert((r->h == geo.h) && (r->w == geo.w));
 			Color *dest = r->pixel;
 			for (int i = 0; i < geo.h; i ++)
