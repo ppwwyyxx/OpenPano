@@ -1,5 +1,5 @@
 // File: common.hh
-// Date: Sat Apr 20 16:14:22 2013 +0800
+// Date: Sat Apr 20 16:18:03 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
@@ -25,7 +25,7 @@ const real_t GAUSS_SIGMA = SCALE_FACTOR;
 const int GAUSS_WINDOW_FACTOR = 6;		// before: 4
 
 const real_t JUDGE_EXTREMA_DIFF_THRES = 2e-7;
-const real_t CONTRAST_THRES = 3e-2;		// lowe  before: 7e-3
+const real_t CONTRAST_THRES = 3e-2;		// before: 7e-3
 const real_t PRE_COLOR_THRES = 2e-4;		// before : 3e-5
 const real_t EDGE_RATIO = 10;		// lowe
 

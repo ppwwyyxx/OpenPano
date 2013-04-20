@@ -1,5 +1,5 @@
 // File: main.cc
-// Date: Sat Apr 20 15:46:32 2013 +0800
+// Date: Sat Apr 20 17:29:13 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "keypoint.hh"
@@ -35,12 +35,8 @@ void test_feature(const char* fname) {
 
 	vector<Feature> ans = get_feature(test);
 	cout << ans.size() << endl;
-	for (auto i : ans) {
+	for (auto i : ans)
 		pld.arrow(i.real_coor, i.dir, LABEL_LEN);
-		for (real_t x : i.descriptor)
-			cout << x << " ";
-		cout << endl;
-	}
 	r->finish();
 	/*
 	 *shared_ptr<GreyImg> ptr1 = Filter::GreyScale(ptr);

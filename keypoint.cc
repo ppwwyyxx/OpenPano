@@ -1,5 +1,5 @@
 // File: keypoint.cc
-// Date: Sat Apr 20 16:09:55 2013 +0800
+// Date: Sat Apr 20 16:24:10 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include <cstring>
@@ -152,6 +152,7 @@ bool KeyPoint::judge_extrema(real_t center, int no, int ns, int nowi, int nowj) 
 void KeyPoint::calc_dir() {
 	m_assert(features.size());  // require get_feature finished
 	vector<Feature> update_feature;
+	update_feature.reserve(features.size());
 	for (auto &feat : features)
 		calc_dir(feat, update_feature);
 	cout << "before assign ort: " << features.size() << endl;

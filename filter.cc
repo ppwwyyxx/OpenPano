@@ -1,5 +1,5 @@
 // File: filter.cc
-// Date: Sat Apr 20 16:13:02 2013 +0800
+// Date: Sat Apr 20 16:18:09 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "filter.hh"
@@ -18,6 +18,9 @@ shared_ptr<GreyImg> Filter::GaussianBlur(const shared_ptr<GreyImg> img, real_t s
 	 *const int kw = ceil(GAUSS_WINDOW_FACTOR * sigma + 0.5);
 	 */
 	const int kw = ceil(0.3 * (sigma / 2 - 1) + 0.8) * GAUSS_WINDOW_FACTOR;
+	/*
+	 *const int kw = ((sigma - 0.8) / 0.3 + 1) * 2;
+	 */
 	// TODO decide window size ?
 
 	/*
