@@ -1,5 +1,5 @@
 // File: image.hh
-// Date: Sun Apr 21 20:03:20 2013 +0800
+// Date: Sun Apr 21 20:58:09 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
@@ -24,9 +24,8 @@ class Img : public std::enable_shared_from_this<Img> {
 		Img(){}
 
 		Img(const Img& img):
-			Img(img.w, img.h) {
-			memcpy(pixel, img.pixel, w * h * sizeof(Color));
-		}
+			Img(img.w, img.h)
+		{ memcpy(pixel, img.pixel, w * h * sizeof(Color)); }
 
 		Img(Img&& img) {
 			w = img.w, h = img.h;
@@ -73,9 +72,7 @@ class GreyImg {
 
 		GreyImg(const GreyImg& img):
 			GreyImg(img.w, img.h)
-		{
-			memcpy(pixel, img.pixel, w * h * sizeof(real_t));
-		}
+		{ memcpy(pixel, img.pixel, w * h * sizeof(real_t)); }
 
 		GreyImg(int m_w, int m_h)
 		{ init(m_w, m_h); }

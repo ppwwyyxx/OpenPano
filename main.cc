@@ -1,5 +1,5 @@
 // File: main.cc
-// Date: Sun Apr 21 20:01:33 2013 +0800
+// Date: Sun Apr 21 20:57:00 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "keypoint.hh"
@@ -91,18 +91,8 @@ void test_memory(const char* fname) {
 
 int main(int argc, char* argv[]) {
 	srand(time(NULL));
-	test_memory(argv[1]);
-	test_memory(argv[1]);
-	test_memory(argv[1]);
-	test_memory(argv[1]);
-	test_memory(argv[1]);
-	test_memory(argv[1]);
-	test_memory(argv[1]);
-	int a; cin >> a ;
 	/*
 	 *test_feature(argv[1]);
 	 */
-	/*
-	 *gallery(argv[1], argv[2]);
-	 */
+	gallery(argv[1], argv[2]);
 }

@@ -1,5 +1,5 @@
 // File: image.cc
-// Date: Sat Apr 20 15:42:46 2013 +0800
+// Date: Sun Apr 21 20:56:05 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "image.hh"
@@ -50,7 +50,7 @@ Img Img::get_resized(real_t factor) const {
 		newh = ceil(h * factor);
 	Image img = MImg(shared_from_this()).get_img();
 	img.resize(Magick::Geometry(neww, newh));
-	return Img(img);
+	return move(img);
 }
 
 

@@ -1,5 +1,5 @@
 // File: sift.cc
-// Date: Sun Apr 21 20:19:45 2013 +0800
+// Date: Sun Apr 21 20:51:10 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "sift.hh"
@@ -61,8 +61,8 @@ ScaleSpace::ScaleSpace(const shared_ptr<Img>& img, int num_octave, int num_scale
 		if (!i)
 			octaves[i] = shared_ptr<Octave>(new Octave(img, nscale));
 		else {
-			Img now = img->get_resized(pow(SCALE_FACTOR, -i));		// use pointer to save memory!
-			octaves[i] = shared_ptr<Octave>(new Octave(make_shared<Img>(now), nscale));
+			shared_ptr<Img> resized(new Img(img->get_resized(pow(SCALE_FACTOR, -i))));
+			octaves[i] = shared_ptr<Octave>(new Octave(resized, nscale));
 		}
 	}
 }
