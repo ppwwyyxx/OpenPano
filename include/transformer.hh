@@ -1,5 +1,5 @@
 // File: transformer.hh
-// Date: Sun Apr 21 12:27:59 2013 +0800
+// Date: Sun Apr 21 13:04:47 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
@@ -12,6 +12,8 @@ class TransFormer {
 	public:
 		TransFormer(const MatchData& m_match):
 			match(m_match) {}
+
+		Matrix get_transform();
 
 
 
