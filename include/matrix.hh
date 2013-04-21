@@ -1,5 +1,5 @@
 // File: matrix.hh
-// Date: Sun Apr 21 12:48:40 2013 +0800
+// Date: Sun Apr 21 12:51:23 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
@@ -68,8 +68,5 @@ class Matrix {
 
 		friend std::ostream& operator << (std::ostream& os, const Matrix & m);
 
-	private:
-		bool do_matrix_inverse(boost::numeric::ublas::matrix<real_t>& input,
-				boost::numeric::ublas::matrix<real_t>& inverse) const;
 };
 
