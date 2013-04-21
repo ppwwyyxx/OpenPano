@@ -1,5 +1,5 @@
 // File: matrix.hh
-// Date: Sun Apr 21 20:15:15 2013 +0800
+// Date: Sun Apr 21 21:16:57 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
@@ -14,7 +14,7 @@ class Matrix {
 		real_t **val;
 		int w, h;
 
-		Matrix(int m_w, int m_h):
+		Matrix(int m_w, int m_h):		// initialize with value 0
 			w(m_w), h(m_h) {
 				val = new real_t* [h];
 				for (int i = 0; i < h; i ++)
@@ -45,12 +45,11 @@ class Matrix {
 				val = r.val;
 				w = r.w, h = r.h;
 				r.val = nullptr;
-				r.w = r.h = 0;
 			}
 			return *this;
 		}
 
-		Matrix(Matrix && r) { *this = std::move(r); }
+		Matrix(Matrix && r):val(nullptr) { *this = std::move(r); }
 // something bad
 
 		real_t & get(int i, int j)
@@ -63,7 +62,10 @@ class Matrix {
 
 		Matrix transpose() const;
 
+		Matrix prod(const Matrix & r) const;
+
 		bool solve_overdetermined(Matrix & x, const Matrix & b) const;		//
+
 
 		friend std::ostream& operator << (std::ostream& os, const Matrix & m);
 

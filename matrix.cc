@@ -1,5 +1,5 @@
 // File: matrix.cc
-// Date: Sun Apr 21 20:58:10 2013 +0800
+// Date: Sun Apr 21 21:26:42 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include <boost/numeric/ublas/lu.hpp>
@@ -21,6 +21,17 @@ Matrix Matrix::transpose() const {
 	for (int i = 0; i < h; i ++)
 		for (int j = 0; j < w; j ++)
 			ret.get(j, i) = val[i][j];
+	return move(ret);
+}
+
+Matrix Matrix::prod(const Matrix & r) const {
+	m_assert(w == r.h);
+	const Matrix transp(r.transpose());
+	Matrix ret(r.w, h);
+	for (int i = 0; i < h; i ++)
+		for (int j = 0; j < r.w; j ++)
+			for (int k = 0; k < w; k ++)
+				ret.get(i, j) += val[i][k] * transp.get(j, k);
 	return move(ret);
 }
 
@@ -52,5 +63,11 @@ bool Matrix::inverse(Matrix &ret) const {
 
 bool Matrix::solve_overdetermined(Matrix & x, const Matrix & b) const {
 	m_assert(h >= w);			// check overdetermined
-
+	Matrix mt = transpose();
+	Matrix mtm = mt.prod(*this);
+	Matrix inverse(mtm.w, mtm.h);
+	if (!mtm.inverse(inverse))		// TODO judge determinant threshold 0.001
+		return false;
+	x = move(inverse.prod(mt).prod(b));
+	return true;
 }
