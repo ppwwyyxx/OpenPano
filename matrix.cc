@@ -1,17 +1,12 @@
 // File: matrix.cc
-// Date: Sun Apr 21 12:34:21 2013 +0800
+// Date: Sun Apr 21 12:48:42 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
-#include <boost/numeric/ublas/vector.hpp>
-#include <boost/numeric/ublas/vector_proxy.hpp>
-#include <boost/numeric/ublas/matrix.hpp>
-#include <boost/numeric/ublas/triangular.hpp>
+
 #include <boost/numeric/ublas/lu.hpp>
-#include <boost/numeric/ublas/io.hpp>
-namespace ublas = boost::numeric::ublas;
+#include "matrix.hh"
+
 using namespace boost::numeric::ublas;
 using namespace std;
-
-#include "matrix.hh"
 
 ostream& operator << (std::ostream& os, const Matrix & m) {
 	os << "[" << m.w << " " << m.h << "] :";
@@ -21,39 +16,34 @@ ostream& operator << (std::ostream& os, const Matrix & m) {
 	return os;
 }
 
-template<class T>
-bool InvertMatrix(const ublas::matrix<T>& input, ublas::matrix<T>& inverse) {
-	typedef permutation_matrix<size_t> pmatrix;
-	// create a working copy of the input
-	matrix<T> A(input);
+bool Matrix::do_matrix_inverse(matrix<real_t>& input, matrix<real_t>& inverse) const {
 	// create a permutation matrix for the LU-factorization
-	pmatrix pm(A.size1());
+	permutation_matrix<size_t> pm(input.size1());
 	// perform LU-factorization
-	int res = lu_factorize(A,pm);
-    if(res != 0)
-		 return false;
+	int res = lu_factorize(input, pm);
+    if (res != 0) return false;
 	// create identity matrix of "inverse"
-	inverse.assign(ublas::identity_matrix<T>(A.size1()));
+	inverse.assign(identity_matrix<real_t>(input.size1()));
 	// backsubstitute to get the inverse
-	lu_substitute(A, pm, inverse);
+	lu_substitute(input, pm, inverse);
 	return true;
 }
 
-bool inverse(const Matrix & A, Matrix & Res) {
-	m_assert(A.w == A.h && A.w == Res.w && Res.w == Res.h);
+bool Matrix::inverse(Matrix &ret) const {
+	m_assert(w == h && w == ret.w && ret.w == ret.h);
 
-	matrix<real_t> in(A.w, A.h);
-	for (int i = 0; i < A.w; i ++)
-		for (int j = 0; j < A.h; j ++) {
-			in(j, i) = A.get(i, j);
+	matrix<real_t> in(w, h);
+	for (int i = 0; i < w; i ++)
+		for (int j = 0; j < h; j ++) {
+			in(j, i) = get(i, j);
 		}
 
-	matrix<real_t> ret(A.w, A.h);
-	if (!InvertMatrix(in, ret))
+	matrix<real_t> result(w, h);
+	if (!do_matrix_inverse(in, result))		// note: input will be modified
 		return false;
-	for (int i = 0; i < A.h; i ++)
-		for (int j = 0; j < A.w; j ++)
-			Res.get(i, j) = ret(i, j);
+	for (int i = 0; i < h; i ++)
+		for (int j = 0; j < w; j ++)
+			ret.get(i, j) = result(i, j);
 
 	return true;
 }

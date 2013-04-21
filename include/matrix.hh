@@ -1,9 +1,10 @@
 // File: matrix.hh
-// Date: Sun Apr 21 12:34:12 2013 +0800
+// Date: Sun Apr 21 12:48:40 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
 #include <cstring>
+#include <boost/numeric/ublas/matrix.hpp>
 #include "debugutils.hh"
 #include "common.hh"
 
@@ -63,8 +64,12 @@ class Matrix {
 		const real_t & get(int i, int j) const
 		{ return val[i][j]; }
 
+		bool inverse(Matrix & ret) const;
+
 		friend std::ostream& operator << (std::ostream& os, const Matrix & m);
+
+	private:
+		bool do_matrix_inverse(boost::numeric::ublas::matrix<real_t>& input,
+				boost::numeric::ublas::matrix<real_t>& inverse) const;
 };
 
-
-bool inverse(const Matrix & A, Matrix & B);

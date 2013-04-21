@@ -1,5 +1,5 @@
 // File: keypoint.cc
-// Date: Sun Apr 21 12:32:27 2013 +0800
+// Date: Sun Apr 21 12:37:14 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include <cstring>
@@ -126,7 +126,7 @@ Vec KeyPoint::calc_offset(int x, int y, int nows, shared_ptr<DOG>& nowpic,
 
 	Matrix inv(3, 3);			// formula 3
 #define mul(l) inv.get(l, 0) * (*dx) + inv.get(l, 1) * (*dy) + inv.get(l, 2) * (*ds)
-	if (inverse(m, inv))
+	if (m.inverse(inv))
 		ret = Vec(-mul(0), -mul(1), -mul(2)); 		// which is better?
 #undef mul
 	return ret;
