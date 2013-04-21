@@ -1,5 +1,5 @@
 // File: common.hh
-// Date: Sun Apr 21 13:01:27 2013 +0800
+// Date: Sun Apr 21 16:24:44 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
@@ -45,6 +45,10 @@ const int DESC_HIST_BIN_NUM = 8;
 const real_t DESC_NORM_THRESH = 0.2;		// lowe
 const int DESC_INT_FACTOR = 512;
 const int DESC_LEN = 128;
+
+const int MATCH_MIN_SIZE = 30;
+const int AFFINE_REQUIRED_MATCH = 4;
+const int RANSAC_ITERATIONS = 20;
 
 const real_t MATCH_REJECT_NEXT_RATIO = 0.8; // lowe
 
