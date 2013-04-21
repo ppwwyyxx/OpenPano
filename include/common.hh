@@ -1,5 +1,5 @@
 // File: common.hh
-// Date: Sun Apr 21 16:24:44 2013 +0800
+// Date: Sun Apr 21 20:14:58 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
@@ -51,6 +51,14 @@ const int AFFINE_REQUIRED_MATCH = 4;
 const int RANSAC_ITERATIONS = 20;
 
 const real_t MATCH_REJECT_NEXT_RATIO = 0.8; // lowe
+
+template <typename T>
+inline void free_2d(T** ptr, int w) {
+	if (ptr != nullptr)
+		for (int i = 0; i < w; i ++)
+			delete[] ptr[i];
+	delete[] ptr;
+}
 
 template<typename T>
 bool update_min(T &dest, const T &val) {

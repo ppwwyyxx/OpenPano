@@ -1,5 +1,5 @@
 // File: matrix.hh
-// Date: Sun Apr 21 12:51:23 2013 +0800
+// Date: Sun Apr 21 20:15:15 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
@@ -21,24 +21,9 @@ class Matrix {
 					val[i] = new real_t[w]();
 		}
 
-		Matrix(int m_w, int m_h, real_t** v)
-			:w(m_w), h(m_h) {
-			val = new real_t* [h];
-			int rowlen = w * sizeof(real_t);
+		~Matrix() { free_2d<real_t>(val, h); }
 
-			for (int i = 0; i < h; i++) {
-				val[i] = new real_t [w];
-				if (v)
-					memcpy(val[i], v[i], rowlen);
-			}
-		}
-
-		~Matrix() {
-			for (int i = 0; i < h; i++)
-				delete [] val[i];
-			delete [] val;
-		}
-
+// something bad
 		Matrix(const Matrix& m) {
 			w = m.w, h = m.h;
 			val = new real_t* [h];
@@ -49,14 +34,24 @@ class Matrix {
 		}
 
 		Matrix & operator = (const Matrix & m) {
-			w = m.w, h = m.h;
-			val = new real_t* [h];
-			for (int i = 0; i < h; i ++) {
-				val[i] = new real_t[w]();
-				memcpy(m.val[i], val[i], w * sizeof(real_t));
+			Matrix tmp(m);
+			*this = std::move(tmp);
+			return *this;
+		}
+
+		Matrix & operator = (Matrix && r) {
+			if (this != &r) {
+				free_2d<real_t>(val, h);
+				val = r.val;
+				w = r.w, h = r.h;
+				r.val = nullptr;
+				r.w = r.h = 0;
 			}
 			return *this;
 		}
+
+		Matrix(Matrix && r) { *this = std::move(r); }
+// something bad
 
 		real_t & get(int i, int j)
 		{ return val[i][j]; }
@@ -65,6 +60,10 @@ class Matrix {
 		{ return val[i][j]; }
 
 		bool inverse(Matrix & ret) const;
+
+		Matrix transpose() const;
+
+		bool solve_overdetermined(Matrix & x, const Matrix & b) const;		//
 
 		friend std::ostream& operator << (std::ostream& os, const Matrix & m);
 

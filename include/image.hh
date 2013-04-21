@@ -1,5 +1,5 @@
 // File: image.hh
-// Date: Sat Apr 20 15:50:03 2013 +0800
+// Date: Sun Apr 21 20:03:20 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
@@ -24,9 +24,14 @@ class Img : public std::enable_shared_from_this<Img> {
 		Img(){}
 
 		Img(const Img& img):
-			Img(img.w, img.h)
-		{
+			Img(img.w, img.h) {
 			memcpy(pixel, img.pixel, w * h * sizeof(Color));
+		}
+
+		Img(Img&& img) {
+			w = img.w, h = img.h;
+			pixel = img.pixel;
+			img.pixel = nullptr;
 		}
 
 		Img(int m_w, int m_h)

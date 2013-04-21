@@ -1,5 +1,5 @@
 // File: main.cc
-// Date: Sat Apr 20 17:29:13 2013 +0800
+// Date: Sun Apr 21 20:01:33 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "keypoint.hh"
@@ -38,10 +38,14 @@ void test_feature(const char* fname) {
 	for (auto i : ans)
 		pld.arrow(i.real_coor, i.dir, LABEL_LEN);
 	r->finish();
+
+	int a;
+	cin  >> a;
 	/*
 	 *shared_ptr<GreyImg> ptr1 = Filter::GreyScale(ptr);
 	 *shared_ptr<GreyImg> ptr2 = Filter::GaussianBlur(ptr1, 3);
 	 */
+	delete r;
 }
 
 
@@ -76,12 +80,29 @@ void gallery(const char* f1, const char* f2) {
 	}
 
 	r->finish();
+	delete r;
+}
+
+void test_memory(const char* fname) {
+	shared_ptr<Img> test(new Img(fname));
+	get_feature(test);
+	return;
 }
 
 int main(int argc, char* argv[]) {
 	srand(time(NULL));
+	test_memory(argv[1]);
+	test_memory(argv[1]);
+	test_memory(argv[1]);
+	test_memory(argv[1]);
+	test_memory(argv[1]);
+	test_memory(argv[1]);
+	test_memory(argv[1]);
+	int a; cin >> a ;
 	/*
 	 *test_feature(argv[1]);
 	 */
-	gallery(argv[1], argv[2]);
+	/*
+	 *gallery(argv[1], argv[2]);
+	 */
 }

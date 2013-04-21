@@ -1,5 +1,5 @@
 // File: MImageRender.hh
-// Date: Sat Apr 20 15:43:24 2013 +0800
+// Date: Sun Apr 21 20:18:53 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
@@ -34,8 +34,7 @@ class MImg : public RenderBase {
 			MImg(r->w, r->h)
 		{ write(r->to_img()); }
 
-		~MImg()
-		{ delete view; }
+		~MImg() { delete view; }
 
 		Magick::Image get_img() const
 		{ return img; }

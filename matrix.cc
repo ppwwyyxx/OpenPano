@@ -1,5 +1,5 @@
 // File: matrix.cc
-// Date: Sun Apr 21 12:51:45 2013 +0800
+// Date: Sun Apr 21 19:37:27 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include <boost/numeric/ublas/lu.hpp>
@@ -14,6 +14,14 @@ ostream& operator << (std::ostream& os, const Matrix & m) {
 		for (int j = 0; j < m.w; j ++)
 			os << m.get(i, j) << (j == m.w - 1 ? "; " : ", ");
 	return os;
+}
+
+Matrix Matrix::transpose() const {
+	Matrix ret(h, w);
+	for (int i = 0; i < h; i ++)
+		for (int j = 0; j < w; j ++)
+			ret.get(j, i) = val[i][j];
+	return move(ret);
 }
 
 bool Matrix::inverse(Matrix &ret) const {
@@ -40,4 +48,9 @@ bool Matrix::inverse(Matrix &ret) const {
 		for (int j = 0; j < w; j ++)
 			ret.get(i, j) = inverse(i, j);
 	return true;
+}
+
+bool Matrix::solve_overdetermined(Matrix & x, const Matrix & b) const {
+	m_assert(h >= w);			// check overdetermined
+
 }

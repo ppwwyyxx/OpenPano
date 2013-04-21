@@ -1,5 +1,5 @@
 // File: sift.cc
-// Date: Sat Apr 20 10:17:49 2013 +0800
+// Date: Sun Apr 21 20:19:45 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "sift.hh"
@@ -45,8 +45,11 @@ void Octave::cal_mag_ort(int i) {
 		}
 }
 
-Octave::~Octave()
-{ delete[] data; }
+Octave::~Octave() {
+	delete[] data;
+	delete[] mag;
+	delete[] ort;
+}
 
 ScaleSpace::ScaleSpace(const shared_ptr<Img>& img, int num_octave, int num_scale):
 	noctave(num_octave), nscale(num_scale){
@@ -58,7 +61,7 @@ ScaleSpace::ScaleSpace(const shared_ptr<Img>& img, int num_octave, int num_scale
 		if (!i)
 			octaves[i] = shared_ptr<Octave>(new Octave(img, nscale));
 		else {
-			Img now = img->get_resized(pow(SCALE_FACTOR, -i));
+			Img now = img->get_resized(pow(SCALE_FACTOR, -i));		// use pointer to save memory!
 			octaves[i] = shared_ptr<Octave>(new Octave(make_shared<Img>(now), nscale));
 		}
 	}

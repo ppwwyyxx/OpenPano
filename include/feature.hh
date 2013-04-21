@@ -1,5 +1,5 @@
 // File: feature.hh
-// Date: Sat Apr 20 10:18:03 2013 +0800
+// Date: Sun Apr 21 19:58:13 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
@@ -30,4 +30,5 @@ class Feature {
 			scale_factor = r.scale_factor;
 			memcpy(descriptor, r.descriptor, DESC_LEN * sizeof(real_t));
 		}
+
 };

@@ -1,5 +1,5 @@
 // File: transformer.cc
-// Date: Sun Apr 21 16:40:23 2013 +0800
+// Date: Sun Apr 21 19:35:43 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "transformer.hh"
@@ -40,8 +40,29 @@ Matrix TransFormer::get_transform() {
 
 }
 
-
 Matrix TransFormer::compute_transform(const vector<pair<Coor, Coor>>& matches) const {
-	m_assert(matches.size() >= AFFINE_REQUIRED_MATCH);
+	int n = matches.size();
+	m_assert(n >= AFFINE_REQUIRED_MATCH);
+
+	Matrix m(2 * 4, 2 * n);		// 8 degree of freedom
+	Matrix b(1, 2 * n);
+	for (int i = 0; i < n; i ++) {
+		const Coor &m0 = matches[i].second,
+				   &m1 = matches[i].first;
+		m.get(i * 2, 0) = m1.x;
+		m.get(i * 2, 1) = m1.y;
+		m.get(i * 2, 2) = 1;
+		m.get(i * 2, 3) = m.get(i * 2, 4) = m.get(i * 2, 5) = 0;
+		m.get(i * 2, 6) = -m1.x * m0.x;
+		m.get(i * 2 + 1, 0) = m.get(i * 2 + 1, 1) = m.get(i * 2 + 1, 2) = 0;
+		m.get(i * 2 + 1, 3) = m1.x;
+		m.get(i * 2 + 1, 4) = m1.y;
+		m.get(i * 2 + 1, 5) = 1;
+		m.get(i * 2 + 1, 6) = -m1.x * m0.y;
+		m.get(i * 2 + 1, 7) = -m1.y * m0.y;
+
+		b.get(i * 2, 0) = m0.x, b.get(i * 2 + 1, 0) = m0.y;
+	}
+
 
 }
