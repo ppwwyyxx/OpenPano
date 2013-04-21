@@ -1,5 +1,5 @@
 // File: matrix.cc
-// Date: Sun Apr 14 22:37:48 2013 +0800
+// Date: Sun Apr 21 12:27:35 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 #include <boost/numeric/ublas/vector.hpp>
 #include <boost/numeric/ublas/vector_proxy.hpp>
@@ -14,7 +14,7 @@ using namespace std;
 #include "matrix.hh"
 
 template<class T>
-bool InvertMatrix (const ublas::matrix<T>& input, ublas::matrix<T>& inverse) {
+bool InvertMatrix(const ublas::matrix<T>& input, ublas::matrix<T>& inverse) {
 	typedef permutation_matrix<size_t> pmatrix;
 	// create a working copy of the input
 	matrix<T> A(input);
