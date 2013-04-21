@@ -1,12 +1,11 @@
 // File: planedrawer.hh
-// Date: Tue Apr 16 10:51:46 2013 +0800
+// Date: Sun Apr 21 12:30:15 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #ifndef __HEAD__PLANE_DRAWER
 #define __HEAD__PLANE_DRAWER
 #include "color.hh"
 #include "render/render.hh"
-#include "render/matrixrender.hh"
 
 class PlaneDrawer {
 	public:

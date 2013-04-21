@@ -1,5 +1,5 @@
 // File: render.hh
-// Date: Sat Apr 20 15:36:43 2013 +0800
+// Date: Sun Apr 21 12:29:59 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 
@@ -38,12 +38,6 @@ class RenderBase {
 
 			_write(x, y, c);
 			render_cnt ++;
-		}
-
-		void write(Matrix<Color>& m) {
-			for (int i = 0; i < geo.w; i ++)
-				for (int j = 0; j < geo.h; j ++)
-					write(i, j, m.get(j, i));
 		}
 
 		void write(std::shared_ptr<const Img> r) {

@@ -1,5 +1,5 @@
 // File: matrix.cc
-// Date: Sun Apr 21 12:27:35 2013 +0800
+// Date: Sun Apr 21 12:34:21 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 #include <boost/numeric/ublas/vector.hpp>
 #include <boost/numeric/ublas/vector_proxy.hpp>
@@ -12,6 +12,14 @@ using namespace boost::numeric::ublas;
 using namespace std;
 
 #include "matrix.hh"
+
+ostream& operator << (std::ostream& os, const Matrix & m) {
+	os << "[" << m.w << " " << m.h << "] :";
+	for (int i = 0; i < m.h; i ++)
+		for (int j = 0; j < m.w; j ++)
+			os << m.get(i, j) << (j == m.w - 1 ? "; " : ", ");
+	return os;
+}
 
 template<class T>
 bool InvertMatrix(const ublas::matrix<T>& input, ublas::matrix<T>& inverse) {
@@ -31,7 +39,7 @@ bool InvertMatrix(const ublas::matrix<T>& input, ublas::matrix<T>& inverse) {
 	return true;
 }
 
-bool inverse(const Mat& A, Mat& Res) {
+bool inverse(const Matrix & A, Matrix & Res) {
 	m_assert(A.w == A.h && A.w == Res.w && Res.w == Res.h);
 
 	matrix<real_t> in(A.w, A.h);

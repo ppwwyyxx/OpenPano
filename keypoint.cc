@@ -1,5 +1,5 @@
 // File: keypoint.cc
-// Date: Sat Apr 20 16:24:10 2013 +0800
+// Date: Sun Apr 21 12:32:27 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include <cstring>
@@ -118,13 +118,13 @@ Vec KeyPoint::calc_offset(int x, int y, int nows, shared_ptr<DOG>& nowpic,
 	dys = (D(x, y + 1, nows + 1) - D(x, y - 1, nows + 1) - D(x, y + 1, nows - 1) + D(x, y - 1, nows - 1)) / 4;
 	dsx = (D(x + 1, y, nows + 1) - D(x - 1, y, nows + 1) - D(x + 1, y, nows - 1) + D(x - 1, y, nows - 1)) / 4;
 
-	Mat m(3, 3);
+	Matrix m(3, 3);
 	m.get(0, 0) = dxx; m.get(1, 1) = dyy; m.get(2, 2) = dss;
 	m.get(0, 1) = m.get(1, 0) = dxy;
 	m.get(0, 2) = m.get(2, 0) = dsx;
 	m.get(1, 2) = m.get(2, 1) = dys;
 
-	Mat inv(3, 3);			// formula 3
+	Matrix inv(3, 3);			// formula 3
 #define mul(l) inv.get(l, 0) * (*dx) + inv.get(l, 1) * (*dy) + inv.get(l, 2) * (*ds)
 	if (inverse(m, inv))
 		ret = Vec(-mul(0), -mul(1), -mul(2)); 		// which is better?
