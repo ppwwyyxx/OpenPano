@@ -1,5 +1,5 @@
 // File: matcher.cc
-// Date: Sat Apr 20 15:15:25 2013 +0800
+// Date: Mon Apr 22 11:16:57 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include <limits>
@@ -32,9 +32,6 @@ MatchData Matcher::match() const {
 		}
 		if (min / minn > MATCH_REJECT_NEXT_RATIO || min > 200)
 			continue;
-		/*
-		 *if (min > 100) continue;
-		 */
 
 #pragma omp critical
 		ret.add(i.real_coor, mincoor);

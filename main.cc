@@ -1,12 +1,12 @@
 // File: main.cc
-// Date: Sun Apr 21 21:26:18 2013 +0800
+// Date: Mon Apr 22 11:29:16 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
-#include "keypoint.hh"
 #include "render/filerender.hh"
 #include "planedrawer.hh"
-#include "filter.hh"
+#include "keypoint.hh"
 #include "matcher.hh"
+#include "transformer.hh"
 #include "gallery.hh"
 #include <ctime>
 
@@ -89,6 +89,24 @@ void test_memory(const char* fname) {
 	return;
 }
 
+void test_transform(const char* f1, const char* f2) {
+	Image pic1(f1);
+	Image pic2(f2);
+
+	shared_ptr<Img> ptr1(new Img(pic1));
+	shared_ptr<Img> ptr2(new Img(pic2));
+	vector<Feature> feat1 = get_feature(ptr1);
+	vector<Feature> feat2 = get_feature(ptr2);
+
+	Matcher match(feat1, feat2);
+	auto ret = match.match();
+
+	TransFormer trans(ret);
+	cout << trans.get_transform() << endl;
+
+}
+
+
 int main(int argc, char* argv[]) {
 	srand(time(NULL));
 	/*
@@ -97,4 +115,5 @@ int main(int argc, char* argv[]) {
 	/*
 	 *gallery(argv[1], argv[2]);
 	 */
+	test_transform(argv[1], argv[2]);
 }

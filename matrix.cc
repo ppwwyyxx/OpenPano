@@ -1,5 +1,5 @@
 // File: matrix.cc
-// Date: Sun Apr 21 21:26:42 2013 +0800
+// Date: Mon Apr 22 12:05:58 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include <boost/numeric/ublas/lu.hpp>
@@ -9,10 +9,10 @@ using namespace boost::numeric::ublas;
 using namespace std;
 
 ostream& operator << (std::ostream& os, const Matrix & m) {
-	os << "[" << m.w << " " << m.h << "] :";
+	os << "[" << m.w << " " << m.h << "] :" << endl;
 	for (int i = 0; i < m.h; i ++)
 		for (int j = 0; j < m.w; j ++)
-			os << m.get(i, j) << (j == m.w - 1 ? "; " : ", ");
+			os << m.get(i, j) << (j == m.w - 1 ? "\n" : ", ");
 	return os;
 }
 

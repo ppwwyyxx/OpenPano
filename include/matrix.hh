@@ -1,5 +1,5 @@
 // File: matrix.hh
-// Date: Sun Apr 21 21:16:57 2013 +0800
+// Date: Mon Apr 22 12:01:01 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
@@ -40,16 +40,22 @@ class Matrix {
 		}
 
 		Matrix & operator = (Matrix && r) {
-			if (this != &r) {
-				free_2d<real_t>(val, h);
-				val = r.val;
-				w = r.w, h = r.h;
-				r.val = nullptr;
-			}
+			m_assert(this != &r);
+			free_2d<real_t>(val, h);
+			val = r.val;
+			w = r.w, h = r.h;
+			r.val = nullptr;
 			return *this;
 		}
 
-		Matrix(Matrix && r):val(nullptr) { *this = std::move(r); }
+		Matrix(Matrix&& r) {
+			val = r.val;
+			w = r.w, h = r.h;
+			r.val = nullptr;
+		}
+		/*
+		 *Matrix(Matrix && r):val(nullptr) { *this = std::move(r); }
+		 */
 // something bad
 
 		real_t & get(int i, int j)
