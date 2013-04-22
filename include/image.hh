@@ -1,5 +1,5 @@
 // File: image.hh
-// Date: Mon Apr 22 19:57:05 2013 +0800
+// Date: Mon Apr 22 23:08:20 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
@@ -51,9 +51,14 @@ class Img : public std::enable_shared_from_this<Img> {
 
 		Img get_resized(real_t factor) const;
 
-		const Color& get_pixel(int x, int y) const ;
+		const Color& get_pixel(int x, int y) const;
+
+		Color get_pixel(real_t x, real_t y) const;
 
 		const Color& get_pixel(const Coor& w) const
+		{ return get_pixel(w.y, w.x);}
+
+		Color get_pixel(const Vec2D& w) const
 		{ return get_pixel(w.y, w.x);}
 
 		void set_pixel(int x, int y, const Color& c);

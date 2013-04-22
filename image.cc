@@ -1,5 +1,5 @@
 // File: image.cc
-// Date: Mon Apr 22 20:13:13 2013 +0800
+// Date: Tue Apr 23 00:21:09 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "image.hh"
@@ -25,24 +25,21 @@ void Img::init_from_image(const Image& img) {
 	::Color *dest = pixel;
 
 	const PixelPacket* src = img.getConstPixels(0, 0, w, h);
-	for (int y = 0; y < h; y ++)
-		for (int x = 0; x < w; x ++)
-		{
-			dest->x = double(src->red) / QuantumRange;
-			dest->y = double(src->green) / QuantumRange;
-			dest->z = double(src->blue) / QuantumRange;
-			dest ++;
-			src ++;
-		}
+	REP(i, h) REP(j, w) {
+		dest->x = double(src->red) / QuantumRange;
+		dest->y = double(src->green) / QuantumRange;
+		dest->z = double(src->blue) / QuantumRange;
+		dest ++;
+		src ++;
+	}
 }
 
 Img::Img(const GreyImg& gr) {
 	init(gr.w, gr.h);
-	for (int i = 0; i < h; i ++)
-		for (int j = 0; j < w; j ++) {
-			real_t grey = gr.get_pixel(i, j);
-			set_pixel(i, j, ::Color(grey, grey, grey));
-		}
+	REP(i, h) REP(j, w) {
+		real_t grey = gr.get_pixel(i, j);
+		set_pixel(i, j, ::Color(grey, grey, grey));
+	}
 }
 
 Img Img::get_resized(real_t factor) const {
@@ -54,15 +51,24 @@ Img Img::get_resized(real_t factor) const {
 }
 
 void Img::fill(const ::Color& c) {
-	for (int i = 0; i < h; i ++)
-		for (int j = 0; j < w; j ++)
-			set_pixel(i, j, c);
+	REP(i, h) REP(j, w)
+		set_pixel(i, j, c);
 }
 
 const ::Color& Img::get_pixel(int r, int c) const {
 	m_assert(between(r, 0, h) && between(c, 0, w));
 	::Color *dest = pixel + r * w + c;
 	return *dest;
+}
+
+::Color Img::get_pixel(real_t y, real_t x) const {
+	::Color ret = ::Color::BLACK;
+	real_t dy = y - floor(y), dx = x - floor(x);
+	ret += get_pixel((int)floor(y), (int)floor(x)) * ((1 - dy) * (1 - dx));
+	ret += get_pixel((int)ceil(y), (int)floor(x)) * (dy * (1 - dx));
+	ret += get_pixel((int)ceil(y), (int)ceil(x)) * (dy * dx);
+	ret += get_pixel((int)floor(y), (int)ceil(x)) * ((1 - dy) * dx);
+	return ret;
 }
 
 void Img::set_pixel(int r, int c, const ::Color& val) {
@@ -83,17 +89,15 @@ void GreyImg::set_pixel(int r, int c, real_t val) {
 
 void GreyImg::init_from_img(const Img& img) {
 	init(img.w, img.h);
-	for (int i = 0; i < h; i ++)
-		for (int j = 0; j < w; j ++)
-			set_pixel(i, j, Filter::to_grey(img.get_pixel(i, j)));
+	REP(i, h) REP(j, w)
+		set_pixel(i, j, Filter::to_grey(img.get_pixel(i, j)));
 }
 
 shared_ptr<Img> GreyImg::to_img() const {
 	shared_ptr<Img> ret(new Img(w, h));
-	for (int i = 0; i < h; i ++)
-		for (int j = 0; j < w; j ++) {
-			real_t grey = get_pixel(i, j);
-			ret->set_pixel(i, j, ::Color(grey, grey, grey));
-		}
+	REP(i, h) REP(j, w) {
+		real_t grey = get_pixel(i, j);
+		ret->set_pixel(i, j, ::Color(grey, grey, grey));
+	}
 	return ret;
 }

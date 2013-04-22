@@ -1,5 +1,5 @@
 // File: filter.cc
-// Date: Sun Apr 21 20:53:09 2013 +0800
+// Date: Tue Apr 23 00:22:27 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "filter.hh"
@@ -15,7 +15,7 @@ shared_ptr<GreyImg> Filter::GaussianBlur(const shared_ptr<GreyImg> img, real_t s
 	shared_ptr<GreyImg> ret(new GreyImg(w, h));
 
 	/*
-	 *const int kw = ceil(GAUSS_WINDOW_FACTOR * sigma + 0.5);
+	 *const int kw = round(GAUSS_WINDOW_FACTOR * sigma) + 1;
 	 */
 	const int kw = ceil(0.3 * (sigma / 2 - 1) + 0.8) * GAUSS_WINDOW_FACTOR;
 	/*
@@ -35,9 +35,9 @@ shared_ptr<GreyImg> Filter::GaussianBlur(const shared_ptr<GreyImg> img, real_t s
 	real_t kernel_tot_all = 0;
 
 	real_t ** kernel = new real_t*[kw];
-	for (int i = 0; i < kw; i ++) {
+	REP(i, kw) {
 		kernel[i] = new real_t[kw];
-		for (int j = 0; j < kw; j ++) {
+		REP(j, kw) {
 			real_t x = i - center,
 				   y = j - center;
 			kernel[i][j] = exp(-(sqr(x) + sqr(y)) / (2 * sqr(sigma)));
@@ -46,30 +46,29 @@ shared_ptr<GreyImg> Filter::GaussianBlur(const shared_ptr<GreyImg> img, real_t s
 		}
 	}
 
-	for (int i = 0; i < h; i ++)
-		for (int j = 0; j < w; j ++) {
-			int x_bound = min(kw, h + center - i),
-				y_bound = min(kw, w + center - j);
-			real_t kernel_tot = 0;
-			if (j >= center && x_bound == kw && i >= center && y_bound == kw)
-				kernel_tot = kernel_tot_all;
-			else {
-				for (int x = max(center - i, 0); x < x_bound; x ++)
-					for (int y = max(center - j, 0); y < y_bound; y ++)
-						kernel_tot += kernel[x][y];
-			}
-
-			real_t compensation = 1.0 / kernel_tot;
-			real_t newvalue = 0;
-			for (int x = max(0, center - i); x < x_bound; x ++)
-				for (int y = max(0, center - j); y < y_bound; y ++) {
-					int dj = y - center + j,
-						di = x - center + i;
-					real_t curr = img->get_pixel(di, dj);
-					newvalue += curr * kernel[x][y] * compensation;
-				}
-			ret->set_pixel(i, j, newvalue);
+	REP(i, h) REP(j, w) {
+		int x_bound = min(kw, h + center - i),
+			y_bound = min(kw, w + center - j);
+		real_t kernel_tot = 0;
+		if (j >= center && x_bound == kw && i >= center && y_bound == kw)
+			kernel_tot = kernel_tot_all;
+		else {
+			for (int x = max(center - i, 0); x < x_bound; x ++)
+				for (int y = max(center - j, 0); y < y_bound; y ++)
+					kernel_tot += kernel[x][y];
 		}
+
+		real_t compensation = 1.0 / kernel_tot;
+		real_t newvalue = 0;
+		for (int x = max(0, center - i); x < x_bound; x ++)
+			for (int y = max(0, center - j); y < y_bound; y ++) {
+				int dj = y - center + j,
+					di = x - center + i;
+				real_t curr = img->get_pixel(di, dj);
+				newvalue += curr * kernel[x][y] * compensation;
+			}
+		ret->set_pixel(i, j, newvalue);
+	}
 	print_debug("sec: %lf\n", timer.get_sec());
 
 	free_2d<real_t>(kernel, kw);

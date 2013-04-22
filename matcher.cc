@@ -1,5 +1,5 @@
 // File: matcher.cc
-// Date: Mon Apr 22 11:16:57 2013 +0800
+// Date: Tue Apr 23 00:23:45 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include <limits>
@@ -15,10 +15,10 @@ MatchData Matcher::match() const {
 	int l1 = feat1.size();
 
 #pragma omp parallel for schedule(dynamic)
-	for (int k = 0; k < l1; k ++) {
+	REP(k, l1) {
 		const Feature& i = feat1[k];
 		real_t min = numeric_limits<int>::max(),
-			minn = min;
+			   minn = min;
 		Coor mincoor;
 		for (auto &j : feat2) {
 			real_t dist = cal_dist(i, j);

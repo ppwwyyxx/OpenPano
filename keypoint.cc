@@ -1,5 +1,5 @@
 // File: keypoint.cc
-// Date: Sun Apr 21 12:37:14 2013 +0800
+// Date: Tue Apr 23 00:16:34 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include <cstring>
@@ -9,23 +9,22 @@
 using namespace std;
 
 #define D(x, y, s) nowpic->get(s)->get_pixel(y, x)
-#define between(a, b, c) ((a >= b) && (a < c))
 
 KeyPoint::KeyPoint(const DOGSpace& m_dog, const ScaleSpace& m_ss):
 	dogsp(m_dog),ss(m_ss)
 { noctave = dogsp.noctave, nscale = dogsp.nscale; }
 
 void KeyPoint::detect_extrema() {
-	for (int i = 0; i < noctave; i ++)
-		for (int j = 1; j < nscale - 2; j ++)
+	REP(i, noctave)
+		REPL(j, 1, nscale - 2)
 			judge_extrema(i, j);
 }
 
 void KeyPoint::judge_extrema(int nowo, int nows) {
 	shared_ptr<GreyImg> now = dogsp.dogs[nowo]->get(nows);
 	int w = now->w, h = now->h;
-	for (int i = 1; i < h - 1; i ++)
-		for (int j = 1; j < w - 1; j ++) {
+	REPL(i, 1, h - 1)
+		REPL(j, 1, w - 1) {
 			real_t nowcolor = now->get_pixel(i, j);
 			if (nowcolor < PRE_COLOR_THRES)			// initial color is less than thres
 				continue;
@@ -136,15 +135,14 @@ bool KeyPoint::judge_extrema(real_t center, int no, int ns, int nowi, int nowj) 
 	bool max = true, min = true;
 
 	for (int level : {ns, ns - 1, ns + 1})
-		for (int di = -1; di <= 1; di ++)
-			for (int dj = -1; dj <= 1; dj ++) {
-				if (!di && !dj && level == ns) continue;
-				real_t newval = dogsp.dogs[no]->get(level)->get_pixel(nowi + di, nowj + dj);
-				if (newval >= center - JUDGE_EXTREMA_DIFF_THRES) max = false;
-				if (newval <= center + JUDGE_EXTREMA_DIFF_THRES) min = false;
-				if (!max && !min)
-					return false;
-			}
+		REPL(di, -1, 1) REPL(dj, -1, 1) {
+			if (!di && !dj && level == ns) continue;
+			real_t newval = dogsp.dogs[no]->get(level)->get_pixel(nowi + di, nowj + dj);
+			if (newval >= center - JUDGE_EXTREMA_DIFF_THRES) max = false;
+			if (newval <= center + JUDGE_EXTREMA_DIFF_THRES) min = false;
+			if (!max && !min)
+				return false;
+		}
 	return true;
 
 }
@@ -174,7 +172,7 @@ void KeyPoint::calc_dir(Feature& feat, vector<Feature>& update_feat) {
 
 vector<real_t> KeyPoint::calc_hist(shared_ptr<Octave> oct, int ns, Coor coor, real_t orig_sig) {		// coor is under scaled space
 	real_t sigma = orig_sig * ORI_WINDOW_FACTOR;
-	int rad = orig_sig * ORI_RADIUS + 0.5;
+	int rad = round(orig_sig * ORI_RADIUS);
 
 	real_t exp_denom = 2 * sqr(sigma);
 	real_t hist[ORT_HIST_BIN_NUM];
@@ -201,8 +199,8 @@ vector<real_t> KeyPoint::calc_hist(shared_ptr<Octave> oct, int ns, Coor coor, re
 	}
 
 
-	for (int kk = ORT_HIST_SMOOTH_COUNT; kk --;)		// smooth by interpolation
-		for (int i = 0; i < ORT_HIST_BIN_NUM; i ++) {
+	for (int K = ORT_HIST_SMOOTH_COUNT; K --;)		// smooth by interpolation
+		REP(i, ORT_HIST_BIN_NUM) {
 			real_t prev = hist[i == 0 ? ORT_HIST_BIN_NUM - 1 : i - 1];
 			real_t next = hist[i == ORT_HIST_BIN_NUM - 1 ? 0 : i + 1];
 			hist[i] = hist[i] * 0.5 + (prev + next) * 0.25;
@@ -214,7 +212,7 @@ vector<real_t> KeyPoint::calc_hist(shared_ptr<Octave> oct, int ns, Coor coor, re
 	real_t thres = maxbin * ORT_HIST_PEAK_RATIO;
 	vector<real_t> ret;
 
-	for (int i = 0; i < ORT_HIST_BIN_NUM; i ++) {
+	REP(i, ORT_HIST_BIN_NUM) {
 		real_t prev = hist[i == 0 ? ORT_HIST_BIN_NUM - 1 : i - 1];
 		real_t next = hist[i == ORT_HIST_BIN_NUM - 1 ? 0 : i + 1];
 		if (hist[i] > thres && hist[i] > max(prev, next)) {
@@ -245,7 +243,7 @@ void KeyPoint::calc_descriptor(Feature& feat) {
 		   hist_w = feat.scale_factor * DESC_HIST_REAL_WIDTH,
 		   exp_denom = 2 * sqr(DESC_HIST_WIDTH / 2);		// from lowe
 
-	int radius = (int)(sqrt(2) * hist_w * (DESC_HIST_WIDTH + 1) / 2 + 0.5);
+	int radius = round(sqrt(2) * hist_w * (DESC_HIST_WIDTH + 1) / 2);
 
 	shared_ptr<Octave> octave = ss.octaves[feat.no];
 	int w = octave->w, h = octave->h;
@@ -327,4 +325,3 @@ void KeyPoint::calc_descriptor(Feature& feat) {
 }
 
 #undef D
-#undef between

@@ -1,5 +1,5 @@
 // File: matrix.hh
-// Date: Mon Apr 22 20:17:16 2013 +0800
+// Date: Tue Apr 23 00:21:57 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
@@ -17,17 +17,17 @@ class Matrix {
 		Matrix(int m_w, int m_h):		// initialize with value 0
 			w(m_w), h(m_h) {
 				val = new real_t* [h];
-				for (int i = 0; i < h; i ++)
+				REP(i, h)
 					val[i] = new real_t[w]();
-		}
+			}
 
 		~Matrix() { free_2d<real_t>(val, h); }
 
-// something bad
+		// something bad
 		Matrix(const Matrix& m) {
 			w = m.w, h = m.h;
 			val = new real_t* [h];
-			for (int i = 0; i < h; i ++) {
+			REP(i, h) {
 				val[i] = new real_t[w]();
 				memcpy(m.val[i], val[i], w * sizeof(real_t));
 			}
@@ -56,7 +56,7 @@ class Matrix {
 		/*
 		 *Matrix(Matrix && r):val(nullptr) { *this = std::move(r); }
 		 */
-// something bad
+		// something bad
 
 		real_t & get(int i, int j)
 		{ return val[i][j]; }

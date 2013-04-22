@@ -1,5 +1,5 @@
 // File: transformer.cc
-// Date: Mon Apr 22 19:01:05 2013 +0800
+// Date: Tue Apr 23 00:23:17 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "transformer.hh"
@@ -21,7 +21,7 @@ Matrix TransFormer::get_transform() {		// second -> first
 	for (int K = RANSAC_ITERATIONS; K --;) {
 		fit.clear();
 		selected.clear();
-		for (int i = 0; i < AFFINE_REQUIRED_MATCH; i ++) {
+		REP(i, AFFINE_REQUIRED_MATCH) {
 			int random;
 			while (1) {
 				random = rand() % n_match;
@@ -55,7 +55,7 @@ Matrix TransFormer::cal_transform(const vector<pair<Coor, Coor>>& matches) const
 
 	Matrix m(2 * 4, 2 * n);		// 8 degree of freedom
 	Matrix b(1, 2 * n);
-	for (int i = 0; i < n; i ++) {
+	REP(i, n) {
 		const Coor &m0 = matches[i].first,
 				   &m1 = matches[i].second;
 		m.get(i * 2, 0) = m1.x;

@@ -1,5 +1,5 @@
 // File: sift.cc
-// Date: Mon Apr 22 20:12:57 2013 +0800
+// Date: Tue Apr 23 00:16:03 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "sift.hh"
@@ -27,21 +27,20 @@ void Octave::cal_mag_ort(int i) {
 	int w = orig->w, h = orig->h;
 	mag[i] = shared_ptr<GreyImg>(new GreyImg(w, h));
 	ort[i] = shared_ptr<GreyImg>(new GreyImg(w, h));
-	for (int x = 0; x < w; x ++)
-		for (int y = 0; y < h; y ++) {
-			if (between(x, 1, w - 1) && between(y, 1, h - 1)) {
-				real_t dy = orig->get_pixel(y + 1, x) - orig->get_pixel(y - 1, x),
-					   dx = orig->get_pixel(y, x + 1) - orig->get_pixel(y, x - 1);
-				mag[i]->set_pixel(y, x, hypot(dx, dy));
-				if (dx == 0 && dy == 0)
-					ort[i]->set_pixel(y, x, M_PI);
-				else
-					ort[i]->set_pixel(y, x, atan2(dy, dx) + M_PI);
-			} else {
-				mag[i]->set_pixel(y, x, 0);
+	REP(x, w) REP(y, h) {
+		if (between(x, 1, w - 1) && between(y, 1, h - 1)) {
+			real_t dy = orig->get_pixel(y + 1, x) - orig->get_pixel(y - 1, x),
+				   dx = orig->get_pixel(y, x + 1) - orig->get_pixel(y, x - 1);
+			mag[i]->set_pixel(y, x, hypot(dx, dy));
+			if (dx == 0 && dy == 0)
 				ort[i]->set_pixel(y, x, M_PI);
-			}
+			else
+				ort[i]->set_pixel(y, x, atan2(dy, dx) + M_PI);
+		} else {
+			mag[i]->set_pixel(y, x, 0);
+			ort[i]->set_pixel(y, x, M_PI);
 		}
+	}
 }
 
 Octave::~Octave() {
@@ -52,19 +51,19 @@ Octave::~Octave() {
 
 ScaleSpace::ScaleSpace(const shared_ptr<Img>& img, int num_octave, int num_scale):
 	noctave(num_octave), nscale(num_scale){
-	origw = img->w, origh = img->h;
-	octaves = new shared_ptr<Octave>[noctave];
+		origw = img->w, origh = img->h;
+		octaves = new shared_ptr<Octave>[noctave];
 
 #pragma omp parallel for schedule(dynamic)
-	for (int i = 0; i < noctave; i ++) {
-		if (!i)
-			octaves[i] = shared_ptr<Octave>(new Octave(img, nscale));
-		else {
-			shared_ptr<Img> resized(new Img(img->get_resized(pow(SCALE_FACTOR, -i))));
-			octaves[i] = shared_ptr<Octave>(new Octave(resized, nscale));
+		REP(i, noctave) {
+			if (!i)
+				octaves[i] = shared_ptr<Octave>(new Octave(img, nscale));
+			else {
+				shared_ptr<Img> resized(new Img(img->get_resized(pow(SCALE_FACTOR, -i))));
+				octaves[i] = shared_ptr<Octave>(new Octave(resized, nscale));
+			}
 		}
 	}
-}
 
 ScaleSpace::~ScaleSpace()
 { delete[] octaves; }
@@ -72,7 +71,7 @@ ScaleSpace::~ScaleSpace()
 DOG::DOG(const shared_ptr<Octave>& o) {
 	nscale = o->get_len();
 	data = new shared_ptr<GreyImg>[nscale - 1];
-	for (int i = 0; i < nscale - 1; i ++)
+	REP(i, nscale - 1)
 		data[i] = diff(o->get(i), o->get(i + 1));
 }
 
@@ -83,24 +82,22 @@ shared_ptr<GreyImg> DOG::diff(const shared_ptr<GreyImg>& img1, const shared_ptr<
 	int w = img1->w, h = img1->h;
 	m_assert(w == img2->w && h == img2->h);
 	shared_ptr<GreyImg> ret(new GreyImg(w, h));
-	for (int i = 0; i < h; i ++)
-		for (int j = 0; j < w; j ++) {
-			real_t diff = fabs(img1->get_pixel(i, j) - img2->get_pixel(i, j));
-			ret->set_pixel(i, j, diff);
-		}
+	REP(i, h) REP(j, w) {
+		real_t diff = fabs(img1->get_pixel(i, j) - img2->get_pixel(i, j));
+		ret->set_pixel(i, j, diff);
+	}
 	return move(ret);
 }
 
 DOGSpace::DOGSpace(ScaleSpace& ss):
 	noctave(ss.noctave), nscale(ss.nscale) {
-	origw = ss.origw, origh = ss.origh;
-	dogs = new shared_ptr<DOG>[noctave];
+		origw = ss.origw, origh = ss.origh;
+		dogs = new shared_ptr<DOG>[noctave];
 
 #pragma omp parallel for schedule(dynamic)
-	for (int i = 0; i < noctave; i ++)
-		dogs[i] = shared_ptr<DOG>(new DOG(ss.octaves[i]));
+		REP(i, noctave)
+			dogs[i] = shared_ptr<DOG>(new DOG(ss.octaves[i]));
 }
 
 DOGSpace::~DOGSpace()
 { delete[] dogs; }
-
