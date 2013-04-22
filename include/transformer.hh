@@ -1,5 +1,5 @@
 // File: transformer.hh
-// Date: Mon Apr 22 18:42:20 2013 +0800
+// Date: Mon Apr 22 19:02:24 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
@@ -16,7 +16,6 @@ class TransFormer {
 
 		std::vector<std::pair<Coor, Coor>> get_inliers(const Matrix &) const;
 
-		Vec2D cal_project(const Matrix &, const Coor&) const;
 
 	public:
 		TransFormer(const MatchData& m_match):
@@ -24,7 +23,5 @@ class TransFormer {
 
 		Matrix get_transform();
 
-
-
-
+		static Vec2D cal_project(const Matrix &, const Coor&);
 };

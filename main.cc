@@ -1,13 +1,14 @@
 // File: main.cc
-// Date: Mon Apr 22 11:29:16 2013 +0800
+// Date: Mon Apr 22 19:11:09 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "render/filerender.hh"
 #include "planedrawer.hh"
 #include "keypoint.hh"
 #include "matcher.hh"
-#include "transformer.hh"
 #include "gallery.hh"
+#include "stitcher.hh"
+#include "transformer.hh"
 #include <ctime>
 
 using namespace std;
@@ -101,8 +102,11 @@ void test_transform(const char* f1, const char* f2) {
 	Matcher match(feat1, feat2);
 	auto ret = match.match();
 
-	TransFormer trans(ret);
-	cout << trans.get_transform() << endl;
+	TransFormer transf(ret);
+	Matrix trans = transf.get_transform();
+
+	Stitcher st(ptr1, ptr2, trans);
+	shared_ptr<Img> res = st.stitch();
 
 }
 
