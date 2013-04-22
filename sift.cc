@@ -1,12 +1,11 @@
 // File: sift.cc
-// Date: Sun Apr 21 20:51:10 2013 +0800
+// Date: Mon Apr 22 20:12:57 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "sift.hh"
 #include "filter.hh"
 using namespace std;
 
-#define between(a, b, c) ((a >= b) && (a < c))
 
 Octave::Octave(const shared_ptr<GreyImg>& img, int num_scale):
 	nscale(num_scale){
@@ -105,4 +104,3 @@ DOGSpace::DOGSpace(ScaleSpace& ss):
 DOGSpace::~DOGSpace()
 { delete[] dogs; }
 
-#undef between

@@ -1,5 +1,5 @@
 // File: common.hh
-// Date: Mon Apr 22 18:48:52 2013 +0800
+// Date: Mon Apr 22 20:12:54 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
@@ -50,8 +50,10 @@ const real_t MATCH_REJECT_NEXT_RATIO = 0.8; // lowe
 const int MATCH_MIN_SIZE = 30;
 
 const int AFFINE_REQUIRED_MATCH = 4;
-const int RANSAC_ITERATIONS = 20;
+const int RANSAC_ITERATIONS = 40;
 const real_t RANSAC_INLIER_THRES = 5;
+
+#define between(a, b, c) ((a >= b) && (a < c))
 
 template <typename T>
 inline void free_2d(T** ptr, int w) {

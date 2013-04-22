@@ -1,5 +1,5 @@
 // File: image.hh
-// Date: Sun Apr 21 20:58:09 2013 +0800
+// Date: Mon Apr 22 19:57:05 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
@@ -53,7 +53,12 @@ class Img : public std::enable_shared_from_this<Img> {
 
 		const Color& get_pixel(int x, int y) const ;
 
+		const Color& get_pixel(const Coor& w) const
+		{ return get_pixel(w.y, w.x);}
+
 		void set_pixel(int x, int y, const Color& c);
+
+		void fill(const Color& c);
 };
 
 class GreyImg {

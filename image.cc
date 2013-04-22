@@ -1,5 +1,5 @@
 // File: image.cc
-// Date: Sun Apr 21 20:56:05 2013 +0800
+// Date: Mon Apr 22 20:13:13 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "image.hh"
@@ -53,8 +53,11 @@ Img Img::get_resized(real_t factor) const {
 	return move(img);
 }
 
-
-#define between(a, b, c) ((a >= b) && (a < c))
+void Img::fill(const ::Color& c) {
+	for (int i = 0; i < h; i ++)
+		for (int j = 0; j < w; j ++)
+			set_pixel(i, j, c);
+}
 
 const ::Color& Img::get_pixel(int r, int c) const {
 	m_assert(between(r, 0, h) && between(c, 0, w));
@@ -77,9 +80,6 @@ void GreyImg::set_pixel(int r, int c, real_t val) {
 	m_assert(between(r, 0, h) && between(c, 0, w));
 	*(pixel + r * w + c) = val;
 }
-
-#undef between
-
 
 void GreyImg::init_from_img(const Img& img) {
 	init(img.w, img.h);

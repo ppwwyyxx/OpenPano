@@ -1,5 +1,5 @@
 // File: main.cc
-// Date: Mon Apr 22 19:11:09 2013 +0800
+// Date: Mon Apr 22 19:28:51 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "render/filerender.hh"
@@ -30,7 +30,6 @@ vector<Feature> get_feature(shared_ptr<Img> ptr) {
 void test_feature(const char* fname) {
 	shared_ptr<Img> test(new Img(fname));
 	RenderBase* r = new FileRender(test, "out.png");
-	r->write(test);
 	cout << r->get_geo().w << r->get_geo().h << endl;
 	PlaneDrawer pld(r);
 
@@ -61,7 +60,6 @@ void gallery(const char* f1, const char* f2) {
 	shared_ptr<Img> test(new Img(ga.get()));
 	RenderBase* r = new FileRender(test, "out.png");
 	PlaneDrawer pld(r);
-	r->write(test);
 
 	vector<Feature> ans = get_feature(test);
 	for (auto i : ans) pld.arrow(i.real_coor, i.dir, LABEL_LEN);
@@ -108,6 +106,9 @@ void test_transform(const char* f1, const char* f2) {
 	Stitcher st(ptr1, ptr2, trans);
 	shared_ptr<Img> res = st.stitch();
 
+	RenderBase* r = new FileRender(res, "out.png");
+	r->finish();
+	delete r;
 }
 
 
