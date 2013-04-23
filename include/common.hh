@@ -1,5 +1,5 @@
 // File: common.hh
-// Date: Tue Apr 23 11:12:05 2013 +0800
+// Date: Tue Apr 23 12:27:49 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
@@ -24,7 +24,7 @@ const real_t SCALE_FACTOR = sqrt(2);
 const real_t GAUSS_SIGMA = SCALE_FACTOR;
 const int GAUSS_WINDOW_FACTOR = 6;		// before: 4
 
-const real_t JUDGE_EXTREMA_DIFF_THRES = 2e-7;
+const real_t JUDGE_EXTREMA_DIFF_THRES = +2e-7;
 const real_t CONTRAST_THRES = 3e-2;		// before: 7e-3
 const real_t PRE_COLOR_THRES = 2e-4;		// before : 3e-5
 const real_t EDGE_RATIO = 10;		// lowe
@@ -50,7 +50,7 @@ const real_t MATCH_REJECT_NEXT_RATIO = 0.8; // lowe
 const int MATCH_MIN_SIZE = 30;
 
 const int AFFINE_REQUIRED_MATCH = 4;
-const int RANSAC_ITERATIONS = 40;
+const int RANSAC_ITERATIONS = 50;
 const real_t RANSAC_INLIER_THRES = 5;
 
 #define between(a, b, c) ((a >= b) && (a <= c - 1))

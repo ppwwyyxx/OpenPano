@@ -1,5 +1,5 @@
 // File: main.cc
-// Date: Tue Apr 23 11:37:49 2013 +0800
+// Date: Tue Apr 23 12:19:19 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "render/filerender.hh"
@@ -101,6 +101,7 @@ void test_transform(const char* f1, const char* f2) {
 
 	TransFormer transf(ret);
 	Matrix trans = transf.get_transform();
+	cout << trans << endl;
 	print_debug("transf time: %lf secs\n", timer.get_sec());
 
 	/*
@@ -122,11 +123,11 @@ void test_transform(const char* f1, const char* f2) {
 
 int main(int argc, char* argv[]) {
 	srand(time(NULL));
-	test_feature(argv[1]);
+	/*
+	 *test_feature(argv[1]);
+	 */
 	/*
 	 *gallery(argv[1], argv[2]);
 	 */
-	/*
-	 *test_transform(argv[1], argv[2]);
-	 */
+	test_transform(argv[1], argv[2]);
 }

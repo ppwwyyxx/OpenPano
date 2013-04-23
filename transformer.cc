@@ -1,5 +1,5 @@
 // File: transformer.cc
-// Date: Tue Apr 23 10:24:11 2013 +0800
+// Date: Tue Apr 23 12:26:32 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "transformer.hh"
@@ -57,7 +57,7 @@ Matrix TransFormer::cal_transform(const vector<pair<Vec2D, Vec2D>>& matches) con
 	Matrix b(1, 2 * n);
 	REP(i, n) {
 		const Vec2D &m0 = matches[i].first,
-				    &m1 = matches[i].second;
+					&m1 = matches[i].second;
 		m.get(i * 2, 0) = m1.x;
 		m.get(i * 2, 1) = m1.y;
 		m.get(i * 2, 2) = 1;
@@ -86,12 +86,10 @@ Matrix TransFormer::cal_transform(const vector<pair<Vec2D, Vec2D>>& matches) con
 	ret.get(2, 2) = 1;
 
 	// check
-	/*
-	 *for (auto &i : matches) {
-	 *    Vec2D project = cal_project(ret, i.second);
-	 *    cout << i.first << " == ?" << project << endl;
-	 *}
-	 */
+	// for (auto &i : matches) {
+	// 	Vec2D project = cal_project(ret, i.second);
+	// 	cout << i.first << " == ?" << project << endl;
+	// }
 	return move(ret);
 }
 
