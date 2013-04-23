@@ -1,5 +1,5 @@
 // File: image.hh
-// Date: Tue Apr 23 10:33:36 2013 +0800
+// Date: Tue Apr 23 12:46:05 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
@@ -62,10 +62,12 @@ class Img : public std::enable_shared_from_this<Img> {
 		{ return get_pixel(w.y, w.x);}
 
 		void set_pixel(int, int, const Color&);
-
-		void add_pixel(real_t, real_t, const Color&);
-
-		void add_pixel(int, int, const Color&);
+/*
+ *
+ *        void add_pixel(real_t, real_t, const Color&);
+ *
+ *        void add_pixel(int, int, const Color&);
+ */
 
 		void fill(const Color& c);
 };

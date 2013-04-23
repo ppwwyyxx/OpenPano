@@ -1,5 +1,5 @@
 // File: common.hh
-// Date: Tue Apr 23 12:27:49 2013 +0800
+// Date: Tue Apr 23 13:06:29 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
@@ -14,6 +14,7 @@
 
 typedef double real_t;
 const real_t EPS = 1e-6;
+const real_t SEPS = std::numeric_limits<real_t>::epsilon();
 inline real_t sqr(real_t x) { return x * x; }
 
 

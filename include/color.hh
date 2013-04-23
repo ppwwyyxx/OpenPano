@@ -1,5 +1,5 @@
 // File: color.hh
-// Date: Mon Apr 22 19:45:05 2013 +0800
+// Date: Tue Apr 23 13:06:38 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
@@ -19,9 +19,9 @@ class Color: public Vector {
 		{ return is_zero(C_EPS); }
 
 		void check() const {
-			m_assert(x >= 0 && x <= 1);
-			m_assert(y >= 0 && y <= 1);
-			m_assert(z >= 0 && z <= 1);
+			m_assert(x >= 0 && x <= 1 + SEPS);
+			m_assert(y >= 0 && y <= 1 + SEPS);
+			m_assert(z >= 0 && z <= 1 + SEPS);
 		}
 
 		void normalize();

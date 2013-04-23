@@ -1,5 +1,5 @@
 // File: stitcher.cc
-// Date: Tue Apr 23 11:27:13 2013 +0800
+// Date: Tue Apr 23 12:46:26 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 //
 #include "stitcher.hh"
