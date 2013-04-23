@@ -1,5 +1,5 @@
 // File: panorama.cc
-// Date: Tue Apr 23 18:40:29 2013 +0800
+// Date: Tue Apr 23 20:23:53 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 //
 #include "panorama.hh"
@@ -53,6 +53,7 @@ imgptr Panorama::get() const {
 	imgptr ret(new Img(size.x, size.y));
 	ret->fill(Color::BLACK);
 
+	HWTimer timer;
 #pragma omp parallel for schedule(dynamic)
 	REP(i, ret->h) REP(j, ret->w) {
 		Vec2D final = Vec2D(j, i) - offset;
@@ -69,6 +70,7 @@ imgptr Panorama::get() const {
 		finalc = finalc * ((real_t)1 / blender.size());
 		ret->set_pixel(i, j, finalc);
 	}
+	print_debug("blend time: %lf secs\n", timer.get_sec());
 	return ret;
 }
 

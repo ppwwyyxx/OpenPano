@@ -1,5 +1,5 @@
 // File: transformer.cc
-// Date: Tue Apr 23 18:43:32 2013 +0800
+// Date: Tue Apr 23 18:46:58 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "transformer.hh"
@@ -99,6 +99,7 @@ Matrix TransFormer::cal_homo_transform(const vector<pair<Vec2D, Vec2D>>& matches
 		m.get(i * 2, 3) = m.get(i * 2, 4) = m.get(i * 2, 5) = 0;
 		m.get(i * 2, 6) = -m1.x * m0.x;
 		m.get(i * 2, 7) = -m1.y * m0.x;
+		b.get(i * 2, 0) = m0.x;
 
 		m.get(i * 2 + 1, 0) = m.get(i * 2 + 1, 1) = m.get(i * 2 + 1, 2) = 0;
 		m.get(i * 2 + 1, 3) = m1.x;
@@ -106,8 +107,7 @@ Matrix TransFormer::cal_homo_transform(const vector<pair<Vec2D, Vec2D>>& matches
 		m.get(i * 2 + 1, 5) = 1;
 		m.get(i * 2 + 1, 6) = -m1.x * m0.y;
 		m.get(i * 2 + 1, 7) = -m1.y * m0.y;
-
-		b.get(i * 2, 0) = m0.x, b.get(i * 2 + 1, 0) = m0.y;
+		b.get(i * 2 + 1, 0) = m0.y;
 	}
 	Matrix res(0, 0);
 	if (!m.solve_overdetermined(res, b)) { cout << "solve failed" << endl; return move(res); }
