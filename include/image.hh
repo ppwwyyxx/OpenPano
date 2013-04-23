@@ -1,5 +1,5 @@
 // File: image.hh
-// Date: Tue Apr 23 12:46:05 2013 +0800
+// Date: Tue Apr 23 14:49:14 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
@@ -110,3 +110,5 @@ class GreyImg {
 
 };
 
+
+typedef std::shared_ptr<Img> imgptr;

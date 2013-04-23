@@ -1,5 +1,5 @@
 // File: matrix.hh
-// Date: Tue Apr 23 00:21:57 2013 +0800
+// Date: Tue Apr 23 15:30:58 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
@@ -29,7 +29,7 @@ class Matrix {
 			val = new real_t* [h];
 			REP(i, h) {
 				val[i] = new real_t[w]();
-				memcpy(m.val[i], val[i], w * sizeof(real_t));
+				memcpy(val[i], m.val[i], w * sizeof(real_t));
 			}
 		}
 

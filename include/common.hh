@@ -1,5 +1,5 @@
 // File: common.hh
-// Date: Tue Apr 23 13:06:29 2013 +0800
+// Date: Tue Apr 23 18:41:55 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
@@ -50,9 +50,11 @@ const int DESC_LEN = 128;
 const real_t MATCH_REJECT_NEXT_RATIO = 0.8; // lowe
 const int MATCH_MIN_SIZE = 30;
 
-const int AFFINE_REQUIRED_MATCH = 4;
-const int RANSAC_ITERATIONS = 50;
-const real_t RANSAC_INLIER_THRES = 5;
+const int USE_HOMO = 1;
+const int HOMO_FREEDOM = 8;
+const int AFFINE_FREEDOM = 6;
+const int RANSAC_ITERATIONS = 30;
+const real_t RANSAC_INLIER_THRES = 2;
 
 #define between(a, b, c) ((a >= b) && (a <= c - 1))
 #define REP(x, y) for (int x = 0; x < (y); x ++)

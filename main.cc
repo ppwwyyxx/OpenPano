@@ -1,5 +1,5 @@
 // File: main.cc
-// Date: Tue Apr 23 12:19:19 2013 +0800
+// Date: Tue Apr 23 15:38:25 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "render/filerender.hh"
@@ -8,7 +8,9 @@
 #include "matcher.hh"
 #include "gallery.hh"
 #include "stitcher.hh"
+#include "panorama.hh"
 #include "transformer.hh"
+
 #include <ctime>
 
 using namespace std;
@@ -91,29 +93,9 @@ void test_transform(const char* f1, const char* f2) {
 
 	shared_ptr<Img> ptr1(new Img(pic1));
 	shared_ptr<Img> ptr2(new Img(pic2));
-	vector<Feature> feat1 = get_feature(ptr1);
-	vector<Feature> feat2 = get_feature(ptr2);
 
-	HWTimer timer;
-	Matcher match(feat1, feat2);
-	auto ret = match.match();
-	print_debug("match time: %lf secs\n", timer.get_sec());
-
-	TransFormer transf(ret);
-	Matrix trans = transf.get_transform();
-	cout << trans << endl;
-	print_debug("transf time: %lf secs\n", timer.get_sec());
-
-	/*
-	 *real_t x = M_PI / 6;
-	 *Matrix rot(3, 3);
-	 *rot.get(0, 0) = rot.get(1, 1) = cos(x), rot.get(0, 1) = sin(x);
-	 *rot.get(1, 0) = -sin(x);
-	 *rot.get(2, 2) = 1;
-	 */
-	Stitcher st(ptr1, ptr2, trans);
-	shared_ptr<Img> res = st.stitch();
-	print_debug("stitch time: %lf secs\n", timer.get_sec());
+	Panorama p({ptr1, ptr2});
+	shared_ptr<Img> res = p.get();
 
 	RenderBase* r = new FileRender(res, "out.png");
 	r->finish();
@@ -123,11 +105,22 @@ void test_transform(const char* f1, const char* f2) {
 
 int main(int argc, char* argv[]) {
 	srand(time(NULL));
+	vector<imgptr> imgs;
+	REPL(i, 1, argc)
+		imgs.push_back(shared_ptr<Img>(new Img(Image(argv[i]))));
+	Panorama p(imgs);
+	shared_ptr<Img> res = p.get();
+
+	RenderBase* r = new FileRender(res, "out.png");
+	r->finish();
+	delete r;
 	/*
 	 *test_feature(argv[1]);
 	 */
 	/*
 	 *gallery(argv[1], argv[2]);
 	 */
-	test_transform(argv[1], argv[2]);
+	/*
+	 *test_transform(argv[1], argv[2]);
+	 */
 }

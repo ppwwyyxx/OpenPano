@@ -1,5 +1,5 @@
 // File: matrix.cc
-// Date: Tue Apr 23 00:18:19 2013 +0800
+// Date: Tue Apr 23 15:02:00 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include <boost/numeric/ublas/lu.hpp>

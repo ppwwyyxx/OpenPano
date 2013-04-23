@@ -1,5 +1,5 @@
 // File: stitcher.hh
-// Date: Tue Apr 23 11:27:11 2013 +0800
+// Date: Tue Apr 23 14:44:13 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
@@ -17,7 +17,8 @@ class Stitcher {
 		// trans: img2 -> img1
 		Stitcher(const std::shared_ptr<Img>& m_img1, const std::shared_ptr<Img>& m_img2, const Matrix &m_trans):
 			img1(m_img1), img2(m_img2), trans(m_trans), inv(trans.w, trans.h) {
-			m_assert(trans.inverse(inv));
+			bool ok = trans.inverse(inv);
+			m_assert(ok);
 		}
 
 		std::shared_ptr<Img> stitch() const;

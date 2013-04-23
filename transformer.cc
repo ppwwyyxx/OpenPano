@@ -1,5 +1,5 @@
 // File: transformer.cc
-// Date: Tue Apr 23 12:26:32 2013 +0800
+// Date: Tue Apr 23 18:43:32 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "transformer.hh"
@@ -7,12 +7,12 @@
 using namespace std;
 
 Matrix TransFormer::get_transform() {		// second -> first
+	int REQUIRED = (USE_HOMO ? HOMO_FREEDOM / 2 : AFFINE_FREEDOM / 2);
 	int n_match = match.size();
 	if (n_match < MATCH_MIN_SIZE)
 		m_assert(false);
 
 	vector<pair<Vec2D, Vec2D>> fit;
-	fit.reserve(AFFINE_REQUIRED_MATCH);
 	set<int> selected;
 
 	int maxinlierscnt = 0;
@@ -21,7 +21,7 @@ Matrix TransFormer::get_transform() {		// second -> first
 	for (int K = RANSAC_ITERATIONS; K --;) {
 		fit.clear();
 		selected.clear();
-		REP(i, AFFINE_REQUIRED_MATCH) {
+		REP(i, REQUIRED) {
 			int random;
 			while (1) {
 				random = rand() % n_match;
@@ -31,7 +31,6 @@ Matrix TransFormer::get_transform() {		// second -> first
 			selected.insert(random);
 			fit.push_back(match.data[random]);
 		}
-		m_assert(fit.size() == AFFINE_REQUIRED_MATCH);
 		Matrix transform = cal_transform(fit);
 		int inlier = cal_inliers(transform);
 		// int inlier = get_inliers(transform).size();
@@ -44,20 +43,56 @@ Matrix TransFormer::get_transform() {		// second -> first
 
 	auto inliers = get_inliers(best_transform);
 	best_transform = cal_transform(inliers);
+	inliers = get_inliers(best_transform);
+	best_transform = cal_transform(inliers);
 	cout << "final num of inlier: " << inliers.size() << endl;
 	return move(best_transform);
 }
 
-// second -> first
 Matrix TransFormer::cal_transform(const vector<pair<Vec2D, Vec2D>>& matches) const {
-	int n = matches.size();
-	m_assert(n >= AFFINE_REQUIRED_MATCH);
+	if (USE_HOMO)
+		return move(cal_homo_transform(matches));
+	else
+		return move(cal_affine_transform(matches));
+}
 
-	Matrix m(2 * 4, 2 * n);		// 8 degree of freedom
+Matrix TransFormer::cal_affine_transform(const vector<pair<Vec2D, Vec2D>>& matches) const {
+	int n = matches.size();
+	m_assert(n * 2 >= AFFINE_FREEDOM);
+
+	Matrix m(AFFINE_FREEDOM, 2 * n);
 	Matrix b(1, 2 * n);
 	REP(i, n) {
-		const Vec2D &m0 = matches[i].first,
-					&m1 = matches[i].second;
+		const Vec2D &m0 = matches[i].first, &m1 = matches[i].second;
+		m.get(i * 2, 0) = m1.x;
+		m.get(i * 2, 1) = m1.y;
+		m.get(i * 2, 2) = 1;
+		m.get(i * 2, 3) = m.get(i * 2, 4) = m.get(i * 2, 5) = 0;
+		b.get(i * 2, 0) = m0.x;
+
+		m.get(i * 2 + 1, 0) = m.get(i * 2 + 1, 1) = m.get(i * 2 + 1, 2) = 0;
+		m.get(i * 2 + 1, 3) = m1.x;
+		m.get(i * 2 + 1, 4) = m1.y;
+		m.get(i * 2 + 1, 5) = 1;
+		b.get(i * 2 + 1, 0) = m0.y;
+	}
+	Matrix res(0, 0);
+	if (!m.solve_overdetermined(res, b)) { cout << "solve failed" << endl; return move(res); }
+	Matrix ret(3, 3);
+	REP(i, AFFINE_FREEDOM) ret.get(i / 3, i % 3) = res.get(i, 0);
+	ret.get(2, 2) = 1;
+	return move(ret);
+}
+
+// second -> first
+Matrix TransFormer::cal_homo_transform(const vector<pair<Vec2D, Vec2D>>& matches) const {
+	int n = matches.size();
+	m_assert(n * 2 >= HOMO_FREEDOM);
+
+	Matrix m(HOMO_FREEDOM, 2 * n);
+	Matrix b(1, 2 * n);
+	REP(i, n) {
+		const Vec2D &m0 = matches[i].first, &m1 = matches[i].second;
 		m.get(i * 2, 0) = m1.x;
 		m.get(i * 2, 1) = m1.y;
 		m.get(i * 2, 2) = 1;
@@ -75,14 +110,9 @@ Matrix TransFormer::cal_transform(const vector<pair<Vec2D, Vec2D>>& matches) con
 		b.get(i * 2, 0) = m0.x, b.get(i * 2 + 1, 0) = m0.y;
 	}
 	Matrix res(0, 0);
-	if (!m.solve_overdetermined(res, b)) {
-		cout << "solve failed" << endl;
-		return move(res);
-	}
-	m_assert(res.h == 8);
+	if (!m.solve_overdetermined(res, b)) { cout << "solve failed" << endl; return move(res); }
 	Matrix ret(3, 3);
-	for (int i = 0; i < 8; i ++)
-		ret.get(i / 3, i % 3) = res.get(i, 0);
+	REP(i, HOMO_FREEDOM) ret.get(i / 3, i % 3) = res.get(i, 0);
 	ret.get(2, 2) = 1;
 
 	// check
