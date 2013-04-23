@@ -1,5 +1,5 @@
 // File: utils.hh
-// Date: Wed Apr 10 03:53:13 2013 +0800
+// Date: Tue Apr 23 11:31:57 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 
@@ -33,5 +33,9 @@ class HWTimer {
 
 		HWTimer();
 
-		double get_sec() const;
+		double sec() const;
+
+		double get_sec();
+
+		void reset();
 };

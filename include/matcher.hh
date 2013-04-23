@@ -1,5 +1,5 @@
 // File: matcher.hh
-// Date: Sun Apr 21 16:40:22 2013 +0800
+// Date: Tue Apr 23 10:21:55 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
@@ -9,14 +9,14 @@
 
 class MatchData {
 	public:
-		std::vector<std::pair<Coor, Coor>> data;
+		std::vector<std::pair<Vec2D, Vec2D>> data;
 		MatchData(){}
 
 		MatchData(const MatchData& r) { data = r.data; }
 
 		MatchData(MatchData&& r) { data = move(r.data); }
 
-		void add(Coor, Coor);
+		void add(Vec2D, Vec2D);
 
 		int size() const { return data.size(); }
 };

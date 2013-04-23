@@ -1,5 +1,5 @@
 // File: feature.hh
-// Date: Sun Apr 21 19:58:13 2013 +0800
+// Date: Tue Apr 23 10:20:28 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
@@ -11,7 +11,7 @@ class Feature {
 	public:
 		Coor coor;
 		int no, ns; // octave / scale id
-		Coor real_coor;
+		Vec2D real_coor;
 		int sub_scale;		// to be more precise?
 
 		real_t descriptor[DESC_LEN];

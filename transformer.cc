@@ -1,5 +1,5 @@
 // File: transformer.cc
-// Date: Tue Apr 23 00:23:17 2013 +0800
+// Date: Tue Apr 23 10:24:11 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "transformer.hh"
@@ -11,7 +11,7 @@ Matrix TransFormer::get_transform() {		// second -> first
 	if (n_match < MATCH_MIN_SIZE)
 		m_assert(false);
 
-	vector<pair<Coor, Coor>> fit;
+	vector<pair<Vec2D, Vec2D>> fit;
 	fit.reserve(AFFINE_REQUIRED_MATCH);
 	set<int> selected;
 
@@ -42,22 +42,22 @@ Matrix TransFormer::get_transform() {		// second -> first
 	m_assert(maxinlierscnt > 0);
 	cout << "max num of inlier: " << maxinlierscnt << endl;
 
-	vector<pair<Coor, Coor>> inliers = get_inliers(best_transform);
+	auto inliers = get_inliers(best_transform);
 	best_transform = cal_transform(inliers);
 	cout << "final num of inlier: " << inliers.size() << endl;
 	return move(best_transform);
 }
 
 // second -> first
-Matrix TransFormer::cal_transform(const vector<pair<Coor, Coor>>& matches) const {
+Matrix TransFormer::cal_transform(const vector<pair<Vec2D, Vec2D>>& matches) const {
 	int n = matches.size();
 	m_assert(n >= AFFINE_REQUIRED_MATCH);
 
 	Matrix m(2 * 4, 2 * n);		// 8 degree of freedom
 	Matrix b(1, 2 * n);
 	REP(i, n) {
-		const Coor &m0 = matches[i].first,
-				   &m1 = matches[i].second;
+		const Vec2D &m0 = matches[i].first,
+				    &m1 = matches[i].second;
 		m.get(i * 2, 0) = m1.x;
 		m.get(i * 2, 1) = m1.y;
 		m.get(i * 2, 2) = 1;
@@ -95,7 +95,7 @@ Matrix TransFormer::cal_transform(const vector<pair<Coor, Coor>>& matches) const
 	return move(ret);
 }
 
-Vec2D TransFormer::cal_project(const Matrix & trans, const Coor & old) {
+Vec2D TransFormer::cal_project(const Matrix & trans, const Vec2D & old) {
 	Matrix m(1, 3);
 	m.get(0, 0) = old.x, m.get(1, 0) = old.y, m.get(2, 0) = 1;
 	Matrix res = trans.prod(m);
@@ -116,8 +116,8 @@ int TransFormer::cal_inliers(const Matrix & trans) const {
 	return cnt;
 }
 
-vector<pair<Coor, Coor>> TransFormer::get_inliers(const Matrix & trans) const {
-	vector<pair<Coor, Coor>> ret;
+vector<pair<Vec2D, Vec2D>> TransFormer::get_inliers(const Matrix & trans) const {
+	vector<pair<Vec2D, Vec2D>> ret;
 	for (auto & pair : match.data) {
 		Vec2D project = TransFormer::cal_project(trans, pair.second);
 		real_t dist = (project - Vec2D(pair.first.x, pair.first.y)).sqr();

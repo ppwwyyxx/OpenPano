@@ -1,5 +1,5 @@
 // File: utils.cc
-// Date: Thu Apr 11 10:08:57 2013 +0800
+// Date: Tue Apr 23 11:33:17 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "utils.hh"
@@ -30,11 +30,9 @@ void c_fprintf(const char* col, FILE* fp, const char* fmt, ...) {
 }
 
 
-HWTimer::HWTimer()
-{ gettimeofday(&m_start, nullptr); }
+HWTimer::HWTimer() { reset();}
 
-double HWTimer::get_sec() const
-{
+double HWTimer::sec() const {
 	timeval tv;
 	gettimeofday(&tv, nullptr);
 	double ret = tv.tv_sec - m_start.tv_sec +
@@ -43,3 +41,12 @@ double HWTimer::get_sec() const
 		ret += 24 * 3600;
 	return ret;
 }
+
+double HWTimer::get_sec() {
+	double ret = sec();
+	reset();
+	return ret;
+}
+
+void HWTimer::reset()
+{ gettimeofday(&m_start, nullptr); }

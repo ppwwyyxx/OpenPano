@@ -1,5 +1,5 @@
 // File: common.hh
-// Date: Tue Apr 23 00:11:17 2013 +0800
+// Date: Tue Apr 23 11:12:05 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
@@ -56,6 +56,8 @@ const real_t RANSAC_INLIER_THRES = 5;
 #define between(a, b, c) ((a >= b) && (a <= c - 1))
 #define REP(x, y) for (int x = 0; x < (y); x ++)
 #define REPL(x, y, z) for (int x = y; x < (z); x ++)
+
+#define toCoor(a) Coor(a.x, a.y)
 
 template <typename T>
 inline void free_2d(T** ptr, int w) {

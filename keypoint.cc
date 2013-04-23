@@ -1,5 +1,5 @@
 // File: keypoint.cc
-// Date: Tue Apr 23 00:16:34 2013 +0800
+// Date: Tue Apr 23 12:00:29 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include <cstring>
@@ -15,14 +15,14 @@ KeyPoint::KeyPoint(const DOGSpace& m_dog, const ScaleSpace& m_ss):
 { noctave = dogsp.noctave, nscale = dogsp.nscale; }
 
 void KeyPoint::detect_extrema() {
-	REP(i, noctave)
-		REPL(j, 1, nscale - 2)
-			judge_extrema(i, j);
+	REP(i, noctave) REPL(j, 1, nscale - 2)
+		judge_extrema(i, j);
 }
 
 void KeyPoint::judge_extrema(int nowo, int nows) {
 	shared_ptr<GreyImg> now = dogsp.dogs[nowo]->get(nows);
 	int w = now->w, h = now->h;
+#pragma omp parallel for schedule(dynamic)
 	REPL(i, 1, h - 1)
 		REPL(j, 1, w - 1) {
 			real_t nowcolor = now->get_pixel(i, j);
@@ -74,10 +74,10 @@ void KeyPoint::get_feature(int nowo, int nows, int r, int c) {
 
 	Feature f;
 	f.coor = Coor(newx, newy);
-	f.real_coor = Coor((real_t)newx / w * dogsp.origw,
-			(real_t)newy / h * dogsp.origh);
+	f.real_coor = Vec2D((real_t)newx / w * dogsp.origw, (real_t)newy / h * dogsp.origh);
 	f.ns = news, f.no = nowo;
 	f.scale_factor = GAUSS_SIGMA * pow(SCALE_FACTOR, (real_t)(offset.z + news) / nscale);
+#pragma omp critical
 	features.push_back(f);
 }
 
@@ -135,7 +135,7 @@ bool KeyPoint::judge_extrema(real_t center, int no, int ns, int nowi, int nowj) 
 	bool max = true, min = true;
 
 	for (int level : {ns, ns - 1, ns + 1})
-		REPL(di, -1, 1) REPL(dj, -1, 1) {
+		REPL(di, -1, 2) REPL(dj, -1, 2) {
 			if (!di && !dj && level == ns) continue;
 			real_t newval = dogsp.dogs[no]->get(level)->get_pixel(nowi + di, nowj + dj);
 			if (newval >= center - JUDGE_EXTREMA_DIFF_THRES) max = false;
@@ -161,7 +161,6 @@ void KeyPoint::calc_dir() {
 void KeyPoint::calc_dir(Feature& feat, vector<Feature>& update_feat) {
 	int no = feat.no, ns = feat.ns;
 	Coor now = feat.coor;
-
 
 	for (auto ori : calc_hist(ss.octaves[no], ns, now, feat.scale_factor)) {
 		Feature newf(feat);
@@ -230,8 +229,9 @@ vector<real_t> KeyPoint::calc_hist(shared_ptr<Octave> oct, int ns, Coor coor, re
 }
 
 void KeyPoint::calc_descriptor() {
-	for (auto &feat: features)
-		calc_descriptor(feat);
+	int n = features.size();
+#pragma omp parallel for schedule(dynamic)
+	REP(i, n) calc_descriptor(features[i]);
 }
 
 void KeyPoint::calc_descriptor(Feature& feat) {

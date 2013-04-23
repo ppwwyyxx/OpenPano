@@ -1,10 +1,11 @@
 // File: keypoint.hh
-// Date: Fri Apr 19 23:22:19 2013 +0800
+// Date: Tue Apr 23 11:58:26 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
 #include <vector>
 #include "feature.hh"
+#include "utils.hh"
 #include "sift.hh"
 
 class KeyPoint {
@@ -41,9 +42,13 @@ class KeyPoint {
 		void calc_descriptor(Feature&);
 
 		void work() {
+			HWTimer timer;
 			detect_extrema();
+			print_debug("detect extrema spend %lf secs\n", timer.get_sec());
 			calc_dir();
+			print_debug("cal dir spend %lf secs\n", timer.get_sec());
 			calc_descriptor();
+			print_debug("cal desc spend %lf secs\n", timer.get_sec());
 		}
 
 };

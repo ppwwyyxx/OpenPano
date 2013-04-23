@@ -1,5 +1,5 @@
 // File: image.cc
-// Date: Tue Apr 23 00:21:09 2013 +0800
+// Date: Tue Apr 23 11:08:06 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "image.hh"
@@ -61,6 +61,9 @@ const ::Color& Img::get_pixel(int r, int c) const {
 	return *dest;
 }
 
+void Img::add_pixel(int y, int x, const ::Color& c)
+{ set_pixel(y, x, get_pixel(y, x) + c); }
+
 ::Color Img::get_pixel(real_t y, real_t x) const {
 	::Color ret = ::Color::BLACK;
 	real_t dy = y - floor(y), dx = x - floor(x);
@@ -69,6 +72,15 @@ const ::Color& Img::get_pixel(int r, int c) const {
 	ret += get_pixel((int)ceil(y), (int)ceil(x)) * (dy * dx);
 	ret += get_pixel((int)floor(y), (int)ceil(x)) * ((1 - dy) * dx);
 	return ret;
+}
+
+void Img::add_pixel(real_t y, real_t x, const ::Color& c) {
+	int fly = floor(y), flx = floor(x);
+	real_t dy = y - fly, dx = x - flx;
+	add_pixel(fly, flx, c * ((1 - dy) * (1 - dx)));
+	add_pixel(fly + 1, flx, c * (dy * (1 - dx)));
+	add_pixel(fly + 1, flx + 1, c * (dy * dx));
+	add_pixel(fly, flx + 1, c * ((1 - dy) * dx));
 }
 
 void Img::set_pixel(int r, int c, const ::Color& val) {

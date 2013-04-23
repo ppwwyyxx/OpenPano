@@ -1,5 +1,5 @@
 // File: sift.cc
-// Date: Tue Apr 23 00:16:03 2013 +0800
+// Date: Tue Apr 23 11:48:09 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "sift.hh"
@@ -86,17 +86,17 @@ shared_ptr<GreyImg> DOG::diff(const shared_ptr<GreyImg>& img1, const shared_ptr<
 		real_t diff = fabs(img1->get_pixel(i, j) - img2->get_pixel(i, j));
 		ret->set_pixel(i, j, diff);
 	}
-	return move(ret);
+	return ret;
 }
 
 DOGSpace::DOGSpace(ScaleSpace& ss):
 	noctave(ss.noctave), nscale(ss.nscale) {
-		origw = ss.origw, origh = ss.origh;
-		dogs = new shared_ptr<DOG>[noctave];
+	origw = ss.origw, origh = ss.origh;
+	dogs = new shared_ptr<DOG>[noctave];
 
 #pragma omp parallel for schedule(dynamic)
-		REP(i, noctave)
-			dogs[i] = shared_ptr<DOG>(new DOG(ss.octaves[i]));
+	REP(i, noctave)
+		dogs[i] = shared_ptr<DOG>(new DOG(ss.octaves[i]));
 }
 
 DOGSpace::~DOGSpace()

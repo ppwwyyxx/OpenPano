@@ -1,12 +1,12 @@
 // File: matcher.cc
-// Date: Tue Apr 23 00:23:45 2013 +0800
+// Date: Tue Apr 23 11:37:07 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include <limits>
 #include "matcher.hh"
 using namespace std;
 
-void MatchData::add(Coor x, Coor y) {
+void MatchData::add(Vec2D x, Vec2D y) {
 	data.push_back({x, y});
 }
 
@@ -19,7 +19,7 @@ MatchData Matcher::match() const {
 		const Feature& i = feat1[k];
 		real_t min = numeric_limits<int>::max(),
 			   minn = min;
-		Coor mincoor;
+		Vec2D mincoor;
 		for (auto &j : feat2) {
 			real_t dist = cal_dist(i, j);
 			if (dist < min) {

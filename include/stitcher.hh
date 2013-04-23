@@ -1,5 +1,5 @@
 // File: stitcher.hh
-// Date: Mon Apr 22 20:27:55 2013 +0800
+// Date: Tue Apr 23 11:27:11 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
