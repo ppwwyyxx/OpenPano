@@ -1,5 +1,5 @@
 // File: panorama.cc
-// Date: Tue Apr 23 20:23:53 2013 +0800
+// Date: Wed Apr 24 23:29:32 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 //
 #include "panorama.hh"
@@ -21,9 +21,9 @@ imgptr Panorama::get() const {
 
 	vector<Feature> feat1 = Panorama::get_feature(imgs[0]);
 	REP(i, n - 1) {
-		cout << mat[i] << endl;
 		vector<Feature> feat2 = Panorama::get_feature(imgs[i + 1]);
 		mat.push_back(get_transform(feat1, feat2));
+		cout << mat[i + 1] << endl;
 		feat1 = move(feat2);
 	}
 	REPL(i, 2, n) mat[i] = mat[i - 1].prod(mat[i]);
@@ -48,8 +48,9 @@ imgptr Panorama::get() const {
 		});
 
 	Coor size = max - min;
-	cout << "size: " << size << endl;
 	Vec2D offset(-min.x, -min.y);
+	cout << "size: " << size << endl;
+	cout << "offset" << offset << endl;;
 	imgptr ret(new Img(size.x, size.y));
 	ret->fill(Color::BLACK);
 
