@@ -1,5 +1,5 @@
 // File: keypoint.cc
-// Date: Tue Apr 23 12:11:55 2013 +0800
+// Date: Thu Apr 25 10:01:05 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include <cstring>
@@ -165,7 +165,7 @@ void KeyPoint::calc_dir(Feature& feat, vector<Feature>& update_feat) {
 	for (auto ori : calc_hist(ss.octaves[no], ns, now, feat.scale_factor)) {
 		Feature newf(feat);
 		newf.dir = ori;
-		update_feat.push_back(move(newf));
+		update_feat.push_back(move(newf));			// TODO reference dangerous?
 	}
 }
 
