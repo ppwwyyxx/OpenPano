@@ -1,10 +1,9 @@
 // File: matrix.hh
-// Date: Tue Apr 23 15:30:58 2013 +0800
+// Date: Thu Apr 25 15:01:12 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
 #include <cstring>
-#include <boost/numeric/ublas/matrix.hpp>
 #include "debugutils.hh"
 #include "common.hh"
 
@@ -72,8 +71,14 @@ class Matrix {
 
 		bool solve_overdetermined(Matrix & x, const Matrix & b) const;		//
 
-
 		friend std::ostream& operator << (std::ostream& os, const Matrix & m);
 
+		bool SVD(Matrix & u, Matrix & s, Matrix & v) const;
+
+		void normrot();
+
+		real_t sqrsum() const;
+
+		Matrix col(int i) const;
 };
 

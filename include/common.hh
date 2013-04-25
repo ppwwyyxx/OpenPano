@@ -1,5 +1,5 @@
 // File: common.hh
-// Date: Tue Apr 23 18:46:30 2013 +0800
+// Date: Thu Apr 25 13:01:01 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
@@ -55,6 +55,8 @@ const int HOMO_FREEDOM = 8;
 const int AFFINE_FREEDOM = 6;
 const int RANSAC_ITERATIONS = 30;
 const real_t RANSAC_INLIER_THRES = 2;
+
+const real_t FOCAL = 300;
 
 #define between(a, b, c) ((a >= b) && (a <= c - 1))
 #define REP(x, y) for (int x = 0; x < (y); x ++)

@@ -1,5 +1,5 @@
 // File: transformer.hh
-// Date: Thu Apr 25 09:54:03 2013 +0800
+// Date: Thu Apr 25 12:59:22 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
@@ -13,8 +13,11 @@ class TransFormer {
 		Matrix cal_transform(const std::vector<int>&) const;
 
 		Matrix cal_homo_transform(const std::vector<int>&) const;
+		Matrix cal_homo_transform2(const std::vector<int>&) const;
 
 		Matrix cal_affine_transform(const std::vector<int>&) const;
+
+		Matrix cal_rotate_homo_transform(const std::vector<int>&) const;
 
 		int cal_inliers(const Matrix &) const;
 

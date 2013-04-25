@@ -1,5 +1,5 @@
 // File: transformer.cc
-// Date: Thu Apr 25 09:53:33 2013 +0800
+// Date: Thu Apr 25 14:56:56 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "transformer.hh"
@@ -15,7 +15,7 @@ Matrix TransFormer::get_transform() {		// second -> first
 	vector<int> fit;
 	set<int> selected;
 
-	int maxinlierscnt = 0;
+	int maxinlierscnt = -1;
 	Matrix best_transform(0, 0);
 
 	for (int K = RANSAC_ITERATIONS; K --;) {
@@ -38,7 +38,9 @@ Matrix TransFormer::get_transform() {		// second -> first
 			best_transform = move(transform);
 		}
 	}
-	m_assert(maxinlierscnt > 0);
+	/*
+	 *m_assert(maxinlierscnt > 0);
+	 */
 	cout << "max num of inlier: " << maxinlierscnt << endl;
 
 	auto inliers = get_inliers(best_transform);
@@ -54,6 +56,7 @@ Matrix TransFormer::cal_transform(const vector<int>& matches) const {
 		return move(cal_homo_transform(matches));
 	else
 		return move(cal_affine_transform(matches));
+	return move(cal_rotate_homo_transform(matches));
 }
 
 Matrix TransFormer::cal_affine_transform(const vector<int>& matches) const {
@@ -121,6 +124,90 @@ Matrix TransFormer::cal_homo_transform(const vector<int>& matches) const {
 	// 	cout << i.first << " == ?" << project << endl;
 	// }
 	return move(ret);
+}
+
+Matrix TransFormer::cal_homo_transform2(const vector<int>& matches) const {
+	int n = matches.size();
+	m_assert(n * 2 >= HOMO_FREEDOM);
+
+	Matrix m(9, 2 * n);
+	REP(i, n) {
+		const Vec2D &m0 = match.data[matches[i]].first, &m1 = match.data[matches[i]].second;
+		m.get(i * 2, 0) = m1.x;
+		m.get(i * 2, 1) = m1.y;
+		m.get(i * 2, 2) = 1;
+		m.get(i * 2, 3) = m.get(i * 2, 4) = m.get(i * 2, 5) = 0;
+		m.get(i * 2, 6) = -m1.x * m0.x;
+		m.get(i * 2, 7) = -m1.y * m0.x;
+		m.get(i * 2, 8) = -m0.x;
+
+		m.get(i * 2 + 1, 0) = m.get(i * 2 + 1, 1) = m.get(i * 2 + 1, 2) = 0;
+		m.get(i * 2 + 1, 3) = m1.x;
+		m.get(i * 2 + 1, 4) = m1.y;
+		m.get(i * 2 + 1, 5) = 1;
+		m.get(i * 2 + 1, 6) = -m1.x * m0.y;
+		m.get(i * 2 + 1, 7) = -m1.y * m0.y;
+		m.get(i * 2 + 1, 8) = -m0.y;
+	}
+	Matrix u(2 * n, 2 * n), v(9, 9), s(9, 2 * n);
+	m.SVD(u, s, v);
+	Matrix bestcol(1, 9);
+	real_t mineigen = numeric_limits<real_t>::max();
+	REP(i, 9) {
+		Matrix col = v.col(i);
+		real_t mod = m.prod(col).sqrsum();
+		if (update_min(mineigen, mod))
+			bestcol = col;
+	}
+
+	Matrix ret(3, 3);
+	REP(i, 9) ret.get(i / 3, i % 3) = bestcol.get(i, 0);
+	// check
+	// for (auto &i : matches) {
+	// 	Vec2D project = cal_project(ret, i.second);
+	// 	cout << i.first << " == ?" << project << endl;
+	// }
+	return move(ret);
+}
+Matrix TransFormer::cal_rotate_homo_transform(const vector<int>& matches) const {
+	int n = matches.size();
+	m_assert(n * 2 >= HOMO_FREEDOM);
+
+	const real_t f = FOCAL;
+
+	Matrix m(3, 3);
+	REP(i, n) {
+		const Vec2D &m0 = match.data[matches[i]].second, &m1 = match.data[matches[i]].first;
+
+		/*
+		 *float weight = sqrt((pow(f,2)+pow(m1.x,2)+pow(m1.y,2))/(pow(f,2)+pow(m0.x,2)+pow(m0.y,2)));
+		 */
+		real_t v1[3], v2[3];
+		v1[0] = (real_t)(m0.x) / f;
+		v1[1] = (real_t)(m0.y) / f;
+		v1[2] = 1;
+		v2[0] = (real_t)(m1.x) / f;
+		v2[1] = (real_t)(m1.y) / f;
+		v2[2] = 1;
+		REP(ii, 3) REP(jj, 3)
+			m.get(ii, jj) += v1[ii] * v2[jj];
+
+	}
+	Matrix u(3, 3), v(3, 3), s(3, 3);
+	m.SVD(u, s, v);
+	Matrix ret = v.prod(u.transpose());
+	ret.normrot();
+	Matrix K(3, 3), Kin(3, 3);
+	K.get(1, 1) = K.get(0, 0) = f; K.get(2, 2) = 1;
+	K.inverse(Kin);
+	Matrix realret = K.prod(ret).prod(Kin);
+	cout << realret << endl;
+	for (auto &k : matches) {
+		auto i = match.data[k];
+		Vec2D project = cal_project(realret, i.second);
+		cout << i.first << " == ?" << project << endl;
+	}
+	return move(realret);
 }
 
 Vec2D TransFormer::cal_project(const Matrix & trans, const Vec2D & old) {
