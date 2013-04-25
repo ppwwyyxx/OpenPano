@@ -1,5 +1,5 @@
 // File: transformer.cc
-// Date: Tue Apr 23 18:46:58 2013 +0800
+// Date: Thu Apr 25 09:53:33 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "transformer.hh"
@@ -12,7 +12,7 @@ Matrix TransFormer::get_transform() {		// second -> first
 	if (n_match < MATCH_MIN_SIZE)
 		m_assert(false);
 
-	vector<pair<Vec2D, Vec2D>> fit;
+	vector<int> fit;
 	set<int> selected;
 
 	int maxinlierscnt = 0;
@@ -29,7 +29,7 @@ Matrix TransFormer::get_transform() {		// second -> first
 					break;
 			}
 			selected.insert(random);
-			fit.push_back(match.data[random]);
+			fit.push_back(random);
 		}
 		Matrix transform = cal_transform(fit);
 		int inlier = cal_inliers(transform);
@@ -49,21 +49,21 @@ Matrix TransFormer::get_transform() {		// second -> first
 	return move(best_transform);
 }
 
-Matrix TransFormer::cal_transform(const vector<pair<Vec2D, Vec2D>>& matches) const {
+Matrix TransFormer::cal_transform(const vector<int>& matches) const {
 	if (USE_HOMO)
 		return move(cal_homo_transform(matches));
 	else
 		return move(cal_affine_transform(matches));
 }
 
-Matrix TransFormer::cal_affine_transform(const vector<pair<Vec2D, Vec2D>>& matches) const {
+Matrix TransFormer::cal_affine_transform(const vector<int>& matches) const {
 	int n = matches.size();
 	m_assert(n * 2 >= AFFINE_FREEDOM);
 
 	Matrix m(AFFINE_FREEDOM, 2 * n);
 	Matrix b(1, 2 * n);
 	REP(i, n) {
-		const Vec2D &m0 = matches[i].first, &m1 = matches[i].second;
+		const Vec2D &m0 = match.data[matches[i]].first, &m1 = match.data[matches[i]].second;
 		m.get(i * 2, 0) = m1.x;
 		m.get(i * 2, 1) = m1.y;
 		m.get(i * 2, 2) = 1;
@@ -85,14 +85,14 @@ Matrix TransFormer::cal_affine_transform(const vector<pair<Vec2D, Vec2D>>& match
 }
 
 // second -> first
-Matrix TransFormer::cal_homo_transform(const vector<pair<Vec2D, Vec2D>>& matches) const {
+Matrix TransFormer::cal_homo_transform(const vector<int>& matches) const {
 	int n = matches.size();
 	m_assert(n * 2 >= HOMO_FREEDOM);
 
 	Matrix m(HOMO_FREEDOM, 2 * n);
 	Matrix b(1, 2 * n);
 	REP(i, n) {
-		const Vec2D &m0 = matches[i].first, &m1 = matches[i].second;
+		const Vec2D &m0 = match.data[matches[i]].first, &m1 = match.data[matches[i]].second;
 		m.get(i * 2, 0) = m1.x;
 		m.get(i * 2, 1) = m1.y;
 		m.get(i * 2, 2) = 1;
@@ -144,13 +144,15 @@ int TransFormer::cal_inliers(const Matrix & trans) const {
 	return cnt;
 }
 
-vector<pair<Vec2D, Vec2D>> TransFormer::get_inliers(const Matrix & trans) const {
-	vector<pair<Vec2D, Vec2D>> ret;
-	for (auto & pair : match.data) {
+vector<int> TransFormer::get_inliers(const Matrix & trans) const {
+	vector<int> ret;
+	int n = match.size();
+	REP(i, n) {
+		auto &pair = match.data[i];
 		Vec2D project = TransFormer::cal_project(trans, pair.second);
 		real_t dist = (project - Vec2D(pair.first.x, pair.first.y)).sqr();
 		if (dist < sqr(RANSAC_INLIER_THRES))
-			ret.push_back(pair);
+			ret.push_back(i);
 	}
 	return move(ret);
 }

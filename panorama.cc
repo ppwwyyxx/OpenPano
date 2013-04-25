@@ -1,5 +1,5 @@
 // File: panorama.cc
-// Date: Wed Apr 24 23:29:32 2013 +0800
+// Date: Thu Apr 25 09:54:01 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 //
 #include "panorama.hh"
