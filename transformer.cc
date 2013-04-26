@@ -1,5 +1,5 @@
 // File: transformer.cc
-// Date: Thu Apr 25 22:44:27 2013 +0800
+// Date: Fri Apr 26 22:36:44 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "transformer.hh"
@@ -38,28 +38,22 @@ Matrix TransFormer::get_transform() {		// second -> first
 			best_transform = move(transform);
 		}
 	}
-	/*
-	 *m_assert(maxinlierscnt > 0);
-	 */
+	m_assert(maxinlierscnt > 0);
 	cout << "max num of inlier: " << maxinlierscnt << endl;
 
-	/*
-	 *auto inliers = get_inliers(best_transform);
-	 *best_transform = cal_transform(inliers);
-	 *inliers = get_inliers(best_transform);
-	 *best_transform = cal_transform(inliers);
-	 *cout << "final num of inlier: " << inliers.size() << endl;
-	 */
+	auto inliers = get_inliers(best_transform);
+	best_transform = cal_transform(inliers);
+	inliers = get_inliers(best_transform);
+	best_transform = cal_transform(inliers);
+	cout << "final num of inlier: " << inliers.size() << endl;
 	return move(best_transform);
 }
 
 Matrix TransFormer::cal_transform(const vector<int>& matches) const {
-	/*
-	 *if (USE_HOMO)
-	 *    return move(cal_homo_transform(matches));
-	 *else
-	 *    return move(cal_affine_transform(matches));
-	 */
+	if (USE_HOMO)
+		return move(cal_homo_transform(matches));
+	else
+		return move(cal_affine_transform(matches));
 	return move(cal_rotate_homo_transform(matches));
 }
 
@@ -206,6 +200,7 @@ Matrix TransFormer::cal_rotate_homo_transform(const vector<int>& matches) const 
 	ret.normrot();
 	Matrix K(3, 3), Kin(3, 3);
 	K.get(1, 1) = K.get(0, 0) = f; K.get(2, 2) = 1;
+	K.get(0, 2) = 350; K.get(1, 2) = 232;
 	K.inverse(Kin);
 	Matrix realret = K.prod(ret).prod(Kin);
 	cout << ret << endl;

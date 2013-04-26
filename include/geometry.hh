@@ -1,5 +1,5 @@
 // File: geometry.hh
-// Date: Sun Apr 14 22:38:11 2013 +0800
+// Date: Sat Apr 27 01:43:07 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
@@ -208,6 +208,12 @@ class Vector2D {
 
 		Vector2D<T> get_normalized() const
 		{ real_t m = mod(); m_assert(m > EPS); m = 1 / m; return Vector2D<T>(x * m, y * m); }
+
+		virtual void normalize() {
+			real_t m = 1 / mod();
+			x *= m, y *= m;		// work?
+			m_assert(std::isnormal(m));
+		}
 
 		template <typename TT>
 		friend std::ostream& operator << (std::ostream& os, const Vector2D<TT>& v);

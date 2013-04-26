@@ -1,10 +1,11 @@
 // File: panorama.cc
-// Date: Thu Apr 25 09:54:01 2013 +0800
+// Date: Sat Apr 27 02:35:13 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 //
 #include "panorama.hh"
 #include "matcher.hh"
 #include "utils.hh"
+#include "sphere.hh"
 #include "sift.hh"
 #include "keypoint.hh"
 #include "transformer.hh"
@@ -13,6 +14,10 @@ using namespace std;
 imgptr Panorama::get() const {
 	Matrix I(3, 3);
 	I.get(0, 0) = I.get(1, 1) = I.get(2, 2) = 1;
+
+	Cylinder cyl(std::max(imgs[0]->w, imgs[0]->h) / 2,
+			Vec(imgs[0]->w / 2, imgs[0]->h / 2,
+				std::max(imgs[0]->w, imgs[0]->h) * 2));
 
 	Coor min(0, 0), max(0, 0);
 	int n = imgs.size();
@@ -26,17 +31,29 @@ imgptr Panorama::get() const {
 		cout << mat[i + 1] << endl;
 		feat1 = move(feat2);
 	}
+	int totlen = 0;
+	REP(i, n) totlen += imgs[i]->w * 0.7;
 	REPL(i, 2, n) mat[i] = mat[i - 1].prod(mat[i]);
 
-	REPL(i, 0, n) {
-		Vec2D corner[4] = {
-			Vec2D(0, 0), Vec2D(imgs[i]->w, 0),
-			Vec2D(0, imgs[i]->h), Vec2D(imgs[i]->w, imgs[i]->h)};
-		for (auto &v : corner) {
-			Vec2D newcorner = TransFormer::cal_project(mat[i], v);
-			min.update_min(Coor(floor(newcorner.x), floor(newcorner.y)));
-			max.update_max(Coor(ceil(newcorner.x), ceil(newcorner.y)));
-		}
+	/*
+	 *REPL(i, 0, n) {
+	 *    Vec2D corner[4] = {
+	 *        Vec2D(0, 0), Vec2D(imgs[i]->w, 0),
+	 *        Vec2D(0, imgs[i]->h), Vec2D(imgs[i]->w, imgs[i]->h)};
+	 *    for (auto &v : corner) {
+	 *        Vec2D newcorner = TransFormer::cal_project(mat[i], v);
+	 *        min.update_min(Coor(floor(newcorner.x), floor(newcorner.y)));
+	 *        max.update_max(Coor(ceil(newcorner.x), ceil(newcorner.y)));
+	 *    }
+	 *}
+	 */
+	REP(k, n) REP(i, imgs[k]->h) REP(j, imgs[k]->w) {
+		Vec2D newcorner = TransFormer::cal_project(mat[k], Vec2D(j, i));
+		newcorner = cyl.proj(newcorner);
+		real_t hh = newcorner.x; // + cyl.center.y / 2;
+		real_t ww = (M_PI - newcorner.y) / M_PI * totlen;
+		min.update_min(Coor(floor(ww), floor(hh)));
+		max.update_max(Coor(ceil(ww), ceil(hh)));
 	}
 
 	for_each(mat.begin(), mat.end(),
@@ -58,6 +75,9 @@ imgptr Panorama::get() const {
 #pragma omp parallel for schedule(dynamic)
 	REP(i, ret->h) REP(j, ret->w) {
 		Vec2D final = Vec2D(j, i) - offset;
+		real_t hh = final.y;
+		real_t ww = M_PI - (real_t)j / ret->w * M_PI;
+		final = cyl.proj_r(Vec2D(hh, ww));
 		vector<Color> blender;
 		REP(k, n) {
 			Vec2D old = TransFormer::cal_project(mat[k], final);
