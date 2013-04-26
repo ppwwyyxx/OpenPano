@@ -1,5 +1,5 @@
 // File: transformer.cc
-// Date: Thu Apr 25 14:56:56 2013 +0800
+// Date: Thu Apr 25 22:44:27 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "transformer.hh"
@@ -43,19 +43,23 @@ Matrix TransFormer::get_transform() {		// second -> first
 	 */
 	cout << "max num of inlier: " << maxinlierscnt << endl;
 
-	auto inliers = get_inliers(best_transform);
-	best_transform = cal_transform(inliers);
-	inliers = get_inliers(best_transform);
-	best_transform = cal_transform(inliers);
-	cout << "final num of inlier: " << inliers.size() << endl;
+	/*
+	 *auto inliers = get_inliers(best_transform);
+	 *best_transform = cal_transform(inliers);
+	 *inliers = get_inliers(best_transform);
+	 *best_transform = cal_transform(inliers);
+	 *cout << "final num of inlier: " << inliers.size() << endl;
+	 */
 	return move(best_transform);
 }
 
 Matrix TransFormer::cal_transform(const vector<int>& matches) const {
-	if (USE_HOMO)
-		return move(cal_homo_transform(matches));
-	else
-		return move(cal_affine_transform(matches));
+	/*
+	 *if (USE_HOMO)
+	 *    return move(cal_homo_transform(matches));
+	 *else
+	 *    return move(cal_affine_transform(matches));
+	 */
 	return move(cal_rotate_homo_transform(matches));
 }
 
@@ -169,11 +173,14 @@ Matrix TransFormer::cal_homo_transform2(const vector<int>& matches) const {
 	// }
 	return move(ret);
 }
+
 Matrix TransFormer::cal_rotate_homo_transform(const vector<int>& matches) const {
 	int n = matches.size();
 	m_assert(n * 2 >= HOMO_FREEDOM);
 
-	const real_t f = FOCAL;
+	Matrix homo = cal_homo_transform(matches);
+	real_t f = TransFormer::get_focal_from_matrix(homo);
+	cout << "focal: " << f << endl;
 
 	Matrix m(3, 3);
 	REP(i, n) {
@@ -201,7 +208,7 @@ Matrix TransFormer::cal_rotate_homo_transform(const vector<int>& matches) const 
 	K.get(1, 1) = K.get(0, 0) = f; K.get(2, 2) = 1;
 	K.inverse(Kin);
 	Matrix realret = K.prod(ret).prod(Kin);
-	cout << realret << endl;
+	cout << ret << endl;
 	for (auto &k : matches) {
 		auto i = match.data[k];
 		Vec2D project = cal_project(realret, i.second);
@@ -242,4 +249,20 @@ vector<int> TransFormer::get_inliers(const Matrix & trans) const {
 			ret.push_back(i);
 	}
 	return move(ret);
+}
+
+real_t TransFormer::get_focal_from_matrix(const Matrix& m) {
+	real_t f2;
+	real_t p1 = sqr(m.get(0, 0)) + sqr(m.get(0, 1)) - sqr(m.get(1, 0)) - sqr(m.get(1, 1));
+	if (fabs(p1) > EPS)  {
+		f2 = (sqr(m.get(1, 2)) - sqr(m.get(0, 2))) / (p1);
+	} else {
+		p1 = m.get(0, 0) * m.get(1, 0) + m.get(0, 1) * m.get(1, 1);
+		if (fabs(p1) > EPS)
+			f2 = -(m.get(0, 2) * m.get(1, 2)) / p1;
+		else {
+			return Vec(m.get(0, 0), m.get(0, 1), m.get(0, 2)).dot(Vec(m.get(2, 0), m.get(2, 1), m.get(2, 2)));
+		}
+	}
+	return sqrt(fabs(f2));
 }

@@ -1,5 +1,5 @@
 // File: transformer.hh
-// Date: Thu Apr 25 12:59:22 2013 +0800
+// Date: Thu Apr 25 22:20:34 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
@@ -23,7 +23,6 @@ class TransFormer {
 
 		std::vector<int> get_inliers(const Matrix &) const;
 
-
 	public:
 		TransFormer(const MatchData& m_match):
 			match(m_match) { }
@@ -31,4 +30,6 @@ class TransFormer {
 		Matrix get_transform();
 
 		static Vec2D cal_project(const Matrix &, const Vec2D&);
+
+		static real_t get_focal_from_matrix(const Matrix& m);
 };
