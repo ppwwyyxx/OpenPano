@@ -1,5 +1,5 @@
 // File: common.hh
-// Date: Sat Apr 27 12:03:13 2013 +0800
+// Date: Sat Apr 27 21:56:28 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
@@ -53,7 +53,7 @@ const int MATCH_MIN_SIZE = 30;
 const int USE_HOMO = 1;
 const int HOMO_FREEDOM = 8;
 const int AFFINE_FREEDOM = 6;
-const int RANSAC_ITERATIONS = 30;
+const int RANSAC_ITERATIONS = 50;
 const real_t RANSAC_INLIER_THRES = 2;
 
 const real_t FOCAL = 300;

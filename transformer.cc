@@ -1,5 +1,5 @@
 // File: transformer.cc
-// Date: Fri Apr 26 22:36:44 2013 +0800
+// Date: Sat Apr 27 22:14:08 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "transformer.hh"
@@ -212,13 +212,22 @@ Matrix TransFormer::cal_rotate_homo_transform(const vector<int>& matches) const 
 	return move(realret);
 }
 
+extern bool TEMPDEBUG;
+
 Vec2D TransFormer::cal_project(const Matrix & trans, const Vec2D & old) {
 	Matrix m(1, 3);
 	m.get(0, 0) = old.x, m.get(1, 0) = old.y, m.get(2, 0) = 1;
 	Matrix res = trans.prod(m);
 	m_assert(res.h == 3);
 	real_t denom = res.get(2, 0);
+	if (denom < 1e-2) denom = 1;		// XXX wtf
 	Vec2D ret(res.get(0, 0) / denom, res.get(1, 0) / denom);
+	if (TEMPDEBUG) {
+		P(trans);
+		P(m);
+		P(res);
+		P(ret);
+	}
 	return ret;
 }
 
