@@ -1,5 +1,5 @@
 // File: common.hh
-// Date: Thu Apr 25 13:01:01 2013 +0800
+// Date: Sat Apr 27 12:03:13 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
@@ -62,7 +62,10 @@ const real_t FOCAL = 300;
 #define REP(x, y) for (int x = 0; x < (y); x ++)
 #define REPL(x, y, z) for (int x = y; x < (z); x ++)
 
-#define toCoor(a) Coor(a.x, a.y)
+#define toCoor(a) Coor((a).x, (a).y)
+
+#define P(a) std::cout << (a) << std::endl
+#define PP(s, a) std::cout << s << " " << (a) << std::endl
 
 template <typename T>
 inline void free_2d(T** ptr, int w) {

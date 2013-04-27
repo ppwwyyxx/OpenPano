@@ -1,5 +1,5 @@
 // File: panorama.cc
-// Date: Sat Apr 27 02:35:13 2013 +0800
+// Date: Sat Apr 27 12:03:35 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 //
 #include "panorama.hh"
@@ -19,7 +19,8 @@ imgptr Panorama::get() const {
 			Vec(imgs[0]->w / 2, imgs[0]->h / 2,
 				std::max(imgs[0]->w, imgs[0]->h) * 2));
 
-	Coor min(0, 0), max(0, 0);
+	Vec2D min(std::numeric_limits<int>::max(), std::numeric_limits<int>::max()),
+		 max(0, 0);
 	int n = imgs.size();
 	vector<Matrix> mat;
 	mat.push_back(move(I));
@@ -31,8 +32,6 @@ imgptr Panorama::get() const {
 		cout << mat[i + 1] << endl;
 		feat1 = move(feat2);
 	}
-	int totlen = 0;
-	REP(i, n) totlen += imgs[i]->w * 0.7;
 	REPL(i, 2, n) mat[i] = mat[i - 1].prod(mat[i]);
 
 	/*
@@ -47,13 +46,17 @@ imgptr Panorama::get() const {
 	 *    }
 	 *}
 	 */
+#pragma omp parallel for schedule(dynamic)
 	REP(k, n) REP(i, imgs[k]->h) REP(j, imgs[k]->w) {
 		Vec2D newcorner = TransFormer::cal_project(mat[k], Vec2D(j, i));
 		newcorner = cyl.proj(newcorner);
 		real_t hh = newcorner.x; // + cyl.center.y / 2;
-		real_t ww = (M_PI - newcorner.y) / M_PI * totlen;
-		min.update_min(Coor(floor(ww), floor(hh)));
-		max.update_max(Coor(ceil(ww), ceil(hh)));
+		real_t ww = (M_PI - newcorner.y);
+#pragma omp critical
+		{
+			min.update_min(Vec2D(ww, floor(hh)));
+			max.update_max(Vec2D(ww, ceil(hh)));
+		}
 	}
 
 	for_each(mat.begin(), mat.end(),
@@ -64,7 +67,12 @@ imgptr Panorama::get() const {
 			m = move(inv);
 		});
 
-	Coor size = max - min;
+	real_t initial_ang = min.x,
+		   tot_ang = max.x - min.x;
+	cout << "ini" << initial_ang << endl;
+	cout << "tot" << tot_ang << endl;
+	max.x *= cyl.r, min.x *= cyl.r;
+	Coor size = toCoor(max - min);
 	Vec2D offset(-min.x, -min.y);
 	cout << "size: " << size << endl;
 	cout << "offset" << offset << endl;;
@@ -76,7 +84,7 @@ imgptr Panorama::get() const {
 	REP(i, ret->h) REP(j, ret->w) {
 		Vec2D final = Vec2D(j, i) - offset;
 		real_t hh = final.y;
-		real_t ww = M_PI - (real_t)j / ret->w * M_PI;
+		real_t ww = initial_ang + tot_ang - (real_t)j / ret->w * tot_ang;
 		final = cyl.proj_r(Vec2D(hh, ww));
 		vector<Color> blender;
 		REP(k, n) {
