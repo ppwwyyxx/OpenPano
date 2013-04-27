@@ -1,5 +1,5 @@
 // File: panorama.cc
-// Date: Sat Apr 27 12:03:35 2013 +0800
+// Date: Sat Apr 27 20:29:52 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 //
 #include "panorama.hh"
@@ -15,8 +15,8 @@ imgptr Panorama::get() const {
 	Matrix I(3, 3);
 	I.get(0, 0) = I.get(1, 1) = I.get(2, 2) = 1;
 
-	Cylinder cyl(std::max(imgs[0]->w, imgs[0]->h) / 2,
-			Vec(imgs[0]->w / 2, imgs[0]->h / 2,
+	Cylinder cyl(std::max(imgs[0]->w, imgs[0]->h) * 2,
+			Vec(0, imgs[0]->h / 2,
 				std::max(imgs[0]->w, imgs[0]->h) * 2));
 
 	Vec2D min(std::numeric_limits<int>::max(), std::numeric_limits<int>::max()),
@@ -69,6 +69,7 @@ imgptr Panorama::get() const {
 
 	real_t initial_ang = min.x,
 		   tot_ang = max.x - min.x;
+
 	cout << "ini" << initial_ang << endl;
 	cout << "tot" << tot_ang << endl;
 	max.x *= cyl.r, min.x *= cyl.r;
@@ -84,8 +85,9 @@ imgptr Panorama::get() const {
 	REP(i, ret->h) REP(j, ret->w) {
 		Vec2D final = Vec2D(j, i) - offset;
 		real_t hh = final.y;
-		real_t ww = initial_ang + tot_ang - (real_t)j / ret->w * tot_ang;
-		final = cyl.proj_r(Vec2D(hh, ww));
+		real_t ww = initial_ang + (real_t)j / ret->w * tot_ang;
+		final = cyl.proj_r(Vec2D(hh, M_PI - ww));
+		cout << Vec2D(hh, ww) << " " << final << endl;
 		vector<Color> blender;
 		REP(k, n) {
 			Vec2D old = TransFormer::cal_project(mat[k], final);
