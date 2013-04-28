@@ -1,5 +1,5 @@
 // File: main.cc
-// Date: Sun Apr 28 20:26:14 2013 +0800
+// Date: Mon Apr 29 01:15:35 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "render/filerender.hh"
@@ -106,9 +106,12 @@ void test_transform(const char* f1, const char* f2) {
 
 void final(int argc, char* argv[]) {
 	vector<imgptr> imgs;
+/*
+ *#pragma omp parallel for schedule(dynamic)
+ */
 	REPL(i, 1, argc) {
 		imgptr ptr(new Img(argv[i]));
-		imgs.push_back(ptr->warp_cyl_in());
+		imgs.push_back(ptr->warp_sph());
 	}
 	Panorama p(imgs);
 	shared_ptr<Img> res = p.get();
@@ -120,7 +123,7 @@ void final(int argc, char* argv[]) {
 
 void warp(const char* fname) {
 	imgptr test(new Img(fname));
-	imgptr ret = test->warp_cyl_out();
+	imgptr ret = test->warp_sph();
 
 	RenderBase* r = new FileRender(ret, "out.png");
 	r->finish();

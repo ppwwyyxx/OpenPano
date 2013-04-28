@@ -1,5 +1,5 @@
 // File: image.hh
-// Date: Sun Apr 28 20:04:34 2013 +0800
+// Date: Mon Apr 29 00:14:02 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
@@ -68,6 +68,8 @@ class Img : public std::enable_shared_from_this<Img> {
 		std::shared_ptr<Img> warp_cyl_in() const;
 
 		std::shared_ptr<Img> warp_cyl_out() const;
+
+		std::shared_ptr<Img> warp_sph() const;
 
 		bool is_black_edge(real_t, real_t) const;
 };

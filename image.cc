@@ -1,5 +1,5 @@
 // File: image.cc
-// Date: Sun Apr 28 20:29:11 2013 +0800
+// Date: Mon Apr 29 00:14:55 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "image.hh"
@@ -112,6 +112,13 @@ imgptr Img::warp_cyl_out() const {
 	Vec cen(w / 2, h / 2, 400);
 	CylProject cyl(r, cen, w);
 	return move(cyl.project(shared_from_this()));
+}
+
+imgptr Img::warp_sph() const {
+	int r = max(w, h) / 2;
+	Vec cen(w / 2, h / 2, r * 2);
+	SphProject sph(r, cen, w * 0.8);
+	return move(sph.project(shared_from_this()));
 }
 
 real_t GreyImg::get_pixel(int r, int c) const {

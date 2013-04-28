@@ -1,5 +1,5 @@
 // File: transformer.cc
-// Date: Sun Apr 28 14:07:34 2013 +0800
+// Date: Mon Apr 29 01:10:53 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "transformer.hh"
@@ -9,8 +9,10 @@ using namespace std;
 Matrix TransFormer::get_transform() {		// second -> first
 	int REQUIRED = (USE_HOMO ? HOMO_FREEDOM / 2 : AFFINE_FREEDOM / 2);
 	int n_match = match.size();
-	if (n_match < MATCH_MIN_SIZE)
+	if (n_match < MATCH_MIN_SIZE) {
+		P(n_match);
 		m_assert(false);
+	}
 
 	vector<int> fit;
 	set<int> selected;
@@ -220,7 +222,7 @@ Vec2D TransFormer::cal_project(const Matrix & trans, const Vec2D & old) {
 	Matrix res = trans.prod(m);
 	m_assert(res.h == 3);
 	real_t denom = res.get(2, 0);
-	if (denom < 1e-2) denom = 1;		// XXX wtf
+	// if (fabs(denom) < 1e-2) denom = 1;		// XXX wtf
 	Vec2D ret(res.get(0, 0) / denom, res.get(1, 0) / denom);
 	return ret;
 }
