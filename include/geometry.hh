@@ -1,5 +1,5 @@
 // File: geometry.hh
-// Date: Sat Apr 27 01:43:07 2013 +0800
+// Date: Sun Apr 28 20:07:44 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
@@ -132,7 +132,7 @@ class Vector {
 		static Vector infinity()
 		{ return Vector(std::numeric_limits<real_t>::infinity(), std::numeric_limits<real_t>::infinity()); }
 
-		real_t get_max()
+		real_t get_max() const
 		{ return std::max(x, std::max(y, z)); }
 
 		real_t get_abs_max()

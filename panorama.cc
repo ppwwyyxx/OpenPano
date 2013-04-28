@@ -1,5 +1,5 @@
 // File: panorama.cc
-// Date: Sun Apr 28 19:16:09 2013 +0800
+// Date: Sun Apr 28 20:08:08 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include <fstream>
@@ -83,8 +83,11 @@ imgptr Panorama::get_trans() const {
 		vector<Color> blender;
 		REP(k, n) {
 			Vec2D old = TransFormer::cal_project(mat[k], final);
-			if (between(old.x, 0, imgs[k]->w) && between(old.y, 0, imgs[k]->h))
+			if (between(old.x, 0, imgs[k]->w) && between(old.y, 0, imgs[k]->h)) {
+				if (imgs[k]->is_black_edge(old.y, old.x))
+					continue;
 				blender.push_back(imgs[k]->get_pixel(old.y, old.x));
+			}
 		}
 		if (!blender.size()) continue;
 		Color finalc;

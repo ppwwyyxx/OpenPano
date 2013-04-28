@@ -1,5 +1,5 @@
 // File: image.hh
-// Date: Tue Apr 23 14:49:14 2013 +0800
+// Date: Sun Apr 28 20:04:34 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
@@ -62,14 +62,14 @@ class Img : public std::enable_shared_from_this<Img> {
 		{ return get_pixel(w.y, w.x);}
 
 		void set_pixel(int, int, const Color&);
-/*
- *
- *        void add_pixel(real_t, real_t, const Color&);
- *
- *        void add_pixel(int, int, const Color&);
- */
 
 		void fill(const Color& c);
+
+		std::shared_ptr<Img> warp_cyl_in() const;
+
+		std::shared_ptr<Img> warp_cyl_out() const;
+
+		bool is_black_edge(real_t, real_t) const;
 };
 
 class GreyImg {
@@ -112,3 +112,4 @@ class GreyImg {
 
 
 typedef std::shared_ptr<Img> imgptr;
+typedef std::shared_ptr<const Img> imgptrc;

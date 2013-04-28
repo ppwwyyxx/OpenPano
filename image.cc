@@ -1,10 +1,11 @@
 // File: image.cc
-// Date: Tue Apr 23 12:46:23 2013 +0800
+// Date: Sun Apr 28 20:29:11 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "image.hh"
 #include "filter.hh"
 #include "render/MImageRender.hh"
+#include "cylinder.hh"
 using namespace std;
 using namespace Magick;
 
@@ -71,6 +72,14 @@ const ::Color& Img::get_pixel(int r, int c) const {
 	return ret;
 }
 
+bool Img::is_black_edge(real_t y, real_t x) const {
+	if (get_pixel((int)floor(y), (int)floor(x)).get_max() < EPS) return true;
+	if (get_pixel((int)ceil(y), (int)floor(x)).get_max() < EPS) return true;
+	if (get_pixel((int)ceil(y), (int)ceil(x)).get_max() < EPS) return true;
+	if (get_pixel((int)floor(y), (int)ceil(x)).get_max() < EPS) return true;
+	return false;
+}
+
 /*
  *void Img::add_pixel(int y, int x, const ::Color& c)
  *{ set_pixel(y, x, get_pixel(y, x) + c); }
@@ -89,6 +98,20 @@ void Img::set_pixel(int r, int c, const ::Color& val) {
 	m_assert(between(r, 0, h) && between(c, 0, w));
 	::Color *dest = pixel + r * w + c;
 	dest->x = val.x, dest->y = val.y, dest->z = val.z;
+}
+
+imgptr Img::warp_cyl_in() const {
+	int r = max(w, h) / 2;
+	Vec cen(w / 2, h / 2, r * 2);
+	CylProject cyl(r, cen, w * 0.8);
+	return move(cyl.project(shared_from_this()));
+}
+
+imgptr Img::warp_cyl_out() const {
+	int r = max(w, h) * 8;
+	Vec cen(w / 2, h / 2, 400);
+	CylProject cyl(r, cen, w);
+	return move(cyl.project(shared_from_this()));
 }
 
 real_t GreyImg::get_pixel(int r, int c) const {

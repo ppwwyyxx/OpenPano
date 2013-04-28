@@ -1,5 +1,5 @@
 // File: main.cc
-// Date: Sat Apr 27 21:56:43 2013 +0800
+// Date: Sun Apr 28 20:26:14 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "render/filerender.hh"
@@ -90,13 +90,13 @@ void test_memory(const char* fname) {
 }
 
 void test_transform(const char* f1, const char* f2) {
-	Image pic1(f1);
-	Image pic2(f2);
+	imgptr ptr1(new Img(f1));
+	imgptr ptr2(new Img(f2));
 
-	shared_ptr<Img> ptr1(new Img(pic1));
-	shared_ptr<Img> ptr2(new Img(pic2));
+	imgptr pt1 = ptr1->warp_cyl_in();
+	imgptr pt2 = ptr2->warp_cyl_in();
 
-	Panorama p({ptr1, ptr2});
+	Panorama p({pt1, pt2});
 	shared_ptr<Img> res = p.get();
 
 	RenderBase* r = new FileRender(res, "out.png");
@@ -104,18 +104,35 @@ void test_transform(const char* f1, const char* f2) {
 	delete r;
 }
 
-
-int main(int argc, char* argv[]) {
-	srand(time(NULL));
+void final(int argc, char* argv[]) {
 	vector<imgptr> imgs;
-	REPL(i, 1, argc)
-		imgs.push_back(shared_ptr<Img>(new Img(Image(argv[i]))));
+	REPL(i, 1, argc) {
+		imgptr ptr(new Img(argv[i]));
+		imgs.push_back(ptr->warp_cyl_in());
+	}
 	Panorama p(imgs);
 	shared_ptr<Img> res = p.get();
 
 	RenderBase* r = new FileRender(res, "out.png");
 	r->finish();
 	delete r;
+}
+
+void warp(const char* fname) {
+	imgptr test(new Img(fname));
+	imgptr ret = test->warp_cyl_out();
+
+	RenderBase* r = new FileRender(ret, "out.png");
+	r->finish();
+	delete r;
+}
+
+
+int main(int argc, char* argv[]) {
+	srand(time(NULL));
+	/*
+	 *warp(argv[1]);
+	 */
 	/*
 	 *test_feature(argv[1]);
 	 */
@@ -125,4 +142,5 @@ int main(int argc, char* argv[]) {
 	/*
 	 *test_transform(argv[1], argv[2]);
 	 */
+	final(argc, argv);
 }
