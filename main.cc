@@ -1,5 +1,5 @@
 // File: main.cc
-// Date: Mon Apr 29 01:15:35 2013 +0800
+// Date: Mon Apr 29 11:18:42 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "render/filerender.hh"
@@ -106,12 +106,9 @@ void test_transform(const char* f1, const char* f2) {
 
 void final(int argc, char* argv[]) {
 	vector<imgptr> imgs;
-/*
- *#pragma omp parallel for schedule(dynamic)
- */
 	REPL(i, 1, argc) {
 		imgptr ptr(new Img(argv[i]));
-		imgs.push_back(ptr->warp_sph());
+		imgs.push_back(ptr->warp_cyl_in());
 	}
 	Panorama p(imgs);
 	shared_ptr<Img> res = p.get();

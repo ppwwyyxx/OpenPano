@@ -1,5 +1,5 @@
 // File: matrix.hh
-// Date: Thu Apr 25 15:01:12 2013 +0800
+// Date: Mon Apr 29 11:05:13 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
@@ -80,5 +80,7 @@ class Matrix {
 		real_t sqrsum() const;
 
 		Matrix col(int i) const;
+
+		static Matrix I(int);
 };
 

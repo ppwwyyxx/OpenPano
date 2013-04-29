@@ -1,5 +1,5 @@
 // File: matrix.cc
-// Date: Thu Apr 25 15:07:32 2013 +0800
+// Date: Mon Apr 29 11:06:31 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 /*
@@ -224,5 +224,12 @@ Matrix Matrix::col(int i) const {
 	Matrix ret(1, h);
 	REP(j, h)
 		ret.get(j, 0) = get(j, i);
+	return move(ret);
+}
+
+Matrix Matrix::I(int k) {
+	Matrix ret(k, k);
+	REP(i, k)
+		ret.get(i, i) = 1;
 	return move(ret);
 }

@@ -1,5 +1,5 @@
 // File: panorama.cc
-// Date: Sun Apr 28 20:08:08 2013 +0800
+// Date: Mon Apr 29 11:18:45 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include <fstream>
@@ -19,8 +19,7 @@ imgptr Panorama::get() const {
 }
 
 imgptr Panorama::get_trans() const {
-	Matrix I(3, 3);
-	I.get(0, 0) = I.get(1, 1) = I.get(2, 2) = 1;
+	Matrix I = Matrix::I(3);
 
 	Vec2D min(std::numeric_limits<int>::max(), std::numeric_limits<int>::max()),
 		  max(0, 0);
@@ -43,6 +42,8 @@ imgptr Panorama::get_trans() const {
 	 */
 
 	REPL(i, 2, n) mat[i] = mat[i - 1].prod(mat[i]);
+
+	straighten(mat);
 
 	REPL(i, 0, n) {
 	    Vec2D corner[4] = {
@@ -100,9 +101,7 @@ imgptr Panorama::get_trans() const {
 	return ret;
 }
 
-
 Matrix Panorama::get_transform(const vector<Feature>& feat1, const vector<Feature>& feat2) {
-
 	HWTimer timer;
 	Matcher match(feat1, feat2);
 	auto ret = match.match();
@@ -120,3 +119,16 @@ vector<Feature> Panorama::get_feature(imgptr ptr) {
 	return move(ex.features);
 }
 
+void Panorama::straighten(vector<Matrix>& mat) const {
+	int n = imgs.size();
+	Vec2D center2 = imgs[n - 1]->get_center();
+	center2 = TransFormer::cal_project(mat[n - 1], center2);
+	Vec2D center = TransFormer::cal_project(mat[0], imgs[0]->get_center());
+	real_t dydx = (center2.y - center.y) / (center2.x - center.x);
+	Matrix S = Matrix::I(3);
+	S.get(1, 0) = dydx;
+	Matrix Sinv(3, 3);
+	S.inverse(Sinv);
+	REP(i, n)
+		mat[i] = Sinv.prod(mat[i]);
+}
