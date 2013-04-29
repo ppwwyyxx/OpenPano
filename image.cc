@@ -1,5 +1,5 @@
 // File: image.cc
-// Date: Mon Apr 29 11:19:43 2013 +0800
+// Date: Tue Apr 30 01:56:26 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "image.hh"
@@ -51,10 +51,7 @@ Img Img::get_resized(real_t factor) const {
 	return move(img);
 }
 
-void Img::fill(const ::Color& c) {
-	REP(i, h) REP(j, w)
-		set_pixel(i, j, c);
-}
+void Img::fill(const ::Color& c) { REP(i, h) REP(j, w) set_pixel(i, j, c); }
 
 const ::Color& Img::get_pixel(int r, int c) const {
 	m_assert(between(r, 0, h) && between(c, 0, w));
@@ -80,20 +77,6 @@ bool Img::is_black_edge(real_t y, real_t x) const {
 	return false;
 }
 
-/*
- *void Img::add_pixel(int y, int x, const ::Color& c)
- *{ set_pixel(y, x, get_pixel(y, x) + c); }
- *
- *void Img::add_pixel(real_t y, real_t x, const ::Color& c) {
- *    int fly = floor(y), flx = floor(x);
- *    real_t dy = y - fly, dx = x - flx;
- *    add_pixel(fly, flx, c * ((1 - dy) * (1 - dx)));
- *    add_pixel(fly + 1, flx, c * (dy * (1 - dx)));
- *    add_pixel(fly + 1, flx + 1, c * (dy * dx));
- *    add_pixel(fly, flx + 1, c * ((1 - dy) * dx));
- *}
- */
-
 void Img::set_pixel(int r, int c, const ::Color& val) {
 	m_assert(between(r, 0, h) && between(c, 0, w));
 	::Color *dest = pixel + r * w + c;
@@ -103,7 +86,7 @@ void Img::set_pixel(int r, int c, const ::Color& val) {
 imgptr Img::warp_cyl_in() const {
 	int r = max(w, h) / 2;
 	Vec cen(w / 2, h / 2, r * 2);
-	CylProject cyl(r, cen, w / 2);
+	CylProject cyl(r, cen, w * 0.8);
 	return move(cyl.project(shared_from_this()));
 }
 

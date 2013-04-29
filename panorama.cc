@@ -1,5 +1,5 @@
 // File: panorama.cc
-// Date: Mon Apr 29 11:18:45 2013 +0800
+// Date: Tue Apr 30 02:02:11 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include <fstream>
@@ -85,8 +85,7 @@ imgptr Panorama::get_trans() const {
 		REP(k, n) {
 			Vec2D old = TransFormer::cal_project(mat[k], final);
 			if (between(old.x, 0, imgs[k]->w) && between(old.y, 0, imgs[k]->h)) {
-				if (imgs[k]->is_black_edge(old.y, old.x))
-					continue;
+				if (imgs[k]->is_black_edge(old.y, old.x)) continue;
 				blender.push_back(imgs[k]->get_pixel(old.y, old.x));
 			}
 		}
@@ -119,7 +118,7 @@ vector<Feature> Panorama::get_feature(imgptr ptr) {
 	return move(ex.features);
 }
 
-void Panorama::straighten(vector<Matrix>& mat) const {
+void Panorama::straighten_first_last(vector<Matrix>& mat) const {
 	int n = imgs.size();
 	Vec2D center2 = imgs[n - 1]->get_center();
 	center2 = TransFormer::cal_project(mat[n - 1], center2);
@@ -131,4 +130,44 @@ void Panorama::straighten(vector<Matrix>& mat) const {
 	S.inverse(Sinv);
 	REP(i, n)
 		mat[i] = Sinv.prod(mat[i]);
+}
+
+void Panorama::straighten(vector<Matrix>& mat) const {
+	int n = mat.size();
+
+	vector<Vec2D> centers;
+	REP(k, n)
+		centers.push_back(TransFormer::cal_project(mat[k], imgs[k]->get_center()));
+	Vec2D kb = Panorama::line_fit(centers);
+	P(kb);
+	Matrix shift = Panorama::shift_to_line(centers, kb);
+}
+
+Vec2D Panorama::line_fit(const std::vector<Vec2D>& pts) {
+	int n = pts.size();
+
+	Matrix left(2, n);
+	Matrix right(1, n);
+	REP(k, n) {
+		left.get(k, 0) = pts[k].x, left.get(k, 1) = 1;
+		right.get(k, 0) = pts[k].y;
+	}
+
+	Matrix res(0, 0);
+	if (!left.solve_overdetermined(res, right)) {
+		cout << "line_fit solve failed" << endl;
+		return Vec2D(0, 0);
+	}
+	/*
+	 *P(left);
+	 *P(right);
+	 *P(res);
+	 */
+
+	return Vec2D(res.get(0, 0), res.get(1, 0));
+}
+
+Matrix Panorama::shift_to_line(const vector<Vec2D>& ptr, const Vec2D& line) {
+	m_assert(ptr.size() >= 9);
+
 }
