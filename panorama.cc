@@ -1,5 +1,5 @@
 // File: panorama.cc
-// Date: Wed May 01 01:36:17 2013 +0800
+// Date: Wed May 01 01:44:36 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include <fstream>
@@ -37,17 +37,9 @@ imgptr Panorama::get_trans() {
 
 	REPL(i, 2, n) mat[i] = mat[i - 1].prod(mat[i]);
 
-	/*
-	 *straighten_simple(0, n / 2, mat);
-	 */
-	/*
-	 *straighten_simple(n / 2, n, mat);
-	 */
 	REP(k, 1)
 		straighten(mat);
-	/*
-	 *straighten_simple(0, n, mat);
-	 */
+	straighten_simple(0, n, mat);
 
 
 	ofstream fout2("matrix_2.txt");
@@ -131,7 +123,7 @@ vector<Feature> Panorama::get_feature(imgptr& ptr) {
 void Panorama::warp(imgptr& img, vector<Feature>& ft) {
 	int r = max(img->w, img->h) / 2;
 	Vec cen(img->w / 2, img->h / 2 * 1.2, r * 2);
-	CylProject cyl(r, cen, r);
+	CylProject cyl(r, cen, r );
 	img = cyl.project(img, ft);
 }
 
