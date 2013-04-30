@@ -1,5 +1,5 @@
 // File: matrix.cc
-// Date: Mon Apr 29 11:06:31 2013 +0800
+// Date: Tue Apr 30 10:20:59 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 /*
@@ -10,8 +10,10 @@
 #include "matrix.hh"
 #include "geometry.hh"
 
-using namespace boost::numeric::ublas;
-namespace ublas = boost::numeric::ublas;
+/*
+ *using namespace boost::numeric::ublas;
+ *namespace ublas = boost::numeric::ublas;
+ */
 typedef mtl::matrix::dense2D<real_t> mtlM;
 using namespace std;
 

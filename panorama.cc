@@ -1,5 +1,5 @@
 // File: panorama.cc
-// Date: Tue Apr 30 02:02:11 2013 +0800
+// Date: Tue Apr 30 10:34:46 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include <fstream>
@@ -140,7 +140,9 @@ void Panorama::straighten(vector<Matrix>& mat) const {
 		centers.push_back(TransFormer::cal_project(mat[k], imgs[k]->get_center()));
 	Vec2D kb = Panorama::line_fit(centers);
 	P(kb);
-	Matrix shift = Panorama::shift_to_line(centers, kb);
+	/*
+	 *Matrix shift = Panorama::shift_to_line(centers, kb);
+	 */
 }
 
 Vec2D Panorama::line_fit(const std::vector<Vec2D>& pts) {
@@ -168,6 +170,23 @@ Vec2D Panorama::line_fit(const std::vector<Vec2D>& pts) {
 }
 
 Matrix Panorama::shift_to_line(const vector<Vec2D>& ptr, const Vec2D& line) {
-	m_assert(ptr.size() >= 9);
+	int n = ptr.size();
+	m_assert(n >= 8);
+	Matrix left(8, n);
+	Matrix right(1, n);
+	REP(k, n) {
+		auto & nowp = ptr[k];
+		left.get(k, 0) = line.x * nowp.x;
+		left.get(k, 1) = line.x * nowp.y;
+		left.get(k, 2) = line.x;
+		left.get(k, 3) = -nowp.x;
+		left.get(k, 4) = -nowp.y;
+		left.get(k, 5) = -1;
+		left.get(k, 6) = line.y * nowp.x;
+		left.get(k, 7) = line.y * nowp.y;
+
+		right.get(k, 0) = -line.y;
+	}
+	Matrix res(1, 8);
 
 }
