@@ -1,5 +1,5 @@
 // File: main.cc
-// Date: Tue Apr 30 01:49:03 2013 +0800
+// Date: Tue Apr 30 23:54:25 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "render/filerender.hh"
@@ -23,21 +23,16 @@ bool TEMPDEBUG = false;
 inline real_t gen_rand()
 { return (real_t)rand() / RAND_MAX; }
 
-vector<Feature> get_feature(shared_ptr<Img> ptr) {
-	ScaleSpace ss(ptr, NUM_OCTAVE, NUM_SCALE);
-	DOGSpace sp(ss);
-	KeyPoint ex(sp, ss);
-	ex.work();
-	return move(ex.features);
-}
+vector<Feature> get_feature(imgptr& ptr)
+{ return Panorama::get_feature(ptr); }
 
 void test_feature(const char* fname) {
 	shared_ptr<Img> test(new Img(fname));
+	vector<Feature> ans = get_feature(test);
 	RenderBase* r = new FileRender(test, "out.png");
 	cout << r->get_geo().w << r->get_geo().h << endl;
 	PlaneDrawer pld(r);
 
-	vector<Feature> ans = get_feature(test);
 	cout << ans.size() << endl;
 	for (auto i : ans)
 		pld.arrow(toCoor(i.real_coor), i.dir, LABEL_LEN);
@@ -93,10 +88,7 @@ void test_transform(const char* f1, const char* f2) {
 	imgptr ptr1(new Img(f1));
 	imgptr ptr2(new Img(f2));
 
-	imgptr pt1 = ptr1->warp_cyl_in();
-	imgptr pt2 = ptr2->warp_cyl_in();
-
-	Panorama p({pt1, pt2});
+	Panorama p({ptr1, ptr2});
 	shared_ptr<Img> res = p.get();
 
 	RenderBase* r = new FileRender(res, "out.png");
@@ -108,7 +100,7 @@ void final(int argc, char* argv[]) {
 	vector<imgptr> imgs;
 	REPL(i, 1, argc) {
 		imgptr ptr(new Img(argv[i]));
-		imgs.push_back(ptr->warp_cyl_in());
+		imgs.push_back(ptr);
 	}
 	Panorama p(imgs);
 	shared_ptr<Img> res = p.get();
@@ -118,26 +110,25 @@ void final(int argc, char* argv[]) {
 	delete r;
 }
 
-void warp(const char* fname) {
-	imgptr test(new Img(fname));
-	imgptr ret = test->warp_sph();
-
-	RenderBase* r = new FileRender(ret, "out.png");
-	r->finish();
-	delete r;
+void warp(int argc, char* argv[]) {
+	REPL(i, 1, argc) {
+		imgptr test(new Img(argv[i]));
+		Feature f; vector<Feature> F = {f};
+		Panorama::warp(test, F);
+		RenderBase* r = new FileRender(test, ("/tmp/" + to_string(i) + ".png").c_str());
+		r->finish();
+		delete r;
+	}
 }
 
 
 int main(int argc, char* argv[]) {
 	srand(time(NULL));
 	/*
-	 *warp(argv[1]);
+	 *warp(argc, argv);
 	 */
 	/*
 	 *test_feature(argv[1]);
-	 */
-	/*
-	 *gallery(argv[1], argv[2]);
 	 */
 	/*
 	 *test_transform(argv[1], argv[2]);

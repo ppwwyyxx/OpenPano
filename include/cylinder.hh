@@ -1,10 +1,11 @@
 // File: cylinder.hh
-// Date: Mon Apr 29 00:09:54 2013 +0800
+// Date: Tue Apr 30 23:49:42 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
 #include "geometry.hh"
 #include "image.hh"
+#include "feature.hh"
 
 class Sphere {
 	public:
@@ -55,7 +56,7 @@ class CylProject {
 		CylProject(int m_r, const Vec& m_center, int m_size):
 			cyl(m_r, m_center), sizefactor(m_size){}
 
-		imgptr project(const imgptrc& img) const;
+		imgptr project(const imgptrc& img, std::vector<Feature>& ft) const;
 };
 
 class SphProject {
@@ -66,5 +67,7 @@ class SphProject {
 		SphProject(int m_r, const Vec& m_center, int m_size):
 			sph(m_r, m_center), sizefactor(m_size){}
 
-		imgptr project(const imgptrc& img) const;
+		/*
+		 *imgptr project(const imgptrc& img) const;
+		 */
 };

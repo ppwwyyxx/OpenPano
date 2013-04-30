@@ -1,5 +1,5 @@
 // File: image.cc
-// Date: Tue Apr 30 01:56:26 2013 +0800
+// Date: Tue Apr 30 23:27:14 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "image.hh"
@@ -51,7 +51,10 @@ Img Img::get_resized(real_t factor) const {
 	return move(img);
 }
 
-void Img::fill(const ::Color& c) { REP(i, h) REP(j, w) set_pixel(i, j, c); }
+void Img::fill(const ::Color& c) {
+#pragma omp parallel for schedule(static)
+	REP(i, h) REP(j, w) set_pixel(i, j, c);
+}
 
 const ::Color& Img::get_pixel(int r, int c) const {
 	m_assert(between(r, 0, h) && between(c, 0, w));
@@ -70,6 +73,7 @@ const ::Color& Img::get_pixel(int r, int c) const {
 }
 
 bool Img::is_black_edge(real_t y, real_t x) const {
+	if (!between(x, 0, w) || !between(y, 0, h)) return true;
 	if (get_pixel((int)floor(y), (int)floor(x)).get_max() < EPS) return true;
 	if (get_pixel((int)ceil(y), (int)floor(x)).get_max() < EPS) return true;
 	if (get_pixel((int)ceil(y), (int)ceil(x)).get_max() < EPS) return true;
@@ -82,27 +86,22 @@ void Img::set_pixel(int r, int c, const ::Color& val) {
 	::Color *dest = pixel + r * w + c;
 	dest->x = val.x, dest->y = val.y, dest->z = val.z;
 }
-
-imgptr Img::warp_cyl_in() const {
-	int r = max(w, h) / 2;
-	Vec cen(w / 2, h / 2, r * 2);
-	CylProject cyl(r, cen, w * 0.8);
-	return move(cyl.project(shared_from_this()));
-}
-
-imgptr Img::warp_cyl_out() const {
-	int r = max(w, h) * 8;
-	Vec cen(w / 2, h / 2, 400);
-	CylProject cyl(r, cen, w);
-	return move(cyl.project(shared_from_this()));
-}
-
-imgptr Img::warp_sph() const {
-	int r = max(w, h) / 2;
-	Vec cen(w / 2, h / 2, r * 2);
-	SphProject sph(r, cen, w / 2);
-	return move(sph.project(shared_from_this()));
-}
+/*
+ *
+ *imgptr Img::warp_cyl_out() const {
+ *    int r = max(w, h) * 8;
+ *    Vec cen(w / 2, h / 2, 400);
+ *    CylProject cyl(r, cen, w);
+ *    return move(cyl.project(shared_from_this()));
+ *}
+ *
+ *imgptr Img::warp_sph() const {
+ *    int r = max(w, h) / 2;
+ *    Vec cen(w / 2, h / 2, r * 2);
+ *    SphProject sph(r, cen, w / 2);
+ *    return move(sph.project(shared_from_this()));
+ *}
+ */
 
 real_t GreyImg::get_pixel(int r, int c) const {
 	m_assert(between(r, 0, h) && between(c, 0, w));

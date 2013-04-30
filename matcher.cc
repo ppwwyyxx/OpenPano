@@ -1,14 +1,13 @@
 // File: matcher.cc
-// Date: Tue Apr 23 11:37:07 2013 +0800
+// Date: Tue Apr 30 23:43:37 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include <limits>
 #include "matcher.hh"
 using namespace std;
 
-void MatchData::add(Vec2D x, Vec2D y) {
-	data.push_back({x, y});
-}
+void MatchData::add(Vec2D x, Vec2D y)
+{ data.push_back({x, y}); }
 
 MatchData Matcher::match() const {
 	MatchData ret;

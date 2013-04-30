@@ -1,5 +1,5 @@
 // File: image.hh
-// Date: Mon Apr 29 10:58:32 2013 +0800
+// Date: Tue Apr 30 23:27:22 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
@@ -65,12 +65,14 @@ class Img : public std::enable_shared_from_this<Img> {
 
 		void fill(const Color& c);
 
-		std::shared_ptr<Img> warp_cyl_in() const;
-
-		std::shared_ptr<Img> warp_cyl_out() const;
-
-		std::shared_ptr<Img> warp_sph() const;
-
+/*
+ *        std::shared_ptr<Img> warp_cyl_in() const;
+ *
+ *        std::shared_ptr<Img> warp_cyl_out() const;
+ *
+ *        std::shared_ptr<Img> warp_sph() const;
+ *
+ */
 		bool is_black_edge(real_t, real_t) const;
 
 		Vec2D get_center() const
