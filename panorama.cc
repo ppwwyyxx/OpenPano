@@ -1,5 +1,5 @@
 // File: panorama.cc
-// Date: Wed May 01 01:10:20 2013 +0800
+// Date: Wed May 01 01:36:17 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include <fstream>
@@ -130,7 +130,7 @@ vector<Feature> Panorama::get_feature(imgptr& ptr) {
 
 void Panorama::warp(imgptr& img, vector<Feature>& ft) {
 	int r = max(img->w, img->h) / 2;
-	Vec cen(img->w / 2, img->h / 2, r * 2);
+	Vec cen(img->w / 2, img->h / 2 * 1.2, r * 2);
 	CylProject cyl(r, cen, r);
 	img = cyl.project(img, ft);
 }
