@@ -1,5 +1,5 @@
 // File: common.hh
-// Date: Wed May 01 17:20:45 2013 +0800
+// Date: Wed May 01 17:44:32 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
@@ -24,13 +24,13 @@ const real_t SCALE_FACTOR = sqrt(2);
 const real_t GAUSS_SIGMA = SCALE_FACTOR;
 const int GAUSS_WINDOW_FACTOR = 6;		// before: 4
 
-const real_t JUDGE_EXTREMA_DIFF_THRES = +5e-4;
-const real_t CONTRAST_THRES = 8e-2;		// lowe: 3e-2
+const real_t JUDGE_EXTREMA_DIFF_THRES = +5e-3;
+const real_t CONTRAST_THRES = 7e-2;		// lowe: 3e-2
 const real_t PRE_COLOR_THRES = 5e-2;
 const real_t EDGE_RATIO = 6;		// lowe: 10
 
 const int CALC_OFFSET_DEPTH = 4;
-const real_t OFFSET_THRES = 0.4;
+const real_t OFFSET_THRES = 0.3;
 
 const real_t ORI_WINDOW_FACTOR = 1.5;		// lowe
 const real_t ORI_RADIUS = 3 * ORI_WINDOW_FACTOR;
@@ -46,7 +46,7 @@ const real_t DESC_NORM_THRESH = 0.2;		// lowe
 const int DESC_INT_FACTOR = 512;
 const int DESC_LEN = 128;
 
-const real_t MATCH_REJECT_NEXT_RATIO = 0.6; // lowe : 0.8
+const real_t MATCH_REJECT_NEXT_RATIO = 0.8; // lowe : 0.8
 const int MATCH_MIN_SIZE = 0;
 
 const int USE_HOMO = 0;

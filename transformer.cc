@@ -1,5 +1,5 @@
 // File: transformer.cc
-// Date: Wed May 01 17:18:18 2013 +0800
+// Date: Wed May 01 17:40:40 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "transformer.hh"
@@ -10,9 +10,9 @@ Matrix TransFormer::get_transform() {		// second -> first
 	int REQUIRED = (USE_HOMO ? HOMO_FREEDOM / 2 : AFFINE_FREEDOM / 2);
 	int n_match = match.size();
 	print_debug("number of match: %d\n", n_match);
-	if (n_match < MATCH_MIN_SIZE) {
-		P(n_match);
-		m_assert(false);
+	if (n_match < REQUIRED) {
+		PP("only have matches: ", n_match);
+		return Matrix(3, 3);
 	}
 
 	vector<int> fit;

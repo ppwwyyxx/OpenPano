@@ -1,5 +1,5 @@
 // File: panorama.cc
-// Date: Wed May 01 17:02:57 2013 +0800
+// Date: Wed May 01 17:34:18 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include <fstream>
@@ -108,7 +108,6 @@ void Panorama::straighten_simple(vector<Matrix>& mat, const vector<imgptr>& imgs
 
 vector<pair<Vec2D, Vec2D>> Panorama::cal_size(const vector<Matrix>& mat, const vector<imgptr>& imgs) {
 	int n = imgs.size();
-
 	vector<pair<Vec2D, Vec2D>> ret;
 
 	REPL(i, 0, n) {
