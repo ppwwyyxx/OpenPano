@@ -1,5 +1,5 @@
 // File: panorama.cc
-// Date: Wed May 01 13:17:09 2013 +0800
+// Date: Wed May 01 14:30:09 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include <fstream>
@@ -21,7 +21,7 @@ imgptr Panorama::get_trans() {
 	int n = imgs.size();
 	vector<Matrix> mat;
 	Vec2D diff, offset;
-	cal_best_matrix(imgs, mat, diff, offset);
+	Panorama::cal_best_matrix(imgs, mat, diff, offset);
 
 
 	Panorama::straighten_simple(mat, imgs);
@@ -117,7 +117,7 @@ pair<Vec2D, Vec2D> Panorama::cal_size(const vector<Matrix>& mat, const vector<im
 	return {max, min};
 }
 
-void Panorama::cal_best_matrix(vector<imgptr>& imgs, vector<Matrix>& mat, Vec2D& size, Vec2D& offset) const {
+void Panorama::cal_best_matrix(vector<imgptr>& imgs, vector<Matrix>& mat, Vec2D& size, Vec2D& offset) {
 	int n = imgs.size(), mid = n / 2;
 	vector<vector<Feature>> feats;
 	for (auto & ptr : imgs) feats.push_back(move(Panorama::get_feature(ptr)));
@@ -130,49 +130,68 @@ void Panorama::cal_best_matrix(vector<imgptr>& imgs, vector<Matrix>& mat, Vec2D&
 	real_t bestfactor = 0;
 
 	int start = mid, end = n, len = end - start;
-	HWTimer timer;
-#pragma omp parallel for schedule(static)
-	REPL(hfactor, 8, 13) {
-		real_t h_factor = (real_t)hfactor / 10;
-		Warper warper(h_factor);
-		PP("now factor: ", h_factor);
-
-		vector<imgptr> nowimgs;
-		vector<vector<Feature>> nowfeats;
-
-		REPL(k, start, end) {
-			nowimgs.push_back(imgs[k]);
-			nowfeats.push_back(feats[k]);
+	if (len > 1) {
+		HWTimer timer;
+		real_t newfactor = 1;
+		real_t slope = Panorama::update_h_factor(newfactor, minslope, bestfactor, bestmat, imgs, feats);
+		REP(k, 3) {
+			if (fabs(slope) < 6e-3) break;
+			newfactor += (slope < 0 ? 1.0 : -1.0) / (5 * pow(2, k));
+			slope = Panorama::update_h_factor(newfactor, minslope, bestfactor, bestmat, imgs, feats);
 		}
-		REP(k, len) warper.warp(nowimgs[k], nowfeats[k]);
-
-		vector<Matrix> nowmat;		// size = len - 1
-		REPL(k, 1, len) nowmat.push_back(Panorama::get_transform(nowfeats[k - 1], nowfeats[k]));
-		REPL(k, 1, len - 1) nowmat[k] = nowmat[k - 1].prod(nowmat[k]);
-
-		Vec2D center2 = TransFormer::cal_project(nowmat[len - 2], nowimgs[len - 2]->get_center()),
-			  center1 = nowimgs[0]->get_center();
-		real_t slope = (center2.y - center1.y) / (center2.x - center1.x);
-
-#pragma omp critical
-		if (update_min(minslope, fabs(slope))) {
-			bestfactor = h_factor;
-			bestmat = nowmat;
-		}
-	}
-	print_debug("align time: %lf\n", timer.get_sec());
-
+		print_debug("align time: %lf\n", timer.get_sec());
+	} else
+		bestfactor = 1;
 	P(bestfactor);
 	P(minslope);
+
 	Warper warper(bestfactor);
 	REP(k, n) warper.warp(imgs[k], feats[k]);
 
-	REPL(k, mid + 1, n) mat[k] = bestmat[k - mid - 1];
-	REPD(i, mid - 1, 0) mat[i] = Panorama::get_transform(feats[i + 1], feats[i]);
+	REPL(k, mid + 1, n) mat[k] = move(bestmat[k - mid - 1]);
+	REPD(i, mid - 1, 0) mat[i] = move(Panorama::get_transform(feats[i + 1], feats[i]));
 	REPD(i, mid - 2, 0) mat[i] = mat[i + 1].prod(mat[i]);
 	pair<Vec2D, Vec2D> maxmin = cal_size(mat, imgs);
 	size = maxmin.first - maxmin.second;
 	offset = maxmin.second * (-1);
+}
+
+real_t Panorama::update_h_factor(real_t nowfactor,
+								real_t & minslope,
+								real_t & bestfactor,
+								vector<Matrix>& mat,
+								const vector<imgptr>& imgs,
+								const vector<vector<Feature>>& feats) {
+	int n = imgs.size(), mid = n >> 1;
+	int start = mid, end = n, len = end - start;
+
+	Warper warper(nowfactor);
+	PP("now factor: ", nowfactor);
+
+	vector<imgptr> nowimgs;
+	vector<vector<Feature>> nowfeats;
+
+	REPL(k, start, end) {
+		nowimgs.push_back(imgs[k]);
+		nowfeats.push_back(feats[k]);
+	}
+	REP(k, len) warper.warp(nowimgs[k], nowfeats[k]);
+
+	vector<Matrix> nowmat;		// size = len - 1
+	REPL(k, 1, len)
+		nowmat.push_back(move(Panorama::get_transform(nowfeats[k - 1], nowfeats[k])));
+	REPL(k, 1, len - 1)
+		nowmat[k] = nowmat[k - 1].prod(nowmat[k]);
+
+	Vec2D center2 = TransFormer::cal_project(nowmat[len - 2],
+											nowimgs[len - 2]->get_center()),
+		  center1 = nowimgs[0]->get_center();
+	real_t slope = (center2.y - center1.y) / (center2.x - center1.x);
+	if (update_min(minslope, fabs(slope))) {
+		bestfactor = nowfactor;
+		mat = nowmat;
+	}
+	return slope;
 }
 
 /*
