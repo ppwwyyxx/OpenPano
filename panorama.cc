@@ -1,5 +1,5 @@
 // File: panorama.cc
-// Date: Wed May 01 18:38:50 2013 +0800
+// Date: Wed May 01 19:57:14 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include <fstream>
@@ -54,7 +54,7 @@ imgptr Panorama::get_trans() {
 	REP(i, ret->h)
 		REP(j, ret->w) {
 		Vec2D final = (Vec2D(j, i) - offset);
-		vector<Color> blender;
+		vector<pair<Color, real_t>> blender;
 		REP(k, n) {
 			if (!between(final.y, corners[k].second.y, corners[k].first.y) ||
 					!between(final.x, corners[k].second.x, corners[k].first.x))
@@ -62,15 +62,18 @@ imgptr Panorama::get_trans() {
 			Vec2D old = TransFormer::cal_project(mat[k], final);
 			if (between(old.x, 0, imgs[k]->w) && between(old.y, 0, imgs[k]->h)) {
 				if (imgs[k]->is_black_edge(old.y, old.x)) continue;
-				blender.push_back(imgs[k]->get_pixel(old.y, old.x));
+				blender.push_back({imgs[k]->get_pixel(old.y, old.x), imgs[k]->w / 2 - abs(imgs[k]->get_center().x - old.x)});
 			}
 		}
 		int ncolor = blender.size();
 		if (!ncolor) continue;
 		Color finalc;
-		for (auto &c : blender)
-			finalc = finalc + c;
-		finalc = finalc * (1.0 / ncolor);
+		real_t sumweight = 0;
+		for (auto &c : blender) {
+			finalc = finalc + c.first * c.second;
+			sumweight += c.second;
+		}
+		finalc = finalc * (1.0 / sumweight);
 		ret->set_pixel(i, j, finalc);
 	}
 	print_debug("blend time: %lf secs\n", timer.get_sec());
