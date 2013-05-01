@@ -1,5 +1,5 @@
 // File: panorama.cc
-// Date: Wed May 01 14:30:09 2013 +0800
+// Date: Wed May 01 15:08:29 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include <fstream>
@@ -20,11 +20,20 @@ imgptr Panorama::get_trans() {
 
 	int n = imgs.size();
 	vector<Matrix> mat;
-	Vec2D diff, offset;
-	Panorama::cal_best_matrix(imgs, mat, diff, offset);
-
-
+	vector<pair<Vec2D, Vec2D>> corners;
+	Panorama::cal_best_matrix(imgs, mat, corners);
+	m_assert((int)corners.size() == n);
 	Panorama::straighten_simple(mat, imgs);
+
+	Vec2D min(std::numeric_limits<int>::max(), std::numeric_limits<int>::max()),
+		  max = min * (-1);
+	for (auto &i : corners) {
+		max.update_max(i.first);
+		min.update_min(i.second);
+	}
+
+	Vec2D diff = max - min,
+		  offset = min * (-1);
 	Coor size = toCoor(diff);
 	PP("size: ", size);
 	PP("offset", offset);
@@ -48,6 +57,9 @@ imgptr Panorama::get_trans() {
 		Vec2D final = (Vec2D(j, i) - offset);
 		vector<Color> blender;
 		REP(k, n) {
+			if (!between(final.y, corners[k].second.y, corners[k].first.y) ||
+					!between(final.x, corners[k].second.x, corners[k].first.x))
+				continue;
 			Vec2D old = TransFormer::cal_project(mat[k], final);
 			if (between(old.x, 0, imgs[k]->w) && between(old.y, 0, imgs[k]->h)) {
 				if (imgs[k]->is_black_edge(old.y, old.x)) continue;
@@ -78,10 +90,6 @@ vector<Feature> Panorama::get_feature(imgptr & ptr) {
 	DOGSpace sp(ss);
 	KeyPoint ex(sp, ss);
 	ex.work();
-	/*
-	 *Warper warper(1);
-	 *warper.warp(ptr, ex.features);
-	 */
 	return move(ex.features);
 }
 
@@ -99,12 +107,14 @@ void Panorama::straighten_simple(vector<Matrix>& mat, const vector<imgptr>& imgs
 		mat[i] = Sinv.prod(mat[i]);
 }
 
-pair<Vec2D, Vec2D> Panorama::cal_size(const vector<Matrix>& mat, const vector<imgptr>& imgs) {
-	Vec2D min(std::numeric_limits<int>::max(), std::numeric_limits<int>::max()),
-		  max(0, 0);
+vector<pair<Vec2D, Vec2D>> Panorama::cal_size(const vector<Matrix>& mat, const vector<imgptr>& imgs) {
 	int n = imgs.size();
 
+	vector<pair<Vec2D, Vec2D>> ret;
+
 	REPL(i, 0, n) {
+		Vec2D min(std::numeric_limits<int>::max(), std::numeric_limits<int>::max()),
+			  max = min * (-1);
 	    Vec2D corner[4] = {
 	        Vec2D(0, 0), Vec2D(imgs[i]->w, 0),
 	        Vec2D(0, imgs[i]->h), Vec2D(imgs[i]->w, imgs[i]->h)};
@@ -113,11 +123,12 @@ pair<Vec2D, Vec2D> Panorama::cal_size(const vector<Matrix>& mat, const vector<im
 	        min.update_min(Vec2D(floor(newcorner.x), floor(newcorner.y)));
 	        max.update_max(Vec2D(ceil(newcorner.x), ceil(newcorner.y)));
 	    }
+		ret.push_back({max, min});
 	}
-	return {max, min};
+	return move(ret);
 }
 
-void Panorama::cal_best_matrix(vector<imgptr>& imgs, vector<Matrix>& mat, Vec2D& size, Vec2D& offset) {
+void Panorama::cal_best_matrix(vector<imgptr>& imgs, vector<Matrix>& mat, vector<pair<Vec2D, Vec2D>>& corners) {
 	int n = imgs.size(), mid = n / 2;
 	vector<vector<Feature>> feats;
 	for (auto & ptr : imgs) feats.push_back(move(Panorama::get_feature(ptr)));
@@ -149,11 +160,11 @@ void Panorama::cal_best_matrix(vector<imgptr>& imgs, vector<Matrix>& mat, Vec2D&
 	REP(k, n) warper.warp(imgs[k], feats[k]);
 
 	REPL(k, mid + 1, n) mat[k] = move(bestmat[k - mid - 1]);
+#pragma omp parallel for schedule(dynamic)
 	REPD(i, mid - 1, 0) mat[i] = move(Panorama::get_transform(feats[i + 1], feats[i]));
+
 	REPD(i, mid - 2, 0) mat[i] = mat[i + 1].prod(mat[i]);
-	pair<Vec2D, Vec2D> maxmin = cal_size(mat, imgs);
-	size = maxmin.first - maxmin.second;
-	offset = maxmin.second * (-1);
+	corners = move(cal_size(mat, imgs));
 }
 
 real_t Panorama::update_h_factor(real_t nowfactor,
@@ -175,7 +186,9 @@ real_t Panorama::update_h_factor(real_t nowfactor,
 		nowimgs.push_back(imgs[k]);
 		nowfeats.push_back(feats[k]);
 	}
-	REP(k, len) warper.warp(nowimgs[k], nowfeats[k]);
+#pragma omp parallel for schedule(static)
+	REP(k, len)
+		warper.warp(nowimgs[k], nowfeats[k]);
 
 	vector<Matrix> nowmat;		// size = len - 1
 	REPL(k, 1, len)
