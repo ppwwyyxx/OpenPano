@@ -1,5 +1,5 @@
 // File: keypoint.cc
-// Date: Thu Apr 25 10:01:05 2013 +0800
+// Date: Wed May 01 17:17:07 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include <cstring>
@@ -153,8 +153,7 @@ void KeyPoint::calc_dir() {
 	update_feature.reserve(features.size());
 	for (auto &feat : features)
 		calc_dir(feat, update_feature);
-	cout << "before assign ort: " << features.size() << endl;
-	cout << "after assign ort: " << update_feature.size() << endl;
+	cout << "features: " << update_feature.size() << endl;
 	features = move(update_feature);
 }
 

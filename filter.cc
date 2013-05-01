@@ -1,5 +1,5 @@
 // File: filter.cc
-// Date: Tue Apr 23 11:32:14 2013 +0800
+// Date: Wed May 01 16:56:11 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "filter.hh"
@@ -21,13 +21,6 @@ shared_ptr<GreyImg> Filter::GaussianBlur(const shared_ptr<GreyImg> img, real_t s
 	 *const int kw = ((sigma - 0.8) / 0.3 + 1) * 2;
 	 */
 	// TODO decide window size ?
-
-	/*
-	 *Image mimg = MImg(img).get_img();
-	 *mimg.quantizeColorSpace(GRAYColorspace);
-	 *mimg.gaussianBlur(kw, sigma);
-	 *shared_ptr<GreyImg> ret(new GreyImg(Img(mimg)));
-	 */
 
 	const int center = kw / 2;
 	const real_t normalization_factor = 2 * M_PI * sqr(sigma);

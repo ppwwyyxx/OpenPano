@@ -1,5 +1,5 @@
 // File: transformer.cc
-// Date: Wed May 01 12:40:55 2013 +0800
+// Date: Wed May 01 17:18:18 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "transformer.hh"
@@ -9,6 +9,7 @@ using namespace std;
 Matrix TransFormer::get_transform() {		// second -> first
 	int REQUIRED = (USE_HOMO ? HOMO_FREEDOM / 2 : AFFINE_FREEDOM / 2);
 	int n_match = match.size();
+	print_debug("number of match: %d\n", n_match);
 	if (n_match < MATCH_MIN_SIZE) {
 		P(n_match);
 		m_assert(false);
@@ -49,11 +50,9 @@ Matrix TransFormer::get_transform() {		// second -> first
 }
 
 Matrix TransFormer::cal_transform(const vector<int>& matches) const {
-	/*
-	 *if (USE_HOMO)
-	 *    return move(cal_homo_transform(matches));
-	 *else
-	 */
+	if (USE_HOMO)
+		return move(cal_homo_transform(matches));
+	else
 		return move(cal_affine_transform(matches));
 	return move(cal_rotate_homo_transform(matches));
 }
@@ -78,7 +77,7 @@ Matrix TransFormer::cal_affine_transform(const vector<int>& matches) const {
 		m.get(i * 2 + 1, 5) = 1;
 		b.get(i * 2 + 1, 0) = m0.y;
 	}
-	Matrix res(0, 0);
+	Matrix res(3, 3);
 	if (!m.solve_overdetermined(res, b)) { cout << "solve failed" << endl; return move(res); }
 	Matrix ret(3, 3);
 	REP(i, AFFINE_FREEDOM) ret.get(i / 3, i % 3) = res.get(i, 0);
@@ -111,7 +110,7 @@ Matrix TransFormer::cal_homo_transform(const vector<int>& matches) const {
 		m.get(i * 2 + 1, 7) = -m1.y * m0.y;
 		b.get(i * 2 + 1, 0) = m0.y;
 	}
-	Matrix res(0, 0);
+	Matrix res(3, 3);
 	if (!m.solve_overdetermined(res, b)) { cout << "solve failed" << endl; return move(res); }
 	Matrix ret(3, 3);
 	REP(i, HOMO_FREEDOM) ret.get(i / 3, i % 3) = res.get(i, 0);

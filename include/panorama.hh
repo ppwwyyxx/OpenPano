@@ -1,5 +1,5 @@
 // File: panorama.hh
-// Date: Wed May 01 14:43:24 2013 +0800
+// Date: Wed May 01 16:44:26 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once

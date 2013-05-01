@@ -1,5 +1,5 @@
 // File: main.cc
-// Date: Wed May 01 11:26:09 2013 +0800
+// Date: Wed May 01 17:12:34 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "render/filerender.hh"
@@ -37,10 +37,6 @@ void test_feature(const char* fname) {
 	for (auto i : ans)
 		pld.arrow(toCoor(i.real_coor), i.dir, LABEL_LEN);
 	r->finish();
-	/*
-	 *shared_ptr<GreyImg> ptr1 = Filter::GreyScale(ptr);
-	 *shared_ptr<GreyImg> ptr2 = Filter::GaussianBlur(ptr1, 3);
-	 */
 	delete r;
 }
 
@@ -110,25 +106,10 @@ void final(int argc, char* argv[]) {
 	delete r;
 }
 
-void warp(int argc, char* argv[]) {
-	REPL(i, 1, argc) {
-		imgptr test(new Img(argv[i]));
-		Feature f; vector<Feature> F = {f};
-		/*
-		 *Panorama::warp(test, F);
-		 */
-		RenderBase* r = new FileRender(test, ("/tmp/" + to_string(i) + ".png").c_str());
-		r->finish();
-		delete r;
-	}
-}
 
 
 int main(int argc, char* argv[]) {
 	srand(time(NULL));
-	/*
-	 *warp(argc, argv);
-	 */
 	/*
 	 *test_feature(argv[1]);
 	 */

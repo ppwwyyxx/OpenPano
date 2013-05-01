@@ -1,11 +1,10 @@
 // File: sift.cc
-// Date: Tue Apr 23 11:48:09 2013 +0800
+// Date: Wed May 01 17:05:13 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "sift.hh"
 #include "filter.hh"
 using namespace std;
-
 
 Octave::Octave(const shared_ptr<GreyImg>& img, int num_scale):
 	nscale(num_scale){
@@ -15,9 +14,10 @@ Octave::Octave(const shared_ptr<GreyImg>& img, int num_scale):
 	ort = new shared_ptr<GreyImg>[nscale];
 	data[0] = img;
 
+	real_t s = GAUSS_SIGMA;
 	for (int i = 1; i < nscale; i ++) {
-		real_t s = pow(SCALE_FACTOR, i - 1) * GAUSS_SIGMA;
-		data[i] = Filter::GaussianBlur(data[i-1], s);	// sigma needs a better one
+		data[i] = Filter::GaussianBlur(data[0], s);	// sigma needs a better one
+		s *= SCALE_FACTOR;
 		cal_mag_ort(i);
 	}
 }

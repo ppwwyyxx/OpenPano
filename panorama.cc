@@ -1,5 +1,5 @@
 // File: panorama.cc
-// Date: Wed May 01 15:08:29 2013 +0800
+// Date: Wed May 01 17:02:57 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include <fstream>
@@ -23,7 +23,6 @@ imgptr Panorama::get_trans() {
 	vector<pair<Vec2D, Vec2D>> corners;
 	Panorama::cal_best_matrix(imgs, mat, corners);
 	m_assert((int)corners.size() == n);
-	Panorama::straighten_simple(mat, imgs);
 
 	Vec2D min(std::numeric_limits<int>::max(), std::numeric_limits<int>::max()),
 		  max = min * (-1);
@@ -161,7 +160,8 @@ void Panorama::cal_best_matrix(vector<imgptr>& imgs, vector<Matrix>& mat, vector
 
 	REPL(k, mid + 1, n) mat[k] = move(bestmat[k - mid - 1]);
 #pragma omp parallel for schedule(dynamic)
-	REPD(i, mid - 1, 0) mat[i] = move(Panorama::get_transform(feats[i + 1], feats[i]));
+	REPD(i, mid - 1, 0)
+		mat[i] = move(Panorama::get_transform(feats[i + 1], feats[i]));
 
 	REPD(i, mid - 2, 0) mat[i] = mat[i + 1].prod(mat[i]);
 	corners = move(cal_size(mat, imgs));
