@@ -1,5 +1,5 @@
 // File: panorama.cc
-// Date: Wed May 01 10:13:40 2013 +0800
+// Date: Wed May 01 11:19:14 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include <fstream>
@@ -20,32 +20,44 @@ imgptr Panorama::get_trans() {
 	Vec2D min(std::numeric_limits<int>::max(), std::numeric_limits<int>::max()),
 		  max(0, 0);
 	int n = imgs.size();
+	int mid = n / 2;
 	vector<Matrix> mat;
-	mat.push_back(move(I));
+	REP(i, n) mat.push_back(I);
 
-	vector<Feature> feat1 = Panorama::get_feature(imgs[0]);
-	REP(i, n - 1) {
-		vector<Feature> feat2 = Panorama::get_feature(imgs[i + 1]);
-		mat.push_back(get_transform(feat1, feat2));
-		cout << mat[i + 1] << endl;
-		feat1 = move(feat2);
+	// calculate transform
+	{
+		vector<Feature> feat0 = Panorama::get_feature(imgs[mid]);
+		vector<Feature> feat1 = feat0;
+		REPL(i, mid + 1, n) {
+			vector<Feature> feat2 = Panorama::get_feature(imgs[i]);
+			mat[i] = get_transform(feat1, feat2);
+			cout << mat[i] << endl;
+			feat1 = move(feat2);
+		}
+		REPD(i, mid - 1, 0) {
+			vector<Feature> feat2 = Panorama::get_feature(imgs[i]);
+			mat[i] = get_transform(feat0, feat2);
+			cout << mat[i] << endl;
+			feat0 = move(feat2);
+		}
 	}
 
-	ofstream fout("matrix.txt");
-	REP(k, n) fout << mat[k] << endl;
-	fout.close();
+	/*
+	 *ofstream fout("matrix.txt");
+	 *REP(k, n) fout << mat[k] << endl;
+	 *fout.close();
+	 */
 
-	REPL(i, 2, n) mat[i] = mat[i - 1].prod(mat[i]);
+	// product
+	REPL(i, mid + 2, n) mat[i] = mat[i - 1].prod(mat[i]);
+	REPD(i, mid - 2, 0) mat[i] = mat[i + 1].prod(mat[i]);
 
-	REP(k, 1)
-		straighten(mat);
+	/*
+	 *straighten(mat);
+	 */
 	straighten_simple(0, n, mat);
 
-
-	ofstream fout2("matrix_2.txt");
-	REP(k, n) fout2 << mat[k] << endl;
-	fout2.close();
-
+	// calculate size
 	REPL(i, 0, n) {
 	    Vec2D corner[4] = {
 	        Vec2D(0, 0), Vec2D(imgs[i]->w, 0),
@@ -57,23 +69,22 @@ imgptr Panorama::get_trans() {
 	    }
 	}
 
-	for_each(mat.begin(), mat.end(),
-			[](Matrix & m) {
-			Matrix inv(m.w, m.h);
-			bool ok = m.inverse(inv);
-			m_assert(ok);
-			m = move(inv);
-			});
-
-
 	PP("min: ", min);
 	PP("max: ", max);
-	Vec2D diff = max - min;
-	Coor size = toCoor(diff);
+	Coor size = toCoor(max - min);
 
 	Vec2D offset = min * (-1);
 	PP("size: ", size);
 	PP("offset", offset);
+
+	// inverse
+	for_each(mat.begin(), mat.end(),
+		[](Matrix & m) {
+			Matrix inv(m.w, m.h);
+			bool ok = m.inverse(inv);
+			m_assert(ok);
+			m = move(inv);
+		});
 
 	imgptr ret(new Img(size.x, size.y));
 	ret->fill(Color::BLACK);
@@ -83,20 +94,19 @@ imgptr Panorama::get_trans() {
 	REP(i, ret->h) REP(j, ret->w) {
 		Vec2D final = (Vec2D(j, i) - offset);
 		vector<Color> blender;
-		bool empty = true;
 		REP(k, n) {
 			Vec2D old = TransFormer::cal_project(mat[k], final);
 			if (between(old.x, 0, imgs[k]->w) && between(old.y, 0, imgs[k]->h)) {
 				if (imgs[k]->is_black_edge(old.y, old.x)) continue;
 				blender.push_back(imgs[k]->get_pixel(old.y, old.x));
-				empty = false;
 			}
 		}
-		if (empty) continue;
+		int ncolor = blender.size();
+		if (!ncolor) continue;
 		Color finalc;
 		for (auto &c : blender)
 			finalc = finalc + c;
-		finalc = finalc * ((real_t)1 / blender.size());
+		finalc = finalc * (1.0 / ncolor);
 		ret->set_pixel(i, j, finalc);
 	}
 	print_debug("blend time: %lf secs\n", timer.get_sec());
@@ -123,9 +133,10 @@ vector<Feature> Panorama::get_feature(imgptr& ptr) {
 }
 
 void Panorama::warp(imgptr& img, vector<Feature>& ft) {
+	real_t height_k = 0.8;
 	int r = max(img->w, img->h) / 2;
-	Vec cen(img->w / 2, img->h / 2 * 1.2, r * 2);
-	CylProject cyl(r, cen, r );
+	Vec cen(img->w / 2, img->h / 2 * height_k, r * 2);
+	CylProject cyl(r, cen, r);
 	img = cyl.project(img, ft);
 }
 
@@ -152,6 +163,7 @@ void Panorama::straighten(vector<Matrix>& mat) const {
 		centers.push_back(TransFormer::cal_project(mat[k], imgs[k]->get_center()));
 	Vec2D kb = Panorama::line_fit(centers);
 	P(kb);
+	if (fabs(kb.x) < 1e-3) return;		// already done
 	Matrix shift = Panorama::shift_to_line(centers, kb);
 	P(shift);
 	for (auto& i : mat) i = shift.prod(i);

@@ -1,5 +1,5 @@
 // File: common.hh
-// Date: Mon Apr 29 01:14:01 2013 +0800
+// Date: Wed May 01 10:54:01 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
@@ -61,6 +61,7 @@ const real_t FOCAL = 300;
 #define between(a, b, c) ((a >= b) && (a <= c - 1))
 #define REP(x, y) for (int x = 0; x < (y); x ++)
 #define REPL(x, y, z) for (int x = y; x < (z); x ++)
+#define REPD(x, y, z) for (int x = y; x >= (z); x --)
 
 #define toCoor(a) Coor((a).x, (a).y)
 
