@@ -1,5 +1,5 @@
 // File: planedrawer.hh
-// Date: Sun Apr 21 12:30:15 2013 +0800
+// Date: Wed May 01 10:28:02 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #ifndef __HEAD__PLANE_DRAWER
@@ -9,8 +9,6 @@
 
 class PlaneDrawer {
 	public:
-		PlaneDrawer(){};
-
 		PlaneDrawer(RenderBase* m_r):
 			 render(m_r) {}
 

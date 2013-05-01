@@ -1,5 +1,5 @@
 // File: debugutils.cc
-// Date: Tue Apr 02 16:28:00 2013 +0800
+// Date: Wed May 01 10:12:46 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 
@@ -24,8 +24,8 @@ void __m_assert_check__(bool val, const char *expr, const char *file, const char
 
 void __print_debug__(const char *file, const char *func, int line, const char *fmt, ...) {
 	static map<int, string> colormap;
-	static int color = 0;
 	if (! colormap[line].length()) {
+		static int color = 0;
 		colormap[line] = TERM_COLOR(color);
 		color = (color + 1) % 5;
 	}

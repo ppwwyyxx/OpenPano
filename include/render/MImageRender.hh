@@ -1,5 +1,5 @@
 // File: MImageRender.hh
-// Date: Sun Apr 21 20:18:53 2013 +0800
+// Date: Wed May 01 10:26:11 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
@@ -9,14 +9,13 @@
 class MImg : public RenderBase {
 	private:
 		Magick::Image img;
-		int w;
 		Magick::Pixels *view;
 		Magick::PixelPacket *pixels_ptr;
 
 	public:
 		MImg(const Geometry& g):
-			RenderBase(g),
-			img(Magick::Geometry(g.w, g.h), "black"), w(g.w) {
+			RenderBase(g), img(Magick::Geometry(g.w, g.h), "black")
+		{
 			img.type(Magick::TrueColorType);
 			img.modifyImage();
 			view = new Magick::Pixels(img);
@@ -26,7 +25,7 @@ class MImg : public RenderBase {
 		MImg(int w, int h):
 			MImg(Geometry(w, h)){}
 
-		MImg(const std::shared_ptr<const Img> r):
+		MImg(const std::shared_ptr<const Img>& r):
 			MImg(r->w, r->h)
 		{ write(r); }
 
@@ -42,7 +41,7 @@ class MImg : public RenderBase {
 
 	private:
 		void _write(int x, int y, const Color &c)
-		{ pixels_ptr[y * w + x] = Magick::ColorRGB(c.x, c.y, c.z); }
+		{ pixels_ptr[y * geo.w + x] = Magick::ColorRGB(c.x, c.y, c.z); }
 
 };
 

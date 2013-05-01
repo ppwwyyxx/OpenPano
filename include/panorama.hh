@@ -1,5 +1,5 @@
 // File: panorama.hh
-// Date: Tue Apr 30 23:50:56 2013 +0800
+// Date: Wed May 01 10:30:19 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
@@ -24,7 +24,8 @@ class Panorama {
 		static Matrix shift_to_line(const std::vector<Vec2D>&, const Vec2D&);
 
 	public:
-		Panorama(const std::vector<imgptr>& i) { imgs = i; }
+		Panorama(const std::vector<imgptr>& i):
+			imgs(i) {}
 
 		imgptr get();
 

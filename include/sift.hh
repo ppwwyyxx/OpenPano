@@ -1,5 +1,5 @@
 // File: sift.hh
-// Date: Tue Apr 16 09:23:49 2013 +0800
+// Date: Wed May 01 10:27:13 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
@@ -18,8 +18,8 @@ class Octave {
 	public:
 		int w, h;
 
-		Octave(){}
 		Octave(const std::shared_ptr<GreyImg>&, int num_scale);
+
 		Octave(const std::shared_ptr<Img>& img, int num_scale):
 			Octave(std::shared_ptr<GreyImg>(new GreyImg(*img)), num_scale){ };
 
@@ -65,7 +65,6 @@ class DOG {		// diff[0] = orig[1] - orig[0]
 		std::shared_ptr<GreyImg> *data;  // length is nscale - 1
 
 	public:
-		DOG(){}
 
 		DOG(const std::shared_ptr<Octave>&);
 

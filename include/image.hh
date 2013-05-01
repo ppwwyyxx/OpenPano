@@ -1,5 +1,5 @@
 // File: image.hh
-// Date: Tue Apr 30 23:27:22 2013 +0800
+// Date: Wed May 01 10:17:28 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
@@ -18,10 +18,8 @@ class Img : public std::enable_shared_from_this<Img> {
 		void init_from_image(const Magick::Image& img);
 
 	public:
-		int w, h;
+		int w = 0, h = 0;
 		Color* pixel;
-
-		Img(){}
 
 		Img(const Img& img):
 			Img(img.w, img.h)
@@ -90,8 +88,6 @@ class GreyImg {
 	public:
 		int w, h;
 		real_t* pixel;
-
-		GreyImg(){}
 
 		GreyImg(const GreyImg& img):
 			GreyImg(img.w, img.h)

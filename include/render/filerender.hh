@@ -1,5 +1,5 @@
 // File: filerender.hh
-// Date: Mon Apr 22 19:28:23 2013 +0800
+// Date: Wed May 01 10:27:46 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
@@ -15,12 +15,10 @@ class FileRender : public RenderBase {
 		Magick::PixelPacket *pixels_ptr;
 
 	public:
-		int w;
-
 		FileRender(const ::Geometry& g, const char* m_fname):
 			RenderBase(g),
 			img(Magick::Geometry(g.w, g.h), "black"),
-			 fname(m_fname),w(g.w) {
+			 fname(m_fname) {
 			img.type(Magick::TrueColorType);
 			img.modifyImage();
 			view = new Magick::Pixels(img);
@@ -44,7 +42,7 @@ class FileRender : public RenderBase {
 
 	private:
 		void _write(int x, int y, const ::Color &c)
-		{ pixels_ptr[y * w + x] = Magick::ColorRGB(c.x, c.y, c.z); }
+		{ pixels_ptr[y * geo.w + x] = Magick::ColorRGB(c.x, c.y, c.z); }
 
 };
 
