@@ -1,5 +1,5 @@
 // File: common.hh
-// Date: Wed May 01 22:01:37 2013 +0800
+// Date: Wed May 01 22:52:37 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
@@ -13,6 +13,7 @@
 #include "debugutils.hh"
 
 extern bool PANO;
+extern bool CIRCLE;
 
 typedef double real_t;
 const real_t EPS = 1e-6;
@@ -50,6 +51,7 @@ const int DESC_LEN = 128;
 
 const real_t MATCH_REJECT_NEXT_RATIO = 0.8; // lowe : 0.8
 const int MATCH_MIN_SIZE = 0;
+const real_t CONNECTED_THRES = 0.07;		// matched feature percentage higher than this
 
 const bool USE_HOMO = !PANO;
 const int HOMO_FREEDOM = 8;

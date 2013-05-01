@@ -1,5 +1,5 @@
 // File: main.cc
-// Date: Wed May 01 22:14:24 2013 +0800
+// Date: Wed May 01 22:50:30 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "render/filerender.hh"
@@ -17,6 +17,7 @@ using namespace Magick;
 
 bool TEMPDEBUG = false;
 bool PANO = true;
+bool CIRCLE = false;
 
 #define LABEL_LEN 7
 

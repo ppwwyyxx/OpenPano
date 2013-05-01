@@ -1,5 +1,5 @@
 // File: panorama.cc
-// Date: Wed May 01 22:33:14 2013 +0800
+// Date: Wed May 01 22:54:47 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include <fstream>
@@ -21,11 +21,17 @@ imgptr Panorama::get_trans() {
 	int n = imgs.size();
 	vector<Matrix> mat;
 	vector<pair<Vec2D, Vec2D>> corners;
-	if (PANO)
+	if (PANO) {
 		Panorama::cal_best_matrix(imgs, mat, corners);
-	else
+		straighten_simple(mat, imgs);
+	} else
 		Panorama::cal_best_matrix_planar(imgs, mat, corners);
-	m_assert((int)corners.size() == n);
+
+	if (CIRCLE) { // remove the extra
+		mat.pop_back();
+		imgs.pop_back();
+		corners.pop_back();
+	}
 
 	Vec2D min(std::numeric_limits<int>::max(), std::numeric_limits<int>::max()),
 		  max = min * (-1);
@@ -52,7 +58,7 @@ imgptr Panorama::get_trans() {
 	imgptr ret(new Img(size.x, size.y));
 	ret->fill(Color::BLACK);
 
-	timer.reset();
+	HWTimer timer;
 	// blending
 #pragma omp parallel for schedule(dynamic)
 	REP(i, ret->h)
@@ -87,7 +93,7 @@ imgptr Panorama::get_trans() {
 }
 
 Matrix Panorama::get_transform(const vector<Feature>& feat1, const vector<Feature>& feat2) {
-	Matcher match(feat1, feat2);
+	Matcher match(feat1, feat2);		// this is not efficient
 	auto ret = match.match();
 	TransFormer transf(ret);
 	return transf.get_transform();
@@ -111,6 +117,7 @@ void Panorama::straighten_simple(vector<Matrix>& mat, const vector<imgptr>& imgs
 	S.get(1, 0) = dydx;
 	Matrix Sinv(3, 3);
 	S.inverse(Sinv);
+	P(S);
 	REP(i, n)
 		mat[i] = Sinv.prod(mat[i]);
 }
@@ -136,17 +143,25 @@ vector<pair<Vec2D, Vec2D>> Panorama::cal_size(const vector<Matrix>& mat, const v
 }
 
 #define prepare() \
-	do {\
-		m_assert(mat.size() == 0);\
-		int n = imgs.size(), mid = n >> 1;\
-		vector<vector<Feature>> feats;\
-		for (auto & ptr : imgs) feats.push_back(move(Panorama::get_feature(ptr)));\
-		Matrix I = Matrix::I(3);\
-		REP(i, n) mat.push_back(I);\
-	} while (0)
+	m_assert(mat.size() == 0);\
+	int n = imgs.size(), mid = n >> 1;\
+	vector<vector<Feature>> feats;\
+	for (auto & ptr : imgs) feats.push_back(move(Panorama::get_feature(ptr)));\
+	Matrix I = Matrix::I(3);\
+	REP(i, n) mat.push_back(I)
 
 void Panorama::cal_best_matrix(vector<imgptr>& imgs, vector<Matrix>& mat, vector<pair<Vec2D, Vec2D>>& corners) {;
 	prepare();
+	Matcher match(feats[0], feats[n - 1]);
+	auto matched = match.match();
+	if ((real_t)matched.size() * 2 / (feats[0].size() + feats[n - 1].size()) > CONNECTED_THRES) {
+		P("detect circle");
+		CIRCLE = true;
+		imgs.push_back(imgs[0]);
+		mat.push_back(I);
+		feats.push_back(feats[0]);
+		n ++, mid = n >> 1;
+	}
 	vector<Matrix> bestmat;
 
 	real_t minslope = numeric_limits<real_t>::max();
