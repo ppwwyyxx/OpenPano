@@ -1,5 +1,5 @@
 // File: main.cc
-// Date: Tue Apr 30 23:54:25 2013 +0800
+// Date: Wed May 01 11:26:09 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "render/filerender.hh"
@@ -114,7 +114,9 @@ void warp(int argc, char* argv[]) {
 	REPL(i, 1, argc) {
 		imgptr test(new Img(argv[i]));
 		Feature f; vector<Feature> F = {f};
-		Panorama::warp(test, F);
+		/*
+		 *Panorama::warp(test, F);
+		 */
 		RenderBase* r = new FileRender(test, ("/tmp/" + to_string(i) + ".png").c_str());
 		r->finish();
 		delete r;

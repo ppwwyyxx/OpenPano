@@ -1,10 +1,11 @@
 // File: panorama.hh
-// Date: Wed May 01 10:30:19 2013 +0800
+// Date: Wed May 01 12:26:16 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
 
 #include <memory>
+#include <utility>
 #include "image.hh"
 #include "feature.hh"
 #include "matrix.hh"
@@ -15,13 +16,6 @@ class Panorama {
 
 		imgptr get_trans();
 
-		void straighten(std::vector<Matrix>& mat) const;
-
-		void straighten_simple(int s, int t, std::vector<Matrix>& mat) const;
-
-		static Vec2D line_fit(const std::vector<Vec2D>&);
-
-		static Matrix shift_to_line(const std::vector<Vec2D>&, const Vec2D&);
 
 	public:
 		Panorama(const std::vector<imgptr>& i):
@@ -31,7 +25,11 @@ class Panorama {
 
 		static Matrix get_transform(const std::vector<Feature>&, const std::vector<Feature>&); // second -> first
 
-		static std::vector<Feature> get_feature(imgptr&);
+		static std::vector<Feature> get_feature(imgptr &);
 
-		static void warp(imgptr&, std::vector<Feature>&);
+		void cal_best_matrix(std::vector<imgptr>&, std::vector<Matrix>&, Vec2D&, Vec2D&) const;
+
+		static void straighten_simple(std::vector<Matrix>& mat, const std::vector<imgptr>& imgs);
+
+		static std::pair<Vec2D, Vec2D> cal_size(const std::vector<Matrix>& mat, const std::vector<imgptr>& imgs);
 };
