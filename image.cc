@@ -1,5 +1,5 @@
 // File: image.cc
-// Date: Tue Apr 30 23:27:14 2013 +0800
+// Date: Wed May 01 21:23:46 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "image.hh"
@@ -86,22 +86,36 @@ void Img::set_pixel(int r, int c, const ::Color& val) {
 	::Color *dest = pixel + r * w + c;
 	dest->x = val.x, dest->y = val.y, dest->z = val.z;
 }
-/*
- *
- *imgptr Img::warp_cyl_out() const {
- *    int r = max(w, h) * 8;
- *    Vec cen(w / 2, h / 2, 400);
- *    CylProject cyl(r, cen, w);
- *    return move(cyl.project(shared_from_this()));
- *}
- *
- *imgptr Img::warp_sph() const {
- *    int r = max(w, h) / 2;
- *    Vec cen(w / 2, h / 2, r * 2);
- *    SphProject sph(r, cen, w / 2);
- *    return move(sph.project(shared_from_this()));
- *}
- */
+
+void Img::crop() {
+	int height[w], left[w], right[w];
+	int maxarea = 0;
+	int ll = 0, rr = 0, hh = 0, nl = 0;
+	memset(height, 0, sizeof(height));
+	REP(line, h) {
+		REP(k, w)
+			height[k] = get_pixel(line, k).get_max() < SEPS ? 0 : height[k] + 1;
+		REP(k, w) {
+			left[k] = k;
+			while (left[k] > 0 && height[k] <= height[left[k] - 1])
+				left[k] = left[left[k] - 1];
+		}
+		REPD(k, w - 1, 0) {
+			right[k] = k;
+			while (right[k] < w - 1 && height[k] <= height[right[k] + 1])
+				right[k] = right[right[k] + 1];
+		}
+		REP(k, w)
+			if (update_max(maxarea, (right[k] - left[k] + 1) * height[k]))
+				ll = left[k], rr = right[k], hh = height[k], nl = line;
+	}
+	Img ret(rr - ll + 1, hh);
+	int offsetx = ll, offsety = nl - hh + 1;
+	REP(i, ret.h) REP(j, ret.w) {
+		ret.set_pixel(i, j, get_pixel(i + offsety, j + offsetx))	;
+	}
+	*this = move(ret);
+}
 
 real_t GreyImg::get_pixel(int r, int c) const {
 	m_assert(between(r, 0, h) && between(c, 0, w));
@@ -119,8 +133,8 @@ void GreyImg::init_from_img(const Img& img) {
 		set_pixel(i, j, Filter::to_grey(img.get_pixel(i, j)));
 }
 
-shared_ptr<Img> GreyImg::to_img() const {
-	shared_ptr<Img> ret(new Img(w, h));
+imgptr GreyImg::to_img() const {
+	imgptr ret(new Img(w, h));
 	REP(i, h) REP(j, w) {
 		real_t grey = get_pixel(i, j);
 		ret->set_pixel(i, j, ::Color(grey, grey, grey));

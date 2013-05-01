@@ -1,5 +1,5 @@
 // File: panorama.cc
-// Date: Wed May 01 19:57:14 2013 +0800
+// Date: Wed May 01 20:55:19 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include <fstream>

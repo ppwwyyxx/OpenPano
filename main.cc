@@ -1,5 +1,5 @@
 // File: main.cc
-// Date: Wed May 01 18:34:39 2013 +0800
+// Date: Wed May 01 20:56:02 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "render/filerender.hh"
@@ -99,8 +99,9 @@ void final(int argc, char* argv[]) {
 		imgs.push_back(ptr);
 	}
 	Panorama p(imgs);
-	shared_ptr<Img> res = p.get();
+	imgptr res = p.get();
 
+	res->crop();
 	RenderBase* r = new FileRender(res, "out.png");
 	r->finish();
 	delete r;

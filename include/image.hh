@@ -1,5 +1,5 @@
 // File: image.hh
-// Date: Wed May 01 10:17:28 2013 +0800
+// Date: Wed May 01 21:23:48 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
@@ -29,6 +29,15 @@ class Img : public std::enable_shared_from_this<Img> {
 			w = img.w, h = img.h;
 			pixel = img.pixel;
 			img.pixel = nullptr;
+		}
+
+		Img & operator = (Img && r) {
+			m_assert(this != &r);
+			delete[] pixel;
+			pixel = r.pixel;
+			w = r.w, h = r.h;
+			r.pixel = nullptr;
+			return *this;
 		}
 
 		Img(int m_w, int m_h)
@@ -75,6 +84,8 @@ class Img : public std::enable_shared_from_this<Img> {
 
 		Vec2D get_center() const
 		{ return Vec2D(w / 2, h / 2); }
+
+		void crop();
 };
 
 class GreyImg {

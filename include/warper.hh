@@ -1,5 +1,5 @@
 // File: warper.hh
-// Date: Wed May 01 14:30:48 2013 +0800
+// Date: Wed May 01 20:48:30 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
@@ -16,7 +16,7 @@ class Warper {
 		void warp(imgptr& img, std::vector<Feature>& ft) const {
 			int r = max(img->w, img->h) / 2;
 			Vec cen(img->w / 2, img->h / 2 * h_factor, r * 2);
-			CylProject cyl(r, cen, r);
+			CylProject cyl(r, cen, r * 2);
 			img = cyl.project(img, ft);
 		}
 };
