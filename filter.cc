@@ -1,5 +1,5 @@
 // File: filter.cc
-// Date: Wed May 01 16:56:11 2013 +0800
+// Date: Wed May 01 22:24:48 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "filter.hh"
@@ -9,7 +9,6 @@ using namespace Magick;
 using namespace std;
 
 shared_ptr<GreyImg> Filter::GaussianBlur(const shared_ptr<GreyImg> img, real_t sigma) {
-	HWTimer timer;
 	const int w = img->w, h = img->h;
 	shared_ptr<GreyImg> ret(new GreyImg(w, h));
 
@@ -61,8 +60,6 @@ shared_ptr<GreyImg> Filter::GaussianBlur(const shared_ptr<GreyImg> img, real_t s
 			}
 		ret->set_pixel(i, j, newvalue);
 	}
-	print_debug("gaussian with sigma %lf spend %lf secs\n", sigma, timer.sec());
-
 	free_2d<real_t>(kernel, kw);
 	return move(ret);
 }

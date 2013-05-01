@@ -1,5 +1,5 @@
 // File: transformer.cc
-// Date: Wed May 01 17:40:40 2013 +0800
+// Date: Wed May 01 22:26:35 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "transformer.hh"
@@ -9,7 +9,6 @@ using namespace std;
 Matrix TransFormer::get_transform() {		// second -> first
 	int REQUIRED = (USE_HOMO ? HOMO_FREEDOM / 2 : AFFINE_FREEDOM / 2);
 	int n_match = match.size();
-	print_debug("number of match: %d\n", n_match);
 	if (n_match < REQUIRED) {
 		PP("only have matches: ", n_match);
 		return Matrix(3, 3);
@@ -54,7 +53,7 @@ Matrix TransFormer::cal_transform(const vector<int>& matches) const {
 		return move(cal_homo_transform(matches));
 	else
 		return move(cal_affine_transform(matches));
-	return move(cal_rotate_homo_transform(matches));
+	// return move(cal_rotate_homo_transform(matches));
 }
 
 Matrix TransFormer::cal_affine_transform(const vector<int>& matches) const {

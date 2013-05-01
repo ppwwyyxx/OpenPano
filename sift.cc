@@ -1,8 +1,9 @@
 // File: sift.cc
-// Date: Wed May 01 17:05:13 2013 +0800
+// Date: Wed May 01 22:24:59 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "sift.hh"
+#include "utils.hh"
 #include "filter.hh"
 using namespace std;
 
@@ -54,6 +55,7 @@ ScaleSpace::ScaleSpace(const shared_ptr<Img>& img, int num_octave, int num_scale
 		origw = img->w, origh = img->h;
 		octaves = new shared_ptr<Octave>[noctave];
 
+		HWTimer timer;
 #pragma omp parallel for schedule(dynamic)
 		REP(i, noctave) {
 			if (!i)
@@ -63,6 +65,7 @@ ScaleSpace::ScaleSpace(const shared_ptr<Img>& img, int num_octave, int num_scale
 				octaves[i] = shared_ptr<Octave>(new Octave(resized, nscale));
 			}
 		}
+		print_debug("building scale space takes %lf\n", timer.get_sec());
 	}
 
 ScaleSpace::~ScaleSpace()

@@ -1,5 +1,5 @@
 // File: main.cc
-// Date: Wed May 01 20:56:02 2013 +0800
+// Date: Wed May 01 22:14:24 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "render/filerender.hh"
@@ -10,13 +10,13 @@
 #include "stitcher.hh"
 #include "panorama.hh"
 #include "transformer.hh"
-
 #include <ctime>
 
 using namespace std;
 using namespace Magick;
 
 bool TEMPDEBUG = false;
+bool PANO = true;
 
 #define LABEL_LEN 7
 
@@ -84,7 +84,7 @@ void test_transform(const char* f1, const char* f2) {
 	imgptr ptr1(new Img(f1));
 	imgptr ptr2(new Img(f2));
 
-	Panorama p({ptr1, ptr2});
+	Panorama p({ptr1, ptr2}, PANO);
 	shared_ptr<Img> res = p.get();
 
 	RenderBase* r = new FileRender(res, "out.png");
@@ -98,7 +98,7 @@ void final(int argc, char* argv[]) {
 		imgptr ptr(new Img(argv[i]));
 		imgs.push_back(ptr);
 	}
-	Panorama p(imgs);
+	Panorama p(imgs, PANO);
 	imgptr res = p.get();
 
 	res->crop();
@@ -107,15 +107,9 @@ void final(int argc, char* argv[]) {
 	delete r;
 }
 
-
-
 int main(int argc, char* argv[]) {
 	srand(time(NULL));
-	/*
-	 *test_feature(argv[1]);
-	 */
-	/*
-	 *test_transform(argv[1], argv[2]);
-	 */
+	// test_feature(argv[1]);
+	// test_transform(argv[1], argv[2]);
 	final(argc, argv);
 }

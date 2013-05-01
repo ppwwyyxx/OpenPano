@@ -1,5 +1,5 @@
 // File: image.cc
-// Date: Wed May 01 21:23:46 2013 +0800
+// Date: Wed May 01 21:33:19 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "image.hh"
@@ -95,6 +95,7 @@ void Img::crop() {
 	REP(line, h) {
 		REP(k, w)
 			height[k] = get_pixel(line, k).get_max() < SEPS ? 0 : height[k] + 1;
+
 		REP(k, w) {
 			left[k] = k;
 			while (left[k] > 0 && height[k] <= height[left[k] - 1])
@@ -111,9 +112,8 @@ void Img::crop() {
 	}
 	Img ret(rr - ll + 1, hh);
 	int offsetx = ll, offsety = nl - hh + 1;
-	REP(i, ret.h) REP(j, ret.w) {
-		ret.set_pixel(i, j, get_pixel(i + offsety, j + offsetx))	;
-	}
+	REP(i, ret.h) REP(j, ret.w)
+		ret.set_pixel(i, j, get_pixel(i + offsety, j + offsetx));
 	*this = move(ret);
 }
 
