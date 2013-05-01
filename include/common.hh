@@ -1,5 +1,5 @@
 // File: common.hh
-// Date: Wed May 01 17:44:32 2013 +0800
+// Date: Wed May 01 18:37:49 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
@@ -25,7 +25,7 @@ const real_t GAUSS_SIGMA = SCALE_FACTOR;
 const int GAUSS_WINDOW_FACTOR = 6;		// before: 4
 
 const real_t JUDGE_EXTREMA_DIFF_THRES = +5e-3;
-const real_t CONTRAST_THRES = 7e-2;		// lowe: 3e-2
+const real_t CONTRAST_THRES = 6e-2;		// lowe: 3e-2
 const real_t PRE_COLOR_THRES = 5e-2;
 const real_t EDGE_RATIO = 6;		// lowe: 10
 
@@ -54,6 +54,8 @@ const int HOMO_FREEDOM = 8;
 const int AFFINE_FREEDOM = 6;
 const int RANSAC_ITERATIONS = 30;
 const real_t RANSAC_INLIER_THRES = 2;
+
+const real_t SLOPE_PLAIN = 6e-3;
 
 const real_t FOCAL = 300;
 

@@ -1,5 +1,5 @@
 // File: panorama.cc
-// Date: Wed May 01 17:34:18 2013 +0800
+// Date: Wed May 01 18:38:50 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include <fstream>
@@ -143,9 +143,12 @@ void Panorama::cal_best_matrix(vector<imgptr>& imgs, vector<Matrix>& mat, vector
 		HWTimer timer;
 		real_t newfactor = 1;
 		real_t slope = Panorama::update_h_factor(newfactor, minslope, bestfactor, bestmat, imgs, feats);
+		real_t centerx1 = imgs[mid]->get_center().x,
+			   centerx2 = TransFormer::cal_project(bestmat[0], imgs[mid + 1]->get_center()).x;
+		real_t order = (centerx2 > centerx1 ? 1 : -1);
 		REP(k, 3) {
-			if (fabs(slope) < 6e-3) break;
-			newfactor += (slope < 0 ? 1.0 : -1.0) / (5 * pow(2, k));
+			if (fabs(slope) < SLOPE_PLAIN) break;
+			newfactor += (slope < 0 ? order : -order) / (5 * pow(2, k));
 			slope = Panorama::update_h_factor(newfactor, minslope, bestfactor, bestmat, imgs, feats);
 		}
 		print_debug("align time: %lf\n", timer.get_sec());
