@@ -1,5 +1,5 @@
 // File: matcher.cc
-// Date: Tue Apr 30 23:43:37 2013 +0800
+// Date: Wed May 01 12:41:18 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include <limits>
@@ -35,7 +35,6 @@ MatchData Matcher::match() const {
 #pragma omp critical
 		ret.add(i.real_coor, mincoor);
 	}
-	cout << "match: " << ret.size() << endl;
 	return move(ret);
 }
 

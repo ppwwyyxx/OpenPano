@@ -1,5 +1,5 @@
 // File: transformer.cc
-// Date: Wed May 01 12:00:53 2013 +0800
+// Date: Wed May 01 12:40:55 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "transformer.hh"
@@ -45,7 +45,6 @@ Matrix TransFormer::get_transform() {		// second -> first
 	best_transform = cal_transform(inliers);
 	inliers = get_inliers(best_transform);
 	best_transform = cal_transform(inliers);
-	cout << "final num of inlier: " << inliers.size() << endl;
 	return move(best_transform);
 }
 

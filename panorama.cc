@@ -1,5 +1,5 @@
 // File: panorama.cc
-// Date: Wed May 01 12:27:39 2013 +0800
+// Date: Wed May 01 13:17:09 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include <fstream>
@@ -23,6 +23,8 @@ imgptr Panorama::get_trans() {
 	Vec2D diff, offset;
 	cal_best_matrix(imgs, mat, diff, offset);
 
+
+	Panorama::straighten_simple(mat, imgs);
 	Coor size = toCoor(diff);
 	PP("size: ", size);
 	PP("offset", offset);
@@ -41,7 +43,8 @@ imgptr Panorama::get_trans() {
 
 	HWTimer timer;
 #pragma omp parallel for schedule(dynamic)
-	REP(i, ret->h) REP(j, ret->w) {
+	REP(i, ret->h)
+		REP(j, ret->w) {
 		Vec2D final = (Vec2D(j, i) - offset);
 		vector<Color> blender;
 		REP(k, n) {
@@ -92,7 +95,7 @@ void Panorama::straighten_simple(vector<Matrix>& mat, const vector<imgptr>& imgs
 	S.get(1, 0) = dydx;
 	Matrix Sinv(3, 3);
 	S.inverse(Sinv);
-	REPL(i, 0, n)
+	REP(i, n)
 		mat[i] = Sinv.prod(mat[i]);
 }
 
@@ -118,50 +121,58 @@ void Panorama::cal_best_matrix(vector<imgptr>& imgs, vector<Matrix>& mat, Vec2D&
 	int n = imgs.size(), mid = n / 2;
 	vector<vector<Feature>> feats;
 	for (auto & ptr : imgs) feats.push_back(move(Panorama::get_feature(ptr)));
-	vector<vector<Feature>> nowfeats;
 
 	Matrix I = Matrix::I(3);
-	vector<Matrix> nowmat;
-	REP(i, n) nowmat.push_back(I);
+	vector<Matrix> bestmat;
+	REP(i, n) mat.push_back(I);
 
-	vector<imgptr> bestimgs;
-	real_t maxratio = 0;
-	int bestfactor = 0;
+	real_t minslope = numeric_limits<real_t>::max();
+	real_t bestfactor = 0;
 
+	int start = mid, end = n, len = end - start;
+	HWTimer timer;
+#pragma omp parallel for schedule(static)
 	REPL(hfactor, 8, 13) {
 		real_t h_factor = (real_t)hfactor / 10;
-		PP("now factor: ", h_factor);
 		Warper warper(h_factor);
-		vector<imgptr> nowimgs = imgs;
-		nowfeats = feats;
-		REP(k, n)
-			warper.warp(nowimgs[k], nowfeats[k]);
+		PP("now factor: ", h_factor);
 
-		REPL(i, mid + 1, n)
-			nowmat[i] = Panorama::get_transform(nowfeats[i - 1], nowfeats[i]);
-		REPL(i, mid + 2, n) nowmat[i] = nowmat[i - 1].prod(nowmat[i]);
+		vector<imgptr> nowimgs;
+		vector<vector<Feature>> nowfeats;
 
-		REPD(i, mid - 1, 0)
-			nowmat[i] = Panorama::get_transform(nowfeats[i + 1], nowfeats[i]);
-		REPD(i, mid - 2, 0) nowmat[i] = nowmat[i + 1].prod(nowmat[i]);
+		REPL(k, start, end) {
+			nowimgs.push_back(imgs[k]);
+			nowfeats.push_back(feats[k]);
+		}
+		REP(k, len) warper.warp(nowimgs[k], nowfeats[k]);
 
-		/*
-		 *Panorama::straighten_simple(nowmat, nowimgs);
-		 */
+		vector<Matrix> nowmat;		// size = len - 1
+		REPL(k, 1, len) nowmat.push_back(Panorama::get_transform(nowfeats[k - 1], nowfeats[k]));
+		REPL(k, 1, len - 1) nowmat[k] = nowmat[k - 1].prod(nowmat[k]);
 
-		pair<Vec2D, Vec2D> maxmin = cal_size(nowmat, nowimgs);
-		Vec2D diff = maxmin.first - maxmin.second;
-		if (update_max(maxratio, diff.x / diff.y)) {
-			size = diff;
-			offset = maxmin.second * (-1);
-			mat = nowmat;
-			bestfactor = hfactor;
-			bestimgs = nowimgs;
+		Vec2D center2 = TransFormer::cal_project(nowmat[len - 2], nowimgs[len - 2]->get_center()),
+			  center1 = nowimgs[0]->get_center();
+		real_t slope = (center2.y - center1.y) / (center2.x - center1.x);
+
+#pragma omp critical
+		if (update_min(minslope, fabs(slope))) {
+			bestfactor = h_factor;
+			bestmat = nowmat;
 		}
 	}
-	P(maxratio);
+	print_debug("align time: %lf\n", timer.get_sec());
+
 	P(bestfactor);
-	imgs = bestimgs;
+	P(minslope);
+	Warper warper(bestfactor);
+	REP(k, n) warper.warp(imgs[k], feats[k]);
+
+	REPL(k, mid + 1, n) mat[k] = bestmat[k - mid - 1];
+	REPD(i, mid - 1, 0) mat[i] = Panorama::get_transform(feats[i + 1], feats[i]);
+	REPD(i, mid - 2, 0) mat[i] = mat[i + 1].prod(mat[i]);
+	pair<Vec2D, Vec2D> maxmin = cal_size(mat, imgs);
+	size = maxmin.first - maxmin.second;
+	offset = maxmin.second * (-1);
 }
 
 /*
