@@ -1,5 +1,5 @@
 // File: panorama.cc
-// Date: Wed May 01 22:54:47 2013 +0800
+// Date: Wed May 01 23:06:41 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include <fstream>
@@ -95,7 +95,7 @@ imgptr Panorama::get_trans() {
 Matrix Panorama::get_transform(const vector<Feature>& feat1, const vector<Feature>& feat2) {
 	Matcher match(feat1, feat2);		// this is not efficient
 	auto ret = match.match();
-	TransFormer transf(ret);
+	TransFormer transf(ret, feat1, feat2);
 	return transf.get_transform();
 }
 

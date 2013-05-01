@@ -1,5 +1,5 @@
 // File: transformer.hh
-// Date: Thu Apr 25 22:20:34 2013 +0800
+// Date: Wed May 01 23:00:57 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
@@ -9,6 +9,7 @@
 class TransFormer {
 	private:
 		const MatchData& match;
+		const std::vector<Feature>& f1, & f2;
 
 		Matrix cal_transform(const std::vector<int>&) const;
 
@@ -24,8 +25,8 @@ class TransFormer {
 		std::vector<int> get_inliers(const Matrix &) const;
 
 	public:
-		TransFormer(const MatchData& m_match):
-			match(m_match) { }
+		TransFormer(const MatchData& m_match, const std::vector<Feature>& m_f1, const std::vector<Feature>& m_f2):
+			match(m_match), f1(m_f1), f2(m_f2) { }
 
 		Matrix get_transform();
 

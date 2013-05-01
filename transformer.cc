@@ -1,5 +1,5 @@
 // File: transformer.cc
-// Date: Wed May 01 22:26:35 2013 +0800
+// Date: Wed May 01 23:08:48 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "transformer.hh"
@@ -63,7 +63,8 @@ Matrix TransFormer::cal_affine_transform(const vector<int>& matches) const {
 	Matrix m(AFFINE_FREEDOM, 2 * n);
 	Matrix b(1, 2 * n);
 	REP(i, n) {
-		const Vec2D &m0 = match.data[matches[i]].first, &m1 = match.data[matches[i]].second;
+		const Vec2D &m0 = f1[match.data[matches[i]].x].real_coor,
+					&m1 = f2[match.data[matches[i]].y].real_coor;
 		m.get(i * 2, 0) = m1.x;
 		m.get(i * 2, 1) = m1.y;
 		m.get(i * 2, 2) = 1;
@@ -92,7 +93,8 @@ Matrix TransFormer::cal_homo_transform(const vector<int>& matches) const {
 	Matrix m(HOMO_FREEDOM, 2 * n);
 	Matrix b(1, 2 * n);
 	REP(i, n) {
-		const Vec2D &m0 = match.data[matches[i]].first, &m1 = match.data[matches[i]].second;
+		const Vec2D &m0 = f1[match.data[matches[i]].x].real_coor,
+					&m1 = f2[match.data[matches[i]].y].real_coor;
 		m.get(i * 2, 0) = m1.x;
 		m.get(i * 2, 1) = m1.y;
 		m.get(i * 2, 2) = 1;
@@ -129,7 +131,8 @@ Matrix TransFormer::cal_homo_transform2(const vector<int>& matches) const {
 
 	Matrix m(9, 2 * n);
 	REP(i, n) {
-		const Vec2D &m0 = match.data[matches[i]].first, &m1 = match.data[matches[i]].second;
+		const Vec2D &m0 = f1[match.data[matches[i]].x].real_coor,
+					&m1 = f2[match.data[matches[i]].y].real_coor;
 		m.get(i * 2, 0) = m1.x;
 		m.get(i * 2, 1) = m1.y;
 		m.get(i * 2, 2) = 1;
@@ -167,49 +170,6 @@ Matrix TransFormer::cal_homo_transform2(const vector<int>& matches) const {
 	return move(ret);
 }
 
-Matrix TransFormer::cal_rotate_homo_transform(const vector<int>& matches) const {
-	int n = matches.size();
-	m_assert(n * 2 >= HOMO_FREEDOM);
-
-	Matrix homo = cal_homo_transform(matches);
-	real_t f = TransFormer::get_focal_from_matrix(homo);
-	cout << "focal: " << f << endl;
-
-	Matrix m(3, 3);
-	REP(i, n) {
-		const Vec2D &m0 = match.data[matches[i]].second, &m1 = match.data[matches[i]].first;
-
-		/*
-		 *float weight = sqrt((pow(f,2)+pow(m1.x,2)+pow(m1.y,2))/(pow(f,2)+pow(m0.x,2)+pow(m0.y,2)));
-		 */
-		real_t v1[3], v2[3];
-		v1[0] = (real_t)(m0.x) / f;
-		v1[1] = (real_t)(m0.y) / f;
-		v1[2] = 1;
-		v2[0] = (real_t)(m1.x) / f;
-		v2[1] = (real_t)(m1.y) / f;
-		v2[2] = 1;
-		REP(ii, 3) REP(jj, 3)
-			m.get(ii, jj) += v1[ii] * v2[jj];
-
-	}
-	Matrix u(3, 3), v(3, 3), s(3, 3);
-	m.SVD(u, s, v);
-	Matrix ret = v.prod(u.transpose());
-	ret.normrot();
-	Matrix K(3, 3), Kin(3, 3);
-	K.get(1, 1) = K.get(0, 0) = f; K.get(2, 2) = 1;
-	K.get(0, 2) = 350; K.get(1, 2) = 232;
-	K.inverse(Kin);
-	Matrix realret = K.prod(ret).prod(Kin);
-	cout << ret << endl;
-	for (auto &k : matches) {
-		auto i = match.data[k];
-		Vec2D project = cal_project(realret, i.second);
-		cout << i.first << " == ?" << project << endl;
-	}
-	return move(realret);
-}
 
 extern bool TEMPDEBUG;
 
@@ -227,8 +187,9 @@ Vec2D TransFormer::cal_project(const Matrix & trans, const Vec2D & old) {
 int TransFormer::cal_inliers(const Matrix & trans) const {
 	int cnt = 0;
 	for (auto & pair : match.data) {
-		Vec2D project = TransFormer::cal_project(trans, pair.second);
-		real_t dist = (project - Vec2D(pair.first.x, pair.first.y)).sqr();
+		Vec2D project = TransFormer::cal_project(trans, f2[pair.y].real_coor);
+		const Vec2D& fcoor = f1[pair.x].real_coor;
+		real_t dist = (project - Vec2D(fcoor.x, fcoor.y)).sqr();
 		if (dist < sqr(RANSAC_INLIER_THRES))
 			cnt ++;
 	}
@@ -240,8 +201,9 @@ vector<int> TransFormer::get_inliers(const Matrix & trans) const {
 	int n = match.size();
 	REP(i, n) {
 		auto &pair = match.data[i];
-		Vec2D project = TransFormer::cal_project(trans, pair.second);
-		real_t dist = (project - Vec2D(pair.first.x, pair.first.y)).sqr();
+		Vec2D project = TransFormer::cal_project(trans, f2[pair.y].real_coor);
+		const Vec2D& fcoor = f1[pair.x].real_coor;
+		real_t dist = (project - Vec2D(fcoor.x, fcoor.y)).sqr();
 		if (dist < sqr(RANSAC_INLIER_THRES))
 			ret.push_back(i);
 	}

@@ -1,5 +1,5 @@
 // File: main.cc
-// Date: Wed May 01 22:50:30 2013 +0800
+// Date: Wed May 01 23:06:32 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "render/filerender.hh"
@@ -66,9 +66,9 @@ void gallery(const char* f1, const char* f2) {
 	auto ret = match.match();
 	for (auto &x : ret.data) {
 		pld.set_color(::Color(gen_rand(), gen_rand(), gen_rand()));
-		pld.circle(toCoor(x.first), LABEL_LEN);
-		pld.circle(toCoor(x.second) + Coor(ptr1->w, 0), LABEL_LEN);
-		pld.line(toCoor(x.first), toCoor(x.second) + Coor(ptr1->w, 0));
+		pld.circle(toCoor(feat1[x.x].real_coor), LABEL_LEN);
+		pld.circle(toCoor(feat2[x.y].real_coor) + Coor(ptr1->w, 0), LABEL_LEN);
+		pld.line(toCoor(feat1[x.x].real_coor), toCoor(feat2[x.y].real_coor) + Coor(ptr1->w, 0));
 	}
 
 	r->finish();
