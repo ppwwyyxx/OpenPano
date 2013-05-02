@@ -1,5 +1,5 @@
 // File: main.cc
-// Date: Fri May 03 03:40:41 2013 +0800
+// Date: Fri May 03 03:47:51 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "render/filerender.hh"
@@ -90,7 +90,7 @@ void test_transform(const char* f1, const char* f2) {
 	imgptr ptr2(new Img(f2));
 
 	vector<imgptr> imgs = {ptr1, ptr2};
-	Panorama p(imgs, PANO);
+	Panorama p(imgs);
 	shared_ptr<Img> res = p.get();
 
 	RenderBase* r = new FileRender(res, "out.png");
@@ -104,10 +104,11 @@ void final(int argc, char* argv[]) {
 		imgptr ptr(new Img(argv[i]));
 		imgs.push_back(ptr);
 	}
-	Panorama p(imgs, PANO);
+	Panorama p(imgs);
 	imgptr res = p.get();
 
-	res->crop();
+	if (CROP)
+		res->crop();
 	RenderBase* r = new FileRender(res, "out.png");
 	r->finish();
 	delete r;
@@ -117,6 +118,7 @@ void init_config() {
 	ConfigParser Config("config.cfg");
 	PANO = Config.get("PANO");
 	TRANS = Config.get("TRANS");
+	CROP = Config.get("CROP");
 
 	NUM_OCTAVE = Config.get("NUM_OCTAVE");
 	NUM_SCALE = Config.get("NUM_SCALE");

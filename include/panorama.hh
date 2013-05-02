@@ -1,5 +1,5 @@
 // File: panorama.hh
-// Date: Thu May 02 00:27:20 2013 +0800
+// Date: Fri May 03 03:47:36 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
@@ -14,13 +14,11 @@ class Panorama {
 	private:
 		std::vector<imgptr>& imgs;
 
-		bool PANO = true;		// whether to generate panorama or planar
-
 		imgptr get_trans();
 
 	public:
-		Panorama(std::vector<imgptr>& i, bool m_PANO):
-			imgs(i), PANO(m_PANO) {}
+		Panorama(std::vector<imgptr>& i):
+			imgs(i){}
 
 		imgptr get();
 
@@ -28,8 +26,8 @@ class Panorama {
 
 		static std::vector<Feature> get_feature(imgptr &);
 
+		static void cal_best_matrix_pano(std::vector<imgptr>&, std::vector<Matrix>&, std::vector<std::pair<Vec2D, Vec2D>>&);
 		static void cal_best_matrix(std::vector<imgptr>&, std::vector<Matrix>&, std::vector<std::pair<Vec2D, Vec2D>>&);
-		static void cal_best_matrix_planar(std::vector<imgptr>&, std::vector<Matrix>&, std::vector<std::pair<Vec2D, Vec2D>>&);
 
 		static void straighten_simple(std::vector<Matrix>& mat, const std::vector<imgptr>& imgs);
 

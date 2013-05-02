@@ -1,5 +1,5 @@
 // File: config.cc
-// Date: Fri May 03 03:43:27 2013 +0800
+// Date: Fri May 03 03:46:34 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "config.hh"
@@ -26,6 +26,7 @@ double ConfigParser::get(const std::string& s) {
 bool CIRCLE = false;
 bool TRANS;
 bool PANO;
+bool CROP = true;
 
 int NUM_OCTAVE;
 int NUM_SCALE;

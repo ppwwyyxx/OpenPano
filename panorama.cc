@@ -1,5 +1,5 @@
 // File: panorama.cc
-// Date: Thu May 02 11:47:10 2013 +0800
+// Date: Fri May 03 03:45:58 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include <fstream>
@@ -20,10 +20,10 @@ imgptr Panorama::get_trans() {
 	vector<Matrix> mat;
 	vector<pair<Vec2D, Vec2D>> corners;
 	if (PANO) {
-		Panorama::cal_best_matrix(imgs, mat, corners);
+		Panorama::cal_best_matrix_pano(imgs, mat, corners);
 		straighten_simple(mat, imgs);
 	} else
-		Panorama::cal_best_matrix_planar(imgs, mat, corners);
+		Panorama::cal_best_matrix(imgs, mat, corners);
 
 	if (CIRCLE) { // remove the extra
 		mat.pop_back();
@@ -148,7 +148,7 @@ vector<pair<Vec2D, Vec2D>> Panorama::cal_size(const vector<Matrix>& mat, const v
 	mat.resize(n, I);\
 	HWTimer timer
 
-void Panorama::cal_best_matrix(vector<imgptr>& imgs, vector<Matrix>& mat, vector<pair<Vec2D, Vec2D>>& corners) {;
+void Panorama::cal_best_matrix_pano(vector<imgptr>& imgs, vector<Matrix>& mat, vector<pair<Vec2D, Vec2D>>& corners) {;
 	prepare();
 #pragma omp parallel for schedule(dynamic)
 	REP(k, n)
@@ -208,7 +208,7 @@ void Panorama::cal_best_matrix(vector<imgptr>& imgs, vector<Matrix>& mat, vector
 	corners = cal_size(mat, imgs);
 }
 
-void Panorama::cal_best_matrix_planar(vector<imgptr>& imgs, vector<Matrix>& mat, vector<pair<Vec2D, Vec2D>>& corners) {
+void Panorama::cal_best_matrix(vector<imgptr>& imgs, vector<Matrix>& mat, vector<pair<Vec2D, Vec2D>>& corners) {
 	prepare();
 #pragma omp parallel for schedule(dynamic)
 	REP(k, n)
