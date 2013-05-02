@@ -1,5 +1,5 @@
 // File: keypoint.hh
-// Date: Fri May 03 00:52:36 2013 +0800
+// Date: Fri May 03 01:37:46 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
@@ -12,15 +12,13 @@ class KeyPoint {
 		const DOGSpace& dogsp;
 		const ScaleSpace& ss;
 		int noctave, nscale;
-		/*
-		 *std::vector<Coor> keyp;
-		 */
+		std::vector<Coor> keyp;
 
 		std::vector<Feature> features;
 
 		KeyPoint(const DOGSpace&, const ScaleSpace& ss);
 
-		void detect_extrema();
+		void detect_feature();
 
 		void judge_extrema(int no, int ns);
 
@@ -43,7 +41,7 @@ class KeyPoint {
 		void calc_descriptor(Feature&);
 
 		void work() {
-			detect_extrema();
+			detect_feature();
 			calc_dir();
 			calc_descriptor();
 		}

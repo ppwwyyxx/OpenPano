@@ -1,5 +1,5 @@
 // File: main.cc
-// Date: Fri May 03 05:47:19 2013 +0800
+// Date: Fri May 03 02:03:19 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "render/filerender.hh"
@@ -26,23 +26,27 @@ inline real_t gen_rand()
 vector<Feature> get_feature(imgptr& ptr)
 { return Panorama::get_feature(ptr); }
 
-void test_feature(const char* fname) {
+void test_feature(const char* fname, int mode = 1) {
 	shared_ptr<Img> test(new Img(fname));
 	vector<Feature> ans = get_feature(test);
-	RenderBase* r = new FileRender(test, "out.png");
+	RenderBase* r = new FileRender(test, "feature.png");
 	cout << r->get_geo().w << r->get_geo().h << endl;
 	PlaneDrawer pld(r);
 
 	cout << ans.size() << endl;
-	for (auto i : ans)
-		pld.arrow(toCoor(i.real_coor), i.dir, LABEL_LEN);
+	for (auto i : ans) {
+		if (mode)
+			pld.arrow(toCoor(i.real_coor), i.dir, LABEL_LEN);
+		else
+			pld.cross(toCoor(i.real_coor), LABEL_LEN / 2);
+	}
 	r->finish();
 	delete r;
 }
 
 void test_extrema(const char* fname) {
 	imgptr test(new Img(fname)) ;
-	RenderBase* r = new FileRender(test, "out.png");
+	RenderBase* r = new FileRender(test, "extrema.png");
 	cout << r->get_geo().w << r->get_geo().h << endl;
 	PlaneDrawer pld(r);
 
@@ -168,11 +172,10 @@ void init_config() {
 int main(int argc, char* argv[]) {
 	srand(time(NULL));
 	init_config();
-	test_extrema(argv[1]);
-
-	// test_memory(argv[1]);
-	// test_feature(argv[1]);
+	//test_extrema(argv[1]);
+	test_feature(argv[1]);
 	// test_transform(argv[1], argv[2]);
+	// test_memory(argv[1]);
 	/*
 	 *final(argc, argv);
 	 */

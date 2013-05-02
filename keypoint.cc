@@ -1,5 +1,5 @@
 // File: keypoint.cc
-// Date: Fri May 03 00:52:31 2013 +0800
+// Date: Fri May 03 01:38:55 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include <cstring>
@@ -14,7 +14,7 @@ KeyPoint::KeyPoint(const DOGSpace& m_dog, const ScaleSpace& m_ss):
 	dogsp(m_dog),ss(m_ss)
 { noctave = dogsp.noctave, nscale = dogsp.nscale; }
 
-void KeyPoint::detect_extrema() {
+void KeyPoint::detect_feature() {
 	REP(i, noctave) REPL(j, 1, nscale - 2)
 		judge_extrema(i, j);
 }
@@ -29,10 +29,8 @@ void KeyPoint::judge_extrema(int nowo, int nows) {
 			if (nowcolor < PRE_COLOR_THRES)			// initial color is less than thres
 				continue;
 			if (judge_extrema(nowcolor, nowo, nows, i, j)) {
-/*
- *#pragma omp critical
- *                keyp.push_back(Coor((real_t)j / w * dogsp.origw, (real_t)i / h * dogsp.origh));
- */
+#pragma omp critical
+				keyp.push_back(Coor((real_t)j / w * dogsp.origw, (real_t)i / h * dogsp.origh));
 
 				get_feature(nowo, nows, i, j);		// i is h
 				// to get original keypoints
@@ -166,7 +164,7 @@ void KeyPoint::calc_dir(Feature& feat, vector<Feature>& update_feat) {
 	for (auto ori : calc_hist(ss.octaves[no], ns, now, feat.scale_factor)) {
 		Feature newf(feat);
 		newf.dir = ori;
-		update_feat.push_back(move(newf));			// TODO reference dangerous?
+		update_feat.push_back(move(newf));
 	}
 }
 
