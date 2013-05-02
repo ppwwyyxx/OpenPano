@@ -1,5 +1,6 @@
 obj
 main
-*.png
-*.jpg
+src/*.png
+src/*.jpg
 .tags
+output
