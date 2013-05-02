@@ -1,11 +1,11 @@
 // File: panorama.hh
-// Date: Fri May 03 03:47:36 2013 +0800
+// Date: Fri May 03 04:49:39 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
-
 #include <memory>
 #include <utility>
+#include <vector>
 #include "image.hh"
 #include "matcher.hh"
 #include "matrix.hh"

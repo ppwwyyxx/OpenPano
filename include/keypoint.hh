@@ -1,11 +1,10 @@
 // File: keypoint.hh
-// Date: Wed May 01 22:23:26 2013 +0800
+// Date: Fri May 03 00:52:36 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
 #include <vector>
 #include "feature.hh"
-#include "utils.hh"
 #include "sift.hh"
 
 class KeyPoint {
@@ -13,7 +12,9 @@ class KeyPoint {
 		const DOGSpace& dogsp;
 		const ScaleSpace& ss;
 		int noctave, nscale;
-		std::vector<Coor> keyp;
+		/*
+		 *std::vector<Coor> keyp;
+		 */
 
 		std::vector<Feature> features;
 

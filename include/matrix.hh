@@ -1,9 +1,10 @@
 // File: matrix.hh
-// Date: Thu May 02 11:50:06 2013 +0800
+// Date: Fri May 03 04:49:26 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
 #include <cstring>
+#include <memory>
 #include "debugutils.hh"
 #include "common.hh"
 

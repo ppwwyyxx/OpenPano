@@ -1,8 +1,9 @@
 // File: transformer.hh
-// Date: Wed May 01 23:00:57 2013 +0800
+// Date: Fri May 03 04:50:30 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
+#include <vector>
 #include "matcher.hh"
 #include "matrix.hh"
 

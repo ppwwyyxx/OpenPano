@@ -1,8 +1,10 @@
 // File: warper.hh
-// Date: Fri May 03 03:37:54 2013 +0800
+// Date: Fri May 03 04:51:03 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
+#include <vector>
+
 #include "config.hh"
 #include "image.hh"
 #include "feature.hh"

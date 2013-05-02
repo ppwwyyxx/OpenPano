@@ -1,10 +1,9 @@
 // File: filter.hh
-// Date: Thu Apr 11 11:07:36 2013 +0800
+// Date: Fri May 03 04:47:02 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
 #include <memory>
-
 #include "image.hh"
 
 class Filter {

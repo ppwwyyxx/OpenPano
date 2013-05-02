@@ -1,5 +1,5 @@
 // File: main.cc
-// Date: Fri May 03 03:47:51 2013 +0800
+// Date: Fri May 03 05:47:19 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "render/filerender.hh"
@@ -8,10 +8,10 @@
 #include "keypoint.hh"
 #include "matcher.hh"
 #include "gallery.hh"
-#include "stitcher.hh"
 #include "panorama.hh"
 #include "transformer.hh"
 #include <ctime>
+#include <cassert>
 
 using namespace std;
 using namespace Magick;
@@ -36,6 +36,22 @@ void test_feature(const char* fname) {
 	cout << ans.size() << endl;
 	for (auto i : ans)
 		pld.arrow(toCoor(i.real_coor), i.dir, LABEL_LEN);
+	r->finish();
+	delete r;
+}
+
+void test_extrema(const char* fname) {
+	imgptr test(new Img(fname)) ;
+	RenderBase* r = new FileRender(test, "out.png");
+	cout << r->get_geo().w << r->get_geo().h << endl;
+	PlaneDrawer pld(r);
+
+	ScaleSpace ss(test, NUM_OCTAVE, NUM_SCALE);
+	DOGSpace sp(ss);
+	KeyPoint ex(sp, ss);
+	ex.work();
+	for (auto &i : ex.keyp)
+		pld.cross(i, LABEL_LEN / 2);
 	r->finish();
 	delete r;
 }
@@ -119,6 +135,8 @@ void init_config() {
 	PANO = Config.get("PANO");
 	TRANS = Config.get("TRANS");
 	CROP = Config.get("CROP");
+	if (PANO && TRANS)
+		assert(false);
 
 	NUM_OCTAVE = Config.get("NUM_OCTAVE");
 	NUM_SCALE = Config.get("NUM_SCALE");
@@ -150,8 +168,12 @@ void init_config() {
 int main(int argc, char* argv[]) {
 	srand(time(NULL));
 	init_config();
+	test_extrema(argv[1]);
+
 	// test_memory(argv[1]);
 	// test_feature(argv[1]);
 	// test_transform(argv[1], argv[2]);
-	final(argc, argv);
+	/*
+	 *final(argc, argv);
+	 */
 }

@@ -1,12 +1,10 @@
 // File: color.hh
-// Date: Wed May 01 22:08:01 2013 +0800
+// Date: Fri May 03 04:45:46 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
 
 #include "geometry.hh"
-
-#include <cmath>
 
 class Color: public Vector {
 	public:

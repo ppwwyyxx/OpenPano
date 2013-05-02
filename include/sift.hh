@@ -1,13 +1,11 @@
 // File: sift.hh
-// Date: Wed May 01 10:27:13 2013 +0800
+// Date: Fri May 03 04:50:18 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
-#include <vector>
 #include <memory>
 
 #include "image.hh"
-// TODO: add mag and ori in Octave data
 class Octave {
 	private:
 		int nscale;
@@ -17,6 +15,9 @@ class Octave {
 
 	public:
 		int w, h;
+
+		Octave(const Octave&) = delete;
+		Octave& operator = (const Octave&) = delete;
 
 		Octave(const std::shared_ptr<GreyImg>&, int num_scale);
 
@@ -56,6 +57,9 @@ class ScaleSpace {
 
 		ScaleSpace(const std::shared_ptr<Img>&, int num_octave, int num_scale);
 
+		ScaleSpace(const ScaleSpace&) = delete;
+		ScaleSpace& operator = (const ScaleSpace&) = delete;
+
 		~ScaleSpace();
 };
 
@@ -67,6 +71,9 @@ class DOG {		// diff[0] = orig[1] - orig[0]
 	public:
 
 		DOG(const std::shared_ptr<Octave>&);
+
+		DOG(const DOG&) = delete;
+		DOG& operator = (const DOG&) = delete;
 
 		~DOG();
 
@@ -85,6 +92,9 @@ class DOGSpace {
 		int origw, origh;
 
 		std::shared_ptr<DOG> *dogs;		// len = noctave
+
+		DOGSpace(const DOGSpace&) = delete;
+		DOGSpace& operator = (const DOGSpace&) = delete;
 
 		DOGSpace(ScaleSpace&);
 

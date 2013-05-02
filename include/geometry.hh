@@ -1,5 +1,5 @@
 // File: geometry.hh
-// Date: Wed May 01 10:20:10 2013 +0800
+// Date: Fri May 03 04:53:11 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
@@ -7,6 +7,7 @@
 #include "common.hh"
 #include <vector>
 #include <limits>
+#include <cmath>
 
 class Geometry {
 	public:

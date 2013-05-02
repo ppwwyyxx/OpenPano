@@ -1,5 +1,5 @@
 # $File: Makefile
-# $Date: Thu May 02 10:24:20 2013 +0800
+# $Date: Fri May 03 00:33:42 2013 +0800
 
 OBJ_DIR = obj
 TARGET = main
@@ -7,16 +7,18 @@ TARGET = main
 INCLUDE_DIR = -Iinclude
 DEFINES = -DDEBUG
 
-#OPTFLAGS = -O3 -g -Wall -Wextra -Wcpp -O
-OPTFLAGS = -O3
+OPTFLAGS = -O3 -g -Wall -Wextra -Wcpp -O
+#OPTFLAGS = -O3
 
-LIBS = opencv
-INCLUDE_DIR += $(shell pkg-config --cflags $(LIBS)) -fopenmp
+LIBS =
+#INCLUDE_DIR += $(shell pkg-config --cflags $(LIBS))
 
-CXXFLAGS = $(INCLUDE_DIR)
-CXXFLAGS += $(shell Magick++-config --cxxflags)
+CXXFLAGS = $(INCLUDE_DIR) -fopenmp
 CXXFLAGS += $(DEFINES) -std=c++11 $(OPTFLAGS)
-LDFLAGS = $(shell pkg-config $(LIBS) --libs) -fopenmp
+CXXFLAGS += $(shell Magick++-config --cxxflags)
+
+LDFLAGS = -fopenmp $(OPTFLAGS)
+#LDFLAGS += $(shell pkg-config $(LIBS) --libs)
 LDFLAGS += $(shell Magick++-config --ldflags --libs)
 
 CC = g++

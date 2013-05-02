@@ -1,5 +1,5 @@
 // File: panorama.cc
-// Date: Fri May 03 03:45:58 2013 +0800
+// Date: Fri May 03 04:56:54 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include <fstream>
@@ -144,7 +144,6 @@ vector<pair<Vec2D, Vec2D>> Panorama::cal_size(const vector<Matrix>& mat, const v
 	vector<vector<Feature>> feats;\
 	feats.resize(n);\
 	Matrix I = Matrix::I(3);\
-	vector<MatchData> matches;\
 	mat.resize(n, I);\
 	HWTimer timer
 
@@ -155,6 +154,7 @@ void Panorama::cal_best_matrix_pano(vector<imgptr>& imgs, vector<Matrix>& mat, v
 		feats[k] = Panorama::get_feature(imgs[k]);
 	print_debug("feature takes %lf secs in total\n", timer.get_sec());
 
+	vector<MatchData> matches;
 	REP(k, n - 1) {
 		Matcher match(feats[k], feats[k + 1]);
 		matches.push_back(match.match());
@@ -210,6 +210,12 @@ void Panorama::cal_best_matrix_pano(vector<imgptr>& imgs, vector<Matrix>& mat, v
 
 void Panorama::cal_best_matrix(vector<imgptr>& imgs, vector<Matrix>& mat, vector<pair<Vec2D, Vec2D>>& corners) {
 	prepare();
+
+	if (!TRANS) {
+		Warper warper(1);
+		REP(k, n) warper.warp(imgs[k], feats[k]);
+	}
+
 #pragma omp parallel for schedule(dynamic)
 	REP(k, n)
 		feats[k] = Panorama::get_feature(imgs[k]);

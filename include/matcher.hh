@@ -1,10 +1,9 @@
 // File: matcher.hh
-// Date: Wed May 01 23:18:37 2013 +0800
+// Date: Fri May 03 04:48:40 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
 #include <vector>
-#include <utility>
 #include <memory>
 #include "feature.hh"
 

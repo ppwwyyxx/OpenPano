@@ -1,5 +1,5 @@
 // File: keypoint.cc
-// Date: Fri May 03 03:15:22 2013 +0800
+// Date: Fri May 03 00:52:31 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include <cstring>
@@ -29,10 +29,12 @@ void KeyPoint::judge_extrema(int nowo, int nows) {
 			if (nowcolor < PRE_COLOR_THRES)			// initial color is less than thres
 				continue;
 			if (judge_extrema(nowcolor, nowo, nows, i, j)) {
+/*
+ *#pragma omp critical
+ *                keyp.push_back(Coor((real_t)j / w * dogsp.origw, (real_t)i / h * dogsp.origh));
+ */
+
 				get_feature(nowo, nows, i, j);		// i is h
-				/*
-				 *keyp.push_back(Coor((real_t)j / w * dogsp.origw, (real_t)i / h * dogsp.origh));
-				 */
 				// to get original keypoints
 			}
 		}

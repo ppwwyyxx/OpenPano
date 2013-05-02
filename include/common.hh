@@ -1,13 +1,10 @@
 // File: common.hh
-// Date: Fri May 03 03:36:09 2013 +0800
+// Date: Fri May 03 04:51:14 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
 
-#include <cmath>
-#include <vector>
 #include <iostream>
-#include <utility>
 #include <limits>
 
 #include "debugutils.hh"
