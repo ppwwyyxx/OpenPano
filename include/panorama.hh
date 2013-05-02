@@ -1,5 +1,5 @@
 // File: panorama.hh
-// Date: Wed May 01 22:02:14 2013 +0800
+// Date: Thu May 02 00:27:20 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
@@ -7,19 +7,19 @@
 #include <memory>
 #include <utility>
 #include "image.hh"
-#include "feature.hh"
+#include "matcher.hh"
 #include "matrix.hh"
 
 class Panorama {
 	private:
-		std::vector<imgptr> imgs;
+		std::vector<imgptr>& imgs;
 
 		bool PANO = true;		// whether to generate panorama or planar
 
 		imgptr get_trans();
 
 	public:
-		Panorama(const std::vector<imgptr>& i, bool m_PANO):
+		Panorama(std::vector<imgptr>& i, bool m_PANO):
 			imgs(i), PANO(m_PANO) {}
 
 		imgptr get();
@@ -38,5 +38,6 @@ class Panorama {
 		static real_t update_h_factor(real_t, real_t&, real_t&,
 				std::vector<Matrix>&,
 				const std::vector<imgptr>&,
-				const std::vector<std::vector<Feature>>&);
+				const std::vector<std::vector<Feature>>&,
+				const std::vector<MatchData>&);
 };

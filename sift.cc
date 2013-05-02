@@ -1,5 +1,5 @@
 // File: sift.cc
-// Date: Wed May 01 22:24:59 2013 +0800
+// Date: Thu May 02 11:03:48 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "sift.hh"
@@ -56,7 +56,7 @@ ScaleSpace::ScaleSpace(const shared_ptr<Img>& img, int num_octave, int num_scale
 		octaves = new shared_ptr<Octave>[noctave];
 
 		HWTimer timer;
-#pragma omp parallel for schedule(dynamic)
+// #pragma omp parallel for schedule(dynamic)
 		REP(i, noctave) {
 			if (!i)
 				octaves[i] = shared_ptr<Octave>(new Octave(img, nscale));

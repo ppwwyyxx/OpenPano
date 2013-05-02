@@ -1,5 +1,5 @@
 // File: panorama.cc
-// Date: Wed May 01 23:06:41 2013 +0800
+// Date: Thu May 02 11:24:32 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include <fstream>
@@ -16,8 +16,6 @@ imgptr Panorama::get()
 { return get_trans(); }
 
 imgptr Panorama::get_trans() {
-	Matrix I = Matrix::I(3);
-
 	int n = imgs.size();
 	vector<Matrix> mat;
 	vector<pair<Vec2D, Vec2D>> corners;
@@ -96,7 +94,7 @@ Matrix Panorama::get_transform(const vector<Feature>& feat1, const vector<Featur
 	Matcher match(feat1, feat2);		// this is not efficient
 	auto ret = match.match();
 	TransFormer transf(ret, feat1, feat2);
-	return transf.get_transform();
+	return move(transf.get_transform());
 }
 
 vector<Feature> Panorama::get_feature(imgptr & ptr) {
@@ -146,20 +144,36 @@ vector<pair<Vec2D, Vec2D>> Panorama::cal_size(const vector<Matrix>& mat, const v
 	m_assert(mat.size() == 0);\
 	int n = imgs.size(), mid = n >> 1;\
 	vector<vector<Feature>> feats;\
-	for (auto & ptr : imgs) feats.push_back(move(Panorama::get_feature(ptr)));\
+	feats.resize(n);\
 	Matrix I = Matrix::I(3);\
-	REP(i, n) mat.push_back(I)
+	vector<MatchData> matches;\
+	mat.resize(n, I);\
+	HWTimer timer
 
 void Panorama::cal_best_matrix(vector<imgptr>& imgs, vector<Matrix>& mat, vector<pair<Vec2D, Vec2D>>& corners) {;
 	prepare();
-	Matcher match(feats[0], feats[n - 1]);
+#pragma omp parallel for schedule(dynamic)
+	REP(k, n)
+		feats[k] = Panorama::get_feature(imgs[k]);
+	print_debug("feature takes %lf secs in total\n", timer.get_sec());
+
+	REP(k, n - 1) {
+		Matcher match(feats[k], feats[k + 1]);
+		matches.push_back(match.match());
+	}
+
+	Matcher match(feats[n - 1], feats[0]);
 	auto matched = match.match();
+	print_debug("match time: %lf secs\n", timer.get_sec());
+
+	// judge circle
 	if ((real_t)matched.size() * 2 / (feats[0].size() + feats[n - 1].size()) > CONNECTED_THRES) {
 		P("detect circle");
 		CIRCLE = true;
 		imgs.push_back(imgs[0]);
 		mat.push_back(I);
 		feats.push_back(feats[0]);
+		matches.push_back(matched);
 		n ++, mid = n >> 1;
 	}
 	vector<Matrix> bestmat;
@@ -167,17 +181,18 @@ void Panorama::cal_best_matrix(vector<imgptr>& imgs, vector<Matrix>& mat, vector
 	real_t minslope = numeric_limits<real_t>::max();
 	real_t bestfactor = 0;
 
+	timer.reset();
 	int start = mid, end = n, len = end - start;
 	if (len > 1) {
 		real_t newfactor = 1;
-		real_t slope = Panorama::update_h_factor(newfactor, minslope, bestfactor, bestmat, imgs, feats);
+		real_t slope = Panorama::update_h_factor(newfactor, minslope, bestfactor, bestmat, imgs, feats, matches);
 		real_t centerx1 = imgs[mid]->get_center().x,
 			   centerx2 = TransFormer::cal_project(bestmat[0], imgs[mid + 1]->get_center()).x;
 		real_t order = (centerx2 > centerx1 ? 1 : -1);
 		REP(k, 3) {
 			if (fabs(slope) < SLOPE_PLAIN) break;
 			newfactor += (slope < 0 ? order : -order) / (5 * pow(2, k));
-			slope = Panorama::update_h_factor(newfactor, minslope, bestfactor, bestmat, imgs, feats);
+			slope = Panorama::update_h_factor(newfactor, minslope, bestfactor, bestmat, imgs, feats, matches);
 		}
 	} else
 		bestfactor = 1;
@@ -186,16 +201,22 @@ void Panorama::cal_best_matrix(vector<imgptr>& imgs, vector<Matrix>& mat, vector
 	REP(k, n) warper.warp(imgs[k], feats[k]);
 
 	REPL(k, mid + 1, n) mat[k] = move(bestmat[k - mid - 1]);
-#pragma omp parallel for schedule(dynamic)
 	REPD(i, mid - 1, 0)
-		mat[i] = Panorama::get_transform(feats[i + 1], feats[i]);
+		mat[i] = TransFormer(matches[i].reverse(), feats[i + 1], feats[i]).get_transform();
+		// mat[i] = Panorama::get_transform(feats[i + 1], feats[i]);
 
 	REPD(i, mid - 2, 0) mat[i] = mat[i + 1].prod(mat[i]);
-	corners = move(cal_size(mat, imgs));
+	print_debug("transform time: %lf secs \n", timer.get_sec());
+	corners = cal_size(mat, imgs);
 }
 
 void Panorama::cal_best_matrix_planar(vector<imgptr>& imgs, vector<Matrix>& mat, vector<pair<Vec2D, Vec2D>>& corners) {
 	prepare();
+#pragma omp parallel for schedule(dynamic)
+	REP(k, n)
+		feats[k] = Panorama::get_feature(imgs[k]);
+	print_debug("feature takes %lf secs in total\n", timer.get_sec());
+
 #pragma omp parallel for schedule(dynamic)
 	REPL(k, mid + 1, n)
 		mat[k] = Panorama::get_transform(feats[k - 1], feats[k]);
@@ -204,6 +225,7 @@ void Panorama::cal_best_matrix_planar(vector<imgptr>& imgs, vector<Matrix>& mat,
 	REPD(k, mid - 1, 0)
 		mat[k] = Panorama::get_transform(feats[k + 1], feats[k]);
 	REPD(k, mid - 2, 0) mat[k] = mat[k + 1].prod(mat[k]);
+	print_debug("match and transform time: %lf secs \n", timer.get_sec());
 	corners = cal_size(mat, imgs);
 }
 #undef prepare
@@ -213,7 +235,8 @@ real_t Panorama::update_h_factor(real_t nowfactor,
 								real_t & bestfactor,
 								vector<Matrix>& mat,
 								const vector<imgptr>& imgs,
-								const vector<vector<Feature>>& feats) {
+								const vector<vector<Feature>>& feats,
+								const vector<MatchData>& matches) {
 	int n = imgs.size(), mid = n >> 1;
 	int start = mid, end = n, len = end - start;
 
@@ -225,14 +248,17 @@ real_t Panorama::update_h_factor(real_t nowfactor,
 	REPL(k, start, end) {
 		nowimgs.push_back(imgs[k]);
 		nowfeats.push_back(feats[k]);
-	}
-#pragma omp parallel for schedule(static)
+	}			// nowfeats[0] == feats[mid]
+
+#pragma omp parallel for schedule(dynamic)
 	REP(k, len)
 		warper.warp(nowimgs[k], nowfeats[k]);
 
 	vector<Matrix> nowmat;		// size = len - 1
 	REPL(k, 1, len)
-		nowmat.push_back(move(Panorama::get_transform(nowfeats[k - 1], nowfeats[k])));
+		nowmat.push_back(TransFormer(matches[k - 1 + mid], nowfeats[k - 1], nowfeats[k]).get_transform());
+		// nowmat[k - 1] = TransFormer(matches[k - 1 + mid], nowfeats[k - 1], nowfeats[k]).get_transform();
+		//nowmat.push_back(Panorama::get_transform(nowfeats[k - 1], nowfeats[k]));
 	REPL(k, 1, len - 1)
 		nowmat[k] = nowmat[k - 1].prod(nowmat[k]);
 

@@ -1,5 +1,5 @@
 // File: main.cc
-// Date: Wed May 01 23:06:32 2013 +0800
+// Date: Thu May 02 00:28:10 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "render/filerender.hh"
@@ -78,6 +78,11 @@ void gallery(const char* f1, const char* f2) {
 void test_memory(const char* fname) {
 	shared_ptr<Img> test(new Img(fname));
 	get_feature(test);
+	get_feature(test);
+	get_feature(test);
+	get_feature(test);
+	int a;
+	cin >> a;
 	return;
 }
 
@@ -85,7 +90,8 @@ void test_transform(const char* f1, const char* f2) {
 	imgptr ptr1(new Img(f1));
 	imgptr ptr2(new Img(f2));
 
-	Panorama p({ptr1, ptr2}, PANO);
+	vector<imgptr> imgs = {ptr1, ptr2};
+	Panorama p(imgs, PANO);
 	shared_ptr<Img> res = p.get();
 
 	RenderBase* r = new FileRender(res, "out.png");
@@ -110,6 +116,7 @@ void final(int argc, char* argv[]) {
 
 int main(int argc, char* argv[]) {
 	srand(time(NULL));
+	// test_memory(argv[1]);
 	// test_feature(argv[1]);
 	// test_transform(argv[1], argv[2]);
 	final(argc, argv);

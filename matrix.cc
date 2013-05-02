@@ -1,5 +1,5 @@
 // File: matrix.cc
-// Date: Tue Apr 30 10:20:59 2013 +0800
+// Date: Thu May 02 11:26:57 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 /*
@@ -165,7 +165,7 @@ bool Matrix::solve_overdetermined(Matrix & x, const Matrix & b) const {
 	Matrix inverse(mtm.w, mtm.h);
 	if (!mtm.inverse(inverse))		// TODO judge determinant threshold 0.001
 		return false;
-	x = move(inverse.prod(mt).prod(b));
+	x = inverse.prod(mt).prod(b);
 	return true;
 }
 

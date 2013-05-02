@@ -1,5 +1,5 @@
 // File: transformer.cc
-// Date: Wed May 01 23:08:48 2013 +0800
+// Date: Thu May 02 11:26:12 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "transformer.hh"
@@ -50,10 +50,10 @@ Matrix TransFormer::get_transform() {		// second -> first
 
 Matrix TransFormer::cal_transform(const vector<int>& matches) const {
 	if (USE_HOMO)
-		return move(cal_homo_transform(matches));
+		return cal_homo_transform(matches);
 	else
-		return move(cal_affine_transform(matches));
-	// return move(cal_rotate_homo_transform(matches));
+		return cal_affine_transform(matches);
+	// return cal_rotate_homo_transform(matches);
 }
 
 Matrix TransFormer::cal_affine_transform(const vector<int>& matches) const {

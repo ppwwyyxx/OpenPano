@@ -1,10 +1,11 @@
 // File: matcher.hh
-// Date: Wed May 01 23:05:10 2013 +0800
+// Date: Wed May 01 23:18:37 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
 #include <vector>
 #include <utility>
+#include <memory>
 #include "feature.hh"
 
 class MatchData {
@@ -16,11 +17,18 @@ class MatchData {
 			data(r.data) {}
 
 		MatchData(MatchData&& r):
-			data(move(r.data)) {}
+			data(std::move(r.data)) {}
 
 		void add(const Coor&);
 
 		int size() const { return data.size(); }
+
+		MatchData reverse() const {
+			MatchData ret(*this);
+			for (auto &i : ret.data)
+				i = Coor(i.y, i.x);
+			return std::move(ret);
+		}
 };
 
 class Matcher {

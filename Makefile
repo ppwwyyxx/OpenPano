@@ -1,15 +1,14 @@
 # $File: Makefile
-# $Date: Wed May 01 13:46:32 2013 +0800
+# $Date: Thu May 02 10:24:20 2013 +0800
 
 OBJ_DIR = obj
 TARGET = main
 
 INCLUDE_DIR = -Iinclude
 DEFINES = -DDEBUG
-DEFINES += -DNDEBUG
 
-OPTFLAGS = -O3 -g -Wall -Wextra -Wcpp -O
-#OPTFLAGS = -O3
+#OPTFLAGS = -O3 -g -Wall -Wextra -Wcpp -O
+OPTFLAGS = -O3
 
 LIBS = opencv
 INCLUDE_DIR += $(shell pkg-config --cflags $(LIBS)) -fopenmp
