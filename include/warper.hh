@@ -1,8 +1,9 @@
 // File: warper.hh
-// Date: Wed May 01 23:38:47 2013 +0800
+// Date: Fri May 03 03:37:54 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
+#include "config.hh"
 #include "image.hh"
 #include "feature.hh"
 #include "cylinder.hh"
@@ -16,7 +17,7 @@ class Warper {
 		void warp(imgptr& img, std::vector<Feature>& ft) const {
 			int r = max(img->w, img->h) / 2;
 			Vec cen(img->w / 2, img->h / 2 * h_factor, r * 2);
-			CylProject cyl(r, cen, r);
+			CylProject cyl(r, cen, r * OUTPUT_SIZE_FACTOR);
 			img = cyl.project(img, ft);
 		}
 };

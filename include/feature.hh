@@ -1,9 +1,10 @@
 // File: feature.hh
-// Date: Wed May 01 10:23:29 2013 +0800
+// Date: Fri May 03 03:36:57 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
 
+#include "config.hh"
 #include "geometry.hh"
 #include <cstring>
 

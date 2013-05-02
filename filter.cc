@@ -1,7 +1,8 @@
 // File: filter.cc
-// Date: Wed May 01 22:24:48 2013 +0800
+// Date: Fri May 03 03:37:32 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
+#include "config.hh"
 #include "filter.hh"
 #include "utils.hh"
 #include "render/MImageRender.hh"

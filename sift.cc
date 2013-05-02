@@ -1,7 +1,8 @@
 // File: sift.cc
-// Date: Thu May 02 11:03:48 2013 +0800
+// Date: Fri May 03 03:36:30 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
+#include "config.hh"
 #include "sift.hh"
 #include "utils.hh"
 #include "filter.hh"

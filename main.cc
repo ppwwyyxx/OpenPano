@@ -1,8 +1,9 @@
 // File: main.cc
-// Date: Thu May 02 00:28:10 2013 +0800
+// Date: Fri May 03 03:40:41 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "render/filerender.hh"
+#include "config.hh"
 #include "planedrawer.hh"
 #include "keypoint.hh"
 #include "matcher.hh"
@@ -16,8 +17,6 @@ using namespace std;
 using namespace Magick;
 
 bool TEMPDEBUG = false;
-bool PANO = true;
-bool CIRCLE = false;
 
 #define LABEL_LEN 7
 
@@ -114,8 +113,41 @@ void final(int argc, char* argv[]) {
 	delete r;
 }
 
+void init_config() {
+	ConfigParser Config("config.cfg");
+	PANO = Config.get("PANO");
+	TRANS = Config.get("TRANS");
+
+	NUM_OCTAVE = Config.get("NUM_OCTAVE");
+	NUM_SCALE = Config.get("NUM_SCALE");
+	SCALE_FACTOR = Config.get("SCALE_FACTOR");
+	GAUSS_SIGMA = Config.get("GAUSS_SIGMA");
+	GAUSS_WINDOW_FACTOR = Config.get("GAUSS_WINDOW_FACTOR");
+	JUDGE_EXTREMA_DIFF_THRES = Config.get("JUDGE_EXTREMA_DIFF_THRES");
+	CONTRAST_THRES = Config.get("CONTRAST_THRES");
+	PRE_COLOR_THRES = Config.get("PRE_COLOR_THRES");
+	EDGE_RATIO = Config.get("EDGE_RATIO");
+	CALC_OFFSET_DEPTH = Config.get("CALC_OFFSET_DEPTH");
+	OFFSET_THRES = Config.get("OFFSET_THRES");
+	ORI_WINDOW_FACTOR = Config.get("ORI_WINDOW_FACTOR");
+	ORI_RADIUS = Config.get("ORI_RADIUS");
+	ORT_HIST_SMOOTH_COUNT = Config.get("ORT_HIST_SMOOTH_COUNT");
+	ORT_HIST_PEAK_RATIO = Config.get("ORT_HIST_PEAK_RATIO");
+	DESC_HIST_REAL_WIDTH = Config.get("DESC_HIST_REAL_WIDTH");
+	DESC_NORM_THRESH = Config.get("DESC_NORM_THRESH");
+	DESC_INT_FACTOR = Config.get("DESC_INT_FACTOR");
+	MATCH_REJECT_NEXT_RATIO = Config.get("MATCH_REJECT_NEXT_RATIO");
+	MATCH_MIN_SIZE = Config.get("MATCH_MIN_SIZE");
+	CONNECTED_THRES = Config.get("CONNECTED_THRES");
+	RANSAC_ITERATIONS = Config.get("RANSAC_ITERATIONS");
+	RANSAC_INLIER_THRES = Config.get("RANSAC_INLIER_THRES");
+	SLOPE_PLAIN = Config.get("SLOPE_PLAIN");
+	OUTPUT_SIZE_FACTOR = Config.get("OUTPUT_SIZE_FACTOR");
+}
+
 int main(int argc, char* argv[]) {
 	srand(time(NULL));
+	init_config();
 	// test_memory(argv[1]);
 	// test_feature(argv[1]);
 	// test_transform(argv[1], argv[2]);
