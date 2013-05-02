@@ -1,5 +1,5 @@
 // File: panorama.cc
-// Date: Thu May 02 11:24:32 2013 +0800
+// Date: Thu May 02 11:47:10 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include <fstream>
@@ -56,16 +56,17 @@ imgptr Panorama::get_trans() {
 	imgptr ret(new Img(size.x, size.y));
 	ret->fill(Color::BLACK);
 
-	HWTimer timer;
 	// blending
+	HWTimer timer;
 #pragma omp parallel for schedule(dynamic)
 	REP(i, ret->h)
 		REP(j, ret->w) {
 		Vec2D final = (Vec2D(j, i) - offset);
 		vector<pair<Color, real_t>> blender;
 		REP(k, n) {
-			if (!between(final.y, corners[k].second.y, corners[k].first.y) ||
-					!between(final.x, corners[k].second.x, corners[k].first.x))
+			pair<Vec2D, Vec2D>& nowcorner = corners[k];
+			if (!between(final.y, nowcorner.second.y, nowcorner.first.y) ||
+					!between(final.x, nowcorner.second.x, nowcorner.first.x))
 				continue;
 			Vec2D old = TransFormer::cal_project(mat[k], final);
 			if (between(old.x, 0, imgs[k]->w) && between(old.y, 0, imgs[k]->h)) {
@@ -115,9 +116,7 @@ void Panorama::straighten_simple(vector<Matrix>& mat, const vector<imgptr>& imgs
 	S.get(1, 0) = dydx;
 	Matrix Sinv(3, 3);
 	S.inverse(Sinv);
-	P(S);
-	REP(i, n)
-		mat[i] = Sinv.prod(mat[i]);
+	REP(i, n) mat[i] = Sinv.prod(mat[i]);
 }
 
 vector<pair<Vec2D, Vec2D>> Panorama::cal_size(const vector<Matrix>& mat, const vector<imgptr>& imgs) {
@@ -127,9 +126,8 @@ vector<pair<Vec2D, Vec2D>> Panorama::cal_size(const vector<Matrix>& mat, const v
 	REPL(i, 0, n) {
 		Vec2D min(std::numeric_limits<int>::max(), std::numeric_limits<int>::max()),
 			  max = min * (-1);
-	    Vec2D corner[4] = {
-	        Vec2D(0, 0), Vec2D(imgs[i]->w, 0),
-	        Vec2D(0, imgs[i]->h), Vec2D(imgs[i]->w, imgs[i]->h)};
+	    Vec2D corner[4] = { Vec2D(0, 0), Vec2D(imgs[i]->w, 0),
+					        Vec2D(0, imgs[i]->h), Vec2D(imgs[i]->w, imgs[i]->h)};
 	    for (auto &v : corner) {
 	        Vec2D newcorner = TransFormer::cal_project(mat[i], v);
 	        min.update_min(Vec2D(floor(newcorner.x), floor(newcorner.y)));

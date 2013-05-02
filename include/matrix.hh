@@ -1,5 +1,5 @@
 // File: matrix.hh
-// Date: Wed May 01 21:23:49 2013 +0800
+// Date: Thu May 02 11:50:06 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
@@ -52,10 +52,7 @@ class Matrix {
 			w = r.w, h = r.h;
 			r.val = nullptr;
 		}
-		/*
-		 *Matrix(Matrix && r):val(nullptr) { *this = std::move(r); }
-		 */
-		// something bad
+		// something ugly
 
 		real_t & get(int i, int j)
 		{ return val[i][j]; }

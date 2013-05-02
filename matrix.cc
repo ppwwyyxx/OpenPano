@@ -1,19 +1,11 @@
 // File: matrix.cc
-// Date: Thu May 02 11:26:57 2013 +0800
+// Date: Thu May 02 11:39:28 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
-/*
- *#include <boost/numeric/ublas/lu.hpp>
- *#include <boost/numeric/ublas/matrix.hpp>
- */
 #include <boost/numeric/mtl/mtl.hpp>
 #include "matrix.hh"
 #include "geometry.hh"
 
-/*
- *using namespace boost::numeric::ublas;
- *namespace ublas = boost::numeric::ublas;
- */
 typedef mtl::matrix::dense2D<real_t> mtlM;
 using namespace std;
 
@@ -134,27 +126,10 @@ bool Matrix::inverse(Matrix &ret) const {
 	} catch (...) {
 		return false;
 	}
-/*
- *    matrix<real_t> input(w, h);
- *    REP(i, h) REP(j, w)
- *        input(i, j) = get(i, j);
- *
- *    matrix<real_t> inverse(w, h);
- *    // create a permutation matrix for the LU-factorization
- *    permutation_matrix<size_t> pm(input.size1());
- *    // perform LU-factorization
- *    int res = lu_factorize(input, pm);
- *    if (res != 0) return false;
- *    // create identity matrix of "inverse"
- *    inverse.assign(identity_matrix<real_t>(input.size1()));
- *    // backsubstitute to get the inverse
- *    lu_substitute(input, pm, inverse);
- */
 
 	REP(i, h) REP(j, w)
 		ret.get(i, j) = inverse(i, j);
 
-	// cout << prod(ret) << endl;
 	return true;
 }
 
@@ -190,9 +165,6 @@ bool Matrix::SVD(Matrix& u, Matrix& s, Matrix& v) const {
 	REP(i, w) REP(j, w)
 		v.get(i, j) = r(i, j);
 
-	/*
-	 *cout << u.prod(s.prod(v.transpose())) << endl;
-	 */
 	return true;
 }
 
