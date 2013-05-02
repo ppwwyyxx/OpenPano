@@ -1,0 +1,82 @@
+% $File: report.tex
+% $Date: Fri May 03 01:30:38 2013 +0800
+% $Author: wyx <ppwwyyxxc@gmail.com>
+
+\documentclass[11pt,a4paper]{article}
+
+\usepackage{fontspec,amsmath,amssymb,zhspacing,verbatim,minted,listings,zhmath}
+\usepackage{titlesec, titletoc}
+\usepackage{enumerate}
+\usepackage[hyperfootnotes=false,colorlinks,linkcolor=blue,anchorcolor=blue,citecolor=blue]{hyperref}
+\usepackage[sorting=none]{biblatex}
+%\usepackage[dvips]{graphicx}
+\usepackage{subfigure}
+\usepackage{indentfirst}
+\usepackage{float}			% don't automatically change location of figure [H]
+\usepackage{chngpage}		% use \changetext to change page size
+\usepackage{caption}\captionsetup{hypcap=true}  % ref to jump to object instead of caption
+\newfontfamily\zhfont[BoldFont=SimHei,ItalicFont=KaiTi_GB2312]{SimSun}
+\lstset{keywordstyle=\color{blue!70}, commentstyle=\color{red!50!green!50!blue!50},frame=shadowbox,rulesepcolor=\color{red!20!green!20!blue!20},
+basicstyle=\footnotesize\ttfamily}
+\zhspacing
+\setlength{\parindent}{2em}
+
+\usepackage{fancyhdr}
+\changetext{}{2.2cm}{-1.1cm}{-1.1cm}{}
+\pagestyle{fancy}
+\setlength{\headheight}{15.2pt}
+\lhead[]{}\rhead[]{}
+\fancyhead[C]{\emph{Image Stitching}}
+
+
+%use cell in tabular
+\newcommand{\tabincell}[2]{\begin{tabular}{@{}#1@{}}#2\end{tabular}}
+
+%thick shline
+\newlength\savewidth
+\newcommand\shline{\noalign{\global\savewidth\arrayrulewidth\global\arrayrulewidth 1pt}
+                   \hline
+                   \noalign{\global\arrayrulewidth\savewidth}}
+
+
+%\renewcommand{\abstractname}{摘要}
+%\renewcommand{\contentsname}{目录}
+%\renewcommand{\tablename}{表}
+%\renewcommand{\figurename}{图}
+\defbibheading{bibliography}{\section{References}}
+\bibliography{refs.bib}
+\newcommand{\figref}[1]{\hyperref[fig:#1]{Fig\ref*{fig:#1}}}
+\newcommand{\secref}[1]{\hyperref[sec:#1]{Sec \ref*{sec:#1}}}
+\newcommand{\tabref}[1]{\hyperref[tab:#1]{Table \ref*{tab:#1}}}
+
+% math function
+\let\Oldsum\sum
+\renewcommand{\sum}{\displaystyle\Oldsum}
+\let\Oldprod\prod
+\renewcommand{\prod}{\displaystyle\Oldprod}
+
+
+\input{mint-defs.tex}
+
+%\title{第一次仿真作业}
+%\author{吴育昕\\(清华大学计算机系~北京~100084~ppwwyyxxc@gmail.com)}
+%\date{January, 2012}
+
+\begin{document}
+%\fontsize{10pt}{\baselineskip}
+%\selectfont
+%\maketitle
+
+%\begin{abstract}
+
+	%{\bf 关键词}
+%\end{abstract}
+
+\input{title}
+%\titleformat*{\section}{\centering\Large\bf}
+\input{1}
+\input{algo}
+\printbibliography
+
+\end{document}
+

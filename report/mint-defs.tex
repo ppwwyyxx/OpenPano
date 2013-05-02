@@ -1,0 +1,28 @@
+% $File: mint-defs.tex
+% $Date: Fri Jan 06 14:25:30 2012 +0800
+% $Author: wyx <ppwwyyxxc@gmail.com>
+
+
+% \inputmintedConfigured[additional minted options]{lang}{file path}{
+\newcommand{\inputmintedConfigured}[3][]{\inputminted[fontsize=\footnotesize,
+	label=#3,linenos,frame=lines,framesep=0.8em,tabsize=4,#1]{#2}{#3}}
+
+% \phpsrc[additional minted options]{file path}: show highlighted php source
+\newcommand{\phpsrc}[2][]{\inputmintedConfigured[#1]{php}{#2}}
+% \phpsrcpart[additional minted options]{file path}{first line}{last line}: show part of highlighted php source
+\newcommand{\phpsrcpart}[4][]{\phpsrc[firstline=#3,firstnumber=#3,lastline=#4,#1]{#2}}
+% \phpsrceg{example id}
+\newcommand{\phpeg}[1]{\inputminted[startinline,
+	firstline=2,lastline=2]{php}{res/php-src-eg/#1.php}}
+
+\newcommand{\txtsrc}[2][]{\inputmintedConfigured[#1]{text}{#2}}
+\newcommand{\txtsrcpart}[4][]{\txtsrc[firstline=#3,firstnumber=#3,lastline=#4,#1]{#2}}
+
+\newcommand{\pysrc}[2][]{\inputmintedConfigured[#1]{py}{#2}}
+\newcommand{\pysrcpart}[4][]{\pysrc[firstline=#3,firstnumber=#3,lastline=#4,#1]{#2}}
+
+\newcommand{\confsrc}[2][]{\inputmintedConfigured[#1]{squidconf}{#2}}
+\newcommand{\confsrcpart}[4][]{\confsrc[firstline=#3,firstnumber=#3,lastline=#4,#1]{#2}}
+
+\newcommand{\cppsrc}[2][]{\inputmintedConfigured[#1]{cpp}{#2}}
+\newcommand{\cppsrcpart}[4][]{\cppsrc[firstline=#3,firstnumber=#3,lastline=#4,#1]{#2}}

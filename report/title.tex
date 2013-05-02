@@ -1,0 +1,68 @@
+% File: title.tex
+% Date: Thu May 02 13:09:56 2013 +0800
+% Author: Yuxin Wu <ppwwyyxxc@gmail.com>
+
+\newcommand{\HUGE}{\fontsize{29pt}{29pt}\selectfont}
+\renewcommand{\today}{\number\year 年 \number\month 月 \number\day 日}
+\begin{titlepage}
+
+% 首行的位置往上调整。但vspace前面需要有东西才会起效。
+
+\phantom{Start!}
+
+\vspace{-1.7cm}
+
+\begin{flushleft}
+
+\emph{\Large 清华大学计算机系}\\[0.2cm]
+
+\emph{\Large 数字图像处理}\\[5.2cm]
+
+% Title
+
+\hspace{3cm}{ \HUGE \bfseries 图像拼接}\\[0.4cm]
+
+
+\hspace{3cm} {\huge \bfseries 实验报告}
+
+\end{flushleft}
+
+
+
+
+
+\vfill
+
+
+
+\begin{flushright}
+
+{
+
+%\setCJKmainfont{Adobe Kaiti Std}
+
+% \pillar：使用一种统一的方法提高行高
+
+\newcommand{\pillar}{ {\Huge \phantom{A}} }
+
+\large
+
+\begin{tabular}{lc}
+
+\pillar 姓名 & 吴育昕\\\cline{2-2}
+
+\pillar 学号 & 2011011271 \\\cline{2-2}
+
+\pillar 班级 & 计14 \\\cline{2-2}
+
+\pillar 邮箱 &ppwwyyxxc@gmail.com \\\cline{2-2}
+
+\pillar 时间 &2013年5月 \\\cline{2-2}
+
+\end{tabular}
+
+}
+
+\end{flushright}
+
+\end{titlepage}

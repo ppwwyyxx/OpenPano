@@ -1,0 +1,86 @@
+% File: algo.tex
+% Date: Fri May 03 02:06:46 2013 +0800
+% Author: Yuxin Wu <ppwwyyxxc@gmail.com>
+
+\section{Algorithms}
+\subsection{Feature Detection}
+Lowe's SIFT algorithm is implemented. See \verb|sift.cc, keypoint.cc|.
+
+The algorithm follows the following procedure:
+\begin{enumerate}
+  \item Build a Scale-Space, which consists of $ S \times O$ grey images.
+    The original image is resized in $ O$ different sizes (octaves), and each is then Gaussian-Blured
+    by $ S$ different $ \sigma$s.
+    \begin{figure}[H]
+      \centering
+      \includegraphics[scale=0.3]{res/dog.png}
+      \caption{Scale Space and DOG Space \label{fig:dog}}
+    \end{figure}
+
+  \item Build a Difference-of-Gaussian Space.
+    In each octave, calculate the differences of every two adjacent blured images.
+    Therefore, DOG Space consists of $ (S - 1) \times O$ grey images.
+    As shown in \figref{dog}
+
+  \item Detect extrema. In DOG Space, detect all the minimum and maximum
+    by comparing a pixel with its 26 neighbors in three directions: $ x, y, \sigma$.
+    See \figref{extrema} and \figref{extrema2}
+    \begin{figure}[H]
+      \begin{minipage}[b]{0.46\linewidth}
+        \centering
+        \includegraphics[scale=0.4]{res/extrema.png}
+        \caption{Extrema Detection\label{fig:extrema}}
+      \end{minipage}
+      \hspace{1em}
+      \begin{minipage}[b]{0.46\linewidth}
+        \centering
+        \includegraphics[scale=0.4]{res/extrema_lenna.png}
+        \caption{Extrema Example\label{fig:extrema2}}
+      \end{minipage}
+    \end{figure}
+
+  \item Keypoint Localization.
+    Use linear interpolation to calculate offset,
+    moving the extrema to a more accurate location.
+    Then reject the points with low contrast or on the edge to get true features.
+    See \figref{feature1}, \figref{feature2}, \figref{feature3}.
+    \begin{figure}[H]
+      \begin{minipage}[b]{0.46\linewidth}
+        \centering
+        \includegraphics[scale=0.4]{res/feature_after_offset.png}
+        \caption{After Localization \label{fig:feature1}}
+      \end{minipage}
+      \hspace{1em}
+      \begin{minipage}[b]{0.46\linewidth}
+        \centering
+        \includegraphics[scale=0.4]{res/feature_after_contrast.png}
+        \caption{After Rejecting Low Contrast\label{fig:feature2}}
+      \end{minipage}
+
+      \begin{minipage}[b]{0.46\linewidth}
+        \centering
+        \includegraphics[scale=0.4]{res/feature_point.png}
+        \caption{After Eliminating Edge Point\label{fig:feature3}}
+      \end{minipage}
+      \hspace{1em}
+      \begin{minipage}[b]{0.46\linewidth}
+        \centering
+        \includegraphics[scale=0.4]{res/feature_dir.png}
+        \caption{After Assigning Orientation\label{fig:feature4}}
+      \end{minipage}
+    \end{figure}
+
+  \item Orientation Assignment.
+    We have to first calculated the gardient and orientation of every point in the Scale Space.
+    For each keypoint, a histogram of the orientations of its nearby points is built,
+    weighted by a gaussian kernel and the magnitude of gradient.
+    The peak in the histogram is chosen to be the orientation of the keypoint, as shown by the arrow in \figref{feature4}.
+
+   \item Descriptor Representation.
+     Lowe suggest choosing 16 points around the keypoint and building 16 orientation histograms,
+     each with 8 different possible values.
+     Since all the orientation is relative to the keypoint's orientation,
+     this feature is roatation-invariant. The final SIFT feature is a 128-dimensional array.
+
+\end{enumerate}
+
