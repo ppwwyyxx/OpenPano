@@ -1,5 +1,5 @@
 % File: algo.tex
-% Date: Fri May 03 17:38:20 2013 +0800
+% Date: Fri May 03 18:27:32 2013 +0800
 % Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 \section{Algorithms}
@@ -106,6 +106,34 @@ If a panorama input (pure rotation) is given, using homography on a planar leads
   \caption{Vertical Distortion with Homography on a Planar\label{fig:distort}}
 \end{figure}
 
-Therefore, if the option \verb|TRANS = 0|, all the input images will be projected to a cylinder before stitching. See \figref{cyl}
+Therefore, if the option \verb|TRANS = 0|,
+every input image as well as the features will be projected to a cylinder before stitching by the following formula:
+
+\[  \begin{cases}
+  x' = k\arccos{\dfrac{x}{\sqrt{x^2 + z^2}}}\\
+  y' = k\dfrac{y}{\sqrt{x^2 + z^2}}
+\end{cases}\]
+where $ z$ is chosen to be $ \max\{width, height\}$.  The result is in shown in \figref{cyl}
+\begin{figure}[H]
+  \centering
+  \begin{minipage}[b]{0.24\linewidth}
+    \includegraphics[scale=0.3]{res/1.png}
+  \end{minipage}
+  \begin{minipage}[b]{0.24\linewidth}
+    \includegraphics[scale=0.3]{res/2.png}
+  \end{minipage}
+  \begin{minipage}[b]{0.24\linewidth}
+    \includegraphics[scale=0.3]{res/3.png}
+  \end{minipage}
+  \begin{minipage}[b]{0.24\linewidth}
+    \includegraphics[scale=0.3]{res/4.png}
+  \end{minipage}
+
+    \includegraphics[width=1.0\textwidth]{res/warped_stitch.png}
+  \caption{Stitching Result After Projection\label{fig:cyl}}
+\end{figure}
+
 \end{enumerate}
+
+\subsection{Transformation}
 

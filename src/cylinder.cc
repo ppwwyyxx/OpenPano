@@ -1,5 +1,5 @@
 // File: cylinder.cc
-// Date: Fri May 03 17:30:38 2013 +0800
+// Date: Fri May 03 18:31:59 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 
@@ -21,12 +21,9 @@ Vec2D Sphere::proj_r(const Vec2D& p) const {
 }
 
 Vec2D Cylinder::proj(const Vec& p) const {
-	real_t dy = p.y - center.y;
-	Vec2D xzpl(p.x - center.x, p.z - center.z);
-	real_t longx = xzpl.mod();
-	xzpl.normalize();
-	real_t theta = acos(xzpl.dot(Vec2D(-1, 0)));
-	return Vec2D(theta, dy / longx);
+	real_t longx = hypot(p.x - center.x, p.z - center.z);
+	real_t theta = acos((center.x - p.x) / longx);
+	return Vec2D(theta, (p.y - center.y) / longx);
 }
 
 Vec2D Cylinder::proj_r(const Vec2D& p) const {
