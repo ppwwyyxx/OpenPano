@@ -1,10 +1,11 @@
 // File: main.cc
-// Date: Fri May 03 17:21:37 2013 +0800
+// Date: Fri May 03 18:22:25 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "render/filerender.hh"
 #include "config.hh"
 #include "planedrawer.hh"
+#include "warper.hh"
 #include "keypoint.hh"
 #include "matcher.hh"
 #include "gallery.hh"
@@ -105,6 +106,16 @@ void test_memory(const char* fname) {
 	return;
 }
 
+void test_warp(int argc, char* argv[]) {
+	Warper warp(1);
+	REPL(i, 1, argc) {
+		shared_ptr<Img> test(new Img(argv[i]));
+		warp.warp(test);
+		RenderBase* r = new FileRender(test, (to_string(i) + ".png").c_str());
+		r->finish();
+	}
+}
+
 void test_transform(const char* f1, const char* f2) {
 	imgptr ptr1(new Img(f1));
 	imgptr ptr2(new Img(f2));
@@ -178,5 +189,6 @@ int main(int argc, char* argv[]) {
 	//gallery(argv[1], argv[2]);
 	// test_transform(argv[1], argv[2]);
 	// test_memory(argv[1]);
+	//test_warp(argc, argv);
 	final(argc, argv);
 }
