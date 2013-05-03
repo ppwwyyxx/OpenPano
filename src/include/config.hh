@@ -1,5 +1,5 @@
 // File: config.hh
-// Date: Fri May 03 03:46:42 2013 +0800
+// Date: Fri May 03 17:20:52 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
@@ -22,6 +22,7 @@ extern bool CIRCLE;
 extern bool TRANS;
 extern bool PANO;
 extern bool CROP;
+extern bool HOMO;
 
 extern int NUM_OCTAVE;
 extern int NUM_SCALE;

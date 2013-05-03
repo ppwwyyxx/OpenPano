@@ -1,5 +1,5 @@
 // File: image.cc
-// Date: Wed May 01 21:33:19 2013 +0800
+// Date: Fri May 03 17:27:59 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "image.hh"
@@ -74,10 +74,10 @@ const ::Color& Img::get_pixel(int r, int c) const {
 
 bool Img::is_black_edge(real_t y, real_t x) const {
 	if (!between(x, 0, w) || !between(y, 0, h)) return true;
-	if (get_pixel((int)floor(y), (int)floor(x)).get_max() < EPS) return true;
-	if (get_pixel((int)ceil(y), (int)floor(x)).get_max() < EPS) return true;
-	if (get_pixel((int)ceil(y), (int)ceil(x)).get_max() < EPS) return true;
-	if (get_pixel((int)floor(y), (int)ceil(x)).get_max() < EPS) return true;
+	if (get_pixel((int)floor(y), (int)floor(x)).get_min() > 1 - EPS) return true;
+	if (get_pixel((int)ceil(y), (int)floor(x)).get_min() > 1 - EPS) return true;
+	if (get_pixel((int)ceil(y), (int)ceil(x)).get_min() > 1 - EPS) return true;
+	if (get_pixel((int)floor(y), (int)ceil(x)).get_min() > 1 - EPS) return true;
 	return false;
 }
 

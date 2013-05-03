@@ -1,5 +1,5 @@
 % File: algo.tex
-% Date: Fri May 03 02:06:46 2013 +0800
+% Date: Fri May 03 17:27:04 2013 +0800
 % Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 \section{Algorithms}
@@ -71,7 +71,7 @@ The algorithm follows the following procedure:
     \end{figure}
 
   \item Orientation Assignment.
-    We have to first calculated the gardient and orientation of every point in the Scale Space.
+    We have to first calculated the gradient and orientation of every point in the Scale Space.
     For each keypoint, a histogram of the orientations of its nearby points is built,
     weighted by a gaussian kernel and the magnitude of gradient.
     The peak in the histogram is chosen to be the orientation of the keypoint, as shown by the arrow in \figref{feature4}.
@@ -82,5 +82,30 @@ The algorithm follows the following procedure:
      Since all the orientation is relative to the keypoint's orientation,
      this feature is roatation-invariant. The final SIFT feature is a 128-dimensional array.
 
+     \item Feature Matching.
+       The Euclidean distance of the 128-dimensional descriptor is the criteria for feature matching between two images.
+       A match is considered not convincing and therefore rejected
+       if the distances to its closest neighbor and second-closest neighbor are similar.
+       The result is shown in \figref{match}.
+\begin{figure}[H]
+  \centering
+  \includegraphics[scale=0.36]{res/match.png}
+  \caption{Matching Result\label{fig:match}}
+\end{figure}
+
+
+\subsection{Warping}
+As suggested by a number of literature, a homography transform is needed to match the keypoints.
+But a pure homography transform on a planar works
+only if the camera moved in pure translation or around a fixed center.
+
+If a panorama input (pure rotation) is given, using homography on a planar leads to vertical distortion, like \figref{distort}.
+\begin{figure}[H]
+  \centering
+  \includegraphics[scale=]{res/distort.png}
+  \caption{Vertical Distortion with Homography on a Planar\label{fig:distort}}
+\end{figure}
+
+If \verb|TRANS = 0|, all the input images will be
 \end{enumerate}
 
