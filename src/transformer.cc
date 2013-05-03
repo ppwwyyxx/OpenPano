@@ -1,5 +1,5 @@
 // File: transformer.cc
-// Date: Fri May 03 03:36:38 2013 +0800
+// Date: Fri May 03 17:21:26 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "config.hh"
@@ -8,7 +8,7 @@
 using namespace std;
 
 Matrix TransFormer::get_transform() {		// second -> first
-	int REQUIRED = (TRANS ? HOMO_FREEDOM / 2 : AFFINE_FREEDOM / 2);
+	int REQUIRED = (HOMO ? HOMO_FREEDOM / 2 : AFFINE_FREEDOM / 2);
 	int n_match = match.size();
 	if (n_match < REQUIRED) {
 		PP("only have matches: ", n_match);
@@ -50,7 +50,7 @@ Matrix TransFormer::get_transform() {		// second -> first
 }
 
 Matrix TransFormer::cal_transform(const vector<int>& matches) const {
-	if (TRANS)
+	if (HOMO)
 		return cal_homo_transform(matches);
 	else
 		return cal_affine_transform(matches);

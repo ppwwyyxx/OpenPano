@@ -1,5 +1,5 @@
 // File: cylinder.cc
-// Date: Wed May 01 14:30:45 2013 +0800
+// Date: Fri May 03 17:30:38 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 
@@ -51,7 +51,7 @@ imgptr CylProject::project(const imgptrc& img, vector<Feature>& ft) const {
 	real_t sizefactor_inv = 1.0 / sizefactor;
 
 	imgptr ret(new Img(size.x, size.y));
-	ret->fill(Color::BLACK);
+	ret->fill(Color::WHITE);
 #pragma omp parallel for schedule(dynamic)
 	REP(i, ret->h) REP(j, ret->w) {
 		Vec2D oricoor = cyl.proj_r((Vec2D(j, i) - offset) * sizefactor_inv);

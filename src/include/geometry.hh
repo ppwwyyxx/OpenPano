@@ -1,5 +1,5 @@
 // File: geometry.hh
-// Date: Fri May 03 04:53:11 2013 +0800
+// Date: Fri May 03 17:29:00 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
@@ -135,6 +135,9 @@ class Vector {
 
 		real_t get_max() const
 		{ return std::max(x, std::max(y, z)); }
+
+		real_t get_min() const
+		{ return std::min(x, std::min(y, z)); }
 
 		real_t get_abs_max()
 		{ return std::max(fabs(x), std::max(fabs(y), fabs(z))); }

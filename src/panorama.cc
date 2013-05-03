@@ -1,5 +1,5 @@
 // File: panorama.cc
-// Date: Fri May 03 04:56:54 2013 +0800
+// Date: Fri May 03 17:28:30 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include <fstream>
@@ -54,7 +54,7 @@ imgptr Panorama::get_trans() {
 		});
 
 	imgptr ret(new Img(size.x, size.y));
-	ret->fill(Color::BLACK);
+	ret->fill(Color::WHITE);
 
 	// blending
 	HWTimer timer;

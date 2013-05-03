@@ -1,5 +1,5 @@
 // File: matcher.cc
-// Date: Fri May 03 16:47:18 2013 +0800
+// Date: Fri May 03 17:02:09 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include <limits>
@@ -30,7 +30,7 @@ MatchData Matcher::match() const {
 				update_min(minn, dist);
 			}
 		}
-		if (min > sqr(MATCH_REJECT_NEXT_RATIO) * minn) //|| min > 200)
+		if (min > std::min(sqr(MATCH_REJECT_NEXT_RATIO) * minn, 40000.0))
 			continue;
 
 #pragma omp critical

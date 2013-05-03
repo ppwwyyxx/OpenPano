@@ -1,5 +1,5 @@
 // File: main.cc
-// Date: Fri May 03 15:47:39 2013 +0800
+// Date: Fri May 03 17:21:37 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "render/filerender.hh"
@@ -70,7 +70,7 @@ void gallery(const char* f1, const char* f2) {
 	Gallery ga(imagelist);
 
 	shared_ptr<Img> test(new Img(ga.get()));
-	RenderBase* r = new FileRender(test, "out.png");
+	RenderBase* r = new FileRender(test, "gallery.png");
 	PlaneDrawer pld(r);
 
 	vector<Feature> ans = get_feature(test);
@@ -141,6 +141,7 @@ void init_config() {
 	CROP = Config.get("CROP");
 	if (PANO && TRANS)
 		assert(false);
+	HOMO = TRANS;
 
 	NUM_OCTAVE = Config.get("NUM_OCTAVE");
 	NUM_SCALE = Config.get("NUM_SCALE");
@@ -173,10 +174,9 @@ int main(int argc, char* argv[]) {
 	srand(time(NULL));
 	init_config();
 	//test_extrema(argv[1]);
-	test_feature(argv[1]);
+	//test_feature(argv[1]);
+	//gallery(argv[1], argv[2]);
 	// test_transform(argv[1], argv[2]);
 	// test_memory(argv[1]);
-	/*
-	 *final(argc, argv);
-	 */
+	final(argc, argv);
 }
