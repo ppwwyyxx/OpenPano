@@ -1,5 +1,5 @@
 // File: filter.cc
-// Date: Fri May 03 03:37:32 2013 +0800
+// Date: Sat May 04 01:26:06 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "config.hh"
@@ -9,24 +9,21 @@
 using namespace Magick;
 using namespace std;
 
-shared_ptr<GreyImg> Filter::GaussianBlur(const shared_ptr<GreyImg> img, real_t sigma) {
-	const int w = img->w, h = img->h;
-	shared_ptr<GreyImg> ret(new GreyImg(w, h));
-
+GaussCache::GaussCache(real_t sigma) {
 	/*
 	 *const int kw = round(GAUSS_WINDOW_FACTOR * sigma) + 1;
 	 */
-	const int kw = ceil(0.3 * (sigma / 2 - 1) + 0.8) * GAUSS_WINDOW_FACTOR;
+	kw = ceil(0.3 * (sigma / 2 - 1) + 0.8) * GAUSS_WINDOW_FACTOR;
 	/*
 	 *const int kw = ((sigma - 0.8) / 0.3 + 1) * 2;
 	 */
 	// TODO decide window size ?
 
 	const int center = kw / 2;
-	const real_t normalization_factor = 2 * M_PI * sqr(sigma);
-	real_t kernel_tot_all = 0;
+	normalization_factor = 2 * M_PI * sqr(sigma);
+	kernel_tot = 0;
 
-	real_t ** kernel = new real_t*[kw];
+	kernel = new real_t*[kw];
 	REP(i, kw) {
 		kernel[i] = new real_t[kw];
 		REP(j, kw) {
@@ -34,16 +31,36 @@ shared_ptr<GreyImg> Filter::GaussianBlur(const shared_ptr<GreyImg> img, real_t s
 				   y = j - center;
 			kernel[i][j] = exp(-(sqr(x) + sqr(y)) / (2 * sqr(sigma)));
 			kernel[i][j] /= normalization_factor;
-			kernel_tot_all += kernel[i][j];
+			kernel_tot += kernel[i][j];
 		}
 	}
+
+}
+
+Filter::Filter(int nscale, real_t gauss_sigma, real_t scale_factor) {
+	REPL(k, 1, nscale) {
+		gcache.push_back(GaussCache(gauss_sigma));
+		gauss_sigma *= scale_factor;
+	}
+}
+
+shared_ptr<GreyImg> Filter::GaussianBlur(const shared_ptr<GreyImg>& img,
+										const GaussCache& gauss) const {
+	const int w = img->w, h = img->h;
+	shared_ptr<GreyImg> ret(new GreyImg(w, h));
+
+	const int kw = gauss.kw;
+	const int center = kw / 2;
+	const real_t normalization_factor = gauss.normalization_factor;
+	real_t ** kernel = gauss.kernel;
+
 
 	REP(i, h) REP(j, w) {
 		int x_bound = min(kw, h + center - i),
 			y_bound = min(kw, w + center - j);
 		real_t kernel_tot = 0;
 		if (j >= center && x_bound == kw && i >= center && y_bound == kw)
-			kernel_tot = kernel_tot_all;
+			kernel_tot = gauss.kernel_tot;
 		else {
 			for (int x = max(center - i, 0); x < x_bound; x ++)
 				for (int y = max(center - j, 0); y < y_bound; y ++)
@@ -61,7 +78,6 @@ shared_ptr<GreyImg> Filter::GaussianBlur(const shared_ptr<GreyImg> img, real_t s
 			}
 		ret->set_pixel(i, j, newvalue);
 	}
-	free_2d<real_t>(kernel, kw);
 	return move(ret);
 }
 

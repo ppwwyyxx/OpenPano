@@ -1,5 +1,5 @@
 // File: image.cc
-// Date: Fri May 03 17:27:59 2013 +0800
+// Date: Sat May 04 00:40:29 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "image.hh"
@@ -94,7 +94,7 @@ void Img::crop() {
 	memset(height, 0, sizeof(height));
 	REP(line, h) {
 		REP(k, w)
-			height[k] = get_pixel(line, k).get_max() < SEPS ? 0 : height[k] + 1;
+			height[k] = get_pixel(line, k).get_max() > 1 - SEPS ? 0 : height[k] + 1;
 
 		REP(k, w) {
 			left[k] = k;
