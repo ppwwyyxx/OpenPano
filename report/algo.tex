@@ -1,5 +1,5 @@
 % File: algo.tex
-% Date: Fri May 03 17:27:04 2013 +0800
+% Date: Fri May 03 17:38:20 2013 +0800
 % Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 \section{Algorithms}
@@ -89,7 +89,7 @@ The algorithm follows the following procedure:
        The result is shown in \figref{match}.
 \begin{figure}[H]
   \centering
-  \includegraphics[scale=0.36]{res/match.png}
+  \includegraphics[width=1.0\textwidth]{res/match.png}
   \caption{Matching Result\label{fig:match}}
 \end{figure}
 
@@ -102,10 +102,10 @@ only if the camera moved in pure translation or around a fixed center.
 If a panorama input (pure rotation) is given, using homography on a planar leads to vertical distortion, like \figref{distort}.
 \begin{figure}[H]
   \centering
-  \includegraphics[scale=]{res/distort.png}
+  \includegraphics[width=1.0\textwidth]{res/distort.png}
   \caption{Vertical Distortion with Homography on a Planar\label{fig:distort}}
 \end{figure}
 
-If \verb|TRANS = 0|, all the input images will be
+Therefore, if the option \verb|TRANS = 0|, all the input images will be projected to a cylinder before stitching. See \figref{cyl}
 \end{enumerate}
 
