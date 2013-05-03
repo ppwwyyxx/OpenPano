@@ -1,5 +1,5 @@
 // File: matcher.hh
-// Date: Fri May 03 04:48:40 2013 +0800
+// Date: Fri May 03 15:45:31 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
@@ -34,7 +34,7 @@ class Matcher {
 	protected:
 		const std::vector<Feature> &feat1, &feat2;
 
-		real_t cal_dist(const Feature& x, const Feature& y) const;
+		int cal_dist(const Feature& x, const Feature& y) const; // return the squared value
 	public:
 		Matcher(const std::vector<Feature>& f1, const std::vector<Feature>& f2):
 			feat1(f1), feat2(f2) { }
