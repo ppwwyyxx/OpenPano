@@ -1,5 +1,5 @@
 // File: panorama.cc
-// Date: Fri May 03 18:01:21 2013 +0800
+// Date: Fri May 03 23:45:10 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include <fstream>
@@ -79,17 +79,16 @@ imgptr Panorama::get_trans() {
 		if (!ncolor) continue;
 		Color finalc;
 		real_t sumweight = 0;
+		for (auto &c : blender) {
+			finalc = finalc + c.first * c.second;
+			sumweight += c.second;
+		}
+		m_assert(fabs(sumweight) > EPS);
+		finalc = finalc * (1.0 / sumweight);
 		/*
-		 *for (auto &c : blender) {
-		 *    finalc = finalc + c.first * c.second;
-		 *    sumweight += c.second;
-		 *}
-		 *m_assert(fabs(sumweight) > EPS);
-		 *finalc = finalc * (1.0 / sumweight);
+		 *for (auto &c : blender) finalc = finalc + c.first; // noblend
+		 *finalc = finalc * (1.0 / blender.size());
 		 */
-		for (auto &c : blender)
-			finalc = finalc + c.first;
-		finalc = finalc * (1.0 / blender.size());
 		ret->set_pixel(i, j, finalc);
 	}
 	print_debug("blend time: %lf secs\n", timer.get_sec());

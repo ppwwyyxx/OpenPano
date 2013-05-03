@@ -1,5 +1,5 @@
 // File: matrix.hh
-// Date: Fri May 03 04:49:26 2013 +0800
+// Date: Sat May 04 01:32:05 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
@@ -34,8 +34,14 @@ class Matrix {
 		}
 
 		Matrix & operator = (const Matrix & m) {
-			Matrix tmp(m);
-			*this = std::move(tmp);
+			if (this != &m) {
+				w = m.w, h = m.h;
+				val = new real_t* [h];
+				REP(i, h) {
+					val[i] = new real_t[w]();
+					memcpy(val[i], m.val[i], w * sizeof(real_t));
+				}
+			}
 			return *this;
 		}
 
