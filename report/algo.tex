@@ -1,5 +1,5 @@
 % File: algo.tex
-% Date: Fri May 03 18:27:32 2013 +0800
+% Date: Sat May 04 00:43:34 2013 +0800
 % Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 \section{Algorithms}
@@ -76,64 +76,142 @@ The algorithm follows the following procedure:
     weighted by a gaussian kernel and the magnitude of gradient.
     The peak in the histogram is chosen to be the orientation of the keypoint, as shown by the arrow in \figref{feature4}.
 
-   \item Descriptor Representation.
-     Lowe suggest choosing 16 points around the keypoint and building 16 orientation histograms,
-     each with 8 different possible values.
-     Since all the orientation is relative to the keypoint's orientation,
-     this feature is roatation-invariant. The final SIFT feature is a 128-dimensional array.
+  \item Descriptor Representation.
+    Lowe suggest choosing 16 points around the keypoint and building 16 orientation histograms,
+    each with 8 different possible values.
+    Since all the orientation is relative to the keypoint's orientation,
+    this feature is roatation-invariant. The final SIFT feature is a 128-dimensional array.
 
-     \item Feature Matching.
-       The Euclidean distance of the 128-dimensional descriptor is the criteria for feature matching between two images.
-       A match is considered not convincing and therefore rejected
-       if the distances to its closest neighbor and second-closest neighbor are similar.
-       The result is shown in \figref{match}.
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=1.0\textwidth]{res/match.png}
-  \caption{Matching Result\label{fig:match}}
-\end{figure}
+  \item Feature Matching.
+    The Euclidean distance of the 128-dimensional descriptor is the criteria for feature matching between two images.
+    A match is considered not convincing and therefore rejected
+    if the distances to its closest neighbor and second-closest neighbor are similar.
+    The result is shown in \figref{match}.
+    \begin{figure}[H]
+      \centering
+      \includegraphics[width=\textwidth]{res/match.png}
+      \caption{Matching Result\label{fig:match}}
+    \end{figure}
 
 
-\subsection{Warping}
-As suggested by a number of literature, a homography transform is needed to match the keypoints.
-But a pure homography transform on a planar works
-only if the camera moved in pure translation or around a fixed center.
+    \subsection{Warping}
+    As suggested by a number of literature, a homography transform is needed to match the keypoints.
+    But a pure homography transform on a planar works
+    only if the camera moved in pure translation or around a fixed center.
 
-If a panorama input (pure rotation) is given, using homography on a planar leads to vertical distortion, like \figref{distort}.
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=1.0\textwidth]{res/distort.png}
-  \caption{Vertical Distortion with Homography on a Planar\label{fig:distort}}
-\end{figure}
+    If a panorama input (pure rotation) is given, using homography on a planar leads to vertical distortion, like \figref{distort}.
+    \begin{figure}[H]
+      \centering
+      \includegraphics[width=\textwidth]{res/distort.png}
+      \caption{Vertical Distortion with Homography on a Planar\label{fig:distort}}
+    \end{figure}
 
-Therefore, if the option \verb|TRANS = 0|,
-every input image as well as the features will be projected to a cylinder before stitching by the following formula:
+    Therefore, if the option \verb|TRANS = 0|,
+    every input image as well as the features will be projected to a cylinder by the following formula:
 
-\[  \begin{cases}
-  x' = k\arccos{\dfrac{x}{\sqrt{x^2 + z^2}}}\\
-  y' = k\dfrac{y}{\sqrt{x^2 + z^2}}
-\end{cases}\]
-where $ z$ is chosen to be $ \max\{width, height\}$.  The result is in shown in \figref{cyl}
-\begin{figure}[H]
-  \centering
-  \begin{minipage}[b]{0.24\linewidth}
-    \includegraphics[scale=0.3]{res/1.png}
-  \end{minipage}
-  \begin{minipage}[b]{0.24\linewidth}
-    \includegraphics[scale=0.3]{res/2.png}
-  \end{minipage}
-  \begin{minipage}[b]{0.24\linewidth}
-    \includegraphics[scale=0.3]{res/3.png}
-  \end{minipage}
-  \begin{minipage}[b]{0.24\linewidth}
-    \includegraphics[scale=0.3]{res/4.png}
-  \end{minipage}
+    \[  \begin{cases}
+        x' = k\arccos{\dfrac{x}{\sqrt{x^2 + z^2}}}\\
+        y' = k\dfrac{y}{\sqrt{x^2 + z^2}}
+      \end{cases}\]
+    where $ z$ is chosen to be $ \max\{width, height\}$.  The result is in shown in \figref{cyl}.
+    \begin{figure}[H]
+      \centering
+      \begin{minipage}[b]{0.24\linewidth}
+        \includegraphics[scale=0.3]{res/1.png}
+      \end{minipage}
+      \begin{minipage}[b]{0.24\linewidth}
+        \includegraphics[scale=0.3]{res/2.png}
+      \end{minipage}
+      \begin{minipage}[b]{0.24\linewidth}
+        \includegraphics[scale=0.3]{res/3.png}
+      \end{minipage}
+      \begin{minipage}[b]{0.24\linewidth}
+        \includegraphics[scale=0.3]{res/4.png}
+      \end{minipage}
 
-    \includegraphics[width=1.0\textwidth]{res/warped_stitch.png}
-  \caption{Stitching Result After Projection\label{fig:cyl}}
-\end{figure}
+      \includegraphics[width=\textwidth]{res/warped_stitch.png}
+      \caption{Stitching Result After Projection\label{fig:cyl}}
+    \end{figure}
 
 \end{enumerate}
 
 \subsection{Transformation}
+RANSAC (Random Sample Consensus) algorithm\cite{ransac} was used to calculate a transformation matrix.
+In every iteration, several matched pair is randomly chosen to calculate a best-fit transformation matrix and
+the number of pairs it fits within all the data is calculated.
+We choose the matrix which fits most pairs, and use those pairs to calculate the final result.
+
+I tried three kinds of transformation:
+\begin{enumerate}
+  \item Homography One: $H = \begin{bmatrix} a_{11} &a_{12} & a_{13}\\ a_{21} & a_{22} & a_{23}\\ a_{31} & a_{32} & 1\end{bmatrix}$
+
+  \item Homography Two:
+    $H = \begin{bmatrix} a_{11} &a_{12} & a_{13}\\ a_{21} & a_{22} & a_{23}\\ a_{31} & a_{32} & a_{33}\end{bmatrix} $
+    and $\begin{Vmatrix} H \end{Vmatrix} = 1$
+
+  \item Affine:
+    $A = \begin{bmatrix} a_{11} &a_{12} & a_{13}\\ a_{21} & a_{22} & a_{23}\\ 0 & 0 & 1\end{bmatrix}$
+\end{enumerate}
+
+Given a set of matches, affine and the first kind of homography transformation can be solved
+by least-squares fitting an over-determined linear system.
+The second kind of homography transformation can be solved by singular value decomposition.
+The two homography lead to similar results, which are used when \verb|TRANS = 1|.
+For warped images, all the transformation work well.
+In this project, affine transformation is used for generating panoramas.
+
+\subsection{Straightening}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{res/bend.png}
+  \caption{Bended Panorama\label{fig:bend}}
+\end{figure}
+
+Since the tilt of camera is unknown, the output panorama might be bended as shown in \figref{bend}.
+Instead of using the first image as the pivot, and calculating all the other transformation relative to it,
+using the image in the middle can help reduce the tilt effect.
+Moreover, when the option \verb|PANO = 1| is set, an automatic straightening process will be executed.
+First, a binary search on the tilt factor is performed, aiming to make the result ``longer''.
+Second, the program will try to catenate the first image after the last one,
+and then do a global rotation to ensure that the head and tail are aligned horizontally.
+After this two processes, the result is like \figref{unbend}.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{res/unbend.png}
+  \caption{Straightened Panorama\label{fig:unbend}}
+\end{figure}
+
+\subsection{Blending}
+The size of the final result is determined immediately after calculating all the transformations.
+And the pixel value in the result image is calculated by an inverse transformation and interpolation with nearby pixels,
+in order to reduce alias effect.
+
+As for the overlap effect, the distance of the pixel to each image center is used to calculate a weighted sum of the pixel value.
+The result is almost seamless, as shown in \figref{blend}.
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{res/blend.png}
+  \caption{Blended Result\label{fig:blend}}
+\end{figure}
+
+\subsection{Cropping}
+When the option \verb|CROP = 1| is set,
+the program simply manage to find a rectangular with largest area within the original irregular result.
+
+A classic $ O(n \times m)$ algorithm is used, where $ n, m$ is the height and width of the original result.
+
+For each row $i$, update
+\begin{flalign*}
+ h[j] &= \begin{cases}0,& if\ i = 0\ or\ h[i] = 0 \\ h[i - 1] + 1,& else\end{cases}\\
+ r[j] &= \max\{ k \in [0, m) \cap \mathbf{N}: A[i][t] \ge A[i][j], \forall j \le t \le k\} \\
+l[j]  &= \min\{ k \in [0, m) \cap \mathbf{N} : A[i][t] \ge A[i][j], \forall k \le t \le j\}\\
+\end{flalign*} in amortized $ O(1)$ time, and the corresponding area is $ (r[j] - l[j] + 1) \times h[j]$.
+
+The cropped final result is shown in \figref{cropped}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{res/cropped.png}
+  \caption{Cropped Result\label{fig:cropped}}
+\end{figure}
 
