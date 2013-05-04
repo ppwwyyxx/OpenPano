@@ -1,5 +1,5 @@
 // File: image.cc
-// Date: Sat May 04 12:57:15 2013 +0800
+// Date: Sun May 05 00:31:46 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "image.hh"

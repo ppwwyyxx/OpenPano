@@ -1,5 +1,5 @@
 // File: render.hh
-// Date: Sat May 04 12:49:19 2013 +0800
+// Date: Sun May 05 00:14:52 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 
@@ -31,7 +31,9 @@ class RenderBase {
 		void write(int x, int y, const Color &c) {
 			if (x < 0 || x >= geo.w || y < 0 || y >= geo.h)
 				return;
-			c.check();
+			/*
+			 *c.check();
+			 */
 
 			_write(x, y, c);
 			render_cnt ++;

@@ -1,5 +1,5 @@
 // File: main.cc
-// Date: Sat May 04 01:33:50 2013 +0800
+// Date: Sun May 05 00:31:46 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "render/filerender.hh"
@@ -180,6 +180,43 @@ void init_config() {
 	OUTPUT_SIZE_FACTOR = Config.get("OUTPUT_SIZE_FACTOR");
 }
 
+void planet(const char* fname) {
+	imgptr test(new Img(fname));
+	int w = test->w, h = test->h;
+	const int OUTSIZE = 1000, center = OUTSIZE / 2;
+	imgptr ret(new Img(OUTSIZE, OUTSIZE));
+	ret->fill(::Color::NO);
+
+	REP(i, OUTSIZE) REP(j, OUTSIZE) {
+		real_t dist = hypot(center - i, center - j);
+		if (dist >= center || dist == 0) continue;
+		dist = dist / center;
+		dist = sqr(dist);
+		dist = h - dist * h;
+
+		real_t theta;
+		if (j == center) {
+			if (i < center)
+				theta = M_PI / 2;
+			else
+				theta = 3 * M_PI / 2;
+		} else {
+			theta = atan((real_t)(center - i) / (center - j));
+			if (theta < 0) theta += M_PI;
+			if (center < i) theta += M_PI;
+		}
+		m_assert(0 <= theta);
+		m_assert(2 * M_PI + EPS >= theta);
+
+		theta = theta / (M_PI * 2) * w;
+
+		update_min(dist, (real_t)h - 1);
+		ret->set_pixel(i, j, test->get_pixel(dist, theta));
+	}
+	RenderBase* r = new FileRender(ret, "planet.png");
+	r->finish();
+}
+
 int main(int argc, char* argv[]) {
 	srand(time(NULL));
 	init_config();
@@ -189,5 +226,6 @@ int main(int argc, char* argv[]) {
 	// test_transform(argv[1], argv[2]);
 	// test_memory(argv[1]);
 	//test_warp(argc, argv);
-	final(argc, argv);
+	planet(argv[1]);
+	//final(argc, argv);
 }
