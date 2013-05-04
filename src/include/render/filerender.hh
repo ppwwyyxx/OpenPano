@@ -1,5 +1,5 @@
 // File: filerender.hh
-// Date: Fri May 03 04:25:34 2013 +0800
+// Date: Sat May 04 12:53:17 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
@@ -41,8 +41,13 @@ class FileRender : public RenderBase {
 		}
 
 	private:
-		void _write(int x, int y, const ::Color &c)
-		{ pixels_ptr[y * geo.w + x] = Magick::ColorRGB(c.x, c.y, c.z); }
+		void _write(int x, int y, const ::Color &c) {
+			if (c.get_max() < 0)
+				// white background
+				pixels_ptr[y * geo.w + x] = Magick::ColorRGB(1, 1, 1);
+			else
+				pixels_ptr[y * geo.w + x] = Magick::ColorRGB(c.x, c.y, c.z);
+		}
 
 };
 

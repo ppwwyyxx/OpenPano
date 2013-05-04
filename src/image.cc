@@ -1,5 +1,5 @@
 // File: image.cc
-// Date: Sat May 04 00:40:29 2013 +0800
+// Date: Sat May 04 12:57:15 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "image.hh"
@@ -72,12 +72,12 @@ const ::Color& Img::get_pixel(int r, int c) const {
 	return ret;
 }
 
-bool Img::is_black_edge(real_t y, real_t x) const {
+bool Img::is_image_edge(real_t y, real_t x) const {		// judge Color::NO
 	if (!between(x, 0, w) || !between(y, 0, h)) return true;
-	if (get_pixel((int)floor(y), (int)floor(x)).get_min() > 1 - EPS) return true;
-	if (get_pixel((int)ceil(y), (int)floor(x)).get_min() > 1 - EPS) return true;
-	if (get_pixel((int)ceil(y), (int)ceil(x)).get_min() > 1 - EPS) return true;
-	if (get_pixel((int)floor(y), (int)ceil(x)).get_min() > 1 - EPS) return true;
+	if (get_pixel((int)floor(y), (int)floor(x)).get_min() < 0) return true;
+	if (get_pixel((int)ceil(y), (int)floor(x)).get_min() < 0) return true;
+	if (get_pixel((int)ceil(y), (int)ceil(x)).get_min() < 0) return true;
+	if (get_pixel((int)floor(y), (int)ceil(x)).get_min() < 0) return true;
 	return false;
 }
 
@@ -94,7 +94,7 @@ void Img::crop() {
 	memset(height, 0, sizeof(height));
 	REP(line, h) {
 		REP(k, w)
-			height[k] = get_pixel(line, k).get_max() > 1 - SEPS ? 0 : height[k] + 1;
+			height[k] = get_pixel(line, k).get_max() < 0 ? 0 : height[k] + 1;	// judge Color::NO
 
 		REP(k, w) {
 			left[k] = k;
