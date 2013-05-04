@@ -1,5 +1,5 @@
 // File: config.hh
-// Date: Fri May 03 17:20:52 2013 +0800
+// Date: Sat May 04 22:22:25 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
@@ -18,7 +18,6 @@ class ConfigParser {
 
 };
 
-extern bool CIRCLE;
 extern bool TRANS;
 extern bool PANO;
 extern bool CROP;
