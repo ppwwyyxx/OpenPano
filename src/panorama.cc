@@ -1,5 +1,5 @@
 // File: panorama.cc
-// Date: Sat May 04 22:35:03 2013 +0800
+// Date: Sat May 04 22:42:04 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include <fstream>
@@ -12,24 +12,23 @@
 #include "transformer.hh"
 using namespace std;
 
-imgptr Panorama::get()
-{ return get_trans(); }
-
-imgptr Panorama::get_trans() {
+imgptr Panorama::get() {
 	int n = imgs.size();
+	Matrix I = Matrix::I(3);
+	mat.resize(n, I);
 	if (PANO) {
 		cal_best_matrix_pano();
 		straighten_simple();
 	} else
 		cal_best_matrix();
-	cal_size();
 
 	if (CIRCLE) { // remove the extra
 		mat.pop_back();
 		imgs.pop_back();
-		corners.pop_back();
 	}
 
+	// get size
+	cal_size();
 	Vec2D min(std::numeric_limits<int>::max(), std::numeric_limits<int>::max()),
 		  max = min * (-1);
 	for (auto &i : corners) {
@@ -41,7 +40,6 @@ imgptr Panorama::get_trans() {
 		  offset = min * (-1);
 	Coor size = toCoor(diff);
 	PP("size: ", size);
-	PP("offset", offset);
 
 	// inverse
 	for_each(mat.begin(), mat.end(),
@@ -77,6 +75,7 @@ imgptr Panorama::get_trans() {
 		int ncolor = blender.size();
 		if (!ncolor) continue;
 		Color finalc;
+
 		real_t sumweight = 0;
 		for (auto &c : blender) {
 			finalc = finalc + c.first * c.second;
@@ -88,6 +87,7 @@ imgptr Panorama::get_trans() {
 		 *for (auto &c : blender) finalc = finalc + c.first; // noblend
 		 *finalc = finalc * (1.0 / blender.size());
 		 */
+
 		ret->set_pixel(i, j, finalc);
 	}
 	print_debug("blend time: %lf secs\n", timer.get_sec());
@@ -145,8 +145,6 @@ void Panorama::cal_size() {
 	int n = imgs.size(), mid = n >> 1;\
 	vector<vector<Feature>> feats;\
 	feats.resize(n);\
-	Matrix I = Matrix::I(3);\
-	mat.resize(n, I);\
 	HWTimer timer
 
 void Panorama::cal_best_matrix_pano() {;
@@ -172,7 +170,7 @@ void Panorama::cal_best_matrix_pano() {;
 			P("detect circle");
 			CIRCLE = true;
 			imgs.push_back(imgs[0]);
-			mat.push_back(I);
+			mat.push_back(Matrix::I(3));
 			feats.push_back(feats[0]);
 			matches.push_back(matched);
 			n ++, mid = n >> 1;
@@ -243,8 +241,9 @@ real_t Panorama::update_h_factor(real_t nowfactor,
 		const vector<imgptr>& imgs,
 		const vector<vector<Feature>>& feats,
 		const vector<MatchData>& matches) {
-	int n = imgs.size(), mid = n >> 1;
-	int start = mid, end = n, len = end - start;
+
+	const int n = imgs.size(), mid = n >> 1;
+	const int start = mid, end = n, len = end - start;
 
 	Warper warper(nowfactor);
 
@@ -271,7 +270,7 @@ real_t Panorama::update_h_factor(real_t nowfactor,
 	Vec2D center2 = TransFormer::cal_project(nowmat[len - 2],
 			nowimgs[len - 2]->get_center()),
 		  center1 = nowimgs[0]->get_center();
-	real_t slope = (center2.y - center1.y) / (center2.x - center1.x);
+	const real_t slope = (center2.y - center1.y) / (center2.x - center1.x);
 	if (update_min(minslope, fabs(slope))) {
 		bestfactor = nowfactor;
 		mat = nowmat;
