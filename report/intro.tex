@@ -1,5 +1,5 @@
 % File: intro.tex
-% Date: Sat May 04 21:28:50 2013 +0800
+% Date: Sat May 04 22:49:57 2013 +0800
 % Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 \section{Usage}
 \subsection{Compilation}
@@ -10,7 +10,7 @@ Dependencies:
     \item GNU make
     \item Magick++
     \item boost MTL (Matrix Template Library) installed in /usr/include/boost/numeric/.
-      It can be downloaded from \url{http://www.simunova.com/node/145}. A copy is also submitted.
+      It can be downloaded from \url{http://www.simunova.com/node/145}. A copy is attached in the submitted package.
 \end{enumerate}
 
 Compilation:
@@ -19,7 +19,7 @@ $ make
 \end{lstlisting}
 
 \subsection{Run}
-Various parameters are saved in \verb|config.cfg|.
+Various parameters are saved in \verb|src/config.cfg|.
 Without special needs, we only have to modify \verb|PANO, TRANS, CROP|.
 
 The program does some extra work to beautify the output
@@ -37,7 +37,7 @@ Output file is \verb|out.png|.
 
 Usually, input images should not exeeds $20(files)\times 1500(pixels) \times 1000(pixels)$, since your computer may not have enough memory.
 
-The input file name given in the command line need to be well ordered.
+The input file names given in the command line need to be well ordered.
 
 \subsection{Examples}
 \begin{enumerate}

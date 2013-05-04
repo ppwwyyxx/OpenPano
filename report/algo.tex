@@ -1,5 +1,5 @@
 % File: algo.tex
-% Date: Sat May 04 21:32:16 2013 +0800
+% Date: Sat May 04 23:02:38 2013 +0800
 % Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 \section{Algorithms}
@@ -13,14 +13,14 @@ The algorithm follows the following procedure:
     by $ S$ different $ \sigma$s.
     \begin{figure}[H]
       \centering
-      \includegraphics[scale=0.3]{res/dog.png}
+      \includegraphics[scale=0.35]{res/dog.png}
       \caption{Scale Space and DOG Space \label{fig:dog}}
     \end{figure}
 
   \item Build a Difference-of-Gaussian Space.
     In each octave, calculate the differences of every two adjacent blured images.
     Therefore, DOG Space consists of $ (S - 1) \times O$ grey images.
-    As shown in \figref{dog}
+    As shown in \figref{dog}.
 
   \item Detect extrema. In DOG Space, detect all the minimum and maximum
     by comparing a pixel with its 26 neighbors in three directions: $ x, y, \sigma$.
@@ -77,7 +77,7 @@ The algorithm follows the following procedure:
     The peak in the histogram is chosen to be the orientation of the keypoint, as shown by the arrow in \figref{feature4}.
 
   \item Descriptor Representation.
-    Lowe suggest choosing 16 points around the keypoint and building 16 orientation histograms,
+    Lowe suggested choosing 16 points around the keypoint and building 16 orientation histograms,
     each with 8 different possible values.
     Since all the orientation is relative to the keypoint's orientation,
     this feature is roatation-invariant. The final SIFT feature is a 128-dimensional array.
@@ -95,7 +95,7 @@ The algorithm follows the following procedure:
 
 
     \subsection{Warping}
-    As suggested by a lot of literature, a homography transform is needed to match the keypoints.
+    A homography transform is needed to match the keypoints.
     But a pure homography transform on a planar works
     only if the camera moved in pure translation or toward a fixed center.
 
@@ -107,7 +107,7 @@ The algorithm follows the following procedure:
     \end{figure}
 
     Therefore, if the option \verb|TRANS = 0|,
-    every input image as well as the features will be projected to a cylinder by the following formula:
+    every input image will be projected to a cylinder by the following formula:
 
     \[  \begin{cases}
         x' = k\arccos{\dfrac{x}{\sqrt{x^2 + z^2}}}\\
