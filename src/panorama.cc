@@ -1,5 +1,5 @@
 // File: panorama.cc
-// Date: Fri May 03 23:45:10 2013 +0800
+// Date: Sat May 04 12:56:31 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include <fstream>
@@ -54,7 +54,7 @@ imgptr Panorama::get_trans() {
 		});
 
 	imgptr ret(new Img(size.x, size.y));
-	ret->fill(Color::WHITE);
+	ret->fill(Color::NO);
 
 	// blending
 	HWTimer timer;
@@ -70,7 +70,7 @@ imgptr Panorama::get_trans() {
 				continue;
 			Vec2D old = TransFormer::cal_project(mat[k], final);
 			if (between(old.x, 0, imgs[k]->w) && between(old.y, 0, imgs[k]->h)) {
-				if (imgs[k]->is_black_edge(old.y, old.x)) continue;
+				if (imgs[k]->is_image_edge(old.y, old.x)) continue;
 				blender.push_back({imgs[k]->get_pixel(old.y, old.x),
 						std::max(imgs[k]->w / 2 - abs(imgs[k]->get_center().x - old.x), 1e-1)});
 			}
