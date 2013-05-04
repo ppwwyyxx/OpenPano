@@ -1,10 +1,10 @@
 % File: algo.tex
-% Date: Sat May 04 00:43:34 2013 +0800
+% Date: Sat May 04 21:14:05 2013 +0800
 % Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 \section{Algorithms}
 \subsection{Feature Detection}
-Lowe's SIFT algorithm is implemented. See \verb|sift.cc, keypoint.cc|.
+Lowe's SIFT algorithm is implemented.
 
 The algorithm follows the following procedure:
 \begin{enumerate}
@@ -42,7 +42,7 @@ The algorithm follows the following procedure:
   \item Keypoint Localization.
     Use linear interpolation to calculate offset,
     moving the extrema to a more accurate location.
-    Then reject the points with low contrast or on the edge to get true features.
+    Then reject the points with low contrast or on the edge to get distinctive features.
     See \figref{feature1}, \figref{feature2}, \figref{feature3}.
     \begin{figure}[H]
       \begin{minipage}[b]{0.46\linewidth}
@@ -95,11 +95,11 @@ The algorithm follows the following procedure:
 
 
     \subsection{Warping}
-    As suggested by a number of literature, a homography transform is needed to match the keypoints.
+    As suggested by a lot of literature, a homography transform is needed to match the keypoints.
     But a pure homography transform on a planar works
-    only if the camera moved in pure translation or around a fixed center.
+    only if the camera moved in pure translation or toward a fixed center.
 
-    If a panorama input (pure rotation) is given, using homography on a planar leads to vertical distortion, like \figref{distort}.
+    If a rotational input is given, using homography on a planar leads to vertical distortion, like \figref{distort}.
     \begin{figure}[H]
       \centering
       \includegraphics[width=\textwidth]{res/distort.png}
@@ -136,10 +136,9 @@ The algorithm follows the following procedure:
 \end{enumerate}
 
 \subsection{Transformation}
-RANSAC (Random Sample Consensus) algorithm\cite{ransac} was used to calculate a transformation matrix.
-In every iteration, several matched pair is randomly chosen to calculate a best-fit transformation matrix and
-the number of pairs it fits within all the data is calculated.
-We choose the matrix which fits most pairs, and use those pairs to calculate the final result.
+RANSAC (Random Sample Consensus) algorithm\cite{ransac} is used to calculate a transformation matrix.
+In every iteration, several matched pairs is randomly chosen to calculate a best-fit transformation matrix,
+and the number of pairs it fits within all the data is calculated.
 
 I tried three kinds of transformation:
 \begin{enumerate}
@@ -169,8 +168,9 @@ In this project, affine transformation is used for generating panoramas.
 
 Since the tilt of camera is unknown, the output panorama might be bended as shown in \figref{bend}.
 Instead of using the first image as the pivot, and calculating all the other transformation relative to it,
-using the image in the middle can help reduce the tilt effect.
+using the image in the middle as the pivot can help reduce the tilt effect.
 Moreover, when the option \verb|PANO = 1| is set, an automatic straightening process will be executed.
+
 First, a binary search on the tilt factor is performed, aiming to make the result ``longer''.
 Second, the program will try to catenate the first image after the last one,
 and then do a global rotation to ensure that the head and tail are aligned horizontally.
@@ -203,7 +203,7 @@ A classic $ O(n \times m)$ algorithm is used, where $ n, m$ is the height and wi
 
 For each row $i$, update
 \begin{flalign*}
- h[j] &= \begin{cases}0,& if\ i = 0\ or\ h[i] = 0 \\ h[i - 1] + 1,& else\end{cases}\\
+ h[j] &= \begin{cases}0,& if\ i = 0\ or\ A[i][j] = 0 \\ h[j] + 1,& otherwise\end{cases}\\
  r[j] &= \max\{ k \in [0, m) \cap \mathbf{N}: A[i][t] \ge A[i][j], \forall j \le t \le k\} \\
 l[j]  &= \min\{ k \in [0, m) \cap \mathbf{N} : A[i][t] \ge A[i][j], \forall k \le t \le j\}\\
 \end{flalign*} in amortized $ O(1)$ time, and the corresponding area is $ (r[j] - l[j] + 1) \times h[j]$.
@@ -211,7 +211,7 @@ l[j]  &= \min\{ k \in [0, m) \cap \mathbf{N} : A[i][t] \ge A[i][j], \forall k \l
 The cropped final result is shown in \figref{cropped}
 \begin{figure}[H]
   \centering
-  \includegraphics[width=\textwidth]{res/cropped.png}
+  \includegraphics[width=\textwidth]{res/results/ground.png}
   \caption{Cropped Result\label{fig:cropped}}
 \end{figure}
 

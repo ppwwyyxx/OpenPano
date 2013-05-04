@@ -1,5 +1,5 @@
 # $File: Makefile
-# $Date: Sat May 04 00:44:23 2013 +0800
+# $Date: Sat May 04 20:36:47 2013 +0800
 
 OBJ_DIR = obj
 TARGET = main
@@ -50,7 +50,7 @@ $(TARGET): $(OBJS)
 
 
 clean:
-	@rm -rf $(OBJ_DIR) $(TARGET)
+	@rm -rf $(OBJ_DIR)
 
 run: $(TARGET)
 	./$(TARGET) lenna.png lenna_r.png

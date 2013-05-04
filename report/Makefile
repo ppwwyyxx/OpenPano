@@ -27,7 +27,7 @@ final : *.tex *.bib output
 	cd output && rm -f *.tex *.bib && ln -s ../*.tex ../*.bib .
 	cd output && $(TEX) $(TARGET).tex && $(BIBTEX) $(TARGET).aux && \
 		$(TEX) $(TARGET).tex && $(TEX) $(TARGET).tex
-	ps2pdf14 output/$(TARGET).pdf ./$(TARGET).pdf
+	gs -sDEVICE=pdfwrite -dMaxSubsetPct=100 -dPDFSETTINGS=/prepress -dAutoFilterColorImages=false -dColorImageFilter=/FlateEncode -sOutputFile="final.pdf" -dNOPAUSE -dBATCH output/$(TARGET).pdf
 
 count:
 	@word_count *.tex
