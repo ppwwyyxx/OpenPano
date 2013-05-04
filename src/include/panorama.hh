@@ -1,5 +1,5 @@
 // File: panorama.hh
-// Date: Sat May 04 22:32:37 2013 +0800
+// Date: Sat May 04 22:36:30 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
@@ -17,7 +17,6 @@ class Panorama {
 		std::vector<Matrix> mat;
 
 		std::vector<std::pair<Vec2D, Vec2D>> corners;
-		imgptr get_trans();
 
 		bool CIRCLE = false;
 
