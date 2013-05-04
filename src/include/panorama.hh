@@ -1,5 +1,5 @@
 // File: panorama.hh
-// Date: Fri May 03 04:49:39 2013 +0800
+// Date: Sat May 04 22:32:37 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
@@ -12,9 +12,14 @@
 
 class Panorama {
 	private:
-		std::vector<imgptr>& imgs;
+		std::vector<imgptr> imgs;
 
+		std::vector<Matrix> mat;
+
+		std::vector<std::pair<Vec2D, Vec2D>> corners;
 		imgptr get_trans();
+
+		bool CIRCLE = false;
 
 	public:
 		Panorama(std::vector<imgptr>& i):
@@ -26,12 +31,12 @@ class Panorama {
 
 		static std::vector<Feature> get_feature(imgptr &);
 
-		static void cal_best_matrix_pano(std::vector<imgptr>&, std::vector<Matrix>&, std::vector<std::pair<Vec2D, Vec2D>>&);
-		static void cal_best_matrix(std::vector<imgptr>&, std::vector<Matrix>&, std::vector<std::pair<Vec2D, Vec2D>>&);
+		void cal_best_matrix_pano();
+		void cal_best_matrix();
 
-		static void straighten_simple(std::vector<Matrix>& mat, const std::vector<imgptr>& imgs);
+		void straighten_simple();
 
-		static std::vector<std::pair<Vec2D, Vec2D>> cal_size(const std::vector<Matrix>& mat, const std::vector<imgptr>& imgs);
+		void cal_size();
 
 		static real_t update_h_factor(real_t, real_t&, real_t&,
 				std::vector<Matrix>&,

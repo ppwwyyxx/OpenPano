@@ -1,5 +1,5 @@
 // File: panorama.cc
-// Date: Sat May 04 12:56:31 2013 +0800
+// Date: Sat May 04 22:35:03 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include <fstream>
@@ -17,13 +17,12 @@ imgptr Panorama::get()
 
 imgptr Panorama::get_trans() {
 	int n = imgs.size();
-	vector<Matrix> mat;
-	vector<pair<Vec2D, Vec2D>> corners;
 	if (PANO) {
-		Panorama::cal_best_matrix_pano(imgs, mat, corners);
-		straighten_simple(mat, imgs);
+		cal_best_matrix_pano();
+		straighten_simple();
 	} else
-		Panorama::cal_best_matrix(imgs, mat, corners);
+		cal_best_matrix();
+	cal_size();
 
 	if (CIRCLE) { // remove the extra
 		mat.pop_back();
@@ -110,7 +109,7 @@ vector<Feature> Panorama::get_feature(imgptr & ptr) {
 	return move(ex.features);
 }
 
-void Panorama::straighten_simple(vector<Matrix>& mat, const vector<imgptr>& imgs) {
+void Panorama::straighten_simple() {
 	int n = imgs.size();
 	Vec2D center2 = imgs[n - 1]->get_center();
 	center2 = TransFormer::cal_project(mat[n - 1], center2);
@@ -123,9 +122,8 @@ void Panorama::straighten_simple(vector<Matrix>& mat, const vector<imgptr>& imgs
 	REP(i, n) mat[i] = Sinv.prod(mat[i]);
 }
 
-vector<pair<Vec2D, Vec2D>> Panorama::cal_size(const vector<Matrix>& mat, const vector<imgptr>& imgs) {
+void Panorama::cal_size() {
 	int n = imgs.size();
-	vector<pair<Vec2D, Vec2D>> ret;
 
 	REPL(i, 0, n) {
 		Vec2D min(std::numeric_limits<int>::max(), std::numeric_limits<int>::max()),
@@ -137,9 +135,9 @@ vector<pair<Vec2D, Vec2D>> Panorama::cal_size(const vector<Matrix>& mat, const v
 	        min.update_min(Vec2D(floor(newcorner.x), floor(newcorner.y)));
 	        max.update_max(Vec2D(ceil(newcorner.x), ceil(newcorner.y)));
 	    }
-		ret.push_back({max, min});
+		corners.push_back({max, min});
 	}
-	return move(ret);
+	return;
 }
 
 #define prepare() \
@@ -151,7 +149,7 @@ vector<pair<Vec2D, Vec2D>> Panorama::cal_size(const vector<Matrix>& mat, const v
 	mat.resize(n, I);\
 	HWTimer timer
 
-void Panorama::cal_best_matrix_pano(vector<imgptr>& imgs, vector<Matrix>& mat, vector<pair<Vec2D, Vec2D>>& corners) {;
+void Panorama::cal_best_matrix_pano() {;
 	prepare();
 #pragma omp parallel for schedule(dynamic)
 	REP(k, n)
@@ -164,19 +162,21 @@ void Panorama::cal_best_matrix_pano(vector<imgptr>& imgs, vector<Matrix>& mat, v
 		matches.push_back(match.match());
 	}
 
-	Matcher match(feats[n - 1], feats[0]);
-	auto matched = match.match();
-	print_debug("match time: %lf secs\n", timer.get_sec());
+	if (n > 2) {
+		Matcher match(feats[n - 1], feats[0]);
+		auto matched = match.match();
+		print_debug("match time: %lf secs\n", timer.get_sec());
 
-	// judge circle
-	if ((real_t)matched.size() * 2 / (feats[0].size() + feats[n - 1].size()) > CONNECTED_THRES) {
-		P("detect circle");
-		CIRCLE = true;
-		imgs.push_back(imgs[0]);
-		mat.push_back(I);
-		feats.push_back(feats[0]);
-		matches.push_back(matched);
-		n ++, mid = n >> 1;
+		// judge circle
+		if ((real_t)matched.size() * 2 / (feats[0].size() + feats[n - 1].size()) > CONNECTED_THRES) {
+			P("detect circle");
+			CIRCLE = true;
+			imgs.push_back(imgs[0]);
+			mat.push_back(I);
+			feats.push_back(feats[0]);
+			matches.push_back(matched);
+			n ++, mid = n >> 1;
+		}
 	}
 	vector<Matrix> bestmat;
 
@@ -205,14 +205,13 @@ void Panorama::cal_best_matrix_pano(vector<imgptr>& imgs, vector<Matrix>& mat, v
 	REPL(k, mid + 1, n) mat[k] = move(bestmat[k - mid - 1]);
 	REPD(i, mid - 1, 0)
 		mat[i] = TransFormer(matches[i].reverse(), feats[i + 1], feats[i]).get_transform();
-		// mat[i] = Panorama::get_transform(feats[i + 1], feats[i]);
+	// mat[i] = Panorama::get_transform(feats[i + 1], feats[i]);
 
 	REPD(i, mid - 2, 0) mat[i] = mat[i + 1].prod(mat[i]);
 	print_debug("transform time: %lf secs \n", timer.get_sec());
-	corners = cal_size(mat, imgs);
 }
 
-void Panorama::cal_best_matrix(vector<imgptr>& imgs, vector<Matrix>& mat, vector<pair<Vec2D, Vec2D>>& corners) {
+void Panorama::cal_best_matrix() {
 	prepare();
 
 	if (!TRANS) {
@@ -234,17 +233,16 @@ void Panorama::cal_best_matrix(vector<imgptr>& imgs, vector<Matrix>& mat, vector
 		mat[k] = Panorama::get_transform(feats[k + 1], feats[k]);
 	REPD(k, mid - 2, 0) mat[k] = mat[k + 1].prod(mat[k]);
 	print_debug("match and transform time: %lf secs \n", timer.get_sec());
-	corners = cal_size(mat, imgs);
 }
 #undef prepare
 
 real_t Panorama::update_h_factor(real_t nowfactor,
-								real_t & minslope,
-								real_t & bestfactor,
-								vector<Matrix>& mat,
-								const vector<imgptr>& imgs,
-								const vector<vector<Feature>>& feats,
-								const vector<MatchData>& matches) {
+		real_t & minslope,
+		real_t & bestfactor,
+		vector<Matrix>& mat,
+		const vector<imgptr>& imgs,
+		const vector<vector<Feature>>& feats,
+		const vector<MatchData>& matches) {
 	int n = imgs.size(), mid = n >> 1;
 	int start = mid, end = n, len = end - start;
 
@@ -265,13 +263,13 @@ real_t Panorama::update_h_factor(real_t nowfactor,
 	vector<Matrix> nowmat;		// size = len - 1
 	REPL(k, 1, len)
 		nowmat.push_back(TransFormer(matches[k - 1 + mid], nowfeats[k - 1], nowfeats[k]).get_transform());
-		// nowmat[k - 1] = TransFormer(matches[k - 1 + mid], nowfeats[k - 1], nowfeats[k]).get_transform();
-		//nowmat.push_back(Panorama::get_transform(nowfeats[k - 1], nowfeats[k]));
+	// nowmat[k - 1] = TransFormer(matches[k - 1 + mid], nowfeats[k - 1], nowfeats[k]).get_transform();
+	//nowmat.push_back(Panorama::get_transform(nowfeats[k - 1], nowfeats[k]));
 	REPL(k, 1, len - 1)
 		nowmat[k] = nowmat[k - 1].prod(nowmat[k]);
 
 	Vec2D center2 = TransFormer::cal_project(nowmat[len - 2],
-											nowimgs[len - 2]->get_center()),
+			nowimgs[len - 2]->get_center()),
 		  center1 = nowimgs[0]->get_center();
 	real_t slope = (center2.y - center1.y) / (center2.x - center1.x);
 	if (update_min(minslope, fabs(slope))) {
