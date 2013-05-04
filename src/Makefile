@@ -1,14 +1,14 @@
 # $File: Makefile
-# $Date: Sat May 04 20:36:47 2013 +0800
+# $Date: Sun May 05 00:10:51 2013 +0800
 
 OBJ_DIR = obj
 TARGET = main
 
 INCLUDE_DIR = -Iinclude
-#DEFINES = -DDEBUG
+DEFINES = -DDEBUG
 
-#OPTFLAGS = -O3 -g -Wall -Wextra -Wcpp -O
-OPTFLAGS = -O3
+OPTFLAGS = -O3 -g -Wall -Wextra -Wcpp -O
+#OPTFLAGS = -O3
 
 LIBS =
 #INCLUDE_DIR += $(shell pkg-config --cflags $(LIBS))
