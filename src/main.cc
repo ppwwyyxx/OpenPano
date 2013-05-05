@@ -1,5 +1,5 @@
 // File: main.cc
-// Date: Sun May 05 00:31:46 2013 +0800
+// Date: Sun May 05 11:09:36 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "render/filerender.hh"
@@ -191,7 +191,7 @@ void planet(const char* fname) {
 		real_t dist = hypot(center - i, center - j);
 		if (dist >= center || dist == 0) continue;
 		dist = dist / center;
-		dist = sqr(dist);
+		dist = sqr(dist) * dist;
 		dist = h - dist * h;
 
 		real_t theta;
@@ -203,6 +203,7 @@ void planet(const char* fname) {
 		} else {
 			theta = atan((real_t)(center - i) / (center - j));
 			if (theta < 0) theta += M_PI;
+			if ((theta == 0) && (j > center)) theta += M_PI;
 			if (center < i) theta += M_PI;
 		}
 		m_assert(0 <= theta);

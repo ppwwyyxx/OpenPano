@@ -1,5 +1,5 @@
 // File: panorama.cc
-// Date: Sat May 04 22:42:04 2013 +0800
+// Date: Sun May 05 11:06:53 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include <fstream>
@@ -141,7 +141,6 @@ void Panorama::cal_size() {
 }
 
 #define prepare() \
-	m_assert(mat.size() == 0);\
 	int n = imgs.size(), mid = n >> 1;\
 	vector<vector<Feature>> feats;\
 	feats.resize(n);\
