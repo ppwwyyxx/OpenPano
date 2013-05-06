@@ -1,5 +1,5 @@
 // File: main.cc
-// Date: Sun May 05 11:09:36 2013 +0800
+// Date: Sun May 05 23:02:16 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "render/filerender.hh"
@@ -10,7 +10,6 @@
 #include "matcher.hh"
 #include "gallery.hh"
 #include "panorama.hh"
-#include "transformer.hh"
 #include <ctime>
 #include <cassert>
 
@@ -129,7 +128,7 @@ void test_transform(const char* f1, const char* f2) {
 	delete r;
 }
 
-void final(int argc, char* argv[]) {
+void work(int argc, char* argv[]) {
 	vector<imgptr> imgs;
 	REPL(i, 1, argc) {
 		imgptr ptr(new Img(argv[i]));
@@ -227,6 +226,6 @@ int main(int argc, char* argv[]) {
 	// test_transform(argv[1], argv[2]);
 	// test_memory(argv[1]);
 	//test_warp(argc, argv);
-	planet(argv[1]);
-	//final(argc, argv);
+	//planet(argv[1]);
+	work(argc, argv);
 }
