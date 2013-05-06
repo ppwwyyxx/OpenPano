@@ -1,5 +1,5 @@
 % File: algo.tex
-% Date: Sat May 04 23:02:38 2013 +0800
+% Date: Sun May 05 17:04:00 2013 +0800
 % Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 \section{Algorithms}
@@ -34,7 +34,7 @@ The algorithm follows the following procedure:
       \hspace{1em}
       \begin{minipage}[b]{0.46\linewidth}
         \centering
-        \includegraphics[scale=0.4]{res/extrema_lenna.png}
+        \includegraphics[scale=0.35]{res/extrema_lenna.png}
         \caption{Extrema Example\label{fig:extrema2}}
       \end{minipage}
     \end{figure}
@@ -203,10 +203,10 @@ A classic $ O(n \times m)$ algorithm is used, where $ n, m$ is the height and wi
 
 For each row $i$, update
 \begin{flalign*}
- h[j] &= \begin{cases}0,& if\ i = 0\ or\ A[i][j] = 0 \\ h[j] + 1,& otherwise\end{cases}\\
- r[j] &= \max\{ k \in [0, m) \cap \mathbf{N}: A[i][t] \ge A[i][j], \forall j \le t \le k\} \\
-l[j]  &= \min\{ k \in [0, m) \cap \mathbf{N} : A[i][t] \ge A[i][j], \forall k \le t \le j\}\\
-\end{flalign*} in amortized $ O(1)$ time, and the corresponding area is $ (r[j] - l[j] + 1) \times h[j]$.
+ h[j] &= \begin{cases}0,& if\ i = 0\ or\ A[i][j]\ is\ outside \\ h[j] + 1,& otherwise\end{cases}\\
+ r[j] &= \max\{ k \in [0, m) \cap \mathbf{N}: h[t] \ge h[j], \forall j \le t \le k\} \\
+l[j]  &= \min\{ k \in [0, m) \cap \mathbf{N} : h[t] \ge h[j], \forall k \le t \le j\}\\
+\end{flalign*} for every $ j \in [0, n) $ in amortized $ O(1)$ time, and the corresponding area is $ (r[j] - l[j] + 1) \times h[j]$.
 
 The cropped final result is shown in \figref{cropped}
 \begin{figure}[H]

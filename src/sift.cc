@@ -1,5 +1,5 @@
 // File: sift.cc
-// Date: Sat May 04 01:27:30 2013 +0800
+// Date: Sun May 05 23:02:54 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "config.hh"
@@ -17,7 +17,6 @@ Octave::Octave(const shared_ptr<GreyImg>& img, int num_scale):
 	data[0] = img;
 
 	Filter blurer(nscale, GAUSS_SIGMA, SCALE_FACTOR);
-	m_assert(blurer.gcache.size() == nscale - 1);
 	for (int i = 1; i < nscale; i ++) {
 		data[i] = blurer.GaussianBlur(data[0], i);	// sigma needs a better one
 		cal_mag_ort(i);
