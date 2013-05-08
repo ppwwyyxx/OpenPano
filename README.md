@@ -41,16 +41,16 @@ The input file names given in the command line need to be well ordered, to make 
 
 ## Examples:
 
-### This is Zijing Apartment in Tsinghua University:
+This is Zijing Apartment in Tsinghua University:
 ![dorm](https://github.com/ppwwyyxx/panorama/raw/master/results/apartment.png)
 
-### These are myselves:
+These are myselves:
 ![myself](https://github.com/ppwwyyxx/panorama/raw/master/results/myself.png)
 
-### This is Zijing Playground in Tsinghua University:
+This is Zijing Playground in Tsinghua University:
 ![planet](https://github.com/ppwwyyxx/panorama/raw/master/results/planet.png)
 
-### For more examples, see [results](https://github.com/ppwwyyxx/panorama/tree/master/results).
+For more examples, see [results](https://github.com/ppwwyyxx/panorama/tree/master/results).
 
 ## Algorithms
 I use [SIFT](http://en.wikipedia.org/wiki/Scale-invariant_feature_transform) for feature detection and [RANSAC](http://en.wikipedia.org/wiki/RANSAC) to estimate transformation.
