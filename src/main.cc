@@ -1,5 +1,5 @@
 // File: main.cc
-// Date: Sun May 05 23:02:16 2013 +0800
+// Date: Mon May 06 16:29:02 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "render/filerender.hh"
@@ -223,8 +223,8 @@ int main(int argc, char* argv[]) {
 	//test_extrema(argv[1]);
 	//test_feature(argv[1]);
 	//gallery(argv[1], argv[2]);
-	// test_transform(argv[1], argv[2]);
-	// test_memory(argv[1]);
+	//test_transform(argv[1], argv[2]);
+	//test_memory(argv[1]);
 	//test_warp(argc, argv);
 	//planet(argv[1]);
 	work(argc, argv);
