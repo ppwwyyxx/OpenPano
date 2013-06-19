@@ -1,5 +1,5 @@
 // File: sift.cc
-// Date: Sun May 05 23:02:54 2013 +0800
+// Date: Fri Jun 07 21:47:06 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "config.hh"
@@ -65,6 +65,7 @@ ScaleSpace::ScaleSpace(const shared_ptr<Img>& img, int num_octave, int num_scale
 				octaves[i] = shared_ptr<Octave>(new Octave(resized, nscale));
 			}
 		}
+#pragma omp critical
 		print_debug("building scale space takes %lf\n", timer.get_sec());
 	}
 
