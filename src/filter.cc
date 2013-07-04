@@ -1,5 +1,5 @@
 // File: filter.cc
-// Date: Sat May 04 12:08:40 2013 +0800
+// Date: Thu Jul 04 11:05:14 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "config.hh"
@@ -44,7 +44,7 @@ Filter::Filter(int nscale, real_t gauss_sigma, real_t scale_factor) {
 shared_ptr<GreyImg> Filter::GaussianBlur(const shared_ptr<GreyImg>& img,
 										const GaussCache& gauss) const {
 	const int w = img->w, h = img->h;
-	shared_ptr<GreyImg> ret(new GreyImg(w, h));
+	shared_ptr<GreyImg> ret = make_shared<GreyImg>(w, h);
 
 	const int kw = gauss.kw;
 	const int center = kw / 2;
@@ -78,7 +78,7 @@ shared_ptr<GreyImg> Filter::GaussianBlur(const shared_ptr<GreyImg>& img,
 }
 
 shared_ptr<GreyImg> Filter::GreyScale(const shared_ptr<Img> img) {
-	shared_ptr<GreyImg> ret(new GreyImg(*img));
+	shared_ptr<GreyImg> ret = make_shared<GreyImg>(*img);
 	return move(ret);
 }
 

@@ -4,3 +4,4 @@ src/*.png
 src/*.jpg
 .tags
 output
+*.pyc
