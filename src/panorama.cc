@@ -1,5 +1,5 @@
 // File: panorama.cc
-// Date: Sun May 05 11:06:53 2013 +0800
+// Date: Thu Jul 04 11:42:31 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include <fstream>
@@ -50,7 +50,7 @@ imgptr Panorama::get() {
 			m = move(inv);
 		});
 
-	imgptr ret(new Img(size.x, size.y));
+	imgptr ret = make_shared<Img>(size.x, size.y);
 	ret->fill(Color::NO);
 
 	// blending

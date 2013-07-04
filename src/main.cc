@@ -1,5 +1,5 @@
 // File: main.cc
-// Date: Mon May 06 16:29:02 2013 +0800
+// Date: Thu Jul 04 11:52:30 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "render/filerender.hh"
@@ -27,7 +27,7 @@ vector<Feature> get_feature(imgptr& ptr)
 { return Panorama::get_feature(ptr); }
 
 void test_feature(const char* fname, int mode = 1) {
-	shared_ptr<Img> test(new Img(fname));
+	shared_ptr<Img> test = make_shared<Img>(fname);
 	vector<Feature> ans = get_feature(test);
 	RenderBase* r = new FileRender(test, "feature.png");
 	cout << r->get_geo().w << r->get_geo().h << endl;
@@ -45,7 +45,7 @@ void test_feature(const char* fname, int mode = 1) {
 }
 
 void test_extrema(const char* fname) {
-	imgptr test(new Img(fname)) ;
+	imgptr test = make_shared<Img>(fname) ;
 	RenderBase* r = new FileRender(test, "extrema.png");
 	cout << r->get_geo().w << r->get_geo().h << endl;
 	PlaneDrawer pld(r);
@@ -69,15 +69,15 @@ void gallery(const char* f1, const char* f2) {
 	imagelist.push_back(pic2);
 	Gallery ga(imagelist);
 
-	shared_ptr<Img> test(new Img(ga.get()));
+	shared_ptr<Img> test = make_shared<Img>(ga.get());
 	RenderBase* r = new FileRender(test, "gallery.png");
 	PlaneDrawer pld(r);
 
 	vector<Feature> ans = get_feature(test);
 	for (auto i : ans) pld.arrow(toCoor(i.real_coor), i.dir, LABEL_LEN);
 
-	shared_ptr<Img> ptr1(new Img(pic1));
-	shared_ptr<Img> ptr2(new Img(pic2));
+	imgptr ptr1 = make_shared<Img>(pic1);
+	imgptr ptr2 = make_shared<Img>(pic2);
 	vector<Feature> feat1 = get_feature(ptr1);
 	vector<Feature> feat2 = get_feature(ptr2);
 
@@ -95,7 +95,7 @@ void gallery(const char* f1, const char* f2) {
 }
 
 void test_memory(const char* fname) {
-	shared_ptr<Img> test(new Img(fname));
+	imgptr test = make_shared<Img>(fname);
 	get_feature(test);
 	get_feature(test);
 	get_feature(test);
@@ -108,7 +108,7 @@ void test_memory(const char* fname) {
 void test_warp(int argc, char* argv[]) {
 	Warper warp(1);
 	REPL(i, 1, argc) {
-		shared_ptr<Img> test(new Img(argv[i]));
+		imgptr test = make_shared<Img>(argv[i]);
 		warp.warp(test);
 		RenderBase* r = new FileRender(test, (to_string(i) + ".png").c_str());
 		r->finish();
@@ -116,8 +116,8 @@ void test_warp(int argc, char* argv[]) {
 }
 
 void test_transform(const char* f1, const char* f2) {
-	imgptr ptr1(new Img(f1));
-	imgptr ptr2(new Img(f2));
+	imgptr ptr1 = make_shared<Img>(f1);
+	imgptr ptr2 = make_shared<Img>(f2);
 
 	vector<imgptr> imgs = {ptr1, ptr2};
 	Panorama p(imgs);
@@ -131,7 +131,7 @@ void test_transform(const char* f1, const char* f2) {
 void work(int argc, char* argv[]) {
 	vector<imgptr> imgs;
 	REPL(i, 1, argc) {
-		imgptr ptr(new Img(argv[i]));
+		imgptr ptr = make_shared<Img>(argv[i]);
 		imgs.push_back(ptr);
 	}
 	Panorama p(imgs);
@@ -180,10 +180,10 @@ void init_config() {
 }
 
 void planet(const char* fname) {
-	imgptr test(new Img(fname));
+	imgptr test = make_shared<Img>(fname);
 	int w = test->w, h = test->h;
 	const int OUTSIZE = 1000, center = OUTSIZE / 2;
-	imgptr ret(new Img(OUTSIZE, OUTSIZE));
+	imgptr ret = make_shared<Img>(OUTSIZE, OUTSIZE);
 	ret->fill(::Color::NO);
 
 	REP(i, OUTSIZE) REP(j, OUTSIZE) {

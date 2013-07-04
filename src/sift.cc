@@ -1,5 +1,5 @@
 // File: sift.cc
-// Date: Fri Jun 07 21:47:06 2013 +0800
+// Date: Thu Jul 04 11:51:48 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "config.hh"
@@ -26,8 +26,8 @@ Octave::Octave(const shared_ptr<GreyImg>& img, int num_scale):
 void Octave::cal_mag_ort(int i) {
 	shared_ptr<GreyImg> orig = data[i];
 	int w = orig->w, h = orig->h;
-	mag[i] = shared_ptr<GreyImg>(new GreyImg(w, h));
-	ort[i] = shared_ptr<GreyImg>(new GreyImg(w, h));
+	mag[i] = make_shared<GreyImg>(w, h);
+	ort[i] = make_shared<GreyImg>(w, h);
 	REP(x, w) REP(y, h) {
 		if (between(x, 1, w - 1) && between(y, 1, h - 1)) {
 			real_t dy = orig->get_pixel(y + 1, x) - orig->get_pixel(y - 1, x),
@@ -59,10 +59,10 @@ ScaleSpace::ScaleSpace(const shared_ptr<Img>& img, int num_octave, int num_scale
 // #pragma omp parallel for schedule(dynamic)
 		REP(i, noctave) {
 			if (!i)
-				octaves[i] = shared_ptr<Octave>(new Octave(img, nscale));
+				octaves[i] = make_shared<Octave>(img, nscale);
 			else {
-				shared_ptr<Img> resized(new Img(img->get_resized(pow(SCALE_FACTOR, -i))));
-				octaves[i] = shared_ptr<Octave>(new Octave(resized, nscale));
+				imgptr resized = make_shared<Img>(img->get_resized(pow(SCALE_FACTOR, -i)));
+				octaves[i] = make_shared<Octave>(resized, nscale);
 			}
 		}
 #pragma omp critical
@@ -85,7 +85,7 @@ DOG::~DOG()
 shared_ptr<GreyImg> DOG::diff(const shared_ptr<GreyImg>& img1, const shared_ptr<GreyImg>& img2) {
 	int w = img1->w, h = img1->h;
 	m_assert(w == img2->w && h == img2->h);
-	shared_ptr<GreyImg> ret(new GreyImg(w, h));
+	shared_ptr<GreyImg> ret = make_shared<GreyImg>(w, h);
 	REP(i, h) REP(j, w) {
 		real_t diff = fabs(img1->get_pixel(i, j) - img2->get_pixel(i, j));
 		ret->set_pixel(i, j, diff);
@@ -100,7 +100,7 @@ DOGSpace::DOGSpace(ScaleSpace& ss):
 
 #pragma omp parallel for schedule(dynamic)
 	REP(i, noctave)
-		dogs[i] = shared_ptr<DOG>(new DOG(ss.octaves[i]));
+		dogs[i] = make_shared<DOG>(ss.octaves[i]);
 }
 
 DOGSpace::~DOGSpace()

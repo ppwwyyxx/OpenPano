@@ -1,5 +1,5 @@
 // File: image.cc
-// Date: Sun May 05 00:31:46 2013 +0800
+// Date: Thu Jul 04 11:43:20 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "image.hh"
@@ -134,7 +134,7 @@ void GreyImg::init_from_img(const Img& img) {
 }
 
 imgptr GreyImg::to_img() const {
-	imgptr ret(new Img(w, h));
+	imgptr ret = make_shared<Img>(w, h);
 	REP(i, h) REP(j, w) {
 		real_t grey = get_pixel(i, j);
 		ret->set_pixel(i, j, ::Color(grey, grey, grey));

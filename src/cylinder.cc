@@ -1,5 +1,5 @@
 // File: cylinder.cc
-// Date: Sat May 04 12:56:03 2013 +0800
+// Date: Thu Jul 04 11:43:00 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 
@@ -47,7 +47,7 @@ imgptr CylProject::project(const imgptrc& img, vector<Feature>& ft) const {
 	Coor size = toCoor(realsize);
 	real_t sizefactor_inv = 1.0 / sizefactor;
 
-	imgptr ret(new Img(size.x, size.y));
+	imgptr ret = make_shared<Img>(size.x, size.y);
 	ret->fill(Color::NO);
 #pragma omp parallel for schedule(dynamic)
 	REP(i, ret->h) REP(j, ret->w) {
