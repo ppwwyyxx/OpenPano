@@ -1,6 +1,7 @@
 // File: panorama.cc
-// Date: Thu Jul 04 11:42:31 2013 +0800
+// Date: Sun Sep 22 12:54:18 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
+// XXX: I know it is somehow ugly
 
 #include <fstream>
 #include "panorama.hh"
