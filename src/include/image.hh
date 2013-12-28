@@ -1,5 +1,5 @@
 // File: image.hh
-// Date: Sat May 04 12:57:00 2013 +0800
+// Date: Sun Dec 29 03:21:24 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
@@ -19,11 +19,24 @@ class Img : public std::enable_shared_from_this<Img> {
 
 	public:
 		int w = 0, h = 0;
-		Color* pixel;
+		Color** pixel;
 
 		Img(const Img& img):
 			Img(img.w, img.h)
-		{ memcpy(pixel, img.pixel, w * h * sizeof(Color)); }
+		{
+			REP(i, h)
+				memcpy(pixel[i], img.pixel[i], w * sizeof(Color));
+		}
+
+		Img& operator=(const Img& img) {
+			if (this != &img) {
+				free_2d<Color>(pixel, h);
+				init(img.w, img.h);
+				REP(i, h)
+					memcpy(pixel[i], img.pixel[i], w * sizeof(Color));
+			}
+			return *this;
+		}
 
 		Img(Img&& img) {
 			w = img.w, h = img.h;
@@ -32,13 +45,13 @@ class Img : public std::enable_shared_from_this<Img> {
 		}
 
 		Img & operator = (Img && r) {
-			m_assert(this != &r);
-			delete[] pixel;
+			free_2d<Color>(pixel, h);
 			pixel = r.pixel;
 			w = r.w, h = r.h;
 			r.pixel = nullptr;
 			return *this;
 		}
+
 
 		Img(int m_w, int m_h)
 		{ init(m_w, m_h); }
@@ -58,7 +71,10 @@ class Img : public std::enable_shared_from_this<Img> {
 
 		Img get_resized(real_t factor) const;
 
-		const Color& get_pixel(int, int) const;
+		inline const Color& get_pixel(int r, int c) const {
+			m_assert(between(r, 0, h) && between(c, 0, w));
+			return pixel[r][c];
+		}
 
 		Color get_pixel(real_t, real_t) const;
 

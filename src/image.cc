@@ -1,5 +1,5 @@
 // File: image.cc
-// Date: Thu Jul 04 11:43:20 2013 +0800
+// Date: Sun Dec 29 03:20:57 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "image.hh"
@@ -11,7 +11,9 @@ using namespace Magick;
 
 void Img::init(int m_w, int m_h) {
 	w = m_w, h = m_h;
-	pixel = new ::Color[w * h];
+	pixel = new ::Color*[h];
+	REP(i, h)
+		pixel[i] = new ::Color[w];
 }
 
 void GreyImg::init(int m_w, int m_h) {
@@ -23,15 +25,17 @@ void Img::init_from_image(const Image& img) {
 	Magick::Geometry size = img.size();
 	init(size.width(), size.height());
 
-	::Color *dest = pixel;
 
 	const PixelPacket* src = img.getConstPixels(0, 0, w, h);
-	REP(i, h) REP(j, w) {
-		dest->x = double(src->red) / QuantumRange;
-		dest->y = double(src->green) / QuantumRange;
-		dest->z = double(src->blue) / QuantumRange;
-		dest ++;
-		src ++;
+	REP(i, h) {
+		::Color * dest = pixel[i];
+		REP(j, w) {
+			dest->x = (real_t)(src->red) / QuantumRange;
+			dest->y = (real_t)(src->green) / QuantumRange;
+			dest->z = (real_t)(src->blue) / QuantumRange;
+			dest ++;
+			src ++;
+		}
 	}
 }
 
@@ -56,12 +60,6 @@ void Img::fill(const ::Color& c) {
 	REP(i, h) REP(j, w) set_pixel(i, j, c);
 }
 
-const ::Color& Img::get_pixel(int r, int c) const {
-	m_assert(between(r, 0, h) && between(c, 0, w));
-	::Color *dest = pixel + r * w + c;
-	return *dest;
-}
-
 ::Color Img::get_pixel(real_t y, real_t x) const {
 	::Color ret = ::Color::BLACK;
 	real_t dy = y - floor(y), dx = x - floor(x);
@@ -83,7 +81,7 @@ bool Img::is_image_edge(real_t y, real_t x) const {		// judge Color::NO
 
 void Img::set_pixel(int r, int c, const ::Color& val) {
 	m_assert(between(r, 0, h) && between(c, 0, w));
-	::Color *dest = pixel + r * w + c;
+	::Color *dest = pixel[r] + c;
 	dest->x = val.x, dest->y = val.y, dest->z = val.z;
 }
 
