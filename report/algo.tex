@@ -1,29 +1,33 @@
 % File: algo.tex
-% Date: Sat Dec 28 18:13:17 2013 +0800
+% Date: Sun Dec 29 00:08:21 2013 +0800
 % Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 \section{Algorithms}
 \subsection{Feature Detection}
 Lowe's SIFT algorithm\cite{sift} is implemented.
-
-The algorithm follows the following procedure:
+The procedure of the algorithm is briefly described as followed. For more details, please refer to the original paper.
 \begin{enumerate}
-  \item Build a Scale-Space, which consists of $ S \times O$ grey images.
-    The original image is resized in $ O$ different sizes (octaves), and each is then Gaussian-Blured
-    by $ S$ different $ \sigma$s.
+  \item \textbf{Scale Space}
+
+    A Scale Space consisting of $ S \times O$ grey images is built.
+    The original image is resized in $ O$ different sizes (AKA. octaves), and each is then Gaussian-Blured
+    by $ S$ different $ \sigma$.
     \begin{figure}[H]
       \centering
       \includegraphics[scale=0.35]{res/dog.png}
       \caption{Scale Space and DOG Space \label{fig:dog}}
     \end{figure}
 
-  \item Build a Difference-of-Gaussian Space.
-    In each octave, calculate the differences of every two adjacent blured images.
+  \item \textbf{DOG Space}
+
+    In each octave, calculate the differences of every two adjacent blured images, to build a Difference-of-Gaussian Space.
     Therefore, DOG Space consists of $ (S - 1) \times O$ grey images.
     As shown in \figref{dog}.
 
-  \item Detect extrema. In DOG Space, detect all the minimum and maximum
-    by comparing a pixel with its 26 neighbors in three directions: $ x, y, \sigma$.
+  \item \textbf{Extrema Detection}
+
+    In DOG Space, detect all the minimum and maximum
+    by comparing a pixel with its 26 neighbors in \textbf{three directions}: $ x, y, \sigma$.
     See \figref{extrema} and \figref{extrema2}
     \begin{figure}[H]
       \begin{minipage}[b]{0.46\linewidth}
@@ -39,10 +43,11 @@ The algorithm follows the following procedure:
       \end{minipage}
     \end{figure}
 
-  \item Keypoint Localization.
-    Use linear interpolation to calculate offset,
-    moving the extrema to a more accurate location.
-    Then reject the points with low contrast or on the edge to get distinctive features.
+  \item \textbf{Keypoint Localization}
+
+    Calculate the offset by \textbf{linear interpolation},
+    to move the extrema to a more accurate location.
+    Then reject the points with \textbf{low contrast} or \textbf{on the edge}, to get more distinctive features.
     See \figref{feature1}, \figref{feature2}, \figref{feature3}.
     \begin{figure}[H]
       \begin{minipage}[b]{0.46\linewidth}
@@ -70,22 +75,26 @@ The algorithm follows the following procedure:
       \end{minipage}
     \end{figure}
 
-  \item Orientation Assignment.
-    We have to first calculated the gradient and orientation of every point in the Scale Space.
-    For each keypoint, a histogram of the orientations of its nearby points is built,
-    weighted by a gaussian kernel and the magnitude of gradient.
-    The peak in the histogram is chosen to be the orientation of the keypoint, as shown by the arrow in \figref{feature4}.
+  \item \textbf{Orientation Assignment}
 
-  \item Descriptor Representation.
-    Lowe suggested choosing 16 points around the keypoint and building 16 orientation histograms,
-    each with 8 different possible values.
-    Since all the orientation is relative to the keypoint's orientation,
-    this feature is roatation-invariant. The final SIFT feature is a 128-dimensional array.
+    First, we have to calculate \textbf{gradient and orientation} for every point in the Scale Space.
+    For each keypoint detected by the previous procedure,
+    the orientations of its nearby points will be collected and used to build an \textbf{orientation histogram},
+    weighted by the magnitude of the gradient at each point, as well as an a gaussian kernel centered at the keypoint.
+    The peak in the histogram is chosen to be the main orientation of the keypoint, as shown by the arrows in \figref{feature4}.
 
-  \item Feature Matching.
-    The Euclidean distance of the 128-dimensional descriptor is the criteria for feature matching between two images.
-    A match is considered not convincing and therefore rejected
-    if the distances to its closest neighbor and second-closest neighbor are similar.
+  \item \textbf{Descriptor Representation}
+
+    D. Lowe suggested choosing 16 points around the keypoint, and building orientation histograms for each point,
+    each histogram with 8 different possible values(bins). Therefore the final SIFT feature is a \textbf{128-dimensional} array.
+    Since the major orientation of the keypoint is known, by using relative orientation to the keypoint,
+    this feature is roatation-invariant.
+
+  \item \textbf{Feature Matching}
+
+    \textbf{Euclidean distance} of the 128-dimensional descriptor is the criteria for feature matching between two images.
+    A match is considered not convincing and therefore rejected,
+    if the distances from it to its closest neighbor and second-closest neighbor are similar.
     The result is shown in \figref{match}.
     \begin{figure}[H]
       \centering
@@ -95,19 +104,21 @@ The algorithm follows the following procedure:
 
 
     \subsection{Warping}
-    A homography transform is needed to match the keypoints.
+    A \textbf{homography transform} is needed to match the keypoints.
     But a pure homography transform on a planar works
-    only if the camera moved in pure translation or toward a fixed center.
+    only if the camera moves in pure translation or, moves toward a fixed center.
 
-    If a rotational input is given, using homography on a planar leads to vertical distortion, like \figref{distort}.
+    If a rotational input is given, as most panoramas are built, using homography on a planar leads to \textbf{vertical distortion}, such as \figref{distort}.
     \begin{figure}[H]
       \centering
-      \includegraphics[width=\textwidth]{res/distort.png}
+      \includegraphics[width=0.9\textwidth]{res/distort.png}
       \caption{Vertical Distortion with Homography on a Planar\label{fig:distort}}
     \end{figure}
 
-    Therefore, if the option \verb|TRANS = 0|,
-    every input image will be projected to a cylinder by the following formula:
+    Therefore, if the option \verb|TRANS = 0| is set,
+    every input image will be first projected to a cylinder
+    \footnote{A comprehensive app revealing the reason of this projection can be seen at \url{http://graphics.stanford.edu/courses/cs178-12/applets/projection.html}}
+    by the following formula:
 
     \[  \begin{cases}
         x' = k\arccos{\dfrac{x}{\sqrt{x^2 + z^2}}}\\
@@ -129,22 +140,22 @@ The algorithm follows the following procedure:
         \includegraphics[scale=0.3]{res/4.png}
       \end{minipage}
 
-      \includegraphics[width=\textwidth]{res/warped_stitch.png}
+      \includegraphics[width=0.9\textwidth]{res/warped_stitch.png}
       \caption{Stitching Result After Projection\label{fig:cyl}}
     \end{figure}
 
 \end{enumerate}
 
 \subsection{Transformation}
-RANSAC (Random Sample Consensus) algorithm\cite{ransac} is used to calculate a transformation matrix.
+\textbf{RANSAC} (Random Sample Consensus) algorithm\cite{ransac} is used to calculate a transformation matrix.
 In every iteration, several matched pairs is randomly chosen to calculate a best-fit transformation matrix,
 and the number of pairs it fits within all the data is calculated.
 
 I tried three kinds of transformation:
 \begin{enumerate}
-  \item Homography One: $H = \begin{bmatrix} a_{11} &a_{12} & a_{13}\\ a_{21} & a_{22} & a_{23}\\ a_{31} & a_{32} & 1\end{bmatrix}$
+  \item Homography I: $H = \begin{bmatrix} a_{11} &a_{12} & a_{13}\\ a_{21} & a_{22} & a_{23}\\ a_{31} & a_{32} & 1\end{bmatrix}$
 
-  \item Homography Two:
+  \item Homography II:
     $H = \begin{bmatrix} a_{11} &a_{12} & a_{13}\\ a_{21} & a_{22} & a_{23}\\ a_{31} & a_{32} & a_{33}\end{bmatrix} $
     and $\begin{Vmatrix} H \end{Vmatrix} = 1$
 
@@ -156,7 +167,7 @@ Given a set of matches, affine and the first kind of homography transformation c
 by least-squares fitting an over-determined linear system.
 The second kind of homography transformation can be solved by singular value decomposition.
 The two homography lead to similar results, which are used when \verb|TRANS = 1|.
-For warped images, all the transformation work well.
+For warped images, all the three types of transformation work well.
 In this project, affine transformation is used for generating panoramas.
 
 \subsection{Straightening}
@@ -172,7 +183,7 @@ using the image in the middle as the pivot can help reduce the tilt effect.
 Moreover, when the option \verb|PANO = 1| is set, an automatic straightening process will be executed.
 
 First, a binary search on the tilt factor is performed, aiming to make the result ``longer''.
-Second, the program will try to catenate the first image after the last one,
+Second, we try to concatenate the first image after the last one,
 and then do a global rotation to ensure that the head and tail are aligned horizontally.
 After this two processes, the result is like \figref{unbend}.
 
@@ -187,7 +198,7 @@ The size of the final result is determined immediately after calculating all the
 And the pixel value in the result image is calculated by an inverse transformation and interpolation with nearby pixels,
 in order to reduce alias effect.
 
-As for the overlap effect, the distance of the pixel to each image center is used to calculate a weighted sum of the pixel value.
+As for the overlap effect, the distance from the overlapped pixel to each image center is used to calculate a weighted sum of the pixel value.
 The result is almost seamless, as shown in \figref{blend}.
 \begin{figure}[H]
   \centering
@@ -207,7 +218,7 @@ For each row $i$, the update
  r[j] &= \max\{ k \in [0, m) \cap \mathbf{N}: h[t] \ge h[j], \forall j \le t \le k\} \\
 l[j]  &= \min\{ k \in [0, m) \cap \mathbf{N} : h[t] \ge h[j], \forall k \le t \le j\}\\
 \end{flalign*} for every $ j \in [0, n) $ can be done in amortized $ O(1)$ time, and the corresponding area is $ (r[j] - l[j] + 1) \times h[j]$.
-After the iteration, the maximum area with corresponding $i, j $ is our result.
+After the iteration, the rectangular $[i - h[j] + 1, i] \times [l[j], r[j]] $ with maximum area is our result.
 
 The cropped final result is shown in \figref{cropped}
 \begin{figure}[H]

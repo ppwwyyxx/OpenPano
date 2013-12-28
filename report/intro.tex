@@ -1,9 +1,7 @@
 % File: intro.tex
-% Date: Tue May 21 12:53:33 2013 +0800
+% Date: Sat Dec 28 19:35:16 2013 +0800
 % Author: Yuxin Wu <ppwwyyxxc@gmail.com>
-\section{Usage}
-The program is written in C++11, and is also available at \url{https://github.com/ppwwyyxx/panorama}.
-
+\section{Introduction}
 \subsection{Compilation}
 Dependencies:
 
@@ -37,7 +35,7 @@ moving in pure translation or pure rotation.
 Use \verb|./main <file1> <file2> <file3> ...| in the command line to run the program.
 Output file is \verb|out.png|.
 
-Usually, input images should not exeeds $20(files)\times 1500(pixels) \times 1000(pixels)$, since your computer may not have enough memory.
+Usually, input images should not exeeds $20(files)\times 1500(pixels) \times 1000(pixels)$, since this program consumes a lot of memory.
 
 The input file names given in the command line need to be well ordered, to make sure the adjacent images can be stitched together.
 
@@ -49,7 +47,7 @@ $ ./main ../data/flower/small*
   \end{lstlisting}
 \begin{figure}[H]
   \centering
-  \includegraphics[scale=0.27]{res/small.png}
+  \includegraphics[scale=0.27]{res/flower.png}
 \end{figure}
 
 

@@ -16,6 +16,7 @@ output:
 
 view: output/$(TARGET).pdf
 	$(READER) output/$(TARGET).pdf &
+	(inotifywait -mqe CLOSE_WRITE output/report.pdf | while read; do killall -SIGHUP mupdf; done)
 
 clean:
 	rm -rf output
