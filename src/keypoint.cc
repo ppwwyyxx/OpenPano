@@ -1,5 +1,5 @@
 // File: keypoint.cc
-// Date: Fri May 03 01:38:55 2013 +0800
+// Date: Sat Dec 28 20:15:52 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include <cstring>
@@ -157,6 +157,7 @@ void KeyPoint::calc_dir() {
 	features = move(update_feature);
 }
 
+// assign orientation to each keypoint
 void KeyPoint::calc_dir(Feature& feat, vector<Feature>& update_feat) {
 	int no = feat.no, ns = feat.ns;
 	Coor now = feat.coor;
@@ -197,7 +198,7 @@ vector<real_t> KeyPoint::calc_hist(shared_ptr<Octave> oct, int ns, Coor coor, re
 	}
 
 
-	for (int K = ORT_HIST_SMOOTH_COUNT; K --;)		// smooth by interpolation
+	for (int K = ORT_HIST_SMOOTH_COUNT; K --;)		// smooth the histogram by interpolation
 		REP(i, ORT_HIST_BIN_NUM) {
 			real_t prev = hist[i == 0 ? ORT_HIST_BIN_NUM - 1 : i - 1];
 			real_t next = hist[i == ORT_HIST_BIN_NUM - 1 ? 0 : i + 1];
