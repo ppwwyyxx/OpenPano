@@ -1,5 +1,5 @@
 // File: gallery.hh
-// Date: Sat Apr 20 00:27:58 2013 +0800
+// Date: Sat Dec 28 18:15:00 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
@@ -12,7 +12,9 @@ class Gallery {
 		Magick::Image img;
 
 	public:
-		Gallery(std::list<Magick::Image>&);
+		Gallery(std::list<Magick::Image>& List) {
+			Magick::appendImages(&img, List.begin(), List.end(), false);
+		}
 
 		void save(const char* fname)
 		{ img.write(fname); }
