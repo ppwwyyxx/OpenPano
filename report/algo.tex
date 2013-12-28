@@ -1,5 +1,5 @@
 % File: algo.tex
-% Date: Sun May 05 17:04:00 2013 +0800
+% Date: Sat Dec 28 18:13:17 2013 +0800
 % Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 \section{Algorithms}
@@ -201,12 +201,13 @@ the program simply manage to find a rectangular with largest area within the ori
 
 A classic $ O(n \times m)$ algorithm is used, where $ n, m$ is the height and width of the original result.
 
-For each row $i$, update
+For each row $i$, the update
 \begin{flalign*}
- h[j] &= \begin{cases}0,& if\ i = 0\ or\ A[i][j]\ is\ outside \\ h[j] + 1,& otherwise\end{cases}\\
+ h[j] &= \begin{cases}0,& if\ i = 0\ or\ A[i][j]\ is\ outside the area\\ h[j] + 1,& otherwise\end{cases}\\
  r[j] &= \max\{ k \in [0, m) \cap \mathbf{N}: h[t] \ge h[j], \forall j \le t \le k\} \\
 l[j]  &= \min\{ k \in [0, m) \cap \mathbf{N} : h[t] \ge h[j], \forall k \le t \le j\}\\
-\end{flalign*} for every $ j \in [0, n) $ in amortized $ O(1)$ time, and the corresponding area is $ (r[j] - l[j] + 1) \times h[j]$.
+\end{flalign*} for every $ j \in [0, n) $ can be done in amortized $ O(1)$ time, and the corresponding area is $ (r[j] - l[j] + 1) \times h[j]$.
+After the iteration, the maximum area with corresponding $i, j $ is our result.
 
 The cropped final result is shown in \figref{cropped}
 \begin{figure}[H]
