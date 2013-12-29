@@ -1,5 +1,5 @@
 // File: main.cc
-// Date: Sun Dec 29 15:45:12 2013 +0800
+// Date: Sun Dec 29 17:29:30 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "render/filerender.hh"
@@ -34,12 +34,19 @@ void test_feature(const char* fname, int mode = 1) {
 	PlaneDrawer pld(r);
 
 	cout << ans.size() << endl;
-	for (auto i : ans) {
+	for (auto &i : ans) {
 		if (mode)
 			pld.arrow(toCoor(i.real_coor), i.dir, LABEL_LEN);
 		else
 			pld.cross(toCoor(i.real_coor), LABEL_LEN / 2);
 	}
+
+	ofstream feature_out("feature.txt");
+	for (auto &i : ans) {
+		// in r, c format
+		feature_out << int(i.real_coor.x) << " " << int(i.real_coor.y) << endl;
+	}
+	feature_out.close();
 	r->finish();
 	delete r;
 }
