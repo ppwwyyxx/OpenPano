@@ -1,5 +1,5 @@
 // File: main.cc
-// Date: Thu Jul 04 11:52:30 2013 +0800
+// Date: Sun Dec 29 15:45:12 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "render/filerender.hh"
@@ -94,20 +94,9 @@ void gallery(const char* f1, const char* f2) {
 	delete r;
 }
 
-void test_memory(const char* fname) {
-	imgptr test = make_shared<Img>(fname);
-	get_feature(test);
-	get_feature(test);
-	get_feature(test);
-	get_feature(test);
-	int a;
-	cin >> a;
-	return;
-}
-
 void test_warp(int argc, char* argv[]) {
 	Warper warp(1);
-	REPL(i, 1, argc) {
+	REPL(i, 2, argc) {
 		imgptr test = make_shared<Img>(argv[i]);
 		warp.warp(test);
 		RenderBase* r = new FileRender(test, (to_string(i) + ".png").c_str());
@@ -220,12 +209,17 @@ void planet(const char* fname) {
 int main(int argc, char* argv[]) {
 	srand(time(NULL));
 	init_config();
-	//test_extrema(argv[1]);
-	//test_feature(argv[1]);
-	//gallery(argv[1], argv[2]);
+	string command = argv[1];
+	if (command == "extrema")
+		test_extrema(argv[2]);
+	else if (command == "feature")
+		test_feature(argv[2]);
+	else if (command == "gallery")
+		gallery(argv[2], argv[3]);
 	//test_transform(argv[1], argv[2]);
-	//test_memory(argv[1]);
-	//test_warp(argc, argv);
+	else if (command == "warp")
+		test_warp(argc, argv);
 	//planet(argv[1]);
-	work(argc, argv);
+	else
+		work(argc, argv);
 }
