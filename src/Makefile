@@ -1,8 +1,8 @@
 # $File: Makefile
-# $Date: Sun May 05 23:03:22 2013 +0800
+# $Date: Sun Dec 29 20:15:52 2013 +0800
 
 OBJ_DIR = obj
-TARGET = main
+TARGET = image-stitching
 
 INCLUDE_DIR = -Iinclude
 DEFINES = -DDEBUG
