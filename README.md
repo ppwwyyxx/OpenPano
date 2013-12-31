@@ -41,14 +41,14 @@ The input file names given in the command line need to be well ordered, to make 
 
 ## Examples:
 
-This is Zijing Apartment in Tsinghua University:
-![dorm](https://github.com/ppwwyyxx/panorama/raw/master/results/apartment.png)
+Zijing Apartment in Tsinghua University:
+![dorm](https://github.com/ppwwyyxx/panorama/raw/master/results/small/apartment.jpg)
 
-These are myselves:
-![myself](https://github.com/ppwwyyxx/panorama/raw/master/results/myself.png)
+Myselves:
+![myself](https://github.com/ppwwyyxx/panorama/raw/master/results/small/myself.jpg)
 
-This is Zijing Playground in Tsinghua University:
-![planet](https://github.com/ppwwyyxx/panorama/raw/master/results/planet.png)
+Zijing Playground in Tsinghua University:
+![planet](https://github.com/ppwwyyxx/panorama/raw/master/results/small/planet.jpg)
 
 For more examples, see [results](https://github.com/ppwwyyxx/panorama/tree/master/results).
 
