@@ -28,7 +28,7 @@ final : *.tex *.bib output
 	cd output && rm -f *.tex *.bib && ln -s ../*.tex ../*.bib .
 	cd output && $(TEX) $(TARGET).tex && $(BIBTEX) $(TARGET) && \
 		$(TEX) $(TARGET).tex && $(TEX) $(TARGET).tex
-	gs -sDEVICE=pdfwrite -dMaxSubsetPct=100 -dPDFSETTINGS=/ebook -dAutoFilterColorImages=false -dColorImageFilter=/FlateEncode -sOutputFile="../report.pdf" -dNOPAUSE -dBATCH output/$(TARGET).pdf
+	gs -sDEVICE=pdfwrite -dMaxSubsetPct=100 -dPDFSETTINGS=/ebook -dAutoFilterColorImages=false -dColorImageFilter=/FlateEncode -sOutputFile="../readme.pdf" -dNOPAUSE -dBATCH output/$(TARGET).pdf
 
 count:
 	@word_count *.tex
