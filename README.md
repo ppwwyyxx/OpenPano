@@ -55,4 +55,4 @@ For more examples, see [results](https://github.com/ppwwyyxx/panorama/tree/maste
 ## Algorithms
 I use [SIFT](http://en.wikipedia.org/wiki/Scale-invariant_feature_transform) for feature detection and [RANSAC](http://en.wikipedia.org/wiki/RANSAC) to estimate transformation.
 
-For more details, please see [report.pdf](https://github.com/ppwwyyxx/panorama/raw/master/report.pdf).
+For more details, please see [readme.pdf](https://github.com/ppwwyyxx/panorama/raw/master/readme.pdf).
