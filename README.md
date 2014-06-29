@@ -19,12 +19,13 @@ $ make
 
 Various parameters are saved in ``src/config.cfg``
 
-Without special needs, we only have to modify ``PANO``, ``TRANS``, ``CROP``.
+Without special needs, we only have to set ``PANO``, ``TRANS``, ``CROP``.
 
-The program does some extra work to beautify the output if knowing the input pictures were taken by a camera moving in pure translation or pure rotation.
+The program does some extra work to optimize the output
+when knowing the input pictures were taken by a camera moving in pure translation or pure rotation.
 
-* ``PANO = 1`` tells that the camera moved in pure rotation. A panorama is expected to be the output;
-* ``TRANS = 1`` tells that the camera moved in pure translation. Result will be better than the one with this option unset;
+* ``PANO = 1`` indicates that the camera moved in pure rotation. A panorama is expected to be the output;
+* ``TRANS = 1`` indicates that the camera moved in pure translation. Result will be better than one without this option set;
 * ``CROP`` decides whether to crop the final image to a rectangular;
 
 ### Run:
