@@ -1,5 +1,5 @@
 # $File: Makefile
-# $Date: Wed Jun 17 12:39:48 2015 +0800
+# $Date: Wed Jun 17 20:52:38 2015 +0800
 
 OBJ_DIR = obj
 TARGET = image-stitching
@@ -7,8 +7,7 @@ TARGET = image-stitching
 INCLUDE_DIR = -Iinclude
 DEFINES = -DDEBUG
 
-#OPTFLAGS = -O3 -g -Wall -Wextra -Wcpp -O
-OPTFLAGS = -O3
+OPTFLAGS = -O3 -march=native -Wall -Wextra
 
 LIBS =
 #INCLUDE_DIR += $(shell pkg-config --cflags $(LIBS))
@@ -31,7 +30,9 @@ DEPFILES = $(OBJS:.o=.d)
 
 all: $(TARGET)
 
+ifneq ($(MAKECMDGOALS), clean)
 sinclude $(DEPFILES)
+endif
 
 $(OBJ_DIR)/%.o: %.cc
 	@echo "[cc] $< ..."
@@ -50,7 +51,7 @@ $(TARGET): $(OBJS)
 
 
 clean:
-	@rm -rf $(OBJ_DIR)
+	@rm -rvf $(OBJ_DIR)
 
 run: $(TARGET)
 	./$(TARGET) lenna.png lenna_r.png

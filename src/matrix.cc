@@ -1,5 +1,5 @@
 // File: matrix.cc
-// Date: Thu May 02 11:39:28 2013 +0800
+// Date: Thu Jun 18 04:36:58 2015 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include <boost/numeric/mtl/mtl.hpp>
@@ -123,7 +123,8 @@ bool Matrix::inverse(Matrix &ret) const {
 	mtlM inverse(h, w);
 	try {
 		inv(input, inverse);
-	} catch (...) {
+	} catch (mtl::matrix_singular) {
+		cout << input << endl;
 		return false;
 	}
 

@@ -6,9 +6,9 @@ This is an image stitching program written in C++11.
 
 ### Compile Dependencies:
 
-* gcc >= 4.7
+* gcc >= 4.7	(it seeems MTL doesn't work with ICC)
 * [Magick++](http://www.imagemagick.org/Magick++/)
-* [Boost MTL](http://www.simunova.com/node/145)
+* [Boost MTL](http://www.simunova.com/node/145) (included in the repo)
 
 ### Compile:
 ```
@@ -27,6 +27,7 @@ when knowing the input pictures were taken by a camera moving in pure translatio
 * ``PANO = 1`` indicates that the camera moved in pure rotation. A panorama is expected to be the output;
 * ``TRANS = 1`` indicates that the camera moved in pure translation. Result will be better than one without this option set;
 * ``CROP`` decides whether to crop the final image to a rectangular;
+* NOTE that PANO and TRANS can not be both set.
 
 ### Run:
 
