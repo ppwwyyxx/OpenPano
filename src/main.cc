@@ -1,5 +1,5 @@
 // File: main.cc
-// Date: Sun Dec 29 17:29:30 2013 +0800
+// Date: Wed Jun 17 20:29:58 2015 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "render/filerender.hh"
@@ -144,8 +144,10 @@ void init_config() {
 	PANO = Config.get("PANO");
 	TRANS = Config.get("TRANS");
 	CROP = Config.get("CROP");
-	if (PANO && TRANS)
-		assert(false);
+	if (PANO && TRANS) {
+		cerr << "Want panorama or translation stitching? Cannot have both!" << endl;
+		exit(1);
+	}
 	HOMO = TRANS;
 
 	NUM_OCTAVE = Config.get("NUM_OCTAVE");
