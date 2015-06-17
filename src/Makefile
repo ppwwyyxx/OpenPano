@@ -1,5 +1,5 @@
 # $File: Makefile
-# $Date: Sun Dec 29 20:15:52 2013 +0800
+# $Date: Wed Jun 17 12:39:48 2015 +0800
 
 OBJ_DIR = obj
 TARGET = image-stitching
@@ -40,7 +40,7 @@ $(OBJ_DIR)/%.o: %.cc
 $(OBJ_DIR)/%.d: %.cc  Makefile
 	@mkdir -p $(dir $@)
 	@echo "[dep] $< ..."
-	@$(CC) $(INCLUDE_DIR) $(DEFINES) -MM -MT "$(OBJ_DIR)/$(<:.cc=.o) $(OBJ_DIR)/$(<:.cc=.d)" "$<"  > "$@"
+	@$(CC) $(CXXFLAGS) $(DEFINES) -MM -MT "$(OBJ_DIR)/$(<:.cc=.o) $(OBJ_DIR)/$(<:.cc=.d)" "$<"  > "$@"
 
 
 $(TARGET): $(OBJS)
