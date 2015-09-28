@@ -1,7 +1,9 @@
 obj
 main
-src/*.png
-src/*.jpg
+*.png
+*.jpg
+*.jpg
+*.zip
 .tags
 output
 *.pyc

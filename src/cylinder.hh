@@ -3,8 +3,8 @@
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
-#include "geometry.hh"
-#include "image.hh"
+#include "lib/geometry.hh"
+#include "lib/image.hh"
 #include "feature.hh"
 
 class Sphere {

@@ -3,8 +3,8 @@
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "render/filerender.hh"
-#include "config.hh"
-#include "planedrawer.hh"
+#include "lib/config.hh"
+#include "lib/planedrawer.hh"
 #include "warper.hh"
 #include "keypoint.hh"
 #include "matcher.hh"

@@ -6,9 +6,9 @@
 #include <memory>
 #include <utility>
 #include <vector>
-#include "image.hh"
+#include "lib/image.hh"
 #include "matcher.hh"
-#include "matrix.hh"
+#include "lib/matrix.hh"
 
 class Panorama {
 	private:

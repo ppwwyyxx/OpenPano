@@ -8,7 +8,7 @@
 using namespace std;
 
 #include "planedrawer.hh"
-#include "debugutils.hh"
+#include "lib/debugutils.hh"
 
 std::ostream& operator << (std::ostream& os, const Line2D& l) {
 	os << l.first << "->" << l.second;

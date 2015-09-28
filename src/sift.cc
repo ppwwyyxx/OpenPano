@@ -2,9 +2,9 @@
 // Date: Thu Jul 04 11:51:48 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
-#include "config.hh"
+#include "lib/config.hh"
 #include "sift.hh"
-#include "utils.hh"
+#include "lib/utils.hh"
 #include "filter.hh"
 using namespace std;
 

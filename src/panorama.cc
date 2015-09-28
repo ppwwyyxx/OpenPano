@@ -6,7 +6,7 @@
 #include <fstream>
 #include "panorama.hh"
 #include "matcher.hh"
-#include "utils.hh"
+#include "lib/utils.hh"
 #include "cylinder.hh"
 #include "keypoint.hh"
 #include "warper.hh"
