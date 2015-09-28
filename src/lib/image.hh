@@ -6,6 +6,8 @@
 
 #include <cstring>
 #include <memory>
+#define cimg_use_png
+#define cimg_use_jpeg
 #include "CImg.h"
 #include "color.hh"
 

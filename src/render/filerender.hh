@@ -28,6 +28,7 @@ class FileRender : public RenderBase {
 		}
 
 		void finish() {
+			img = img * 255.0;
 			img.save(fname.c_str());
 		}
 
