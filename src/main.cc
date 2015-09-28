@@ -5,6 +5,7 @@
 #include "render/filerender.hh"
 #include "lib/config.hh"
 #include "lib/planedrawer.hh"
+#include "lib/imgproc.hh"
 #include "warper.hh"
 #include "keypoint.hh"
 #include "matcher.hh"
@@ -26,9 +27,10 @@ vector<Feature> get_feature(imgptr& ptr)
 { return Panorama::get_feature(ptr); }
 
 void test_feature(const char* fname, int mode = 1) {
-	shared_ptr<Img> test = make_shared<Img>(fname);
+	auto mat = read_rgb(fname);
+	shared_ptr<Img> test = make_shared<Img>(mat);
 	vector<Feature> ans = get_feature(test);
-	RenderBase* r = new FileRender(test, "feature.png");
+	RenderBase* r = new FileRender(mat, "feature.png");
 	cout << r->get_geo().w << r->get_geo().h << endl;
 	PlaneDrawer pld(r);
 
@@ -51,8 +53,9 @@ void test_feature(const char* fname, int mode = 1) {
 }
 
 void test_extrema(const char* fname) {
-	imgptr test = make_shared<Img>(fname) ;
-	RenderBase* r = new FileRender(test, "extrema.png");
+	auto mat = read_rgb(fname);
+	imgptr test = make_shared<Img>(mat) ;
+	RenderBase* r = new FileRender(mat, "extrema.png");
 	cout << r->get_geo().w << r->get_geo().h << endl;
 	PlaneDrawer pld(r);
 
@@ -68,22 +71,21 @@ void test_extrema(const char* fname) {
 
 
 void gallery(const char* f1, const char* f2) {
-	list<Image> imagelist;
-	Image pic1(f1);
-	Image pic2(f2);
+	list<Img> imagelist;
+	Img pic1(f1);
+	Img pic2(f2);
 	imagelist.push_back(pic1);
 	imagelist.push_back(pic2);
-	Gallery ga(imagelist);
 
-	shared_ptr<Img> test = make_shared<Img>(ga.get());
-	RenderBase* r = new FileRender(test, "gallery.png");
+	Img concatenated = hconcat(imagelist);
+	imgptr test = make_shared<Img>(concatenated);
+	RenderBase* r = new FileRender(test->mat, "gallery.png");
 	PlaneDrawer pld(r);
 
 	vector<Feature> ans = get_feature(test);
 	for (auto i : ans) pld.arrow(toCoor(i.real_coor), i.dir, LABEL_LEN);
-
-	imgptr ptr1 = make_shared<Img>(pic1);
-	imgptr ptr2 = make_shared<Img>(pic2);
+	auto ptr1 = make_shared<Img>(pic1),
+			 ptr2 = make_shared<Img>(pic2);
 	vector<Feature> feat1 = get_feature(ptr1);
 	vector<Feature> feat2 = get_feature(ptr2);
 
@@ -103,9 +105,10 @@ void gallery(const char* f1, const char* f2) {
 void test_warp(int argc, char* argv[]) {
 	Warper warp(1);
 	REPL(i, 2, argc) {
-		imgptr test = make_shared<Img>(argv[i]);
+		Mat32f mat = read_rgb(argv[i]);
+		imgptr test = make_shared<Img>(mat);
 		warp.warp(test);
-		RenderBase* r = new FileRender(test, (to_string(i) + ".png").c_str());
+		RenderBase* r = new FileRender(mat, (to_string(i) + ".png").c_str());
 		r->finish();
 	}
 }
@@ -118,7 +121,7 @@ void test_transform(const char* f1, const char* f2) {
 	Panorama p(imgs);
 	shared_ptr<Img> res = p.get();
 
-	RenderBase* r = new FileRender(res, "out.png");
+	RenderBase* r = new FileRender(res->mat, "out.png");
 	r->finish();
 	delete r;
 }
@@ -133,7 +136,7 @@ void work(int argc, char* argv[]) {
 	imgptr res = p.get();
 
 	if (CROP) res->crop();
-	RenderBase* r = new FileRender(res, "out.png");
+	RenderBase* r = new FileRender(res->mat, "out.png");
 	r->finish();
 	delete r;
 }
@@ -210,7 +213,7 @@ void planet(const char* fname) {
 		update_min(dist, (real_t)h - 1);
 		ret->set_pixel(i, j, test->get_pixel(dist, theta));
 	}
-	RenderBase* r = new FileRender(ret, "planet.png");
+	RenderBase* r = new FileRender(ret->mat, "planet.png");
 	r->finish();
 }
 

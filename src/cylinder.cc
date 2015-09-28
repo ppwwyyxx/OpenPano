@@ -53,7 +53,7 @@ imgptr CylProject::project(const imgptrc& img, vector<Feature>& ft) const {
 	REP(i, ret->h) REP(j, ret->w) {
 		Vec2D oricoor = cyl.proj_r((Vec2D(j, i) - offset) * sizefactor_inv);
 		if (between(oricoor.x, 0, img->w) && between(oricoor.y, 0, img->h))
-			ret->set_pixel(i, j, img->get_pixel(oricoor));
+			ret->set_pixel(i, j, img->get_pixel(oricoor.y, oricoor.x));
 	}
 
 	for (auto & f : ft)

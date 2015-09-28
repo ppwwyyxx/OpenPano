@@ -4,8 +4,12 @@
 
 #pragma once
 #include "render/render.hh"
-#include "lib/image.hh"
+#include "lib/mat.h"
+#define cimg_use_png
+#define cimg_use_jpeg
+#include "lib/CImg.h"
 #include <cstring>
+typedef cimg_library::CImg<float> Image;
 
 class FileRender : public RenderBase {
 	private:
@@ -22,8 +26,8 @@ class FileRender : public RenderBase {
 		FileRender(int w, int h, const char* fname):
 			FileRender(::Geometry(w, h), fname){}
 
-		FileRender(std::shared_ptr<Img> img, const char* fname):
-			FileRender(img->w, img->h, fname){
+		FileRender(const Mat32f& img, const char* fname):
+			FileRender(img.width(), img.height(), fname){
 			write(img);
 		}
 

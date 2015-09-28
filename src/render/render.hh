@@ -6,7 +6,7 @@
 #pragma once
 
 #include <memory>
-#include "lib/image.hh"
+#include "lib/mat.h"
 #include "lib/matrix.hh"
 #include "lib/color.hh"
 #include "lib/common.hh"
@@ -15,10 +15,6 @@ class RenderBase {
 	public:
 		RenderBase(const Geometry &m_g):
 			geo(m_g){}
-
-		RenderBase(const Img* r):
-			RenderBase(Geometry(r->w, r->h)){
-			}
 
 		virtual ~RenderBase(){};
 
@@ -31,23 +27,17 @@ class RenderBase {
 		void write(int x, int y, const Color &c) {
 			if (x < 0 || x >= geo.w || y < 0 || y >= geo.h)
 				return;
-			/*
-			 *c.check();
-			 */
 
 			_write(x, y, c);
 			render_cnt ++;
 		}
 
-		void write(std::shared_ptr<const Img> r) {
-			m_assert((r->h == geo.h) && (r->w == geo.w));
+		void write(const Mat32f& r) {
 			REP(i, geo.h) {
-				Color * dest = r->pixel[i];
 				REP(j, geo.w) {
-					write(j, i, *dest);
-					dest ++;
+					const float* p = r.ptr(i, j);
+					write(j, i, Color(p[0], p[1], p[2]));
 				}
-
 			}
 		}
 
