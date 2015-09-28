@@ -3,11 +3,11 @@
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "image.hh"
+
 #include "filter.hh"
-#include "render/MImageRender.hh"
 #include "cylinder.hh"
 using namespace std;
-using namespace Magick;
+using namespace cimg_library;
 
 void Img::init(int m_w, int m_h) {
 	w = m_w, h = m_h;
@@ -22,21 +22,25 @@ void GreyImg::init(int m_w, int m_h) {
 }
 
 void Img::init_from_image(const Image& img) {
-	Magick::Geometry size = img.size();
-	init(size.width(), size.height());
+	init(img.width(), img.height());
 
-
-	const PixelPacket* src = img.getConstPixels(0, 0, w, h);
 	REP(i, h) {
 		::Color * dest = pixel[i];
 		REP(j, w) {
-			dest->x = (real_t)(src->red) / QuantumRange;
-			dest->y = (real_t)(src->green) / QuantumRange;
-			dest->z = (real_t)(src->blue) / QuantumRange;
+			dest->x = img(j, i, 0);
+			dest->y = img(j, i, 1);
+			dest->z = img(j, i, 2);
 			dest ++;
-			src ++;
 		}
 	}
+}
+
+Img::Img(const Image& img)
+{ init_from_image(img); }
+
+Img::Img(const char* fname) {
+	Image img(fname);
+	init_from_image(img);
 }
 
 Img::Img(const GreyImg& gr) {
@@ -47,11 +51,22 @@ Img::Img(const GreyImg& gr) {
 	}
 }
 
+Image Img::get_cimg() const {
+	Image	ret(w, h, 1, 3, 0);
+	REP(i, h) REP(j, w) {
+		Color c = get_pixel(i, j);
+		ret(j, i, 0) = c.x;
+		ret(j, i, 1) = c.y;
+		ret(j, i, 2) = c.z;
+	}
+	return ret;
+}
+
 Img Img::get_resized(real_t factor) const {
-	int neww = ceil(w * factor),
-		newh = ceil(h * factor);
-	Image img = MImg(shared_from_this()).get_img();
-	img.resize(Magick::Geometry(neww, newh));
+	int neww = ceil(w * factor), newh = ceil(h * factor);
+	Image img = get_cimg();
+	img.resize(neww, newh);
+	m_assert(img.spectrum() == 3);
 	return move(img);
 }
 

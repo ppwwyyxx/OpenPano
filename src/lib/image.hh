@@ -6,8 +6,10 @@
 
 #include <cstring>
 #include <memory>
-#include <Magick++.h>
+#include "CImg.h"
 #include "color.hh"
+
+typedef cimg_library::CImg<float> Image;
 
 class GreyImg;
 
@@ -15,7 +17,7 @@ class Img : public std::enable_shared_from_this<Img> {
 	protected:
 		void init(int m_w, int m_h);
 
-		void init_from_image(const Magick::Image& img);
+		void init_from_image(const Image& img);
 
 	public:
 		int w = 0, h = 0;
@@ -56,18 +58,16 @@ class Img : public std::enable_shared_from_this<Img> {
 		Img(int m_w, int m_h)
 		{ init(m_w, m_h); }
 
-		Img(const Magick::Image& img)
-		{ init_from_image(img); }
+		Img(const Image& img);
 
-		Img(const char* fname) {
-			Magick::Image img(fname);
-			init_from_image(img);
-		}
+		Img(const char* fname);
 
 		Img(const GreyImg& gr);
 
 		~Img()
 		{ delete[] pixel; }
+
+		Image get_cimg() const;
 
 		Img get_resized(real_t factor) const;
 
@@ -101,7 +101,7 @@ class GreyImg {
 
 		void init_from_img(const Img& img);
 
-		void init_from_image(const Magick::Image img);
+		void init_from_image(const Image& img);
 
 	public:
 		int w, h;
@@ -117,7 +117,7 @@ class GreyImg {
 		GreyImg(const Img& img)
 		{ init_from_img(img); }
 
-		GreyImg(const Magick::Image& img)
+		GreyImg(const Image& img)
 		{ init_from_image(img); }
 
 		~GreyImg()

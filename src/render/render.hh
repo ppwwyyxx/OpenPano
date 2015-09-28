@@ -6,10 +6,10 @@
 #pragma once
 
 #include <memory>
-#include "lib/common.hh"
+#include "lib/image.hh"
 #include "lib/matrix.hh"
 #include "lib/color.hh"
-#include "lib/image.hh"
+#include "lib/common.hh"
 
 class RenderBase {
 	public:

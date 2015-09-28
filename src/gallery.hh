@@ -4,22 +4,25 @@
 
 #pragma once
 #include "lib/image.hh"
-#include <Magick++.h>
+#include "lib/CImg.h"
 #include <list>
 
 class Gallery {
 	protected:
-		Magick::Image img;
+		Image img;
 
 	public:
-		Gallery(std::list<Magick::Image>& List) {
-			Magick::appendImages(&img, List.begin(), List.end(), false);
+		Gallery(std::list<Image>& List) {
+			cimg_library::CImgList<float> imgs;
+			for (auto& i : List)
+				imgs.insert(i);
+			img = imgs.get_append('x');
 		}
 
 		void save(const char* fname)
-		{ img.write(fname); }
+		{ img.save(fname); }
 
-		const Magick::Image& get() const
+		const Image& get() const
 		{ return img; }
 
 

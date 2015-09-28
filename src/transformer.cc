@@ -11,7 +11,7 @@ Matrix TransFormer::get_transform() {		// second -> first
 	int REQUIRED = (HOMO ? HOMO_FREEDOM / 2 : AFFINE_FREEDOM / 2);
 	int n_match = match.size();
 	if (n_match < REQUIRED) {
-		PP("only have matches: ", n_match);
+		cout << "only have matches: " << n_match << endl;
 		return Matrix(3, 3);
 	}
 

@@ -5,8 +5,6 @@
 #include "lib/config.hh"
 #include "filter.hh"
 #include "lib/utils.hh"
-#include "render/MImageRender.hh"
-using namespace Magick;
 using namespace std;
 
 GaussCache::GaussCache(real_t sigma) {
