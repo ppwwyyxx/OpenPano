@@ -4,7 +4,7 @@
 
 #ifndef __HEAD__PLANE_DRAWER
 #define __HEAD__PLANE_DRAWER
-#include "color.hh"
+#include "lib/color.hh"
 #include "render/render.hh"
 
 class PlaneDrawer {

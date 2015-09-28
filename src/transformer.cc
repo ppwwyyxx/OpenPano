@@ -2,7 +2,7 @@
 // Date: Fri May 03 23:04:58 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
-#include "config.hh"
+#include "lib/config.hh"
 #include "transformer.hh"
 #include <set>
 using namespace std;

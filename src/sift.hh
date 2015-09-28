@@ -5,7 +5,7 @@
 #pragma once
 #include <memory>
 
-#include "image.hh"
+#include "lib/image.hh"
 class Octave {
 	private:
 		int nscale;

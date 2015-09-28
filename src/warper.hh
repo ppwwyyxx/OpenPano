@@ -5,8 +5,8 @@
 #pragma once
 #include <vector>
 
-#include "config.hh"
-#include "image.hh"
+#include "lib/config.hh"
+#include "lib/image.hh"
 #include "feature.hh"
 #include "cylinder.hh"
 

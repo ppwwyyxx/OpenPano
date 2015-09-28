@@ -4,7 +4,7 @@
 
 #include <cstring>
 #include "keypoint.hh"
-#include "matrix.hh"
+#include "lib/matrix.hh"
 
 using namespace std;
 

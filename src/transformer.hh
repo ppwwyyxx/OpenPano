@@ -5,7 +5,7 @@
 #pragma once
 #include <vector>
 #include "matcher.hh"
-#include "matrix.hh"
+#include "lib/matrix.hh"
 
 class TransFormer {
 	private:

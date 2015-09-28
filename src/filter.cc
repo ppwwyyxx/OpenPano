@@ -2,9 +2,9 @@
 // Date: Thu Jul 04 11:05:14 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
-#include "config.hh"
+#include "lib/config.hh"
 #include "filter.hh"
-#include "utils.hh"
+#include "lib/utils.hh"
 #include "render/MImageRender.hh"
 using namespace Magick;
 using namespace std;

@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include "config.hh"
-#include "geometry.hh"
+#include "lib/config.hh"
+#include "lib/geometry.hh"
 #include <cstring>
 
 class Feature {

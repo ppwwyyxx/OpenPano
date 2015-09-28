@@ -3,7 +3,7 @@
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
-#include "image.hh"
+#include "lib/image.hh"
 #include <Magick++.h>
 #include <list>
 
