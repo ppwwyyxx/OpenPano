@@ -9,15 +9,15 @@ DEFINES = -DDEBUG
 
 OPTFLAGS = -O3 -march=native -Wall -Wextra
 
-LIBS =
-#INCLUDE_DIR += $(shell pkg-config --cflags $(LIBS))
+LIBS = libpng
+INCLUDE_DIR += $(shell pkg-config --cflags $(LIBS))
 
 CXXFLAGS = $(INCLUDE_DIR) -fopenmp
 CXXFLAGS += $(DEFINES) -std=c++11 $(OPTFLAGS)
 
 LDFLAGS = -fopenmp $(OPTFLAGS)
-#LDFLAGS += $(shell pkg-config $(LIBS) --libs)
-LDFLAGS += -lX11
+LDFLAGS += $(shell pkg-config $(LIBS) --libs)
+LDFLAGS += -lX11 -ljpeg
 
 CC = g++
 SHELL = bash

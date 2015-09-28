@@ -40,6 +40,7 @@ Img::Img(const Image& img)
 
 Img::Img(const char* fname) {
 	Image img(fname);
+	img = img / 255.0;
 	init_from_image(img);
 }
 
