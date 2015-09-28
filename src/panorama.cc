@@ -4,6 +4,7 @@
 // XXX: I know it is somehow ugly
 
 #include <fstream>
+#include <algorithm>
 #include "panorama.hh"
 #include "matcher.hh"
 #include "lib/utils.hh"
@@ -40,7 +41,7 @@ imgptr Panorama::get() {
 	Vec2D diff = max - min,
 		  offset = min * (-1);
 	Coor size = toCoor(diff);
-	PP("size: ", size);
+	cout << "size: " << size << endl;
 
 	// inverse
 	for_each(mat.begin(), mat.end(),
@@ -167,7 +168,7 @@ void Panorama::cal_best_matrix_pano() {;
 
 		// judge circle
 		if ((real_t)matched.size() * 2 / (feats[0].size() + feats[n - 1].size()) > CONNECTED_THRES) {
-			P("detect circle");
+			cout << "detect circle" << endl;
 			CIRCLE = true;
 			imgs.push_back(imgs[0]);
 			mat.push_back(Matrix::I(3));

@@ -5,6 +5,12 @@
 
 #pragma once
 
+/*
+ *#define P(a) std::cout << (a) << std::endl
+ *#define PP(s, a) std::cout << s << " " << (a) << std::endl
+ */
+
+
 void __m_assert_check__(bool val, const char *expr,
 		const char *file, const char *func, int line);
 

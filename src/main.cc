@@ -14,7 +14,6 @@
 #include <cassert>
 
 using namespace std;
-using namespace Magick;
 
 bool TEMPDEBUG = false;
 

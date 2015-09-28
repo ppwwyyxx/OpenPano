@@ -14,11 +14,10 @@ LIBS =
 
 CXXFLAGS = $(INCLUDE_DIR) -fopenmp
 CXXFLAGS += $(DEFINES) -std=c++11 $(OPTFLAGS)
-CXXFLAGS += $(shell Magick++-config --cxxflags)
 
 LDFLAGS = -fopenmp $(OPTFLAGS)
 #LDFLAGS += $(shell pkg-config $(LIBS) --libs)
-LDFLAGS += $(shell Magick++-config --ldflags --libs)
+LDFLAGS += -lX11
 
 CC = g++
 SHELL = bash

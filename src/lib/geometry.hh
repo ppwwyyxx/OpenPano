@@ -4,10 +4,10 @@
 
 #pragma once
 
-#include "common.hh"
 #include <vector>
 #include <limits>
 #include <cmath>
+#include "common.hh"
 
 class Geometry {
 	public:

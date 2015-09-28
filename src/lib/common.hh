@@ -21,9 +21,6 @@ inline real_t sqr(real_t x) { return x * x; }
 
 #define toCoor(a) Coor((a).x, (a).y)
 
-#define P(a) std::cout << (a) << std::endl
-#define PP(s, a) std::cout << s << " " << (a) << std::endl
-
 template <typename T>
 inline void free_2d(T** ptr, int w) {
 	if (ptr != nullptr)
