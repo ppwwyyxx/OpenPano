@@ -5,85 +5,54 @@
 #pragma once
 
 #include <cstring>
+#include <list>
 #include <memory>
-#define cimg_use_png
-#define cimg_use_jpeg
-#include "CImg.h"
 #include "color.hh"
-
-typedef cimg_library::CImg<float> Image;
+#include "mat.h"
 
 class GreyImg;
 
 class Img : public std::enable_shared_from_this<Img> {
-	protected:
-		void init(int m_w, int m_h);
-
-		void init_from_image(const Image& img);
-
 	public:
-		int w = 0, h = 0;
-		Color** pixel;
+		Mat32f mat;
+		int w, h;
 
-		Img(const Img& img):
-			Img(img.w, img.h)
-		{
-			REP(i, h)
-				memcpy(pixel[i], img.pixel[i], w * sizeof(Color));
+		Img(const Img& img):mat(img.mat) {
+			w = mat.width();
+			h = mat.height();
+		}
+
+		Img(const Mat32f& mat):mat(mat) {
+			w = mat.width();
+			h = mat.height();
 		}
 
 		Img& operator=(const Img& img) {
-			if (this != &img) {
-				free_2d<Color>(pixel, h);
-				init(img.w, img.h);
-				REP(i, h)
-					memcpy(pixel[i], img.pixel[i], w * sizeof(Color));
+			mat = img.mat;
+			w = mat.width();
+			h = mat.height();
+			return *this;
+		}
+
+		Img(int m_w, int m_h):
+			mat(m_h, m_w, 3) {
+			w = mat.width();
+			h = mat.height();
 			}
-			return *this;
-		}
-
-		Img(Img&& img) {
-			w = img.w, h = img.h;
-			pixel = img.pixel;
-			img.pixel = nullptr;
-		}
-
-		Img & operator = (Img && r) {
-			free_2d<Color>(pixel, h);
-			pixel = r.pixel;
-			w = r.w, h = r.h;
-			r.pixel = nullptr;
-			return *this;
-		}
-
-
-		Img(int m_w, int m_h)
-		{ init(m_w, m_h); }
-
-		Img(const Image& img);
 
 		Img(const char* fname);
 
 		Img(const GreyImg& gr);
 
-		~Img()
-		{ delete[] pixel; }
-
-		Image get_cimg() const;
-
 		Img get_resized(real_t factor) const;
 
-		inline const Color& get_pixel(int r, int c) const {
-			m_assert(between(r, 0, h) && between(c, 0, w));
-			return pixel[r][c];
+		Color get_pixel(int r, int c) const {
+			return Color(mat.at(r, c, 0), mat.at(r, c, 1), mat.at(r, c, 2));
 		}
 
-		Color get_pixel(real_t, real_t) const;
+		Color get_pixel(real_t y, real_t x) const;
 
-		const Color& get_pixel(const Coor& w) const
-		{ return get_pixel(w.y, w.x);}
-
-		Color get_pixel(const Vec2D& w) const
+		Color get_pixel(const Coor& w) const
 		{ return get_pixel(w.y, w.x);}
 
 		void set_pixel(int, int, const Color&);
@@ -92,7 +61,7 @@ class Img : public std::enable_shared_from_this<Img> {
 
 		bool is_image_edge(real_t, real_t) const;
 
-		Vec2D get_center() const { return Vec2D(w / 2, h / 2); }
+		Vec2D get_center() const { return Vec2D(mat.cols() / 2, mat.rows() / 2); }
 
 		void crop();
 };
@@ -102,8 +71,6 @@ class GreyImg {
 		void init(int m_w, int m_h);
 
 		void init_from_img(const Img& img);
-
-		void init_from_image(const Image& img);
 
 	public:
 		int w, h;
@@ -119,9 +86,6 @@ class GreyImg {
 		GreyImg(const Img& img)
 		{ init_from_img(img); }
 
-		GreyImg(const Image& img)
-		{ init_from_image(img); }
-
 		~GreyImg()
 		{ delete[] pixel; }
 
@@ -133,6 +97,7 @@ class GreyImg {
 
 };
 
+Img hconcat(const std::list<Img>& imglist);
 
 typedef std::shared_ptr<Img> imgptr;
 typedef std::shared_ptr<const Img> imgptrc;

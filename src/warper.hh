@@ -17,8 +17,8 @@ class Warper {
 			h_factor(m_hfactor) {}
 
 		void warp(imgptr& img, std::vector<Feature>& ft) const {
-			int r = std::max(img->w, img->h) / 2;
-			Vec cen(img->w / 2, img->h / 2 * h_factor, r * 2);
+			int r = std::max(img->mat.width(), img->mat.height()) / 2;
+			Vec cen(img->mat.width() / 2, img->mat.height() / 2 * h_factor, r * 2);
 			CylProject cyl(r, cen, r * OUTPUT_SIZE_FACTOR);
 			img = cyl.project(img, ft);
 		}

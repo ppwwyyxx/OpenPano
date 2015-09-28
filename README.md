@@ -7,7 +7,6 @@ This is an image stitching program written in C++11.
 ### Compile Dependencies:
 
 * gcc >= 4.7	(it seeems MTL doesn't work with ICC)
-* [Magick++](http://www.imagemagick.org/Magick++/)
 * [Boost MTL](http://www.simunova.com/node/145) (included in the repo)
 
 ### Compile:
