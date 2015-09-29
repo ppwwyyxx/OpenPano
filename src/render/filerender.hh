@@ -5,48 +5,45 @@
 #pragma once
 #include "render/render.hh"
 #include "lib/mat.h"
-#define cimg_use_png
-#define cimg_use_jpeg
-#include "lib/CImg.h"
+#include "lib/imgproc.hh"
 #include <cstring>
-typedef cimg_library::CImg<float> Image;
 
 class FileRender : public RenderBase {
 	private:
-		Image img;
+		Mat32f img;
 		std::string fname;
 
 	public:
-		FileRender(const ::Geometry& g, const char* m_fname):
+		FileRender(const ::Geometry& g, const char* fname):
 			RenderBase(g),
-			img(g.w, g.h, 1, 3, 0),
-			 fname(m_fname) {
+			img(g.h, g.w, 3),
+			fname(fname) {
+			fill(img, Color::BLACK);
 		}
 
 		FileRender(int w, int h, const char* fname):
 			FileRender(::Geometry(w, h), fname){}
 
-		FileRender(const Mat32f& img, const char* fname):
-			FileRender(img.width(), img.height(), fname){
-			write(img);
+		FileRender(const Mat32f& m, const char* fname):
+			FileRender(m.width(), m.height(), fname) {
+			write(m);
 		}
 
 		void finish() {
-			img = img * 255.0;
-			img.save(fname.c_str());
+			write_rgb(fname.c_str(), img);
 		}
 
 	private:
 		void _write(int x, int y, const ::Color &c) {
 			if (c.get_max() < 0) {
-				// white background
-				img(x, y, 0) = 1;
-				img(x, y, 1) = 1;
-				img(x, y, 2) = 1;
+				// white background for COLOR::NO
+				img.at(y, x, 0) = 1;
+				img.at(y, x, 1) = 1;
+				img.at(y, x, 2) = 1;
 			} else {
-				img(x, y, 0) = c.x;
-				img(x, y, 1) = c.y;
-				img(x, y, 2) = c.z;
+				img.at(y, x, 0) = c.x;
+				img.at(y, x, 1) = c.y;
+				img.at(y, x, 2) = c.z;
 			}
 		}
 

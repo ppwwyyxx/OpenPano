@@ -11,7 +11,7 @@
 #include "lib/imgproc.hh"
 #include "lib/utils.hh"
 #include "cylinder.hh"
-#include "keypoint.hh"
+#include "feature/keypoint.hh"
 #include "warper.hh"
 #include "transformer.hh"
 using namespace std;

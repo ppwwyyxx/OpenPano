@@ -5,7 +5,7 @@
 #pragma once
 #include "lib/geometry.hh"
 #include "lib/mat.h"
-#include "feature.hh"
+#include "feature/feature.hh"
 
 class Sphere {
 	public:

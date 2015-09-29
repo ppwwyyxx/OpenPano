@@ -7,7 +7,7 @@
 
 #include "lib/config.hh"
 #include "lib/mat.h"
-#include "feature.hh"
+#include "feature/feature.hh"
 #include "cylinder.hh"
 
 class Warper {

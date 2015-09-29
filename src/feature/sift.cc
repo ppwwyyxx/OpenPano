@@ -13,7 +13,7 @@ using namespace std;
 Octave::Octave(const Mat32f& m, int num_scale):
 	nscale(num_scale),
 	data(num_scale), mag(num_scale), ort(num_scale),
-   w(m.width()), h(m.height())
+	w(m.width()), h(m.height())
 {
 	TotalTimer tm("init_octave");
 	if (m.channels() == 3)
@@ -36,9 +36,9 @@ void Octave::cal_mag_ort(int i) {
 	ort[i] = Mat32f(h, w, 1);
 	REP(y, h) {
 		float *mag_row = mag[i].ptr(y),
-		      *ort_row = ort[i].ptr(y);
+					*ort_row = ort[i].ptr(y);
 		const float *orig_row = orig.ptr(y),
-						    *orig_plus = orig.ptr(y + 1),
+								*orig_plus = orig.ptr(y + 1),
 								*orig_minus = orig.ptr(y - 1);
 		// x == 0:
 		mag_row[0] = 0;
