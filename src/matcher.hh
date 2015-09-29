@@ -5,7 +5,7 @@
 #pragma once
 #include <vector>
 #include <memory>
-#include "feature.hh"
+#include "feature/feature.hh"
 
 class MatchData {
 	public:

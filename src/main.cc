@@ -7,7 +7,7 @@
 #include "lib/planedrawer.hh"
 #include "lib/imgproc.hh"
 #include "warper.hh"
-#include "keypoint.hh"
+#include "feature/keypoint.hh"
 #include "lib/timer.hh"
 #include "matcher.hh"
 #include "panorama.hh"
