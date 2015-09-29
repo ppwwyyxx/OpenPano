@@ -34,6 +34,10 @@ class Img : public std::enable_shared_from_this<Img> {
 			return *this;
 		}
 
+		void check() const {
+			m_assert(w == mat.width() && h == mat.height());
+		}
+
 		Img(int m_w, int m_h):
 			mat(m_h, m_w, 3) {
 			w = mat.width();
@@ -47,6 +51,7 @@ class Img : public std::enable_shared_from_this<Img> {
 		Img get_resized(real_t factor) const;
 
 		Color get_pixel(int r, int c) const {
+			m_assert(w == mat.width() && h == mat.height());
 			return Color(mat.at(r, c, 0), mat.at(r, c, 1), mat.at(r, c, 2));
 		}
 
@@ -62,8 +67,6 @@ class Img : public std::enable_shared_from_this<Img> {
 		bool is_image_edge(real_t, real_t) const;
 
 		Vec2D get_center() const { return Vec2D(mat.cols() / 2, mat.rows() / 2); }
-
-		void crop();
 };
 
 class GreyImg {

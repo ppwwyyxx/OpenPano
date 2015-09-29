@@ -50,9 +50,11 @@ Img::Img(const GreyImg& gr):mat(gr.w, gr.h, 3) {
 }
 
 Img Img::get_resized(real_t factor) const {
+	m_assert(w == mat.width() && h == mat.height());
 	int neww = ceil(mat.width() * factor), newh = ceil(h * factor);
 	Img ret(neww, newh);
 	resize(mat, ret.mat);
+	m_assert(ret.w == ret.mat.width());
 	return ret;
 }
 
@@ -86,38 +88,6 @@ void Img::set_pixel(int r, int c, const ::Color& val) {
 	mat.at(r, c, 1) = val.y;
 	mat.at(r, c, 2) = val.z;
 }
-
-void Img::crop() {
-	int w = mat.width(), h = mat.height();
-	int height[w], left[w], right[w];
-	int maxarea = 0;
-	int ll = 0, rr = 0, hh = 0, nl = 0;
-	memset(height, 0, sizeof(height));
-	REP(line, h) {
-		REP(k, w)
-			height[k] = get_pixel(line, k).get_max() < 0 ? 0 : height[k] + 1;	// judge Color::NO
-
-		REP(k, w) {
-			left[k] = k;
-			while (left[k] > 0 && height[k] <= height[left[k] - 1])
-				left[k] = left[left[k] - 1];
-		}
-		REPD(k, w - 1, 0) {
-			right[k] = k;
-			while (right[k] < w - 1 && height[k] <= height[right[k] + 1])
-				right[k] = right[right[k] + 1];
-		}
-		REP(k, w)
-			if (update_max(maxarea, (right[k] - left[k] + 1) * height[k]))
-				ll = left[k], rr = right[k], hh = height[k], nl = line;
-	}
-	Img ret(rr - ll + 1, hh);
-	int offsetx = ll, offsety = nl - hh + 1;
-	REP(i, ret.h) REP(j, ret.w)
-		ret.set_pixel(i, j, get_pixel(i + offsety, j + offsetx));
-	*this = move(ret);
-}
-
 real_t GreyImg::get_pixel(int r, int c) const {
 	m_assert(between(r, 0, h) && between(c, 0, w));
 	return *(pixel + r * w + c);

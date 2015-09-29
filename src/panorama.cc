@@ -21,7 +21,9 @@ Mat32f Panorama::get() {
 	mat.resize(n, I);
 	if (PANO) {
 		cal_best_matrix_pano();
+
 		straighten_simple();
+
 	} else
 		cal_best_matrix();
 
@@ -162,7 +164,6 @@ void Panorama::cal_best_matrix_pano() {;
 		Matcher match(feats[k], feats[k + 1]);
 		matches.push_back(match.match());
 	}
-
 	if (n > 2) {
 		Matcher match(feats[n - 1], feats[0]);
 		auto matched = match.match();
@@ -172,7 +173,8 @@ void Panorama::cal_best_matrix_pano() {;
 		if ((real_t)matched.size() * 2 / (feats[0].size() + feats[n - 1].size()) > CONNECTED_THRES) {
 			cout << "detect circle" << endl;
 			CIRCLE = true;
-			imgs.push_back(imgs[0]);
+			imgptr last = make_shared<Img>(imgs[0]->mat.clone());
+			imgs.push_back(last);
 			mat.push_back(Matrix::I(3));
 			feats.push_back(feats[0]);
 			matches.push_back(matched);
@@ -199,9 +201,9 @@ void Panorama::cal_best_matrix_pano() {;
 		}
 	} else
 		bestfactor = 1;
-
 	Warper warper(bestfactor);
 	REP(k, n) warper.warp(imgs[k]->mat, feats[k]);
+	REP(k, n) imgs[k]->w = imgs[k]->mat.width(), imgs[k]->h = imgs[k]->mat.height();
 
 	REPL(k, mid + 1, n) mat[k] = move(bestmat[k - mid - 1]);
 	REPD(i, mid - 1, 0)
@@ -254,7 +256,7 @@ real_t Panorama::update_h_factor(real_t nowfactor,
 	vector<vector<Feature>> nowfeats;
 
 	REPL(k, start, end) {
-		nowimgs.push_back(imgs[k]);
+		nowimgs.push_back(make_shared<Img>(imgs[k]->mat.clone()));
 		nowfeats.push_back(feats[k]);
 	}			// nowfeats[0] == feats[mid]
 
