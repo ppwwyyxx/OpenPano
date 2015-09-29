@@ -53,7 +53,7 @@ Octave::~Octave() {
 ScaleSpace::ScaleSpace(const Mat32f& mat, int num_octave, int num_scale):
 	noctave(num_octave), nscale(num_scale){
 		auto img = make_shared<Img>(mat);
-		origw = img->w, origh = img->h;
+		origw = mat.width(), origh = mat.height();
 		octaves = new shared_ptr<Octave>[noctave];
 
 		HWTimer timer;
