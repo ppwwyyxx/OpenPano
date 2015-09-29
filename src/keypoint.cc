@@ -8,7 +8,7 @@
 
 using namespace std;
 
-#define D(x, y, s) nowpic->get(s)->get_pixel(y, x)
+#define D(x, y, s) nowpic->get(s).at(y, x)
 
 KeyPoint::KeyPoint(const DOGSpace& m_dog, const ScaleSpace& m_ss):
 	dogsp(m_dog),ss(m_ss)
@@ -20,12 +20,12 @@ void KeyPoint::detect_feature() {
 }
 
 void KeyPoint::judge_extrema(int nowo, int nows) {
-	shared_ptr<GreyImg> now = dogsp.dogs[nowo]->get(nows);
-	int w = now->w, h = now->h;
+	Mat32f now = dogsp.dogs[nowo]->get(nows);
+	int w = now.width(), h = now.height();
 #pragma omp parallel for schedule(dynamic)
 	REPL(i, 1, h - 1)
 		REPL(j, 1, w - 1) {
-			real_t nowcolor = now->get_pixel(i, j);
+			real_t nowcolor = now.at(i, j);
 			if (nowcolor < PRE_COLOR_THRES)			// initial color is less than thres
 				continue;
 			if (judge_extrema(nowcolor, nowo, nows, i, j)) {
@@ -40,8 +40,8 @@ void KeyPoint::judge_extrema(int nowo, int nows) {
 
 void KeyPoint::get_feature(int nowo, int nows, int r, int c) {
 	shared_ptr<DOG> nowpic = dogsp.dogs[nowo];
-	int w = nowpic->get(nows)->w,
-		h = nowpic->get(nows)->h;
+	int w = nowpic->get(nows).width(),
+		h = nowpic->get(nows).height();
 	int depth = 0;
 	int newx = c, newy = r, news = nows;
 	Vec offset,		// x~
@@ -81,14 +81,14 @@ void KeyPoint::get_feature(int nowo, int nows, int r, int c) {
 	features.push_back(f);
 }
 
-bool KeyPoint::on_edge(int x, int y, const shared_ptr<GreyImg>& img) {
+bool KeyPoint::on_edge(int x, int y, const Mat32f& img) {
 	real_t dxx, dxy, dyy;
-	real_t val = img->get_pixel(y, x);
+	real_t val = img.at(y, x);
 
-	dxx = img->get_pixel(y, x + 1) + img->get_pixel(y, x - 1) - val - val;
-	dyy = img->get_pixel(y + 1, x) + img->get_pixel(y - 1, x) - val - val;
-	dxy = (img->get_pixel(y + 1, x + 1) + img->get_pixel(y - 1, x - 1) -
-			img->get_pixel(y + 1, x - 1) - img->get_pixel(y - 1, x + 1)) / 4;
+	dxx = img.at(y, x + 1) + img.at(y, x - 1) - val - val;
+	dyy = img.at(y + 1, x) + img.at(y - 1, x) - val - val;
+	dxy = (img.at(y + 1, x + 1) + img.at(y - 1, x - 1) -
+			img.at(y + 1, x - 1) - img.at(y - 1, x + 1)) / 4;
 
 	real_t det = dxx * dyy - dxy * dxy;
 	if (det <= 0) return true;
@@ -137,7 +137,7 @@ bool KeyPoint::judge_extrema(real_t center, int no, int ns, int nowi, int nowj) 
 	for (int level : {ns, ns - 1, ns + 1})
 		REPL(di, -1, 2) REPL(dj, -1, 2) {
 			if (!di && !dj && level == ns) continue;
-			real_t newval = dogsp.dogs[no]->get(level)->get_pixel(nowi + di, nowj + dj);
+			real_t newval = dogsp.dogs[no]->get(level).at(nowi + di, nowj + dj);
 			if (newval >= center - JUDGE_EXTREMA_DIFF_THRES) max = false;
 			if (newval <= center + JUDGE_EXTREMA_DIFF_THRES) min = false;
 			if (!max && !min)

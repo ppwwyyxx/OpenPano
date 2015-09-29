@@ -37,8 +37,7 @@ class Octave {
 			return ort[i];
 		}
 
-		int get_len() const
-		{ return nscale; }
+		int get_len() const { return nscale; }
 
 		void cal_mag_ort(int);
 };
@@ -58,10 +57,12 @@ class ScaleSpace {
 		~ScaleSpace();
 };
 
-class DOG {		// diff[0] = orig[1] - orig[0]
+// Calculate difference of a list of image
+// diff[0] = orig[1] - orig[0]
+class DOG {
 	private:
 		int nscale;
-		std::shared_ptr<GreyImg> *data;  // length is nscale - 1
+		std::vector<Mat32f> data;  // length is nscale - 1
 
 	public:
 
@@ -70,11 +71,9 @@ class DOG {		// diff[0] = orig[1] - orig[0]
 		DOG(const DOG&) = delete;
 		DOG& operator = (const DOG&) = delete;
 
-		~DOG();
+		Mat32f diff(const Mat32f&, const Mat32f&);
 
-		std::shared_ptr<GreyImg> diff(const Mat32f&, const Mat32f&);
-
-		const std::shared_ptr<GreyImg>& get(int i) const {
+		const Mat32f& get(int i) const {
 			m_assert(i >= 0 && i < nscale - 1);
 			return data[i];
 		}
