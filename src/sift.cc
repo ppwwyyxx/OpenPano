@@ -29,23 +29,38 @@ Octave::Octave(const Mat32f& m, int num_scale):
 }
 
 void Octave::cal_mag_ort(int i) {
+	TotalTimer tm("cal_mag_ort");
 	const Mat32f& orig = data[i];
 	int w = orig.width(), h = orig.height();
 	mag[i] = Mat32f(h, w, 1);
 	ort[i] = Mat32f(h, w, 1);
-	REP(x, w) REP(y, h) {
-		if (between(x, 1, w - 1) && between(y, 1, h - 1)) {
-			real_t dy = orig.at(y + 1, x) - orig.at(y - 1, x),
-				   dx = orig.at(y, x + 1) - orig.at(y, x - 1);
-			mag[i].at(y, x) = hypot(dx, dy);
-			if (dx == 0 && dy == 0)
-				ort[i].at(y, x) = M_PI;
-			else
-				ort[i].at(y, x) = atan2(dy, dx) + M_PI;
-		} else {
-			mag[i].at(y, x) = 0;
-			ort[i].at(y, x) = M_PI;
+	REP(y, h) {
+		float *mag_row = mag[i].ptr(y),
+		      *ort_row = ort[i].ptr(y);
+		const float *orig_row = orig.ptr(y),
+						    *orig_plus = orig.ptr(y + 1),
+								*orig_minus = orig.ptr(y - 1);
+		// x == 0:
+		mag_row[0] = 0;
+		ort_row[0] = M_PI;
+		REPL(x, 1, w-1) {
+			if (between(y, 1, h - 1)) {
+				float dy = orig_plus[x] - orig_minus[x],
+							 dx = orig_row[x + 1] - orig_row[x - 1];
+				mag_row[x] = hypotf(dx, dy);
+				if (dx == 0 && dy == 0)
+					ort_row[x] = M_PI;
+				else
+					ort_row[x] = atan2(dy, dx) + M_PI;
+			} else {
+				mag_row[x] = 0;
+				ort_row[x] = M_PI;
+			}
 		}
+		// x == w-1
+		mag_row[w-1] = 0;
+		ort_row[w-1] = M_PI;
+
 	}
 }
 
@@ -55,7 +70,7 @@ ScaleSpace::ScaleSpace(const Mat32f& mat, int num_octave, int num_scale):
 		octaves = new shared_ptr<Octave>[noctave];
 
 		GuardedTimer tm("Building scale space");
-// #pragma omp parallel for schedule(dynamic)
+		// #pragma omp parallel for schedule(dynamic)
 		REP(i, noctave) {
 			if (!i)
 				octaves[i] = make_shared<Octave>(mat, nscale);
@@ -68,24 +83,24 @@ ScaleSpace::ScaleSpace(const Mat32f& mat, int num_octave, int num_scale):
 				octaves[i] = make_shared<Octave>(resized, nscale);
 			}
 		}
-}
+	}
 
 ScaleSpace::~ScaleSpace()
 { delete[] octaves; }
 
 DOG::DOG(const shared_ptr<Octave>& o):
 	nscale(o->get_len()),
-  data(nscale - 1) {
-	REP(i, nscale - 1)
-		data[i] = diff(o->get(i), o->get(i + 1));
-}
+	data(nscale - 1) {
+		REP(i, nscale - 1)
+			data[i] = diff(o->get(i), o->get(i + 1));
+	}
 
 Mat32f DOG::diff(const Mat32f& img1, const Mat32f& img2) {
 	int w = img1.width(), h = img1.height();
 	m_assert(w == img2.width() && h == img2.height());
 	Mat32f ret(h, w, 1);
 	REP(i, h) REP(j, w) {
-		real_t diff = fabs(img1.at(i, j) - img2.at(i, j));
+		float diff = fabs(img1.at(i, j) - img2.at(i, j));
 		ret.at(i, j) = diff;
 	}
 	return ret;
@@ -93,13 +108,13 @@ Mat32f DOG::diff(const Mat32f& img1, const Mat32f& img2) {
 
 DOGSpace::DOGSpace(ScaleSpace& ss):
 	noctave(ss.noctave), nscale(ss.nscale) {
-	origw = ss.origw, origh = ss.origh;
-	dogs = new shared_ptr<DOG>[noctave];
+		origw = ss.origw, origh = ss.origh;
+		dogs = new shared_ptr<DOG>[noctave];
 
 #pragma omp parallel for schedule(dynamic)
-	REP(i, noctave)
-		dogs[i] = make_shared<DOG>(ss.octaves[i]);
-}
+		REP(i, noctave)
+			dogs[i] = make_shared<DOG>(ss.octaves[i]);
+	}
 
 DOGSpace::~DOGSpace()
 { delete[] dogs; }

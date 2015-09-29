@@ -24,24 +24,26 @@ GaussCache::GaussCache(float sigma) {
 		kernel[i] = new float[kw];
 		REP(j, kw) {
 			float x = i - center,
-				   y = j - center;
+				    y = j - center;
 			kernel[i][j] = exp(-(sqr(x) + sqr(y)) / (2 * sqr(sigma)));
 			kernel[i][j] /= normalization_factor;
 			kernel_tot += kernel[i][j];
 		}
 	}
-
 }
 
-Filter::Filter(int nscale, float gauss_sigma, float scale_factor) {
-	REPL(k, 1, nscale) {
-		gcache.push_back(GaussCache(gauss_sigma));
+Filter::Filter(int nscale,
+		float gauss_sigma,
+		float scale_factor) {
+	REP(k, nscale - 1) {
+		gcache.emplace_back(GaussCache(gauss_sigma));
 		gauss_sigma *= scale_factor;
 	}
 }
 
-Mat32f Filter::GaussianBlur(const Mat32f& img,
-										const GaussCache& gauss) const {
+Mat32f Filter::GaussianBlur(
+		const Mat32f& img, const GaussCache& gauss) const {
+	m_assert(img.channels() == 1);
 	TotalTimer tm("gaussianblur");
 	const int w = img.width(), h = img.height();
 	Mat32f ret(h, w, 1);
@@ -50,36 +52,37 @@ Mat32f Filter::GaussianBlur(const Mat32f& img,
 	const int center = kw / 2;
 	float ** kernel = gauss.kernel;
 
+	// cache. speed up a lot
+	vector<const float*> row_ptrs(h);
+	REP(i, h) row_ptrs[i] = img.ptr(i);
 
-	REP(i, h) REP(j, w) {
-		int x_bound = min(kw, h + center - i),
-			y_bound = min(kw, w + center - j);
-		float kernel_tot = 0;
-		if (j >= center && x_bound == kw && i >= center && y_bound == kw)
-			kernel_tot = gauss.kernel_tot;
-		else {
-			for (int x = max(center - i, 0); x < x_bound; x ++)
-				for (int y = max(center - j, 0); y < y_bound; y ++)
-					kernel_tot += kernel[x][y];
-		}
+	REP(i, h) {
+		float* now_row = ret.ptr(i);
+		REP(j, w) {
+			int x_bound = min(kw, h + center - i),
+					y_bound = min(kw, w + center - j);
 
-		float compensation = 1.0 / kernel_tot;
-		float newvalue = 0;
-		for (int x = max(0, center - i); x < x_bound; x ++)
-			for (int y = max(0, center - j); y < y_bound; y ++) {
-				int dj = y - center + j,
-					di = x - center + i;
-				float curr = img.at(di, dj);
-				newvalue += curr * kernel[x][y] * compensation;
+			float kernel_tot = 0;
+			if (j >= center && x_bound == kw && i >= center && y_bound == kw)
+				kernel_tot = gauss.kernel_tot;
+			else {
+				for (int x = max(center - i, 0); x < x_bound; x ++)
+					for (int y = max(center - j, 0); y < y_bound; y ++)
+						kernel_tot += kernel[x][y];
 			}
-		ret.at(i, j) = newvalue;
+
+			float compensation = 1.0 / kernel_tot;
+			float newvalue = 0;
+			for (int x = max(0, center - i); x < x_bound; x ++)
+				for (int y = max(0, center - j); y < y_bound; y ++) {
+					int dj = y - center + j,
+							di = x - center + i;
+					float curr = *(row_ptrs[di] + dj);
+					newvalue += curr * kernel[x][y] * compensation;
+				}
+			now_row[j] = newvalue;
+		}
 	}
 	return ret;
 }
 
-
-float Filter::to_grey(const ::Color& c) {
-	float ret = 0.299 * c.x + 0.587 * c.y + 0.114 * c.z;
-	//float ret = (c.x + c.y + c.z) / 3;
-	return ret;
-}

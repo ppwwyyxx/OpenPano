@@ -5,7 +5,7 @@ OBJ_DIR = obj
 TARGET = image-stitching
 
 INCLUDE_DIR = -Iinclude
-DEFINES = -DDEBUG
+#DEFINES = -DDEBUG
 
 OPTFLAGS = -O3 -march=native
 #OPTFLAGS = -g -O0
