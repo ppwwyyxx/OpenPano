@@ -25,17 +25,3 @@ string TERM_COLOR(int k);
 void c_printf(const char* col, const char* fmt, ...);
 
 void c_fprintf(const char* col, FILE* fp, const char* fmt, ...);
-
-class HWTimer {
-	timeval m_start;
-
-	public:
-
-		HWTimer();
-
-		double sec() const;
-
-		double get_sec();
-
-		void reset();
-};

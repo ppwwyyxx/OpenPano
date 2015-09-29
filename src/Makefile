@@ -8,7 +8,7 @@ INCLUDE_DIR = -Iinclude
 DEFINES = -DDEBUG
 
 OPTFLAGS = -O3 -march=native
-OPTFLAGS = -g -O0
+#OPTFLAGS = -g -O0
 
 LIBS = libpng
 INCLUDE_DIR += $(shell pkg-config --cflags $(LIBS))

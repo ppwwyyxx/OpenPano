@@ -6,6 +6,7 @@
 #include "sift.hh"
 #include "lib/utils.hh"
 #include "lib/imgproc.hh"
+#include "lib/timer.hh"
 #include "filter.hh"
 using namespace std;
 
@@ -14,6 +15,7 @@ Octave::Octave(const Mat32f& m, int num_scale):
 	data(num_scale), mag(num_scale), ort(num_scale),
    w(m.width()), h(m.height())
 {
+	TotalTimer tm("init_octave");
 	if (m.channels() == 3)
 		data[0] = rgb2grey(m);
 	else
@@ -48,11 +50,11 @@ void Octave::cal_mag_ort(int i) {
 }
 
 ScaleSpace::ScaleSpace(const Mat32f& mat, int num_octave, int num_scale):
-	noctave(num_octave), nscale(num_scale){
+	noctave(num_octave), nscale(num_scale) {
 		origw = mat.width(), origh = mat.height();
 		octaves = new shared_ptr<Octave>[noctave];
 
-		HWTimer timer;
+		GuardedTimer tm("Building scale space");
 // #pragma omp parallel for schedule(dynamic)
 		REP(i, noctave) {
 			if (!i)
@@ -66,9 +68,7 @@ ScaleSpace::ScaleSpace(const Mat32f& mat, int num_octave, int num_scale):
 				octaves[i] = make_shared<Octave>(resized, nscale);
 			}
 		}
-#pragma omp critical
-		print_debug("building scale space takes %lf\n", timer.get_sec());
-	}
+}
 
 ScaleSpace::~ScaleSpace()
 { delete[] octaves; }

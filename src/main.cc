@@ -8,6 +8,7 @@
 #include "lib/imgproc.hh"
 #include "warper.hh"
 #include "keypoint.hh"
+#include "lib/timer.hh"
 #include "matcher.hh"
 #include "gallery.hh"
 #include "panorama.hh"
@@ -212,6 +213,7 @@ void planet(const char* fname) {
 }
 
 int main(int argc, char* argv[]) {
+	TotalTimerGlobalGuard _g;
 	srand(time(NULL));
 	init_config();
 	string command = argv[1];

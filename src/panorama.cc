@@ -7,6 +7,7 @@
 #include <algorithm>
 #include "panorama.hh"
 #include "matcher.hh"
+#include "lib/timer.hh"
 #include "lib/imgproc.hh"
 #include "lib/utils.hh"
 #include "cylinder.hh"
@@ -59,7 +60,7 @@ Mat32f Panorama::get() {
 	fill(ret, Color::NO);
 
 	// blending
-	HWTimer timer;
+	GuardedTimer tm("Blending");
 #pragma omp parallel for schedule(dynamic)
 	REP(i, ret.height())
 		REP(j, ret.width()) {
@@ -96,7 +97,6 @@ Mat32f Panorama::get() {
 		float* p = ret.ptr(i, j);
 		p[0] = finalc.x, p[1] = finalc.y, p[2] = finalc.z;
 	}
-	print_debug("blend time: %lf secs\n", timer.get_sec());
 	return ret;
 }
 
@@ -150,14 +150,14 @@ void Panorama::cal_size() {
 	int n = imgs.size(), mid = n >> 1;\
 	vector<vector<Feature>> feats;\
 	feats.resize(n);\
-	HWTimer timer
+	Timer timer
 
 void Panorama::cal_best_matrix_pano() {;
 	prepare();
 #pragma omp parallel for schedule(dynamic)
 	REP(k, n)
 		feats[k] = Panorama::get_feature(imgs[k]->mat);
-	print_debug("feature takes %lf secs in total\n", timer.get_sec());
+	print_debug("feature takes %lf secs in total\n", timer.duration());
 
 	vector<MatchData> matches;
 	REP(k, n - 1) {
@@ -165,9 +165,10 @@ void Panorama::cal_best_matrix_pano() {;
 		matches.push_back(match.match());
 	}
 	if (n > 2) {
+		timer.restart();
 		Matcher match(feats[n - 1], feats[0]);
 		auto matched = match.match();
-		print_debug("match time: %lf secs\n", timer.get_sec());
+		print_debug("match time: %lf secs\n", timer.duration());
 
 		// judge circle
 		if ((real_t)matched.size() * 2 / (feats[0].size() + feats[n - 1].size()) > CONNECTED_THRES) {
@@ -186,7 +187,7 @@ void Panorama::cal_best_matrix_pano() {;
 	real_t minslope = numeric_limits<real_t>::max();
 	real_t bestfactor = 0;
 
-	timer.reset();
+	GuardedTimer tm("transform");
 	int start = mid, end = n, len = end - start;
 	if (len > 1) {
 		real_t newfactor = 1;
@@ -211,7 +212,6 @@ void Panorama::cal_best_matrix_pano() {;
 	// mat[i] = Panorama::get_transform(feats[i + 1], feats[i]);
 
 	REPD(i, mid - 2, 0) mat[i] = mat[i + 1].prod(mat[i]);
-	print_debug("transform time: %lf secs \n", timer.get_sec());
 }
 
 void Panorama::cal_best_matrix() {
@@ -225,7 +225,8 @@ void Panorama::cal_best_matrix() {
 #pragma omp parallel for schedule(dynamic)
 	REP(k, n)
 		feats[k] = Panorama::get_feature(imgs[k]->mat);
-	print_debug("feature takes %lf secs in total\n", timer.get_sec());
+	print_debug("feature takes %lf secs in total\n", timer.duration());
+	timer.restart();
 
 #pragma omp parallel for schedule(dynamic)
 	REPL(k, mid + 1, n)
@@ -235,7 +236,7 @@ void Panorama::cal_best_matrix() {
 	REPD(k, mid - 1, 0)
 		mat[k] = Panorama::get_transform(feats[k + 1], feats[k]);
 	REPD(k, mid - 2, 0) mat[k] = mat[k + 1].prod(mat[k]);
-	print_debug("match and transform time: %lf secs \n", timer.get_sec());
+	print_debug("match and transform time: %lf secs \n", timer.duration());
 }
 #undef prepare
 

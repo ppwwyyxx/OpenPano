@@ -5,6 +5,7 @@
 #include "lib/config.hh"
 #include "filter.hh"
 #include "lib/utils.hh"
+#include "lib/timer.hh"
 using namespace std;
 
 GaussCache::GaussCache(real_t sigma) {
@@ -41,6 +42,7 @@ Filter::Filter(int nscale, real_t gauss_sigma, real_t scale_factor) {
 
 Mat32f Filter::GaussianBlur(const Mat32f& img,
 										const GaussCache& gauss) const {
+	TotalTimer tm("gaussianblur");
 	const int w = img.width(), h = img.height();
 	Mat32f ret(h, w, 1);
 
