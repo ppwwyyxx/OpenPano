@@ -24,9 +24,11 @@ class Panorama {
 		Panorama(std::vector<imgptr>& i):
 			imgs(i){}
 
-		imgptr get();
+		Mat32f get();
 
-		static Matrix get_transform(const std::vector<Feature>&, const std::vector<Feature>&); // second -> first
+		static Matrix get_transform(
+				const std::vector<Feature>&,
+				const std::vector<Feature>&); // second -> first
 
 		static std::vector<Feature> get_feature(const Mat32f&);
 

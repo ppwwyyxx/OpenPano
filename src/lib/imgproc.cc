@@ -81,6 +81,43 @@ void fill(Mat32f& mat, const Color& c) {
 	}
 }
 
+Mat32f crop(const Mat32f& mat) {
+	int w = mat.width(), h = mat.height();
+	int height[w], left[w], right[w];
+	int maxarea = 0;
+	int ll = 0, rr = 0, hh = 0, nl = 0;
+	memset(height, 0, sizeof(height));
+	REP(line, h) {
+		REP(k, w) {
+			const float* p = mat.ptr(line, k);
+			float m = max(max(p[0], p[1]), p[2]);
+			height[k] = m < 0 ? 0 : height[k] + 1;	// judge Color::NO
+		}
+
+		REP(k, w) {
+			left[k] = k;
+			while (left[k] > 0 && height[k] <= height[left[k] - 1])
+				left[k] = left[left[k] - 1];
+		}
+		REPD(k, w - 1, 0) {
+			right[k] = k;
+			while (right[k] < w - 1 && height[k] <= height[right[k] + 1])
+				right[k] = right[right[k] + 1];
+		}
+		REP(k, w)
+			if (update_max(maxarea, (right[k] - left[k] + 1) * height[k]))
+				ll = left[k], rr = right[k], hh = height[k], nl = line;
+	}
+	Mat32f ret(hh, rr - ll + 1, 3);
+	int offsetx = ll, offsety = nl - hh + 1;
+	REP(i, ret.height()) {
+		float* dst = ret.ptr(i, 0);
+		const float* src = mat.ptr(i + offsety, offsetx);
+		memcpy(dst, src, 3 * ret.width() * sizeof(float));
+	}
+	return ret;
+}
+
 namespace {
 
 void resize_bilinear(const Mat32f &src, Mat32f &dst) {
