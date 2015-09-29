@@ -75,8 +75,7 @@ class Filter {
 		Filter(int nscale, float gauss_sigma, float scale_factor);
 
 		Mat32f GaussianBlur(const Mat32f&, const GaussCache&) const;
-		Mat32f GaussianBlur(const Mat32f& img, int n) const
-		{return GaussianBlur(img, gcache[n - 1]); }
 
-		static float to_grey(const Color& c);
+		Mat32f GaussianBlur(const Mat32f& img, int n) const
+		{ return GaussianBlur(img, gcache[n - 1]); }
 };
