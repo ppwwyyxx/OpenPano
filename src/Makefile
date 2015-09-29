@@ -7,12 +7,13 @@ TARGET = image-stitching
 INCLUDE_DIR = -Iinclude
 DEFINES = -DDEBUG
 
-OPTFLAGS = -O3 -march=native -Wall -Wextra
+OPTFLAGS = -O3 -march=native
+OPTFLAGS = -g -O0
 
 LIBS = libpng
 INCLUDE_DIR += $(shell pkg-config --cflags $(LIBS))
 
-CXXFLAGS = $(INCLUDE_DIR) -fopenmp
+CXXFLAGS = $(INCLUDE_DIR) -fopenmp -Wall -Wextra
 CXXFLAGS += $(DEFINES) -std=c++11 $(OPTFLAGS)
 
 LDFLAGS = -fopenmp $(OPTFLAGS)

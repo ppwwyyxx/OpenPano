@@ -118,6 +118,19 @@ Mat32f crop(const Mat32f& mat) {
 	return ret;
 }
 
+Mat32f rgb2grey(const Mat32f& mat) {
+	Mat32f ret(mat.height(), mat.width(), 1);
+	const float* src = mat.ptr();
+	float* dst = ret.ptr();
+	int n = mat.pixels();
+	int idx = 0;
+	for (int i = 0; i < n; ++i) {
+		dst[i] = (src[idx] + src[idx+1] + src[idx+2]) / 3.f;
+		idx += 3;
+	}
+	return ret;
+}
+
 namespace {
 
 void resize_bilinear(const Mat32f &src, Mat32f &dst) {
