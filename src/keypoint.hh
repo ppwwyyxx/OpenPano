@@ -28,7 +28,7 @@ class KeyPoint {
 
 		Vec calc_offset(int, int, int, std::shared_ptr<DOG>&, real_t*, real_t*, real_t*);
 
-		bool on_edge(int, int, const std::shared_ptr<GreyImg>&);
+		bool on_edge(int, int, const Mat32f&);
 
 		void calc_dir();
 
