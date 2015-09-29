@@ -4,6 +4,7 @@
 
 
 #include "cylinder.hh"
+#include "lib/imgproc.hh"
 using namespace std;
 
 Vec2D Sphere::proj(const Vec& p) const {
@@ -33,10 +34,10 @@ Vec2D Cylinder::proj_r(const Vec2D& p) const {
 	return Vec2D(dest.x, dest.y);
 }
 
-imgptr CylProject::project(const imgptrc& img, vector<Feature>& ft) const {
+Mat32f CylProject::project(const Mat32f& img, vector<Feature>& ft) const {
 	Vec2D min(numeric_limits<real_t>::max(), numeric_limits<real_t>::max()),
 		  max(0, 0);
-	REP(i, img->h) REP(j, img->w) {			// TODO finally: only use rect corners
+	REP(i, img.height()) REP(j, img.width()) {			// TODO finally: only use rect corners
 		Vec2D newcoor = cyl.proj(Vec2D(j, i));
 		min.update_min(newcoor), max.update_max(newcoor);
 	}
@@ -47,42 +48,19 @@ imgptr CylProject::project(const imgptrc& img, vector<Feature>& ft) const {
 	Coor size = toCoor(realsize);
 	real_t sizefactor_inv = 1.0 / sizefactor;
 
-	imgptr ret = make_shared<Img>(size.x, size.y);
-	ret->fill(Color::NO);
+	Mat32f mat(size.y, size.x, 3);
+	fill(mat, Color::NO);
 #pragma omp parallel for schedule(dynamic)
-	REP(i, ret->h) REP(j, ret->w) {
+	REP(i, mat.height()) REP(j, mat.width()) {
 		Vec2D oricoor = cyl.proj_r((Vec2D(j, i) - offset) * sizefactor_inv);
-		if (between(oricoor.x, 0, img->w) && between(oricoor.y, 0, img->h))
-			ret->set_pixel(i, j, img->get_pixel(oricoor.y, oricoor.x));
+		if (between(oricoor.x, 0, img.width()) && between(oricoor.y, 0, img.height())) {
+			Color c = interpolate(img, oricoor.y, oricoor.x);
+			float* p = mat.ptr(i, j);
+			p[0] = c.x, p[1] = c.y, p[2] = c.z;
+		}
 	}
 
 	for (auto & f : ft)
 		f.real_coor = cyl.proj(f.real_coor) * sizefactor + offset;
-	return move(ret);
+	return mat;
 }
-
-/*
- *imgptr SphProject::project(const imgptrc& img) const {
- *    Vec2D min(numeric_limits<real_t>::max(), numeric_limits<real_t>::max()),
- *          max(0, 0);
- *    REP(i, img->h) REP(j, img->w) {			// TODO finally: only use rect corners
- *        Vec2D newcoor = sph.proj(Vec2D(j, i));
- *        min.update_min(newcoor), max.update_max(newcoor);
- *    }
- *
- *    max = max * sizefactor, min = min * sizefactor;
- *    Vec2D realsize = max - min,
- *          offset = min * (-1);
- *    Coor size = toCoor(realsize);
- *    real_t sizefactor_inv = 1.0 / sizefactor;
- *
- *    imgptr ret(new Img(size.x, size.y));
- *    ret->fill(Color::BLACK);
- *    REP(i, ret->h) REP(j, ret->w) {
- *        Vec2D oricoor = sph.proj_r((Vec2D(j, i) - offset) * sizefactor_inv);
- *        if (between(oricoor.x, 0, img->w) && between(oricoor.y, 0, img->h))
- *            ret->set_pixel(i, j, img->get_pixel(oricoor));
- *    }
- *    return move(ret);
- *}
- */

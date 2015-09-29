@@ -23,15 +23,16 @@ bool TEMPDEBUG = false;
 inline real_t gen_rand()
 { return (real_t)rand() / RAND_MAX; }
 
-vector<Feature> get_feature(imgptr& ptr)
-{ return Panorama::get_feature(ptr); }
+vector<Feature> get_feature(const Mat32f& mat)
+{ return Panorama::get_feature(mat); }
 
 void test_feature(const char* fname, int mode = 1) {
 	auto mat = read_rgb(fname);
-	shared_ptr<Img> test = make_shared<Img>(mat);
-	vector<Feature> ans = get_feature(test);
+	vector<Feature> ans = get_feature(mat);
 	RenderBase* r = new FileRender(mat, "feature.png");
+
 	cout << r->get_geo().w << r->get_geo().h << endl;
+
 	PlaneDrawer pld(r);
 
 	cout << ans.size() << endl;
@@ -54,12 +55,11 @@ void test_feature(const char* fname, int mode = 1) {
 
 void test_extrema(const char* fname) {
 	auto mat = read_rgb(fname);
-	imgptr test = make_shared<Img>(mat) ;
 	RenderBase* r = new FileRender(mat, "extrema.png");
 	cout << r->get_geo().w << r->get_geo().h << endl;
 	PlaneDrawer pld(r);
 
-	ScaleSpace ss(test, NUM_OCTAVE, NUM_SCALE);
+	ScaleSpace ss(mat, NUM_OCTAVE, NUM_SCALE);
 	DOGSpace sp(ss);
 	KeyPoint ex(sp, ss);
 	ex.work();
@@ -71,31 +71,26 @@ void test_extrema(const char* fname) {
 
 
 void gallery(const char* f1, const char* f2) {
-	list<Img> imagelist;
-	Img pic1(f1);
-	Img pic2(f2);
+	list<Mat32f> imagelist;
+	Mat32f pic1 = read_rgb(f1);
+	Mat32f pic2 = read_rgb(f2);
 	imagelist.push_back(pic1);
 	imagelist.push_back(pic2);
 
-	Img concatenated = hconcat(imagelist);
-	imgptr test = make_shared<Img>(concatenated);
-	RenderBase* r = new FileRender(test->mat, "gallery.png");
+	Mat32f concatenated = hconcat(imagelist);
+	RenderBase* r = new FileRender(concatenated, "gallery.png");
 	PlaneDrawer pld(r);
 
-	vector<Feature> ans = get_feature(test);
-	for (auto i : ans) pld.arrow(toCoor(i.real_coor), i.dir, LABEL_LEN);
-	auto ptr1 = make_shared<Img>(pic1),
-			 ptr2 = make_shared<Img>(pic2);
-	vector<Feature> feat1 = get_feature(ptr1);
-	vector<Feature> feat2 = get_feature(ptr2);
+	vector<Feature> feat1 = get_feature(pic1);
+	vector<Feature> feat2 = get_feature(pic2);
 
 	Matcher match(feat1, feat2);
 	auto ret = match.match();
 	for (auto &x : ret.data) {
 		pld.set_color(::Color(gen_rand(), gen_rand(), gen_rand()));
 		pld.circle(toCoor(feat1[x.x].real_coor), LABEL_LEN);
-		pld.circle(toCoor(feat2[x.y].real_coor) + Coor(ptr1->w, 0), LABEL_LEN);
-		pld.line(toCoor(feat1[x.x].real_coor), toCoor(feat2[x.y].real_coor) + Coor(ptr1->w, 0));
+		pld.circle(toCoor(feat2[x.y].real_coor) + Coor(pic1.width(), 0), LABEL_LEN);
+		pld.line(toCoor(feat1[x.x].real_coor), toCoor(feat2[x.y].real_coor) + Coor(pic1.width(), 0));
 	}
 
 	r->finish();
@@ -106,8 +101,7 @@ void test_warp(int argc, char* argv[]) {
 	Warper warp(1);
 	REPL(i, 2, argc) {
 		Mat32f mat = read_rgb(argv[i]);
-		imgptr test = make_shared<Img>(mat);
-		warp.warp(test);
+		warp.warp(mat);
 		RenderBase* r = new FileRender(mat, (to_string(i) + ".png").c_str());
 		r->finish();
 	}

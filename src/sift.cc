@@ -50,8 +50,9 @@ Octave::~Octave() {
 	delete[] ort;
 }
 
-ScaleSpace::ScaleSpace(const shared_ptr<Img>& img, int num_octave, int num_scale):
+ScaleSpace::ScaleSpace(const Mat32f& mat, int num_octave, int num_scale):
 	noctave(num_octave), nscale(num_scale){
+		auto img = make_shared<Img>(mat);
 		origw = img->w, origh = img->h;
 		octaves = new shared_ptr<Octave>[noctave];
 

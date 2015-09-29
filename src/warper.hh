@@ -6,7 +6,7 @@
 #include <vector>
 
 #include "lib/config.hh"
-#include "lib/image.hh"
+#include "lib/mat.h"
 #include "feature.hh"
 #include "cylinder.hh"
 
@@ -16,17 +16,17 @@ class Warper {
 		Warper(real_t m_hfactor):
 			h_factor(m_hfactor) {}
 
-		void warp(imgptr& img, std::vector<Feature>& ft) const {
-			int r = std::max(img->mat.width(), img->mat.height()) / 2;
-			Vec cen(img->mat.width() / 2, img->mat.height() / 2 * h_factor, r * 2);
+		void warp(Mat32f& mat, std::vector<Feature>& ft) const {
+			int r = std::max(mat.width(), mat.height()) / 2;
+			Vec cen(mat.width() / 2, mat.height() / 2 * h_factor, r * 2);
 			CylProject cyl(r, cen, r * OUTPUT_SIZE_FACTOR);
-			img = cyl.project(img, ft);
+			mat = cyl.project(mat, ft);
 		}
 
-		void warp(imgptr& img) const {
+		void warp(Mat32f& mat) const {
 			Feature f;
 			f.real_coor = Vec2D(0, 0);
 			std::vector<Feature> ff = {f};
-			warp(img, ff);
+			warp(mat, ff);
 		}
 };

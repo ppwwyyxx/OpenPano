@@ -97,7 +97,5 @@ class GreyImg {
 
 };
 
-Img hconcat(const std::list<Img>& imglist);
-
 typedef std::shared_ptr<Img> imgptr;
 typedef std::shared_ptr<const Img> imgptrc;

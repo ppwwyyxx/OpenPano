@@ -56,18 +56,6 @@ class CylProject {
 		CylProject(int m_r, const Vec& m_center, int m_size):
 			cyl(m_r, m_center), sizefactor(m_size){}
 
-		imgptr project(const imgptrc& img, std::vector<Feature>& ft) const;
+		Mat32f project(const Mat32f& img, std::vector<Feature>& ft) const;
 };
 
-class SphProject {
-	public:
-		const Sphere sph;
-		int sizefactor;
-
-		SphProject(int m_r, const Vec& m_center, int m_size):
-			sph(m_r, m_center), sizefactor(m_size){}
-
-		/*
-		 *imgptr project(const imgptrc& img) const;
-		 */
-};
