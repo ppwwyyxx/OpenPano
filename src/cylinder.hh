@@ -4,7 +4,7 @@
 
 #pragma once
 #include "lib/geometry.hh"
-#include "lib/image.hh"
+#include "lib/mat.h"
 #include "feature.hh"
 
 class Sphere {

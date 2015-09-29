@@ -10,7 +10,6 @@
 #include "keypoint.hh"
 #include "lib/timer.hh"
 #include "matcher.hh"
-#include "gallery.hh"
 #include "panorama.hh"
 #include <ctime>
 #include <cassert>
@@ -109,11 +108,11 @@ void test_warp(int argc, char* argv[]) {
 }
 
 void test_transform(const char* f1, const char* f2) {
-	imgptr ptr1 = make_shared<Img>(f1);
-	imgptr ptr2 = make_shared<Img>(f2);
+	Mat32f p1 = read_rgb(f1);
+	Mat32f p2 = read_rgb(f2);
 
-	vector<imgptr> imgs = {ptr1, ptr2};
-	Panorama p(imgs);
+	vector<Mat32f> imgs = {p1, p2};
+	Panorama p(move(imgs));
 	Mat32f res = p.get();
 
 	RenderBase* r = new FileRender(res, "out.png");
@@ -122,11 +121,9 @@ void test_transform(const char* f1, const char* f2) {
 }
 
 void work(int argc, char* argv[]) {
-	vector<imgptr> imgs;
-	REPL(i, 1, argc) {
-		imgptr ptr = make_shared<Img>(argv[i]);
-		imgs.push_back(ptr);
-	}
+	vector<Mat32f> imgs;
+	REPL(i, 1, argc)
+		imgs.emplace_back(read_rgb(argv[i]));
 	Panorama p(imgs);
 	Mat32f res = p.get();
 
@@ -175,11 +172,11 @@ void init_config() {
 }
 
 void planet(const char* fname) {
-	imgptr test = make_shared<Img>(fname);
-	int w = test->w, h = test->h;
+	Mat32f test = read_rgb(fname);
+	int w = test.width(), h = test.height();
 	const int OUTSIZE = 1000, center = OUTSIZE / 2;
-	imgptr ret = make_shared<Img>(OUTSIZE, OUTSIZE);
-	ret->fill(::Color::NO);
+	Mat32f ret(OUTSIZE, OUTSIZE, 3);
+	fill(ret, Color::NO);
 
 	REP(i, OUTSIZE) REP(j, OUTSIZE) {
 		real_t dist = hypot(center - i, center - j);
@@ -206,9 +203,11 @@ void planet(const char* fname) {
 		theta = theta / (M_PI * 2) * w;
 
 		update_min(dist, (real_t)h - 1);
-		ret->set_pixel(i, j, test->get_pixel(dist, theta));
+		Color c = interpolate(test, dist, theta);
+		float* p = ret.ptr(i, j);
+		p[0] = c.x, p[1] = c.y, p[2] = c.z;
 	}
-	RenderBase* r = new FileRender(ret->mat, "planet.png");
+	RenderBase* r = new FileRender(ret, "planet.png");
 	r->finish();
 }
 

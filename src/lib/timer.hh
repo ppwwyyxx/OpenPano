@@ -1,9 +1,3 @@
-/*
- * $File: timer.hh
- * $Date: Wed Apr 22 12:19:57 2015 +0800
- * $Author: Xinyu Zhou <zxytim[at]gmail[dot]com>
- */
-
 #pragma once
 
 #include <chrono>
@@ -83,9 +77,4 @@ class TotalTimer {
 struct TotalTimerGlobalGuard {
 	~TotalTimerGlobalGuard() { TotalTimer::print(); }
 };
-
-
-/*
- * vim: syntax=cpp11.doxygen foldmethod=marker foldmarker=f{{{,f}}}
- */
 

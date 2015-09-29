@@ -6,13 +6,13 @@
 #include <memory>
 #include <utility>
 #include <vector>
-#include "lib/image.hh"
+#include "lib/mat.h"
 #include "matcher.hh"
 #include "lib/matrix.hh"
 
 class Panorama {
 	private:
-		std::vector<imgptr> imgs;
+		std::vector<Mat32f> imgs;
 
 		std::vector<Matrix> mat;
 
@@ -21,7 +21,10 @@ class Panorama {
 		bool CIRCLE = false;
 
 	public:
-		Panorama(std::vector<imgptr>& i):
+		Panorama(const std::vector<Mat32f>& i):
+			imgs(i){}
+
+		Panorama(std::vector<Mat32f>&& i):
 			imgs(i){}
 
 		Mat32f get();
@@ -41,7 +44,7 @@ class Panorama {
 
 		static real_t update_h_factor(real_t, real_t&, real_t&,
 				std::vector<Matrix>&,
-				const std::vector<imgptr>&,
+				const std::vector<Mat32f>&,
 				const std::vector<std::vector<Feature>>&,
 				const std::vector<MatchData>&);
 };
