@@ -113,9 +113,9 @@ void test_transform(const char* f1, const char* f2) {
 
 	vector<imgptr> imgs = {ptr1, ptr2};
 	Panorama p(imgs);
-	shared_ptr<Img> res = p.get();
+	Mat32f res = p.get();
 
-	RenderBase* r = new FileRender(res->mat, "out.png");
+	RenderBase* r = new FileRender(res, "out.png");
 	r->finish();
 	delete r;
 }
@@ -127,10 +127,10 @@ void work(int argc, char* argv[]) {
 		imgs.push_back(ptr);
 	}
 	Panorama p(imgs);
-	imgptr res = p.get();
+	Mat32f res = p.get();
 
-	if (CROP) res->crop();
-	RenderBase* r = new FileRender(res->mat, "out.png");
+	if (CROP) res = crop(res);
+	RenderBase* r = new FileRender(res, "out.png");
 	r->finish();
 	delete r;
 }

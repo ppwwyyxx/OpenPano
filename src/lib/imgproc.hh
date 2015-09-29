@@ -14,6 +14,8 @@ Mat32f hconcat(const std::list<Mat32f>& mats);
 
 Color interpolate(const Mat32f& mat, float r, float c);
 
+Mat32f crop(const Mat32f& mat);
+
 void fill(Mat32f& mat, const Color& c);
 
 template <typename T>

@@ -7,6 +7,7 @@
 #include <algorithm>
 #include "panorama.hh"
 #include "matcher.hh"
+#include "lib/imgproc.hh"
 #include "lib/utils.hh"
 #include "cylinder.hh"
 #include "keypoint.hh"
@@ -14,7 +15,7 @@
 #include "transformer.hh"
 using namespace std;
 
-imgptr Panorama::get() {
+Mat32f Panorama::get() {
 	int n = imgs.size();
 	Matrix I = Matrix::I(3);
 	mat.resize(n, I);
@@ -52,14 +53,14 @@ imgptr Panorama::get() {
 			m = move(inv);
 		});
 
-	imgptr ret = make_shared<Img>(size.x, size.y);
-	ret->fill(Color::NO);
+	Mat32f ret(size.y, size.x, 3);
+	fill(ret, Color::NO);
 
 	// blending
 	HWTimer timer;
 #pragma omp parallel for schedule(dynamic)
-	REP(i, ret->h)
-		REP(j, ret->w) {
+	REP(i, ret.height())
+		REP(j, ret.width()) {
 		Vec2D final = (Vec2D(j, i) - offset);
 		vector<pair<Color, real_t>> blender;
 		REP(k, n) {
@@ -90,7 +91,8 @@ imgptr Panorama::get() {
 		 *finalc = finalc * (1.0 / blender.size());
 		 */
 
-		ret->set_pixel(i, j, finalc);
+		float* p = ret.ptr(i, j);
+		p[0] = finalc.x, p[1] = finalc.y, p[2] = finalc.z;
 	}
 	print_debug("blend time: %lf secs\n", timer.get_sec());
 	return ret;
