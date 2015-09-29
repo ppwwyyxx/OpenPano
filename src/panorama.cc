@@ -103,8 +103,8 @@ Matrix Panorama::get_transform(const vector<Feature>& feat1, const vector<Featur
 	return move(transf.get_transform());
 }
 
-vector<Feature> Panorama::get_feature(imgptr & ptr) {
-	ScaleSpace ss(ptr, NUM_OCTAVE, NUM_SCALE);
+vector<Feature> Panorama::get_feature(const Mat32f& mat) {
+	ScaleSpace ss(mat, NUM_OCTAVE, NUM_SCALE);
 	DOGSpace sp(ss);
 	KeyPoint ex(sp, ss);
 	ex.work();
@@ -152,7 +152,7 @@ void Panorama::cal_best_matrix_pano() {;
 	prepare();
 #pragma omp parallel for schedule(dynamic)
 	REP(k, n)
-		feats[k] = Panorama::get_feature(imgs[k]);
+		feats[k] = Panorama::get_feature(imgs[k]->mat);
 	print_debug("feature takes %lf secs in total\n", timer.get_sec());
 
 	vector<MatchData> matches;
@@ -199,7 +199,7 @@ void Panorama::cal_best_matrix_pano() {;
 		bestfactor = 1;
 
 	Warper warper(bestfactor);
-	REP(k, n) warper.warp(imgs[k], feats[k]);
+	REP(k, n) warper.warp(imgs[k]->mat, feats[k]);
 
 	REPL(k, mid + 1, n) mat[k] = move(bestmat[k - mid - 1]);
 	REPD(i, mid - 1, 0)
@@ -215,12 +215,12 @@ void Panorama::cal_best_matrix() {
 
 	if (!TRANS) {
 		Warper warper(1);
-		REP(k, n) warper.warp(imgs[k], feats[k]);
+		REP(k, n) warper.warp(imgs[k]->mat, feats[k]);
 	}
 
 #pragma omp parallel for schedule(dynamic)
 	REP(k, n)
-		feats[k] = Panorama::get_feature(imgs[k]);
+		feats[k] = Panorama::get_feature(imgs[k]->mat);
 	print_debug("feature takes %lf secs in total\n", timer.get_sec());
 
 #pragma omp parallel for schedule(dynamic)
@@ -258,7 +258,7 @@ real_t Panorama::update_h_factor(real_t nowfactor,
 
 #pragma omp parallel for schedule(dynamic)
 	REP(k, len)
-		warper.warp(nowimgs[k], nowfeats[k]);
+		warper.warp(nowimgs[k]->mat, nowfeats[k]);
 
 	vector<Matrix> nowmat;		// size = len - 1
 	REPL(k, 1, len)

@@ -28,7 +28,7 @@ class Panorama {
 
 		static Matrix get_transform(const std::vector<Feature>&, const std::vector<Feature>&); // second -> first
 
-		static std::vector<Feature> get_feature(imgptr &);
+		static std::vector<Feature> get_feature(const Mat32f&);
 
 		void cal_best_matrix_pano();
 		void cal_best_matrix();

@@ -142,27 +142,3 @@ imgptr GreyImg::to_img() const {
 	}
 	return ret;
 }
-
-// XXX
-static void init_from_image(Img* img, const Image& image) {
-	Mat32f mat(image.height(), image.width(), 3);
-	REP(i, mat.rows())
-		REP(j, mat.cols()) {
-			mat.at(i, j, 0) = image(j, i, 0);
-			mat.at(i, j, 1) = image(j, i, 1);
-			mat.at(i, j, 2) = image(j, i, 2);
-		}
-	img->mat = mat;
-	img->w = mat.width();
-	img->h = mat.height();
-}
-
-Img hconcat(const std::list<Img>& imglist) {
-	CImgList<float> imgs;
-	for (auto& i : imglist)
-		imgs.insert(get_cimg(i));
-	Image img = imgs.get_append('x');
-	Img ret(img.width(), img.height());
-	init_from_image(&ret, img);
-	return ret;
-}

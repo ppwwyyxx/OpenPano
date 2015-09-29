@@ -22,11 +22,14 @@ class Mat {
 				{ return m_data.get() + r * m_cols * m_channels; }
         const T *ptr(int r, int c) const
 				{ return m_data.get() + (r * m_cols + c) * m_channels; }
+        T *ptr(int r, int c)
+				{ return m_data.get() + (r * m_cols + c) * m_channels; }
         int height() const { return m_rows; }
         int width() const { return m_cols; }
         int rows() const { return m_rows; }
         int cols() const { return m_cols; }
         int channels() const { return m_channels; }
+				int pixels() const { return m_rows * m_cols; }
 
     private:
         int m_rows, m_cols;

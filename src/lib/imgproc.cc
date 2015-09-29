@@ -30,6 +30,57 @@ Mat32f read_rgb(const char* fname) {
 	return mat;
 }
 
+
+// hconcat using largest height and zero padding
+Mat32f hconcat(const list<Mat32f>& mats) {
+	int wsum = 0;
+	int hmax = 0;
+	for (auto& m: mats) {
+		wsum += m.width();
+		update_max(hmax, m.height());
+	}
+	int channel = mats.front().channels();
+	Mat32f ret(hmax, wsum, channel);
+
+	wsum = 0;
+	for (auto & m : mats) {
+		m_assert(m.channels() == channel);
+		REP(i, m.height()) {
+			const float* src = m.ptr(i);
+			float* dst = ret.ptr(i, wsum);
+			memcpy(dst, src, m.width() * channel * sizeof(float));
+		}
+		wsum += m.width();
+	}
+	return ret;
+}
+
+Color interpolate(const Mat32f& mat, float r, float c) {
+	m_assert(mat.channels() == 3);
+	Color ret = Color::BLACK;
+	real_t dy = r - floor(r), dx = c - floor(c);
+	const float* p = mat.ptr((int)floor(r), (int)floor(c));
+	ret += Color(p[0], p[1], p[2]) * ((1 - dy) * (1 - dx));
+	p = mat.ptr((int)ceil(r), (int)floor(c));
+	ret += Color(p[0], p[1], p[2]) * (dy * (1 - dx));
+	p = mat.ptr((int)ceil(r), (int)ceil(c));
+	ret += Color(p[0], p[1], p[2]) * (dy * dx);
+	p = mat.ptr((int)floor(r), (int)ceil(c));
+	ret += Color(p[0], p[1], p[2]) * ((1 - dy) * dx);
+	return ret;
+}
+
+void fill(Mat32f& mat, const Color& c) {
+	float* ptr = mat.ptr();
+	int n = mat.pixels();
+	REP(i, n) {
+		ptr[0] = c.x;
+		ptr[1] = c.y;
+		ptr[2] = c.z;
+		ptr += 3;
+	}
+}
+
 namespace {
 
 void resize_bilinear(const Mat32f &src, Mat32f &dst) {

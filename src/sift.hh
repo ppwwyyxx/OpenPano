@@ -55,7 +55,7 @@ class ScaleSpace {
 
 		std::shared_ptr<Octave> *octaves;	// len = noctave
 
-		ScaleSpace(const std::shared_ptr<Img>&, int num_octave, int num_scale);
+		ScaleSpace(const Mat32f&, int num_octave, int num_scale);
 
 		ScaleSpace(const ScaleSpace&) = delete;
 		ScaleSpace& operator = (const ScaleSpace&) = delete;
