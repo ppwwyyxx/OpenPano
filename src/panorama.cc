@@ -72,10 +72,9 @@ Mat32f Panorama::get() {
 					!between(final.x, nowcorner.second.x, nowcorner.first.x))
 				continue;
 			Vec2D old = TransFormer::cal_project(mat[k], final);
-			if (between(old.x, 0, imgs[k]->w) && between(old.y, 0, imgs[k]->h)) {
-				if (imgs[k]->is_image_edge(old.y, old.x)) continue;
-				blender.push_back({imgs[k]->get_pixel(old.y, old.x),
-						std::max(imgs[k]->w / 2 - abs(imgs[k]->get_center().x - old.x), 1e-1)});
+			if (!is_edge_color(imgs[k], old.y, old.x)) {
+				blender.push_back({interpolate(imgs[k], old.y, old.x),
+						std::max(imgs[k].width() / 2 - abs(imgs[k].width() / 2 - old.x), 1e-1)});
 			}
 		}
 		int ncolor = blender.size();
@@ -117,9 +116,9 @@ vector<Feature> Panorama::get_feature(const Mat32f& mat) {
 
 void Panorama::straighten_simple() {
 	int n = imgs.size();
-	Vec2D center2 = imgs[n - 1]->get_center();
+	Vec2D center2(imgs[n - 1].width() / 2, imgs[n-1].height() / 2);
 	center2 = TransFormer::cal_project(mat[n - 1], center2);
-	Vec2D center1 = TransFormer::cal_project(mat[0], imgs[0]->get_center());
+	Vec2D center1 = TransFormer::cal_project(mat[0], Vec2D(imgs[0].width() / 2, imgs[0].height() / 2));
 	real_t dydx = (center2.y - center1.y) / (center2.x - center1.x);
 	Matrix S = Matrix::I(3);
 	S.get(1, 0) = dydx;
@@ -134,8 +133,8 @@ void Panorama::cal_size() {
 	REPL(i, 0, n) {
 		Vec2D min(std::numeric_limits<int>::max(), std::numeric_limits<int>::max()),
 			  max = min * (-1);
-	    Vec2D corner[4] = { Vec2D(0, 0), Vec2D(imgs[i]->w, 0),
-					        Vec2D(0, imgs[i]->h), Vec2D(imgs[i]->w, imgs[i]->h)};
+	    Vec2D corner[4] = { Vec2D(0, 0), Vec2D(imgs[i].width(), 0),
+					        Vec2D(0, imgs[i].height()), Vec2D(imgs[i].width(), imgs[i].height())};
 	    for (auto &v : corner) {
 	        Vec2D newcorner = TransFormer::cal_project(mat[i], v);
 	        min.update_min(Vec2D(floor(newcorner.x), floor(newcorner.y)));
@@ -156,7 +155,7 @@ void Panorama::cal_best_matrix_pano() {;
 	prepare();
 #pragma omp parallel for schedule(dynamic)
 	REP(k, n)
-		feats[k] = Panorama::get_feature(imgs[k]->mat);
+		feats[k] = Panorama::get_feature(imgs[k]);
 	print_debug("feature takes %lf secs in total\n", timer.duration());
 
 	vector<MatchData> matches;
@@ -174,8 +173,7 @@ void Panorama::cal_best_matrix_pano() {;
 		if ((real_t)matched.size() * 2 / (feats[0].size() + feats[n - 1].size()) > CONNECTED_THRES) {
 			cout << "detect circle" << endl;
 			CIRCLE = true;
-			imgptr last = make_shared<Img>(imgs[0]->mat.clone());
-			imgs.push_back(last);
+			imgs.push_back(imgs[0].clone());
 			mat.push_back(Matrix::I(3));
 			feats.push_back(feats[0]);
 			matches.push_back(matched);
@@ -192,8 +190,9 @@ void Panorama::cal_best_matrix_pano() {;
 	if (len > 1) {
 		real_t newfactor = 1;
 		real_t slope = Panorama::update_h_factor(newfactor, minslope, bestfactor, bestmat, imgs, feats, matches);
-		real_t centerx1 = imgs[mid]->get_center().x,
-			   centerx2 = TransFormer::cal_project(bestmat[0], imgs[mid + 1]->get_center()).x;
+		real_t centerx1 = imgs[mid].width() / 2,
+			     centerx2 = TransFormer::cal_project(
+							 bestmat[0], Vec2D(imgs[mid + 1].width() / 2, imgs[mid + 1].height() / 2)).x;
 		real_t order = (centerx2 > centerx1 ? 1 : -1);
 		REP(k, 3) {
 			if (fabs(slope) < SLOPE_PLAIN) break;
@@ -203,8 +202,7 @@ void Panorama::cal_best_matrix_pano() {;
 	} else
 		bestfactor = 1;
 	Warper warper(bestfactor);
-	REP(k, n) warper.warp(imgs[k]->mat, feats[k]);
-	REP(k, n) imgs[k]->w = imgs[k]->mat.width(), imgs[k]->h = imgs[k]->mat.height();
+	REP(k, n) warper.warp(imgs[k], feats[k]);
 
 	REPL(k, mid + 1, n) mat[k] = move(bestmat[k - mid - 1]);
 	REPD(i, mid - 1, 0)
@@ -219,12 +217,12 @@ void Panorama::cal_best_matrix() {
 
 	if (!TRANS) {
 		Warper warper(1);
-		REP(k, n) warper.warp(imgs[k]->mat, feats[k]);
+		REP(k, n) warper.warp(imgs[k], feats[k]);
 	}
 
 #pragma omp parallel for schedule(dynamic)
 	REP(k, n)
-		feats[k] = Panorama::get_feature(imgs[k]->mat);
+		feats[k] = Panorama::get_feature(imgs[k]);
 	print_debug("feature takes %lf secs in total\n", timer.duration());
 	timer.restart();
 
@@ -244,7 +242,7 @@ real_t Panorama::update_h_factor(real_t nowfactor,
 		real_t & minslope,
 		real_t & bestfactor,
 		vector<Matrix>& mat,
-		const vector<imgptr>& imgs,
+		const vector<Mat32f>& imgs,
 		const vector<vector<Feature>>& feats,
 		const vector<MatchData>& matches) {
 
@@ -253,17 +251,17 @@ real_t Panorama::update_h_factor(real_t nowfactor,
 
 	Warper warper(nowfactor);
 
-	vector<imgptr> nowimgs;
+	vector<Mat32f> nowimgs;
 	vector<vector<Feature>> nowfeats;
 
 	REPL(k, start, end) {
-		nowimgs.push_back(make_shared<Img>(imgs[k]->mat.clone()));
+		nowimgs.push_back(imgs[k].clone());
 		nowfeats.push_back(feats[k]);
 	}			// nowfeats[0] == feats[mid]
 
 #pragma omp parallel for schedule(dynamic)
 	REP(k, len)
-		warper.warp(nowimgs[k]->mat, nowfeats[k]);
+		warper.warp(nowimgs[k], nowfeats[k]);
 
 	vector<Matrix> nowmat;		// size = len - 1
 	REPL(k, 1, len)
@@ -273,9 +271,9 @@ real_t Panorama::update_h_factor(real_t nowfactor,
 	REPL(k, 1, len - 1)
 		nowmat[k] = nowmat[k - 1].prod(nowmat[k]);
 
-	Vec2D center2 = TransFormer::cal_project(nowmat[len - 2],
-			nowimgs[len - 2]->get_center()),
-		  center1 = nowimgs[0]->get_center();
+	Vec2D center2 = TransFormer::cal_project(
+			nowmat[len - 2], Vec2D(nowimgs[len - 2].width() / 2, nowimgs[len - 2].height() / 2)),
+		  center1(nowimgs[0].width() / 2, nowimgs[0].height() / 2);
 	const real_t slope = (center2.y - center1.y) / (center2.x - center1.x);
 	if (update_min(minslope, fabs(slope))) {
 		bestfactor = nowfactor;

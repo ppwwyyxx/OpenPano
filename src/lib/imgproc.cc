@@ -70,6 +70,18 @@ Color interpolate(const Mat32f& mat, float r, float c) {
 	return ret;
 }
 
+bool is_edge_color(const Mat32f& mat, float y, float x) {
+	int w = mat.width(), h = mat.height();
+	if (!between(x, 0, w) || !between(y, 0, h)) return true;
+	m_assert(mat.channels() == 3);
+	int fx = floor(x), fy = floor(y);
+	const float* ptr = mat.ptr(fy, fx);
+	REP(i, 6) if (ptr[i] < 0) return true;
+	ptr = mat.ptr(fy + 1, fx);
+	REP(i, 6) if (ptr[i] < 0) return true;
+	return false;
+}
+
 void fill(Mat32f& mat, const Color& c) {
 	float* ptr = mat.ptr();
 	int n = mat.pixels();

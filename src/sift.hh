@@ -5,8 +5,8 @@
 #pragma once
 #include <memory>
 #include <vector>
+#include "lib/mat.h"
 
-#include "lib/image.hh"
 class Octave {
 	private:
 		int nscale;

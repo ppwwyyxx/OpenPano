@@ -8,7 +8,7 @@
 #include "lib/timer.hh"
 using namespace std;
 
-GaussCache::GaussCache(real_t sigma) {
+GaussCache::GaussCache(float sigma) {
 	/*
 	 *const int kw = round(GAUSS_WINDOW_FACTOR * sigma) + 1;
 	 */
@@ -19,11 +19,11 @@ GaussCache::GaussCache(real_t sigma) {
 	normalization_factor = 2 * M_PI * sqr(sigma);
 	kernel_tot = 0;
 
-	kernel = new real_t*[kw];
+	kernel = new float*[kw];
 	REP(i, kw) {
-		kernel[i] = new real_t[kw];
+		kernel[i] = new float[kw];
 		REP(j, kw) {
-			real_t x = i - center,
+			float x = i - center,
 				   y = j - center;
 			kernel[i][j] = exp(-(sqr(x) + sqr(y)) / (2 * sqr(sigma)));
 			kernel[i][j] /= normalization_factor;
@@ -33,7 +33,7 @@ GaussCache::GaussCache(real_t sigma) {
 
 }
 
-Filter::Filter(int nscale, real_t gauss_sigma, real_t scale_factor) {
+Filter::Filter(int nscale, float gauss_sigma, float scale_factor) {
 	REPL(k, 1, nscale) {
 		gcache.push_back(GaussCache(gauss_sigma));
 		gauss_sigma *= scale_factor;
@@ -48,13 +48,13 @@ Mat32f Filter::GaussianBlur(const Mat32f& img,
 
 	const int kw = gauss.kw;
 	const int center = kw / 2;
-	real_t ** kernel = gauss.kernel;
+	float ** kernel = gauss.kernel;
 
 
 	REP(i, h) REP(j, w) {
 		int x_bound = min(kw, h + center - i),
 			y_bound = min(kw, w + center - j);
-		real_t kernel_tot = 0;
+		float kernel_tot = 0;
 		if (j >= center && x_bound == kw && i >= center && y_bound == kw)
 			kernel_tot = gauss.kernel_tot;
 		else {
@@ -63,13 +63,13 @@ Mat32f Filter::GaussianBlur(const Mat32f& img,
 					kernel_tot += kernel[x][y];
 		}
 
-		real_t compensation = 1.0 / kernel_tot;
-		real_t newvalue = 0;
+		float compensation = 1.0 / kernel_tot;
+		float newvalue = 0;
 		for (int x = max(0, center - i); x < x_bound; x ++)
 			for (int y = max(0, center - j); y < y_bound; y ++) {
 				int dj = y - center + j,
 					di = x - center + i;
-				real_t curr = img.at(di, dj);
+				float curr = img.at(di, dj);
 				newvalue += curr * kernel[x][y] * compensation;
 			}
 		ret.at(i, j) = newvalue;
@@ -78,8 +78,8 @@ Mat32f Filter::GaussianBlur(const Mat32f& img,
 }
 
 
-real_t Filter::to_grey(const ::Color& c) {
-	real_t ret = 0.299 * c.x + 0.587 * c.y + 0.114 * c.z;
-	//real_t ret = (c.x + c.y + c.z) / 3;
+float Filter::to_grey(const ::Color& c) {
+	float ret = 0.299 * c.x + 0.587 * c.y + 0.114 * c.z;
+	//float ret = (c.x + c.y + c.z) / 3;
 	return ret;
 }
