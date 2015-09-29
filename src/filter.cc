@@ -39,10 +39,10 @@ Filter::Filter(int nscale, real_t gauss_sigma, real_t scale_factor) {
 	}
 }
 
-shared_ptr<GreyImg> Filter::GaussianBlur(const shared_ptr<GreyImg>& img,
+Mat32f Filter::GaussianBlur(const Mat32f& img,
 										const GaussCache& gauss) const {
-	const int w = img->w, h = img->h;
-	shared_ptr<GreyImg> ret = make_shared<GreyImg>(w, h);
+	const int w = img.width(), h = img.height();
+	Mat32f ret(h, w, 1);
 
 	const int kw = gauss.kw;
 	const int center = kw / 2;
@@ -67,23 +67,17 @@ shared_ptr<GreyImg> Filter::GaussianBlur(const shared_ptr<GreyImg>& img,
 			for (int y = max(0, center - j); y < y_bound; y ++) {
 				int dj = y - center + j,
 					di = x - center + i;
-				real_t curr = img->get_pixel(di, dj);
+				real_t curr = img.at(di, dj);
 				newvalue += curr * kernel[x][y] * compensation;
 			}
-		ret->set_pixel(i, j, newvalue);
+		ret.at(i, j) = newvalue;
 	}
-	return move(ret);
+	return ret;
 }
 
-shared_ptr<GreyImg> Filter::GreyScale(const shared_ptr<Img> img) {
-	shared_ptr<GreyImg> ret = make_shared<GreyImg>(*img);
-	return move(ret);
-}
 
 real_t Filter::to_grey(const ::Color& c) {
-	/*
-	 *real_t ret = 0.299 * c.x + 0.587 * c.y + 0.114 * c.z;
-	 */
-	real_t ret = (c.x + c.y + c.z) / 3;
+	real_t ret = 0.299 * c.x + 0.587 * c.y + 0.114 * c.z;
+	//real_t ret = (c.x + c.y + c.z) / 3;
 	return ret;
 }

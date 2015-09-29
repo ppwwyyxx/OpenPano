@@ -5,16 +5,19 @@
 #include "lib/config.hh"
 #include "sift.hh"
 #include "lib/utils.hh"
+#include "lib/imgproc.hh"
 #include "filter.hh"
 using namespace std;
 
-Octave::Octave(const shared_ptr<GreyImg>& img, int num_scale):
-	nscale(num_scale){
-	w = img->w, h = img->h;
-	data = new shared_ptr<GreyImg>[nscale];
-	mag = new shared_ptr<GreyImg>[nscale];
-	ort = new shared_ptr<GreyImg>[nscale];
-	data[0] = img;
+Octave::Octave(const Mat32f& m, int num_scale):
+	nscale(num_scale),
+	data(num_scale), mag(num_scale), ort(num_scale),
+   w(m.width()), h(m.height())
+{
+	if (m.channels() == 3)
+		data[0] = rgb2grey(m);
+	else
+		data[0] = m.clone();
 
 	Filter blurer(nscale, GAUSS_SIGMA, SCALE_FACTOR);
 	for (int i = 1; i < nscale; i ++) {
@@ -24,30 +27,24 @@ Octave::Octave(const shared_ptr<GreyImg>& img, int num_scale):
 }
 
 void Octave::cal_mag_ort(int i) {
-	shared_ptr<GreyImg> orig = data[i];
-	int w = orig->w, h = orig->h;
-	mag[i] = make_shared<GreyImg>(w, h);
-	ort[i] = make_shared<GreyImg>(w, h);
+	const Mat32f& orig = data[i];
+	int w = orig.width(), h = orig.height();
+	mag[i] = Mat32f(h, w, 1);
+	ort[i] = Mat32f(h, w, 1);
 	REP(x, w) REP(y, h) {
 		if (between(x, 1, w - 1) && between(y, 1, h - 1)) {
-			real_t dy = orig->get_pixel(y + 1, x) - orig->get_pixel(y - 1, x),
-				   dx = orig->get_pixel(y, x + 1) - orig->get_pixel(y, x - 1);
-			mag[i]->set_pixel(y, x, hypot(dx, dy));
+			real_t dy = orig.at(y + 1, x) - orig.at(y - 1, x),
+				   dx = orig.at(y, x + 1) - orig.at(y, x - 1);
+			mag[i].at(y, x) = hypot(dx, dy);
 			if (dx == 0 && dy == 0)
-				ort[i]->set_pixel(y, x, M_PI);
+				ort[i].at(y, x) = M_PI;
 			else
-				ort[i]->set_pixel(y, x, atan2(dy, dx) + M_PI);
+				ort[i].at(y, x) = atan2(dy, dx) + M_PI;
 		} else {
-			mag[i]->set_pixel(y, x, 0);
-			ort[i]->set_pixel(y, x, M_PI);
+			mag[i].at(y, x) = 0;
+			ort[i].at(y, x) = M_PI;
 		}
 	}
-}
-
-Octave::~Octave() {
-	delete[] data;
-	delete[] mag;
-	delete[] ort;
 }
 
 ScaleSpace::ScaleSpace(const Mat32f& mat, int num_octave, int num_scale):
@@ -60,10 +57,10 @@ ScaleSpace::ScaleSpace(const Mat32f& mat, int num_octave, int num_scale):
 // #pragma omp parallel for schedule(dynamic)
 		REP(i, noctave) {
 			if (!i)
-				octaves[i] = make_shared<Octave>(img, nscale);
+				octaves[i] = make_shared<Octave>(img->mat, nscale);
 			else {
 				imgptr resized = make_shared<Img>(img->get_resized(pow(SCALE_FACTOR, -i)));
-				octaves[i] = make_shared<Octave>(resized, nscale);
+				octaves[i] = make_shared<Octave>(resized->mat, nscale);
 			}
 		}
 #pragma omp critical
@@ -83,12 +80,12 @@ DOG::DOG(const shared_ptr<Octave>& o) {
 DOG::~DOG()
 { delete[] data; }
 
-shared_ptr<GreyImg> DOG::diff(const shared_ptr<GreyImg>& img1, const shared_ptr<GreyImg>& img2) {
-	int w = img1->w, h = img1->h;
-	m_assert(w == img2->w && h == img2->h);
+shared_ptr<GreyImg> DOG::diff(const Mat32f& img1, const Mat32f& img2) {
+	int w = img1.width(), h = img1.height();
+	m_assert(w == img2.width() && h == img2.height());
 	shared_ptr<GreyImg> ret = make_shared<GreyImg>(w, h);
 	REP(i, h) REP(j, w) {
-		real_t diff = fabs(img1->get_pixel(i, j) - img2->get_pixel(i, j));
+		real_t diff = fabs(img1.at(i, j) - img2.at(i, j));
 		ret->set_pixel(i, j, diff);
 	}
 	return ret;

@@ -185,13 +185,13 @@ vector<real_t> KeyPoint::calc_hist(shared_ptr<Octave> oct, int ns, Coor coor, re
 			int newy = coor.y + yy;
 			if (! between(newy, 1, oct->h - 1)) continue;
 			if (sqr(xx) + sqr(yy) > sqr(rad)) continue;  // use a circular gaussian window
-			int bin = round(ORT_HIST_BIN_NUM / 2 * (oct->get_ort(ns)->get_pixel(newy, newx)) / M_PI);
+			int bin = round(ORT_HIST_BIN_NUM / 2 * (oct->get_ort(ns).at(newy, newx)) / M_PI);
 			if (bin == ORT_HIST_BIN_NUM) bin = 0;
 
 			m_assert(bin < ORT_HIST_BIN_NUM);
 
 			real_t weight = exp(-(sqr(xx) + sqr(yy)) / exp_denom);
-			hist[bin] += weight * oct->get_mag(ns)->get_pixel(newy, newx);
+			hist[bin] += weight * oct->get_mag(ns).at(newy, newx);
 
 			m_assert(hist[bin] >= 0);
 		}
@@ -267,8 +267,8 @@ void KeyPoint::calc_descriptor(Feature& feat) {
 			real_t ybin_r = y_rot + DESC_HIST_WIDTH / 2 - 0.5,
 				   xbin_r = x_rot + DESC_HIST_WIDTH / 2 - 0.5;
 
-			real_t pic_mag = octave->get_mag(feat.ns)->get_pixel(newy, newx),
-				   pic_ort = octave->get_ort(feat.ns)->get_pixel(newy, newx);
+			real_t pic_mag = octave->get_mag(feat.ns).at(newy, newx),
+				   pic_ort = octave->get_ort(feat.ns).at(newy, newx);
 
 			if (between(ybin_r, -1, DESC_HIST_WIDTH) && between(xbin_r, -1, DESC_HIST_WIDTH)) {
 				real_t win = exp(-(sqr(x_rot) + sqr(y_rot)) / exp_denom);

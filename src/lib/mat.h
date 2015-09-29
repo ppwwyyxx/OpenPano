@@ -11,8 +11,8 @@ class Mat {
         Mat(const Mat<T> &rhs);
         Mat<T> &operator=(const Mat<T> &rhs);
 
-        T &at(int r, int c, int ch);
-        const T &at(int r, int c, int ch) const;
+        T &at(int r, int c, int ch = 0);
+        const T &at(int r, int c, int ch = 0) const;
 
         Mat<T> clone() const;
 
