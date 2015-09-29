@@ -4,14 +4,15 @@
 
 #pragma once
 #include <memory>
+#include <vector>
 
 #include "lib/image.hh"
 class Octave {
 	private:
 		int nscale;
-		std::shared_ptr<GreyImg> *data; // len = nscale
-		std::shared_ptr<GreyImg> *mag; // len = nscale
-		std::shared_ptr<GreyImg> *ort; // len = nscale, value \in [0, 2 * pi]
+		std::vector<Mat32f> data; // len = nscale
+		std::vector<Mat32f> mag; // len = nscale
+		std::vector<Mat32f> ort; // len = nscale, value \in [0, 2 * pi]
 
 	public:
 		int w, h;
@@ -19,22 +20,19 @@ class Octave {
 		Octave(const Octave&) = delete;
 		Octave& operator = (const Octave&) = delete;
 
-		Octave(const std::shared_ptr<GreyImg>&, int num_scale);
+		Octave(const Mat32f&, int num_scale);
 
-		Octave(const std::shared_ptr<Img>& img, int num_scale):
-			Octave(std::shared_ptr<GreyImg>(new GreyImg(*img)), num_scale){ };
-
-		const std::shared_ptr<GreyImg>& get(int i) const {
+		const Mat32f& get(int i) const {
 			m_assert(i >= 0 && i < NUM_SCALE);
 			return data[i];
 		}
 
-		const std::shared_ptr<GreyImg>& get_mag(int i) const {
+		const Mat32f& get_mag(int i) const {
 			m_assert(i >= 0 && i < NUM_SCALE);
 			return mag[i];
 		}
 
-		const std::shared_ptr<GreyImg>& get_ort(int i) const {
+		const Mat32f& get_ort(int i) const {
 			m_assert(i >= 0 && i < NUM_SCALE);
 			return ort[i];
 		}
@@ -43,9 +41,6 @@ class Octave {
 		{ return nscale; }
 
 		void cal_mag_ort(int);
-
-		~Octave();
-
 };
 
 class ScaleSpace {
@@ -77,7 +72,7 @@ class DOG {		// diff[0] = orig[1] - orig[0]
 
 		~DOG();
 
-		std::shared_ptr<GreyImg> diff(const std::shared_ptr<GreyImg>&, const std::shared_ptr<GreyImg>&);
+		std::shared_ptr<GreyImg> diff(const Mat32f&, const Mat32f&);
 
 		const std::shared_ptr<GreyImg>& get(int i) const {
 			m_assert(i >= 0 && i < nscale - 1);

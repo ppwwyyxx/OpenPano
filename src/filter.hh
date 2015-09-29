@@ -5,6 +5,7 @@
 #pragma once
 #include <memory>
 #include "lib/image.hh"
+#include "lib/mat.h"
 
 class GaussCache {
 	public:
@@ -71,9 +72,9 @@ class Filter {
 		std::vector<GaussCache> gcache;		// size = nscale - 1
 		Filter(int nscale, real_t gauss_sigma, real_t scale_factor);
 
-		std::shared_ptr<GreyImg> GaussianBlur(const std::shared_ptr<GreyImg>&, const GaussCache&) const;
-		std::shared_ptr<GreyImg> GaussianBlur(const std::shared_ptr<GreyImg>& img, int n) const
+		Mat32f GaussianBlur(const Mat32f&, const GaussCache&) const;
+		Mat32f GaussianBlur(const Mat32f& img, int n) const
 		{return GaussianBlur(img, gcache[n - 1]); }
-		static std::shared_ptr<GreyImg> GreyScale(const std::shared_ptr<Img>);
-		static real_t to_grey(const ::Color&);
+
+		static real_t to_grey(const ::Color& c);
 };
