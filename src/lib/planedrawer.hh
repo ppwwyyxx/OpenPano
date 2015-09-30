@@ -5,24 +5,28 @@
 #ifndef __HEAD__PLANE_DRAWER
 #define __HEAD__PLANE_DRAWER
 #include "lib/color.hh"
-#include "render/render.hh"
+#include "lib/mat.h"
 
 class PlaneDrawer {
 	public:
-		PlaneDrawer(RenderBase* m_r):
-			 render(m_r) {}
+		// will directly WRITE to mat
+		PlaneDrawer(Mat32f& mat):
+			 mat(mat) {
+			m_assert(mat.channels() == 3);
+		}
 
 		virtual ~PlaneDrawer(){}
 
 		void set_color(Color m_c)
 		{ c = m_c; }
 
-		inline void point(int x, int y)
-		{ render->write(x, y, c); }
+		inline void point(int x, int y) {
+			float* p = mat.ptr(y, x);
+			p[0] = c.x, p[1] = c.y, p[2] = c.z;
+		}
 
 		inline void point(Coor v)
-		{ render->write(v.x, v.y, c); }
-
+		{ point(v.x, v.y); }
 
 		inline void line(Coor s, Coor t)
 		{ Bresenham(s, t); }
@@ -51,12 +55,11 @@ class PlaneDrawer {
 		void polygon(std::vector<Vec2D> p)
 		{ polygon(to_renderable(p)); }
 
-		void finish()
-		{ render->finish(); }
+		Mat32f& get_img() { return mat; }
 
 	protected:
 		void Bresenham(Coor s, Coor t);
-		RenderBase* render;
+		Mat32f& mat;
 		Color c = Color::BLACK;
 
 		Polygon to_renderable(std::vector<Vec2D> p) {

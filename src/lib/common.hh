@@ -30,7 +30,7 @@ inline void free_2d(T** ptr, int w) {
 }
 
 template<typename T>
-bool update_min(T &dest, const T &val) {
+inline bool update_min(T &dest, const T &val) {
 	if (val < dest) {
 		dest = val; return true;
 	}
@@ -38,7 +38,7 @@ bool update_min(T &dest, const T &val) {
 }
 
 template<typename T>
-bool update_max(T &dest, const T &val) {
+inline bool update_max(T &dest, const T &val) {
 	if (dest < val) {
 		dest = val; return true;
 	}

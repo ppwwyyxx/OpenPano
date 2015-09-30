@@ -2,7 +2,6 @@
 // Date: Wed Jun 17 20:29:58 2015 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
-#include "render/filerender.hh"
 #include "lib/config.hh"
 #include "lib/planedrawer.hh"
 #include "lib/imgproc.hh"
@@ -29,11 +28,8 @@ vector<Feature> get_feature(const Mat32f& mat)
 void test_feature(const char* fname, int mode = 1) {
 	auto mat = read_rgb(fname);
 	vector<Feature> ans = get_feature(mat);
-	RenderBase* r = new FileRender(mat, "feature.png");
 
-	cout << r->get_geo().w << r->get_geo().h << endl;
-
-	PlaneDrawer pld(r);
+	PlaneDrawer pld(mat);
 
 	cout << ans.size() << endl;
 	for (auto &i : ans) {
@@ -42,31 +38,29 @@ void test_feature(const char* fname, int mode = 1) {
 		else
 			pld.cross(toCoor(i.real_coor), LABEL_LEN / 2);
 	}
+	write_rgb("feature.png", mat);
 
+	// write feature to file
 	ofstream feature_out("feature.txt");
 	for (auto &i : ans) {
 		// in r, c format
 		feature_out << int(i.real_coor.x) << " " << int(i.real_coor.y) << endl;
 	}
 	feature_out.close();
-	r->finish();
-	delete r;
 }
 
 void test_extrema(const char* fname) {
 	auto mat = read_rgb(fname);
-	RenderBase* r = new FileRender(mat, "extrema.png");
-	cout << r->get_geo().w << r->get_geo().h << endl;
-	PlaneDrawer pld(r);
 
 	ScaleSpace ss(mat, NUM_OCTAVE, NUM_SCALE);
 	DOGSpace sp(ss);
 	KeyPoint ex(sp, ss);
 	ex.work();
+
+	PlaneDrawer pld(mat);
 	for (auto &i : ex.keyp)
 		pld.cross(i, LABEL_LEN / 2);
-	r->finish();
-	delete r;
+	write_rgb("extrema.png", mat);
 }
 
 
@@ -77,12 +71,12 @@ void gallery(const char* f1, const char* f2) {
 	imagelist.push_back(pic1);
 	imagelist.push_back(pic2);
 
-	Mat32f concatenated = hconcat(imagelist);
-	RenderBase* r = new FileRender(concatenated, "gallery.png");
-	PlaneDrawer pld(r);
 
 	vector<Feature> feat1 = get_feature(pic1);
 	vector<Feature> feat2 = get_feature(pic2);
+
+	Mat32f concatenated = hconcat(imagelist);
+	PlaneDrawer pld(concatenated);
 
 	Matcher match(feat1, feat2);
 	auto ret = match.match();
@@ -92,9 +86,7 @@ void gallery(const char* f1, const char* f2) {
 		pld.circle(toCoor(feat2[x.y].real_coor) + Coor(pic1.width(), 0), LABEL_LEN);
 		pld.line(toCoor(feat1[x.x].real_coor), toCoor(feat2[x.y].real_coor) + Coor(pic1.width(), 0));
 	}
-
-	r->finish();
-	delete r;
+	write_rgb("gallery.png", concatenated);
 }
 
 void test_warp(int argc, char* argv[]) {
@@ -102,23 +94,10 @@ void test_warp(int argc, char* argv[]) {
 	REPL(i, 2, argc) {
 		Mat32f mat = read_rgb(argv[i]);
 		warp.warp(mat);
-		RenderBase* r = new FileRender(mat, (to_string(i) + ".png").c_str());
-		r->finish();
+		write_rgb((to_string(i) + ".png").c_str(), mat);
 	}
 }
 
-void test_transform(const char* f1, const char* f2) {
-	Mat32f p1 = read_rgb(f1);
-	Mat32f p2 = read_rgb(f2);
-
-	vector<Mat32f> imgs = {p1, p2};
-	Panorama p(move(imgs));
-	Mat32f res = p.get();
-
-	RenderBase* r = new FileRender(res, "out.png");
-	r->finish();
-	delete r;
-}
 
 void work(int argc, char* argv[]) {
 	vector<Mat32f> imgs;
@@ -128,9 +107,7 @@ void work(int argc, char* argv[]) {
 	Mat32f res = p.get();
 
 	if (CROP) res = crop(res);
-	RenderBase* r = new FileRender(res, "out.png");
-	r->finish();
-	delete r;
+	write_rgb("out.png", res);
 }
 
 void init_config() {
@@ -207,8 +184,7 @@ void planet(const char* fname) {
 		float* p = ret.ptr(i, j);
 		p[0] = c.x, p[1] = c.y, p[2] = c.z;
 	}
-	RenderBase* r = new FileRender(ret, "planet.png");
-	r->finish();
+	write_rgb("planet.png", ret);
 }
 
 int main(int argc, char* argv[]) {
@@ -222,7 +198,6 @@ int main(int argc, char* argv[]) {
 		test_feature(argv[2]);
 	else if (command == "gallery")
 		gallery(argv[2], argv[3]);
-	//test_transform(argv[1], argv[2]);
 	else if (command == "warp")
 		test_warp(argc, argv);
 	//planet(argv[1]);
