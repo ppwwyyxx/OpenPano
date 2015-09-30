@@ -15,6 +15,8 @@ class Octave {
 		std::vector<Mat32f> mag; // len = nscale
 		std::vector<Mat32f> ort; // len = nscale, value \in [0, 2 * pi]
 
+		void cal_mag_ort(int);
+
 	public:
 		int w, h;
 
@@ -36,8 +38,6 @@ class Octave {
 		}
 
 		int get_len() const { return nscale; }
-
-		void cal_mag_ort(int);
 };
 
 class ScaleSpace {
@@ -53,39 +53,24 @@ class ScaleSpace {
 		ScaleSpace& operator = (const ScaleSpace&) = delete;
 };
 
-// Calculate difference of a list of image
-// diff[0] = orig[1] - orig[0]
-class DOG {
-	private:
-		int nscale;
-		std::vector<Mat32f> data;  // length is nscale - 1
-
-	public:
-
-		DOG(const Octave&);
-
-		DOG(const DOG&) = delete;
-		DOG& operator = (const DOG&) = delete;
-
-		Mat32f diff(const Mat32f&, const Mat32f&);
-
-		const Mat32f& get(int i) const {
-			m_assert(i >= 0 && i < nscale - 1);
-			return data[i];
-		}
-
-};
 
 class DOGSpace {
+
 	public:
+		// Calculate difference of a list of image
+		// diff[0] = orig[1] - orig[0]
+
+		typedef std::vector<Mat32f> DOG;
+
 		int noctave, nscale;
 		int origw, origh;
 
-		std::vector<std::unique_ptr<DOG>> dogs;		// len = noctave
+		std::vector<DOG> dogs;		// len = noctave
 
 		DOGSpace(const DOGSpace&) = delete;
 		DOGSpace& operator = (const DOGSpace&) = delete;
 
+		Mat32f diff(const Mat32f& img1, const Mat32f& img2) const;
 		DOGSpace(ScaleSpace&);
 
 };
