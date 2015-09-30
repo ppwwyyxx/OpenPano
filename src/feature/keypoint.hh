@@ -36,7 +36,7 @@ class KeyPoint {
 		void get_feature(int nowo, int nows, int i, int j);
 
 		Vec calc_offset(int, int, int,
-				const std::unique_ptr<DOG>&, real_t*, real_t*, real_t*);
+				const DOGSpace::DOG &, real_t*, real_t*, real_t*);
 
 		bool on_edge(int, int, const Mat32f&);
 

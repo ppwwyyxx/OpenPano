@@ -38,15 +38,15 @@ void Octave::cal_mag_ort(int i) {
 		float *mag_row = mag[i].ptr(y),
 					*ort_row = ort[i].ptr(y);
 		const float *orig_row = orig.ptr(y),
-								*orig_plus = orig.ptr(y + 1),
-								*orig_minus = orig.ptr(y - 1);
+					*orig_plus = orig.ptr(y + 1),
+					*orig_minus = orig.ptr(y - 1);
 		// x == 0:
 		mag_row[0] = 0;
 		ort_row[0] = M_PI;
 		REPL(x, 1, w-1) {
 			if (between(y, 1, h - 1)) {
 				float dy = orig_plus[x] - orig_minus[x],
-							 dx = orig_row[x + 1] - orig_row[x - 1];
+							dx = orig_row[x + 1] - orig_row[x - 1];
 				mag_row[x] = hypotf(dx, dy);
 				if (dx == 0 && dy == 0)
 					ort_row[x] = M_PI;
@@ -68,30 +68,23 @@ ScaleSpace::ScaleSpace(const Mat32f& mat, int num_octave, int num_scale):
 	noctave(num_octave), nscale(num_scale),
 	origw(mat.width()), origh(mat.height())
 {
-		GuardedTimer tm("Building scale space");
-		// #pragma omp parallel for schedule(dynamic)
-		REP(i, noctave) {
-			if (!i)
-				octaves.emplace_back(mat, nscale);
-			else {
-				float factor = pow(SCALE_FACTOR, -i);
-				int neww = ceil(origw * factor),
-						newh = ceil(origh * factor);
-				Mat32f resized(newh, neww, 3);
-				resize(mat, resized);
-				octaves.emplace_back(resized, nscale);
-			}
+	GuardedTimer tm("Building scale space");
+	// #pragma omp parallel for schedule(dynamic)
+	REP(i, noctave) {
+		if (!i)
+			octaves.emplace_back(mat, nscale);
+		else {
+			float factor = pow(SCALE_FACTOR, -i);
+			int neww = ceil(origw * factor),
+					newh = ceil(origh * factor);
+			Mat32f resized(newh, neww, 3);
+			resize(mat, resized);
+			octaves.emplace_back(resized, nscale);
 		}
 	}
+}
 
-DOG::DOG(const Octave& o):
-	nscale(o.get_len()),
-	data(nscale - 1) {
-		REP(i, nscale - 1)
-			data[i] = diff(o.get(i), o.get(i + 1));
-	}
-
-Mat32f DOG::diff(const Mat32f& img1, const Mat32f& img2) {
+Mat32f DOGSpace::diff(const Mat32f& img1, const Mat32f& img2) const {
 	int w = img1.width(), h = img1.height();
 	m_assert(w == img2.width() && h == img2.height());
 	Mat32f ret(h, w, 1);
@@ -108,6 +101,10 @@ DOGSpace::DOGSpace(ScaleSpace& ss):
 	dogs(noctave)
 {
 #pragma omp parallel for schedule(dynamic)
-		REP(i, noctave)
-			dogs[i].reset(new DOG(ss.octaves[i]));
+	REP(i, noctave) {
+		auto& o = ss.octaves[i];
+		int ns = o.get_len();
+		REP(j, ns - 1)
+			dogs[i].emplace_back(diff(o.get(j), o.get(j+1)));
+	}
 }

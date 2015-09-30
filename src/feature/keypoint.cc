@@ -8,7 +8,7 @@
 
 using namespace std;
 
-#define D(x, y, s) nowpic->get(s).at(y, x)
+#define D(x, y, s) nowpic[s].at(y, x)
 
 KeyPoint::KeyPoint(const DOGSpace& m_dog, const ScaleSpace& m_ss):
 	dogsp(m_dog),ss(m_ss)
@@ -20,7 +20,7 @@ void KeyPoint::detect_feature() {
 }
 
 void KeyPoint::judge_extrema(int nowo, int nows) {
-	Mat32f now = dogsp.dogs[nowo]->get(nows);
+	Mat32f now = dogsp.dogs[nowo][nows];
 	int w = now.width(), h = now.height();
 #pragma omp parallel for schedule(dynamic)
 	REPL(i, 1, h - 1)
@@ -40,8 +40,8 @@ void KeyPoint::judge_extrema(int nowo, int nows) {
 
 void KeyPoint::get_feature(int nowo, int nows, int r, int c) {
 	auto& nowpic = dogsp.dogs[nowo];
-	int w = nowpic->get(nows).width(),
-		h = nowpic->get(nows).height();
+	int w = nowpic[nows].width(),
+		h = nowpic[nows].height();
 	int depth = 0;
 	int newx = c, newy = r, news = nows;
 	Vec offset,		// x~
@@ -70,7 +70,7 @@ void KeyPoint::get_feature(int nowo, int nows, int r, int c) {
 	dextr = D(newx, newy, news) + dextr / 2;
 	if (dextr < CONTRAST_THRES) return;			// contrast too low
 
-	if (on_edge(newx, newy, nowpic->get(news))) return;
+	if (on_edge(newx, newy, nowpic[news])) return;
 
 	SIFTFeature f;
 	f.coor = Coor(newx, newy);
@@ -98,7 +98,7 @@ bool KeyPoint::on_edge(int x, int y, const Mat32f& img) {
 }
 
 Vec KeyPoint::calc_offset(int x, int y, int nows,
-		const unique_ptr<DOG>& nowpic,
+		const DOGSpace::DOG& nowpic,
 		real_t* dx, real_t* dy, real_t* ds)
 {
 	Vec ret = Vector::get_zero();
@@ -138,7 +138,7 @@ bool KeyPoint::judge_extrema(real_t center, int no, int ns, int nowi, int nowj) 
 	for (int level : {ns, ns - 1, ns + 1})
 		REPL(di, -1, 2) REPL(dj, -1, 2) {
 			if (!di && !dj && level == ns) continue;
-			real_t newval = dogsp.dogs[no]->get(level).at(nowi + di, nowj + dj);
+			real_t newval = dogsp.dogs[no][level].at(nowi + di, nowj + dj);
 			if (newval >= center - JUDGE_EXTREMA_DIFF_THRES) max = false;
 			if (newval <= center + JUDGE_EXTREMA_DIFF_THRES) min = false;
 			if (!max && !min)
