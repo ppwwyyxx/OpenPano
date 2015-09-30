@@ -99,14 +99,14 @@ Mat32f Panorama::get() {
 	return ret;
 }
 
-Matrix Panorama::get_transform(const vector<Feature>& feat1, const vector<Feature>& feat2) {
+Matrix Panorama::get_transform(const vector<SIFTFeature>& feat1, const vector<SIFTFeature>& feat2) {
 	Matcher match(feat1, feat2);		// this is not efficient
 	auto ret = match.match();
 	TransFormer transf(ret, feat1, feat2);
 	return move(transf.get_transform());
 }
 
-vector<Feature> Panorama::get_feature(const Mat32f& mat) {
+vector<SIFTFeature> Panorama::get_feature(const Mat32f& mat) {
 	ScaleSpace ss(mat, NUM_OCTAVE, NUM_SCALE);
 	DOGSpace sp(ss);
 	KeyPoint ex(sp, ss);
@@ -147,7 +147,7 @@ void Panorama::cal_size() {
 
 #define prepare() \
 	int n = imgs.size(), mid = n >> 1;\
-	vector<vector<Feature>> feats;\
+	vector<vector<SIFTFeature>> feats;\
 	feats.resize(n);\
 	Timer timer
 
@@ -243,7 +243,7 @@ real_t Panorama::update_h_factor(real_t nowfactor,
 		real_t & bestfactor,
 		vector<Matrix>& mat,
 		const vector<Mat32f>& imgs,
-		const vector<vector<Feature>>& feats,
+		const vector<vector<SIFTFeature>>& feats,
 		const vector<MatchData>& matches) {
 
 	const int n = imgs.size(), mid = n >> 1;
@@ -252,7 +252,7 @@ real_t Panorama::update_h_factor(real_t nowfactor,
 	Warper warper(nowfactor);
 
 	vector<Mat32f> nowimgs;
-	vector<vector<Feature>> nowfeats;
+	vector<vector<SIFTFeature>> nowfeats;
 
 	REPL(k, start, end) {
 		nowimgs.push_back(imgs[k].clone());

@@ -5,18 +5,27 @@
 #pragma once
 #include <vector>
 #include "feature.hh"
-#include "sift.hh"
+#include "lib/geometry.hh"
+#include "dog.hh"
 
 class KeyPoint {
 	public:
+		std::vector<SIFTFeature> features;
+		std::vector<Coor> keyp;
+
+		KeyPoint(const DOGSpace&, const ScaleSpace& ss);
+
+		void work() {
+			detect_feature();
+			calc_dir();
+			calc_descriptor();
+		}
+
+	protected:
 		const DOGSpace& dogsp;
 		const ScaleSpace& ss;
 		int noctave, nscale;
-		std::vector<Coor> keyp;
 
-		std::vector<Feature> features;
-
-		KeyPoint(const DOGSpace&, const ScaleSpace& ss);
 
 		void detect_feature();
 
@@ -32,18 +41,15 @@ class KeyPoint {
 
 		void calc_dir();
 
-		void calc_dir(Feature&, std::vector<Feature>&);
+		void calc_dir(SIFTFeature&, std::vector<SIFTFeature>&);
 
-		std::vector<real_t> calc_hist(std::shared_ptr<Octave> oct, int ns, Coor coor, real_t orig_sig);
+		std::vector<real_t> calc_hist(
+				std::shared_ptr<Octave> oct,
+				int ns, Coor coor, real_t orig_sig);
 
 		void calc_descriptor();
 
-		void calc_descriptor(Feature&);
-
-		void work() {
-			detect_feature();
-			calc_dir();
-			calc_descriptor();
-		}
+		// calculate and write to the input
+		void calc_descriptor(SIFTFeature&);
 
 };

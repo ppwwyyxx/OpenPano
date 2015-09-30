@@ -30,10 +30,10 @@ class Panorama {
 		Mat32f get();
 
 		static Matrix get_transform(
-				const std::vector<Feature>&,
-				const std::vector<Feature>&); // second -> first
+				const std::vector<SIFTFeature>&,
+				const std::vector<SIFTFeature>&); // second -> first
 
-		static std::vector<Feature> get_feature(const Mat32f&);
+		static std::vector<SIFTFeature> get_feature(const Mat32f&);
 
 		void cal_best_matrix_pano();
 		void cal_best_matrix();
@@ -45,6 +45,6 @@ class Panorama {
 		static real_t update_h_factor(real_t, real_t&, real_t&,
 				std::vector<Matrix>&,
 				const std::vector<Mat32f>&,
-				const std::vector<std::vector<Feature>>&,
+				const std::vector<std::vector<SIFTFeature>>&,
 				const std::vector<MatchData>&);
 };

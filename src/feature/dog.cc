@@ -1,9 +1,9 @@
-// File: sift.cc
+// File: dog.cc
 // Date: Thu Jul 04 11:51:48 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "lib/config.hh"
-#include "sift.hh"
+#include "dog.hh"
 #include "lib/utils.hh"
 #include "lib/imgproc.hh"
 #include "lib/timer.hh"

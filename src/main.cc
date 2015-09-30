@@ -22,12 +22,12 @@ bool TEMPDEBUG = false;
 inline real_t gen_rand()
 { return (real_t)rand() / RAND_MAX; }
 
-vector<Feature> get_feature(const Mat32f& mat)
+vector<SIFTFeature> get_feature(const Mat32f& mat)
 { return Panorama::get_feature(mat); }
 
 void test_feature(const char* fname, int mode = 1) {
 	auto mat = read_rgb(fname);
-	vector<Feature> ans = get_feature(mat);
+	vector<SIFTFeature> ans = get_feature(mat);
 
 	PlaneDrawer pld(mat);
 
@@ -72,8 +72,8 @@ void gallery(const char* f1, const char* f2) {
 	imagelist.push_back(pic2);
 
 
-	vector<Feature> feat1 = get_feature(pic1);
-	vector<Feature> feat2 = get_feature(pic2);
+	vector<SIFTFeature> feat1 = get_feature(pic1);
+	vector<SIFTFeature> feat2 = get_feature(pic2);
 
 	Mat32f concatenated = hconcat(imagelist);
 	PlaneDrawer pld(concatenated);

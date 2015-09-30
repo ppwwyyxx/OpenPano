@@ -8,7 +8,7 @@
 #include "lib/geometry.hh"
 #include <cstring>
 
-class Feature {
+class SIFTFeature {
 	public:
 		Coor coor;
 		Vec2D real_coor;
@@ -18,9 +18,9 @@ class Feature {
 
 		real_t descriptor[DESC_LEN];
 
-		Feature(){}
+		SIFTFeature(){}
 
-		Feature(const Feature& r):
+		SIFTFeature(const SIFTFeature& r):
 			coor(r.coor), real_coor(r.real_coor), no(r.no), ns(r.ns), dir(r.dir),
 			scale_factor(r.scale_factor){
 			memcpy(descriptor, r.descriptor, DESC_LEN * sizeof(real_t));
