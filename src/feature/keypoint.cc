@@ -39,7 +39,7 @@ void KeyPoint::judge_extrema(int nowo, int nows) {
 }
 
 void KeyPoint::get_feature(int nowo, int nows, int r, int c) {
-	shared_ptr<DOG> nowpic = dogsp.dogs[nowo];
+	auto& nowpic = dogsp.dogs[nowo];
 	int w = nowpic->get(nows).width(),
 		h = nowpic->get(nows).height();
 	int depth = 0;
@@ -97,7 +97,8 @@ bool KeyPoint::on_edge(int x, int y, const Mat32f& img) {
 	return true;
 }
 
-Vec KeyPoint::calc_offset(int x, int y, int nows, shared_ptr<DOG>& nowpic,
+Vec KeyPoint::calc_offset(int x, int y, int nows,
+		const unique_ptr<DOG>& nowpic,
 		real_t* dx, real_t* dy, real_t* ds)
 {
 	Vec ret = Vector::get_zero();
@@ -169,7 +170,7 @@ void KeyPoint::calc_dir(SIFTFeature& feat, vector<SIFTFeature>& update_feat) {
 	}
 }
 
-vector<real_t> KeyPoint::calc_hist(shared_ptr<Octave> oct, int ns, Coor coor, real_t orig_sig) {		// coor is under scaled space
+vector<real_t> KeyPoint::calc_hist(const Octave& oct, int ns, Coor coor, real_t orig_sig) {		// coor is under scaled space
 	real_t sigma = orig_sig * ORI_WINDOW_FACTOR;
 	int rad = round(orig_sig * ORI_RADIUS);
 
@@ -179,19 +180,19 @@ vector<real_t> KeyPoint::calc_hist(shared_ptr<Octave> oct, int ns, Coor coor, re
 
 	for (int xx = -rad; xx < rad; xx ++) {
 		int newx = coor.x + xx;
-		if (! between(newx, 1, oct->w - 1))		// because mag/ort on the border is zero
+		if (! between(newx, 1, oct.w - 1))		// because mag/ort on the border is zero
 			continue;
 		for (int yy = -rad; yy < rad; yy ++) {
 			int newy = coor.y + yy;
-			if (! between(newy, 1, oct->h - 1)) continue;
+			if (! between(newy, 1, oct.h - 1)) continue;
 			if (sqr(xx) + sqr(yy) > sqr(rad)) continue;  // use a circular gaussian window
-			int bin = round(ORT_HIST_BIN_NUM / 2 * (oct->get_ort(ns).at(newy, newx)) / M_PI);
+			int bin = round(ORT_HIST_BIN_NUM / 2 * (oct.get_ort(ns).at(newy, newx)) / M_PI);
 			if (bin == ORT_HIST_BIN_NUM) bin = 0;
 
 			m_assert(bin < ORT_HIST_BIN_NUM);
 
 			real_t weight = exp(-(sqr(xx) + sqr(yy)) / exp_denom);
-			hist[bin] += weight * oct->get_mag(ns).at(newy, newx);
+			hist[bin] += weight * oct.get_mag(ns).at(newy, newx);
 
 			m_assert(hist[bin] >= 0);
 		}
@@ -245,8 +246,8 @@ void KeyPoint::calc_descriptor(SIFTFeature& feat) {
 
 	int radius = round(sqrt(2) * hist_w * (DESC_HIST_WIDTH + 1) / 2);
 
-	shared_ptr<Octave> octave = ss.octaves[feat.no];
-	int w = octave->w, h = octave->h;
+	const Octave& octave = ss.octaves[feat.no];
+	int w = octave.w, h = octave.h;
 
 	real_t hist[DESC_HIST_WIDTH * DESC_HIST_WIDTH][DESC_HIST_BIN_NUM];
 	memset(hist, 0, sizeof(hist));
@@ -267,8 +268,8 @@ void KeyPoint::calc_descriptor(SIFTFeature& feat) {
 			real_t ybin_r = y_rot + DESC_HIST_WIDTH / 2 - 0.5,
 				   xbin_r = x_rot + DESC_HIST_WIDTH / 2 - 0.5;
 
-			real_t pic_mag = octave->get_mag(feat.ns).at(newy, newx),
-				   pic_ort = octave->get_ort(feat.ns).at(newy, newx);
+			real_t pic_mag = octave.get_mag(feat.ns).at(newy, newx),
+				   pic_ort = octave.get_ort(feat.ns).at(newy, newx);
 
 			if (between(ybin_r, -1, DESC_HIST_WIDTH) && between(xbin_r, -1, DESC_HIST_WIDTH)) {
 				real_t win = exp(-(sqr(x_rot) + sqr(y_rot)) / exp_denom);
