@@ -4,7 +4,7 @@
 
 \documentclass[11pt,a4paper]{article}
 
-\usepackage{fontspec,amsmath,amssymb,zhspacing,verbatim,minted,listings,zhmath}
+\usepackage{fontspec,amsmath,amssymb,verbatim,minted,listings}
 \usepackage{titlesec, titletoc}
 \usepackage{enumerate}
 \usepackage[hyperfootnotes=false,colorlinks,linkcolor=blue,anchorcolor=blue,citecolor=blue]{hyperref}
@@ -15,10 +15,8 @@
 \usepackage{float}			% don't automatically change location of figure [H]
 \usepackage{chngpage}		% use \changetext to change page size
 \usepackage{caption}\captionsetup{hypcap=true}  % ref to jump to object instead of caption
-\newfontfamily\zhfont[BoldFont=SimHei,ItalicFont=KaiTi_GB2312]{SimSun}
 \lstset{keywordstyle=\color{blue!70}, commentstyle=\color{red!50!green!50!blue!50},frame=shadowbox,rulesepcolor=\color{red!20!green!20!blue!20},
 basicstyle=\footnotesize\ttfamily}
-\zhspacing
 \setlength{\parindent}{2em}
 
 \usepackage{fancyhdr}
@@ -63,10 +61,6 @@ basicstyle=\footnotesize\ttfamily}
 %\selectfont
 %\maketitle
 
-%\begin{abstract}
-
-	%{\bf 关键词}
-%\end{abstract}
 \input{title}
 \tableofcontents
 %\newpage
