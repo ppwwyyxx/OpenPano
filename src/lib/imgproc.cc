@@ -88,6 +88,7 @@ bool is_edge_color(const Mat32f& mat, float y, float x) {
 	if (!between(x, 0, w) || !between(y, 0, h)) return true;
 	m_assert(mat.channels() == 3);
 	int fx = floor(x), fy = floor(y);
+
 	const float* ptr = mat.ptr(fy, fx);
 	REP(i, 6) if (ptr[i] < 0) return true;
 	ptr = mat.ptr(fy + 1, fx);

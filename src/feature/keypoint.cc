@@ -72,7 +72,7 @@ void KeyPoint::get_feature(int nowo, int nows, int r, int c) {
 
 	if (on_edge(newx, newy, nowpic->get(news))) return;
 
-	Feature f;
+	SIFTFeature f;
 	f.coor = Coor(newx, newy);
 	f.real_coor = Vec2D((real_t)newx / w * dogsp.origw, (real_t)newy / h * dogsp.origh);
 	f.ns = news, f.no = nowo;
@@ -149,7 +149,7 @@ bool KeyPoint::judge_extrema(real_t center, int no, int ns, int nowi, int nowj) 
 
 void KeyPoint::calc_dir() {
 	m_assert(features.size());  // require get_feature finished
-	vector<Feature> update_feature;
+	vector<SIFTFeature> update_feature;
 	update_feature.reserve(features.size());
 	for (auto &feat : features)
 		calc_dir(feat, update_feature);
@@ -158,12 +158,12 @@ void KeyPoint::calc_dir() {
 }
 
 // assign orientation to each keypoint
-void KeyPoint::calc_dir(Feature& feat, vector<Feature>& update_feat) {
+void KeyPoint::calc_dir(SIFTFeature& feat, vector<SIFTFeature>& update_feat) {
 	int no = feat.no, ns = feat.ns;
 	Coor now = feat.coor;
 
 	for (auto ori : calc_hist(ss.octaves[no], ns, now, feat.scale_factor)) {
-		Feature newf(feat);
+		SIFTFeature newf(feat);
 		newf.dir = ori;
 		update_feat.push_back(move(newf));
 	}
@@ -234,7 +234,7 @@ void KeyPoint::calc_descriptor() {
 	REP(i, n) calc_descriptor(features[i]);
 }
 
-void KeyPoint::calc_descriptor(Feature& feat) {
+void KeyPoint::calc_descriptor(SIFTFeature& feat) {
 	static real_t pi2 = 2 * M_PI;
 	static real_t nbin_per_rad = DESC_HIST_BIN_NUM / pi2;
 

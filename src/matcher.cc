@@ -16,7 +16,7 @@ MatchData Matcher::match() const {
 
 #pragma omp parallel for schedule(dynamic)
 	REP(k, l1) {
-		const Feature& i = feat1[k];
+		const SIFTFeature& i = feat1[k];
 		int min = numeric_limits<int>::max(),
 			minn = min;
 		int minkk = 0;
@@ -39,7 +39,7 @@ MatchData Matcher::match() const {
 	return move(ret);
 }
 
-int Matcher::cal_dist(const Feature& x, const Feature& y) const {
+int Matcher::cal_dist(const SIFTFeature& x, const SIFTFeature& y) const {
 	int ans = 0;
 	for (int i = 0; i < DESC_LEN; i ++)
 		ans += sqr(x.descriptor[i] - y.descriptor[i]);		// use euclidean

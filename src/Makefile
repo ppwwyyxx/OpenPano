@@ -3,9 +3,10 @@
 
 OBJ_DIR = obj
 TARGET = image-stitching
+CXX ?= g++
 
 INCLUDE_DIR = -Iinclude
-#DEFINES = -DDEBUG
+DEFINES = -DDEBUG
 
 OPTFLAGS = -O3 -march=native
 #OPTFLAGS = -g -O0
@@ -20,7 +21,6 @@ LDFLAGS = -fopenmp $(OPTFLAGS)
 LDFLAGS += $(shell pkg-config $(LIBS) --libs)
 LDFLAGS += -lX11 -ljpeg
 
-CC = g++
 SHELL = bash
 ccSOURCES = $(shell find -name "*.cc" | sed 's/^\.\///g')
 OBJS = $(addprefix $(OBJ_DIR)/,$(ccSOURCES:.cc=.o))
@@ -36,17 +36,17 @@ endif
 
 $(OBJ_DIR)/%.o: %.cc
 	@echo "[cc] $< ..."
-	@$(CC) -c $< -o $@ $(CXXFLAGS)
+	@$(CXX) -c $< -o $@ $(CXXFLAGS)
 
 $(OBJ_DIR)/%.d: %.cc  Makefile
 	@mkdir -p $(dir $@)
 	@echo "[dep] $< ..."
-	@$(CC) $(CXXFLAGS) $(DEFINES) -MM -MT "$(OBJ_DIR)/$(<:.cc=.o) $(OBJ_DIR)/$(<:.cc=.d)" "$<"  > "$@"
+	@$(CXX) $(CXXFLAGS) $(DEFINES) -MM -MT "$(OBJ_DIR)/$(<:.cc=.o) $(OBJ_DIR)/$(<:.cc=.d)" "$<"  > "$@"
 
 
 $(TARGET): $(OBJS)
 	@echo "Linking ..."
-	@$(CC) $(OBJS) -o $@ $(LDFLAGS)
+	@$(CXX) $(OBJS) -o $@ $(LDFLAGS)
 	@echo "done."
 
 

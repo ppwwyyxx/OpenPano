@@ -10,7 +10,7 @@
 class TransFormer {
 	private:
 		const MatchData& match;
-		const std::vector<Feature>& f1, & f2;
+		const std::vector<SIFTFeature>& f1, & f2;
 
 		Matrix cal_transform(const std::vector<int>&) const;
 
@@ -26,7 +26,7 @@ class TransFormer {
 		std::vector<int> get_inliers(const Matrix &) const;
 
 	public:
-		TransFormer(const MatchData& m_match, const std::vector<Feature>& m_f1, const std::vector<Feature>& m_f2):
+		TransFormer(const MatchData& m_match, const std::vector<SIFTFeature>& m_f1, const std::vector<SIFTFeature>& m_f2):
 			match(m_match), f1(m_f1), f2(m_f2) { }
 
 		Matrix get_transform();
