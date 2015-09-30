@@ -35,7 +35,8 @@ class KeyPoint {
 
 		void get_feature(int nowo, int nows, int i, int j);
 
-		Vec calc_offset(int, int, int, std::shared_ptr<DOG>&, real_t*, real_t*, real_t*);
+		Vec calc_offset(int, int, int,
+				const std::unique_ptr<DOG>&, real_t*, real_t*, real_t*);
 
 		bool on_edge(int, int, const Mat32f&);
 
@@ -44,7 +45,7 @@ class KeyPoint {
 		void calc_dir(SIFTFeature&, std::vector<SIFTFeature>&);
 
 		std::vector<real_t> calc_hist(
-				std::shared_ptr<Octave> oct,
+				const Octave& oct,
 				int ns, Coor coor, real_t orig_sig);
 
 		void calc_descriptor();

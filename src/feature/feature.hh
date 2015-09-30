@@ -8,6 +8,8 @@
 #include "lib/geometry.hh"
 #include <cstring>
 
+// This should be renamed to SIFTPoint
+// Descriptor should only have coor & featvec
 class SIFTFeature {
 	public:
 		Coor coor;

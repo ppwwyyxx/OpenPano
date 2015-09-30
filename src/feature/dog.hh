@@ -1,4 +1,4 @@
-// File: sift.hh
+// File: dog.hh
 // Date: Fri May 03 04:50:18 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
@@ -7,6 +7,7 @@
 #include <vector>
 #include "lib/mat.h"
 
+// Given an image, build an octave with different blurred version
 class Octave {
 	private:
 		int nscale;
@@ -16,9 +17,6 @@ class Octave {
 
 	public:
 		int w, h;
-
-		Octave(const Octave&) = delete;
-		Octave& operator = (const Octave&) = delete;
 
 		Octave(const Mat32f&, int num_scale);
 
@@ -47,14 +45,12 @@ class ScaleSpace {
 		int noctave, nscale;
 		int origw, origh;
 
-		std::shared_ptr<Octave> *octaves;	// len = noctave
+		std::vector<Octave> octaves;	// len = noctave
 
 		ScaleSpace(const Mat32f&, int num_octave, int num_scale);
 
 		ScaleSpace(const ScaleSpace&) = delete;
 		ScaleSpace& operator = (const ScaleSpace&) = delete;
-
-		~ScaleSpace();
 };
 
 // Calculate difference of a list of image
@@ -66,7 +62,7 @@ class DOG {
 
 	public:
 
-		DOG(const std::shared_ptr<Octave>&);
+		DOG(const Octave&);
 
 		DOG(const DOG&) = delete;
 		DOG& operator = (const DOG&) = delete;
@@ -85,13 +81,11 @@ class DOGSpace {
 		int noctave, nscale;
 		int origw, origh;
 
-		std::shared_ptr<DOG> *dogs;		// len = noctave
+		std::vector<std::unique_ptr<DOG>> dogs;		// len = noctave
 
 		DOGSpace(const DOGSpace&) = delete;
 		DOGSpace& operator = (const DOGSpace&) = delete;
 
 		DOGSpace(ScaleSpace&);
-
-		~DOGSpace();
 
 };
