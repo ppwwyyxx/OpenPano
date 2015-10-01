@@ -5,6 +5,7 @@
 #include "extrema.hh"
 #include "lib/config.hh"
 #include "lib/matrix.hh"
+#include "lib/timer.hh"
 #include "lib/common.hh"
 #include <vector>
 using namespace std;
@@ -30,6 +31,7 @@ vector<Coor> ExtremaDetector::get_raw_extrema() const {
 }
 
 vector<SSPoint> ExtremaDetector::get_extrema() const {
+	TotalTimer tm("extrema");
 	int npyramid = dog.noctave, nscale = dog.nscale;
 	vector<SSPoint> ret;
 #pragma omp parallel for schedule(dynamic)
@@ -42,6 +44,9 @@ vector<SSPoint> ExtremaDetector::get_extrema() const {
 				sp.pyr_id = i;
 				sp.scale_id = j;
 				bool succ = calc_kp_offset(&sp);
+				if (not succ) continue;
+				auto& img = dog.dogs[i][sp.scale_id];
+				succ = not is_edge_response(sp.coor, img);
 				if (not succ) continue;
 
 #pragma omp critical
@@ -101,10 +106,10 @@ std::pair<Vec, Vec> ExtremaDetector::calc_kp_offset_iter(
 #define D(x, y, s) now_pyramid[s].at(y, x)
 	Vec offset = Vector::get_zero();
 	Vec delta;
-	real_t dxx, dyy, dss, dxy, dys, dsx;
+	float dxx, dyy, dss, dxy, dys, dsx;
 
 	// matrix
-	real_t val = D(x, y, s);
+	float val = D(x, y, s);
 
 	delta.x = (D(x + 1, y, s) - D(x - 1, y, s)) / 2;
 	delta.y = (D(x, y + 1, s) - D(x, y - 1, s)) / 2;
@@ -125,15 +130,33 @@ std::pair<Vec, Vec> ExtremaDetector::calc_kp_offset_iter(
 	m.get(1, 2) = m.get(2, 1) = dys;
 
 	Matrix inv(3, 3);			// formula 3
-	// TODO use matrix prod
-#define mul(l) \
-	Vec(inv.get(l, 0), inv.get(l, 1), inv.get(l, 2)).dot(delta)
+	Matrix delta_m(1, 3);
+	m.get(0,0) = delta.x; m.get(1,0) = delta.y; m.get(2,0) = delta.z;
 
-	if (m.inverse(inv))
-		offset = Vec(-mul(0), -mul(1), -mul(2));
-#undef mul
+	if (m.inverse(inv)) {
+		auto prod = inv.prod(delta_m);
+		offset = Vec(prod.get(0,0),prod.get(1,0),prod.get(2,0));
+	}
 #undef D
 	return {offset, delta};
+}
+
+bool ExtremaDetector::is_edge_response(Coor coor, const Mat32f& img) const {
+	float dxx, dxy, dyy;
+	int x = coor.x, y = coor.y;
+	float val = img.at(y, x);
+
+	dxx = img.at(y, x + 1) + img.at(y, x - 1) - val - val;
+	dyy = img.at(y + 1, x) + img.at(y - 1, x) - val - val;
+	dxy = (img.at(y + 1, x + 1) + img.at(y - 1, x - 1) -
+			img.at(y + 1, x - 1) - img.at(y - 1, x + 1)) / 4;
+	float det = dxx * dyy - dxy * dxy;
+	if (det <= 0) return true;
+	float tr = sqr(dxx + dyy);
+
+	// Calculate principal curvature by hessian
+	if (tr / det < sqr(EDGE_RATIO + 1) / EDGE_RATIO) return false;
+	return true;
 }
 
 vector<Coor> ExtremaDetector::get_local_raw_extrema(
@@ -144,7 +167,7 @@ vector<Coor> ExtremaDetector::get_local_raw_extrema(
 	int w = now.width(), h = now.height();
 
 	auto is_extrema = [this, &now, pyr_id, scale_id](int r, int c) {
-		real_t center = now.at(r, c);
+		float center = now.at(r, c);
 		if (center < PRE_COLOR_THRES)			// initial color is less than thres
 			return false;
 
@@ -154,7 +177,7 @@ vector<Coor> ExtremaDetector::get_local_raw_extrema(
 		// try same scale
 		REPL(di, -1, 2) REPL(dj, -1, 2) {
 			if (!di && !dj) continue;
-			real_t newval = now.at(r + di, c + dj);
+			float newval = now.at(r + di, c + dj);
 			if (newval >= cmp1) max = false;
 			if (newval <= cmp2) min = false;
 			if (!max && !min) return false;
@@ -166,7 +189,7 @@ vector<Coor> ExtremaDetector::get_local_raw_extrema(
 			auto& mat = this->dog.dogs[pyr_id][nl];
 
 			REPL(di, -1, 2) REPL(dj, -1, 2) {
-				real_t newval = mat.at(r + di, c + dj);
+				float newval = mat.at(r + di, c + dj);
 				if (newval >= cmp1) max = false;
 				if (newval <= cmp2) min = false;
 				if (!max && !min) return false;

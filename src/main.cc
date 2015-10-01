@@ -51,18 +51,23 @@ void test_feature(const char* fname, int mode = 1) {
 	feature_out.close();
 }
 
-void test_extrema(const char* fname) {
+void test_extrema(const char* fname, int mode) {
 	auto mat = read_rgb(fname);
 
 	ScaleSpace ss(mat, NUM_OCTAVE, NUM_SCALE);
 	DOGSpace dog(ss);
 	ExtremaDetector ex(dog);
-	//auto extrema = ex.get_raw_extrema();
-	auto extrema = ex.get_extrema();
 
 	PlaneDrawer pld(mat);
-	for (auto &i : extrema)
-		pld.cross(i.real_coor, LABEL_LEN / 2);
+	if (mode == 0) {
+		auto extrema = ex.get_raw_extrema();
+		for (auto &i : extrema)
+			pld.cross(i, LABEL_LEN / 2);
+	} else if (mode == 1) {
+		auto extrema = ex.get_extrema();
+		for (auto &i : extrema)
+			pld.cross(i.real_coor, LABEL_LEN / 2);
+	}
 	write_rgb("extrema.png", mat);
 }
 
@@ -195,8 +200,10 @@ int main(int argc, char* argv[]) {
 	srand(time(NULL));
 	init_config();
 	string command = argv[1];
-	if (command == "extrema")
-		test_extrema(argv[2]);
+	if (command == "raw_extrema")
+		test_extrema(argv[2], 0);
+	else if (command == "keypoint")
+		test_extrema(argv[2], 1);
 	else if (command == "feature")
 		test_feature(argv[2]);
 	else if (command == "gallery")

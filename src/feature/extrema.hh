@@ -28,4 +28,7 @@ class ExtremaDetector {
 
 		std::pair<Vec, Vec> calc_kp_offset_iter(const DOGSpace::DOG& now_pyramid,
 				int newx, int newy, int news) const;
+
+		// Eliminating edge responses. Sec 4.1 of Lowe,IJCV04
+		bool is_edge_response(Coor coor, const Mat32f& img) const;
 };

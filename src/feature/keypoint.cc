@@ -5,6 +5,7 @@
 #include <cstring>
 #include "keypoint.hh"
 #include "lib/matrix.hh"
+#include "lib/timer.hh"
 
 using namespace std;
 
@@ -161,17 +162,21 @@ void KeyPoint::calc_dir() {
 
 // assign orientation to each keypoint
 void KeyPoint::calc_dir(SIFTPoint& feat, vector<SIFTPoint>& update_feat) {
+	TotalTimer tm("calc_major_dir");
 	int no = feat.no, ns = feat.ns;
 	Coor now = feat.coor;
 
-	for (auto ori : calc_hist(ss.octaves[no], ns, now, feat.scale_factor)) {
+	for (auto ori : calc_hist(ss.pyramids[no], ns,
+				now, feat.scale_factor)) {
 		SIFTPoint newf(feat);
 		newf.dir = ori;
 		update_feat.push_back(move(newf));
 	}
 }
 
-vector<real_t> KeyPoint::calc_hist(const GaussianPyramid& oct, int ns, Coor coor, real_t orig_sig) {		// coor is under scaled space
+vector<real_t> KeyPoint::calc_hist(
+		const GaussianPyramid& oct,
+		int ns, Coor coor, real_t orig_sig) {		// coor is under scaled space
 	real_t sigma = orig_sig * ORI_WINDOW_FACTOR;
 	int rad = round(orig_sig * ORI_RADIUS);
 
@@ -217,7 +222,9 @@ vector<real_t> KeyPoint::calc_hist(const GaussianPyramid& oct, int ns, Coor coor
 		real_t prev = hist[i == 0 ? ORT_HIST_BIN_NUM - 1 : i - 1];
 		real_t next = hist[i == ORT_HIST_BIN_NUM - 1 ? 0 : i + 1];
 		if (hist[i] > thres && hist[i] > max(prev, next)) {
-			real_t newbin = i + (prev - next) / (prev + next - 2 * hist[i]) / 2;		// interpolation
+			//real_t newbin = i + (prev - next) / (prev + next - 2 * hist[i]) / 2;		// interpolation
+			real_t newbin = (float)i - 0.5 + (hist[i] - prev) / (prev + next - 2 * hist[i]);
+			printf("%lf\n", newbin);
 			if (newbin < 0)
 				newbin += ORT_HIST_BIN_NUM;
 			else if (newbin >= ORT_HIST_BIN_NUM)
@@ -247,7 +254,7 @@ void KeyPoint::calc_sift_descriptor(SIFTPoint& feat) {
 
 	int radius = round(sqrt(2) * hist_w * (DESC_HIST_WIDTH + 1) / 2);
 
-	const GaussianPyramid& octave = ss.octaves[feat.no];
+	const GaussianPyramid& octave = ss.pyramids[feat.no];
 	int w = octave.w, h = octave.h;
 
 	real_t hist[DESC_HIST_WIDTH * DESC_HIST_WIDTH][DESC_HIST_BIN_NUM];

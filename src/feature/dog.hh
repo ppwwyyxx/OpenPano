@@ -46,7 +46,7 @@ class ScaleSpace {
 		int noctave, nscale;
 		int origw, origh;
 
-		std::vector<GaussianPyramid> octaves;	// len = noctave
+		std::vector<GaussianPyramid> pyramids;	// len = noctave
 
 		ScaleSpace(const Mat32f&, int num_octave, int num_scale);
 
