@@ -21,8 +21,8 @@ struct SSPoint {
 	Coor coor;
 	Vec2D real_coor;
 	int pyr_id, scale_id; // octave / scale id
-	real_t dir;
-	real_t scale_factor;
+	float dir;
+	float scale_factor;
 };
 
 std::vector<SSPoint> detect_extrema(const Mat32f& img);

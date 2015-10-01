@@ -72,14 +72,14 @@ ScaleSpace::ScaleSpace(const Mat32f& mat, int num_octave, int num_scale):
 	// #pragma omp parallel for schedule(dynamic)
 	REP(i, noctave) {
 		if (!i)
-			octaves.emplace_back(mat, nscale);
+			pyramids.emplace_back(mat, nscale);
 		else {
 			float factor = pow(SCALE_FACTOR, -i);
 			int neww = ceil(origw * factor),
 					newh = ceil(origh * factor);
 			Mat32f resized(newh, neww, 3);
 			resize(mat, resized);
-			octaves.emplace_back(resized, nscale);
+			pyramids.emplace_back(resized, nscale);
 		}
 	}
 }
@@ -106,7 +106,7 @@ DOGSpace::DOGSpace(ScaleSpace& ss):
 {
 #pragma omp parallel for schedule(dynamic)
 	REP(i, noctave) {
-		auto& o = ss.octaves[i];
+		auto& o = ss.pyramids[i];
 		int ns = o.get_len();
 		REP(j, ns - 1)
 			dogs[i].emplace_back(diff(o.get(j), o.get(j+1)));
