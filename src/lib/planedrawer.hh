@@ -10,7 +10,7 @@
 class PlaneDrawer {
 	public:
 		// will directly WRITE to mat
-		PlaneDrawer(Mat32f& mat):
+		PlaneDrawer(Mat32f mat):
 			 mat(mat) {
 			m_assert(mat.channels() == 3);
 		}
@@ -21,6 +21,10 @@ class PlaneDrawer {
 		{ c = m_c; }
 
 		inline void point(int x, int y) {
+			// drawing algorithms are easy to draw out-of-range
+			if (!between(x, 0, mat.width()) ||
+					!between(y, 0, mat.height()))
+				return;
 			float* p = mat.ptr(y, x);
 			p[0] = c.x, p[1] = c.y, p[2] = c.z;
 		}
@@ -44,6 +48,9 @@ class PlaneDrawer {
 
 		void cross(Coor o, int r);
 
+		void cross(Vec2D o, int r)
+		{ cross(Coor(o.x, o.y), r); }
+
 		void arrow(Coor o, real_t dir, int r);
 
 		void polygon(Polygon p) {
@@ -55,11 +62,11 @@ class PlaneDrawer {
 		void polygon(std::vector<Vec2D> p)
 		{ polygon(to_renderable(p)); }
 
-		Mat32f& get_img() { return mat; }
+		//Mat32f& get_img() { return mat; }
 
 	protected:
 		void Bresenham(Coor s, Coor t);
-		Mat32f& mat;
+		Mat32f mat;
 		Color c = Color::BLACK;
 
 		Polygon to_renderable(std::vector<Vec2D> p) {

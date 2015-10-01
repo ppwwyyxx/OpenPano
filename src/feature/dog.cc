@@ -88,9 +88,13 @@ Mat32f DOGSpace::diff(const Mat32f& img1, const Mat32f& img2) const {
 	int w = img1.width(), h = img1.height();
 	m_assert(w == img2.width() && h == img2.height());
 	Mat32f ret(h, w, 1);
-	REP(i, h) REP(j, w) {
-		float diff = fabs(img1.at(i, j) - img2.at(i, j));
-		ret.at(i, j) = diff;
+	REP(i, h) {
+		// speed up
+		const float *p1 = img1.ptr(i),
+					      *p2 = img2.ptr(i);
+		float* p = ret.ptr(i);
+		REP(j, w)
+			p[j] = fabs(p1[j] - p2[j]);
 	}
 	return ret;
 }

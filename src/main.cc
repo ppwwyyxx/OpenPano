@@ -6,6 +6,7 @@
 #include "lib/planedrawer.hh"
 #include "lib/imgproc.hh"
 #include "warper.hh"
+#include "feature/extrema.hh"
 #include "feature/keypoint.hh"
 #include "lib/timer.hh"
 #include "matcher.hh"
@@ -22,12 +23,10 @@ bool TEMPDEBUG = false;
 inline real_t gen_rand()
 { return (real_t)rand() / RAND_MAX; }
 
-vector<Descriptor> get_feature(const Mat32f& mat)
-{ return Panorama::get_feature(mat); }
 
 void test_feature(const char* fname, int mode = 1) {
 	auto mat = read_rgb(fname);
-	vector<Descriptor> ans = get_feature(mat);
+	vector<Descriptor> ans = detect_SIFT(mat);
 
 	PlaneDrawer pld(mat);
 
@@ -38,8 +37,8 @@ void test_feature(const char* fname, int mode = 1) {
 		 *if (mode)
 		 *  pld.arrow(toCoor(i.coor), i.dir, LABEL_LEN);
 		 *else
-		 *  pld.cross(toCoor(i.coor), LABEL_LEN / 2);
 		 */
+			pld.cross(toCoor(i.coor), LABEL_LEN / 2);
 	}
 	write_rgb("feature.png", mat);
 
@@ -56,13 +55,14 @@ void test_extrema(const char* fname) {
 	auto mat = read_rgb(fname);
 
 	ScaleSpace ss(mat, NUM_OCTAVE, NUM_SCALE);
-	DOGSpace sp(ss);
-	KeyPoint ex(sp, ss);
-	ex.work();
+	DOGSpace dog(ss);
+	ExtremaDetector ex(dog);
+	//auto extrema = ex.get_raw_extrema();
+	auto extrema = ex.get_extrema();
 
 	PlaneDrawer pld(mat);
-	for (auto &i : ex.keyp)
-		pld.cross(i, LABEL_LEN / 2);
+	for (auto &i : extrema)
+		pld.cross(i.real_coor, LABEL_LEN / 2);
 	write_rgb("extrema.png", mat);
 }
 
@@ -75,8 +75,8 @@ void gallery(const char* f1, const char* f2) {
 	imagelist.push_back(pic2);
 
 
-	vector<Descriptor> feat1 = get_feature(pic1);
-	vector<Descriptor> feat2 = get_feature(pic2);
+	vector<Descriptor> feat1 = detect_SIFT(pic1),
+										 feat2 = detect_SIFT(pic2);
 
 	Mat32f concatenated = hconcat(imagelist);
 	PlaneDrawer pld(concatenated);

@@ -34,7 +34,6 @@ class Mat {
     private:
         int m_rows, m_cols;
         int m_channels;
-        int m_step;
         std::shared_ptr<T> m_data;
 };
 

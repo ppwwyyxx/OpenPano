@@ -106,14 +106,6 @@ Matrix Panorama::get_transform(const vector<Descriptor>& feat1, const vector<Des
 	return move(transf.get_transform());
 }
 
-vector<Descriptor> Panorama::get_feature(const Mat32f& mat) {
-	ScaleSpace ss(mat, NUM_OCTAVE, NUM_SCALE);
-	DOGSpace sp(ss);
-	KeyPoint ex(sp, ss);
-	ex.work();
-	return ex.get_sift_descriptor();
-}
-
 void Panorama::straighten_simple() {
 	int n = imgs.size();
 	Vec2D center2(imgs[n - 1].width() / 2, imgs[n-1].height() / 2);
@@ -155,7 +147,7 @@ void Panorama::cal_best_matrix_pano() {;
 	prepare();
 #pragma omp parallel for schedule(dynamic)
 	REP(k, n)
-		feats[k] = Panorama::get_feature(imgs[k]);
+		feats[k] = detect_SIFT(imgs[k]);
 	print_debug("feature takes %lf secs in total\n", timer.duration());
 
 	vector<MatchData> matches;
@@ -222,7 +214,7 @@ void Panorama::cal_best_matrix() {
 
 #pragma omp parallel for schedule(dynamic)
 	REP(k, n)
-		feats[k] = Panorama::get_feature(imgs[k]);
+		feats[k] = detect_SIFT(imgs[k]);
 	print_debug("feature takes %lf secs in total\n", timer.duration());
 	timer.restart();
 
