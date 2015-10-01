@@ -6,6 +6,7 @@
 #include <memory>
 #include <vector>
 #include "lib/mat.h"
+#include "lib/config.hh"
 
 // Given an image, build an octave with different blurred version
 class GaussianPyramid {
@@ -60,7 +61,7 @@ class DOGSpace {
 		// Calculate difference of a list of image
 		// diff[0] = orig[1] - orig[0]
 
-		typedef std::vector<Mat32f> DOG;
+		typedef std::vector<Mat32f> DOG;	// len = nscale - 1
 
 		int noctave, nscale;
 		int origw, origh;

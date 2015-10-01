@@ -5,6 +5,7 @@
 #pragma once
 
 #include "lib/config.hh"
+#include "lib/mat.h"
 #include "lib/geometry.hh"
 #include <cstring>
 
@@ -12,3 +13,17 @@ struct Descriptor {
 	Vec2D coor;
 	std::vector<float> descriptor;
 };
+
+std::vector<Descriptor> detect_SIFT(const Mat32f& img);
+
+// A Scale-Space point
+struct SSPoint {
+	Coor coor;
+	Vec2D real_coor;
+	int pyr_id, scale_id; // octave / scale id
+	real_t dir;
+	real_t scale_factor;
+};
+
+std::vector<SSPoint> detect_extrema(const Mat32f& img);
+
