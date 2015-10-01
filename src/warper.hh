@@ -16,7 +16,7 @@ class Warper {
 		Warper(real_t m_hfactor):
 			h_factor(m_hfactor) {}
 
-		void warp(Mat32f& mat, std::vector<SIFTFeature>& ft) const {
+		void warp(Mat32f& mat, std::vector<Descriptor>& ft) const {
 			int r = std::max(mat.width(), mat.height()) / 2;
 			Vec cen(mat.width() / 2, mat.height() / 2 * h_factor, r * 2);
 			CylProject cyl(r, cen, r * OUTPUT_SIZE_FACTOR);
@@ -24,9 +24,9 @@ class Warper {
 		}
 
 		void warp(Mat32f& mat) const {
-			SIFTFeature f;
-			f.real_coor = Vec2D(0, 0);
-			std::vector<SIFTFeature> ff = {f};
+			Descriptor f;
+			f.coor = Vec2D(0, 0);
+			std::vector<Descriptor> ff = {f};
 			warp(mat, ff);
 		}
 };

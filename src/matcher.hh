@@ -32,11 +32,11 @@ class MatchData {
 
 class Matcher {
 	protected:
-		const std::vector<SIFTFeature> &feat1, &feat2;
+		const std::vector<Descriptor> &feat1, &feat2;
 
-		int cal_dist(const SIFTFeature& x, const SIFTFeature& y) const; // return the squared value
+		int cal_dist(const Descriptor& x, const Descriptor& y) const; // return the squared value
 	public:
-		Matcher(const std::vector<SIFTFeature>& f1, const std::vector<SIFTFeature>& f2):
+		Matcher(const std::vector<Descriptor>& f1, const std::vector<Descriptor>& f2):
 			feat1(f1), feat2(f2) { }
 
 		MatchData match() const;

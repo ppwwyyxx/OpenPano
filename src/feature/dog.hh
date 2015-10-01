@@ -8,7 +8,7 @@
 #include "lib/mat.h"
 
 // Given an image, build an octave with different blurred version
-class Octave {
+class GaussianPyramid {
 	private:
 		int nscale;
 		std::vector<Mat32f> data; // len = nscale
@@ -20,7 +20,7 @@ class Octave {
 	public:
 		int w, h;
 
-		Octave(const Mat32f&, int num_scale);
+		GaussianPyramid(const Mat32f&, int num_scale);
 
 		const Mat32f& get(int i) const {
 			m_assert(i >= 0 && i < NUM_SCALE);
@@ -45,7 +45,7 @@ class ScaleSpace {
 		int noctave, nscale;
 		int origw, origh;
 
-		std::vector<Octave> octaves;	// len = noctave
+		std::vector<GaussianPyramid> octaves;	// len = noctave
 
 		ScaleSpace(const Mat32f&, int num_octave, int num_scale);
 

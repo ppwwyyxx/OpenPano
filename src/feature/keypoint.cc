@@ -72,7 +72,7 @@ void KeyPoint::get_feature(int nowo, int nows, int r, int c) {
 
 	if (on_edge(newx, newy, nowpic[news])) return;
 
-	SIFTFeature f;
+	SIFTPoint f;
 	f.coor = Coor(newx, newy);
 	f.real_coor = Vec2D((real_t)newx / w * dogsp.origw, (real_t)newy / h * dogsp.origh);
 	f.ns = news, f.no = nowo;
@@ -93,6 +93,7 @@ bool KeyPoint::on_edge(int x, int y, const Mat32f& img) {
 	real_t det = dxx * dyy - dxy * dxy;
 	if (det <= 0) return true;
 	real_t tr = sqr(dxx + dyy);
+	// Calculate principal curvature by hessian
 	if (tr / det < sqr(EDGE_RATIO + 1) / EDGE_RATIO) return false;
 	return true;
 }
@@ -150,7 +151,7 @@ bool KeyPoint::judge_extrema(real_t center, int no, int ns, int nowi, int nowj) 
 
 void KeyPoint::calc_dir() {
 	m_assert(features.size());  // require get_feature finished
-	vector<SIFTFeature> update_feature;
+	vector<SIFTPoint> update_feature;
 	update_feature.reserve(features.size());
 	for (auto &feat : features)
 		calc_dir(feat, update_feature);
@@ -159,18 +160,18 @@ void KeyPoint::calc_dir() {
 }
 
 // assign orientation to each keypoint
-void KeyPoint::calc_dir(SIFTFeature& feat, vector<SIFTFeature>& update_feat) {
+void KeyPoint::calc_dir(SIFTPoint& feat, vector<SIFTPoint>& update_feat) {
 	int no = feat.no, ns = feat.ns;
 	Coor now = feat.coor;
 
 	for (auto ori : calc_hist(ss.octaves[no], ns, now, feat.scale_factor)) {
-		SIFTFeature newf(feat);
+		SIFTPoint newf(feat);
 		newf.dir = ori;
 		update_feat.push_back(move(newf));
 	}
 }
 
-vector<real_t> KeyPoint::calc_hist(const Octave& oct, int ns, Coor coor, real_t orig_sig) {		// coor is under scaled space
+vector<real_t> KeyPoint::calc_hist(const GaussianPyramid& oct, int ns, Coor coor, real_t orig_sig) {		// coor is under scaled space
 	real_t sigma = orig_sig * ORI_WINDOW_FACTOR;
 	int rad = round(orig_sig * ORI_RADIUS);
 
@@ -229,13 +230,13 @@ vector<real_t> KeyPoint::calc_hist(const Octave& oct, int ns, Coor coor, real_t 
 	return move(ret);
 }
 
-void KeyPoint::calc_descriptor() {
+void KeyPoint::calc_sift_descriptor() {
 	int n = features.size();
 #pragma omp parallel for schedule(dynamic)
-	REP(i, n) calc_descriptor(features[i]);
+	REP(i, n) calc_sift_descriptor(features[i]);
 }
 
-void KeyPoint::calc_descriptor(SIFTFeature& feat) {
+void KeyPoint::calc_sift_descriptor(SIFTPoint& feat) {
 	static real_t pi2 = 2 * M_PI;
 	static real_t nbin_per_rad = DESC_HIST_BIN_NUM / pi2;
 
@@ -246,7 +247,7 @@ void KeyPoint::calc_descriptor(SIFTFeature& feat) {
 
 	int radius = round(sqrt(2) * hist_w * (DESC_HIST_WIDTH + 1) / 2);
 
-	const Octave& octave = ss.octaves[feat.no];
+	const GaussianPyramid& octave = ss.octaves[feat.no];
 	int w = octave.w, h = octave.h;
 
 	real_t hist[DESC_HIST_WIDTH * DESC_HIST_WIDTH][DESC_HIST_BIN_NUM];
@@ -326,3 +327,12 @@ void KeyPoint::calc_descriptor(SIFTFeature& feat) {
 }
 
 #undef D
+
+
+std::vector<Descriptor> KeyPoint::get_sift_descriptor() const {
+	vector<Descriptor> ret;
+	for (auto& t : features) {
+		ret.emplace_back(t.to_descriptor());
+	}
+	return ret;
+}

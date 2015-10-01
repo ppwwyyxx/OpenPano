@@ -22,21 +22,24 @@ bool TEMPDEBUG = false;
 inline real_t gen_rand()
 { return (real_t)rand() / RAND_MAX; }
 
-vector<SIFTFeature> get_feature(const Mat32f& mat)
+vector<Descriptor> get_feature(const Mat32f& mat)
 { return Panorama::get_feature(mat); }
 
 void test_feature(const char* fname, int mode = 1) {
 	auto mat = read_rgb(fname);
-	vector<SIFTFeature> ans = get_feature(mat);
+	vector<Descriptor> ans = get_feature(mat);
 
 	PlaneDrawer pld(mat);
 
 	cout << ans.size() << endl;
 	for (auto &i : ans) {
-		if (mode)
-			pld.arrow(toCoor(i.real_coor), i.dir, LABEL_LEN);
-		else
-			pld.cross(toCoor(i.real_coor), LABEL_LEN / 2);
+		// XXX no dir in feature
+		/*
+		 *if (mode)
+		 *  pld.arrow(toCoor(i.coor), i.dir, LABEL_LEN);
+		 *else
+		 *  pld.cross(toCoor(i.coor), LABEL_LEN / 2);
+		 */
 	}
 	write_rgb("feature.png", mat);
 
@@ -44,7 +47,7 @@ void test_feature(const char* fname, int mode = 1) {
 	ofstream feature_out("feature.txt");
 	for (auto &i : ans) {
 		// in r, c format
-		feature_out << int(i.real_coor.x) << " " << int(i.real_coor.y) << endl;
+		feature_out << int(i.coor.x) << " " << int(i.coor.y) << endl;
 	}
 	feature_out.close();
 }
@@ -72,8 +75,8 @@ void gallery(const char* f1, const char* f2) {
 	imagelist.push_back(pic2);
 
 
-	vector<SIFTFeature> feat1 = get_feature(pic1);
-	vector<SIFTFeature> feat2 = get_feature(pic2);
+	vector<Descriptor> feat1 = get_feature(pic1);
+	vector<Descriptor> feat2 = get_feature(pic2);
 
 	Mat32f concatenated = hconcat(imagelist);
 	PlaneDrawer pld(concatenated);
@@ -82,9 +85,9 @@ void gallery(const char* f1, const char* f2) {
 	auto ret = match.match();
 	for (auto &x : ret.data) {
 		pld.set_color(::Color(gen_rand(), gen_rand(), gen_rand()));
-		pld.circle(toCoor(feat1[x.x].real_coor), LABEL_LEN);
-		pld.circle(toCoor(feat2[x.y].real_coor) + Coor(pic1.width(), 0), LABEL_LEN);
-		pld.line(toCoor(feat1[x.x].real_coor), toCoor(feat2[x.y].real_coor) + Coor(pic1.width(), 0));
+		pld.circle(toCoor(feat1[x.x].coor), LABEL_LEN);
+		pld.circle(toCoor(feat2[x.y].coor) + Coor(pic1.width(), 0), LABEL_LEN);
+		pld.line(toCoor(feat1[x.x].coor), toCoor(feat2[x.y].coor) + Coor(pic1.width(), 0));
 	}
 	write_rgb("gallery.png", concatenated);
 }

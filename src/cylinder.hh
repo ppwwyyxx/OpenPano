@@ -56,6 +56,6 @@ class CylProject {
 		CylProject(int m_r, const Vec& m_center, int m_size):
 			cyl(m_r, m_center), sizefactor(m_size){}
 
-		Mat32f project(const Mat32f& img, std::vector<SIFTFeature>& ft) const;
+		Mat32f project(const Mat32f& img, std::vector<Descriptor>& ft) const;
 };
 

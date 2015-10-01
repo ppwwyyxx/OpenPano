@@ -36,6 +36,7 @@ void write_rgb(const char* fname, const Mat32f& mat) {
 	CImg<float> img(mat.cols(), mat.rows(), 1, 3);
 	REP(i, mat.rows())
 		REP(j, mat.cols()) {
+			// use black background. Color::NO turns to 0
 			img(j, i, 0) = max(mat.at(i, j, 0), 0.f) * 255;
 			img(j, i, 1) = max(mat.at(i, j, 1), 0.f) * 255;
 			img(j, i, 2) = max(mat.at(i, j, 2), 0.f) * 255;

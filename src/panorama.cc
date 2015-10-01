@@ -99,19 +99,19 @@ Mat32f Panorama::get() {
 	return ret;
 }
 
-Matrix Panorama::get_transform(const vector<SIFTFeature>& feat1, const vector<SIFTFeature>& feat2) {
+Matrix Panorama::get_transform(const vector<Descriptor>& feat1, const vector<Descriptor>& feat2) {
 	Matcher match(feat1, feat2);		// this is not efficient
 	auto ret = match.match();
 	TransFormer transf(ret, feat1, feat2);
 	return move(transf.get_transform());
 }
 
-vector<SIFTFeature> Panorama::get_feature(const Mat32f& mat) {
+vector<Descriptor> Panorama::get_feature(const Mat32f& mat) {
 	ScaleSpace ss(mat, NUM_OCTAVE, NUM_SCALE);
 	DOGSpace sp(ss);
 	KeyPoint ex(sp, ss);
 	ex.work();
-	return move(ex.features);
+	return ex.get_sift_descriptor();
 }
 
 void Panorama::straighten_simple() {
@@ -147,7 +147,7 @@ void Panorama::cal_size() {
 
 #define prepare() \
 	int n = imgs.size(), mid = n >> 1;\
-	vector<vector<SIFTFeature>> feats;\
+	vector<vector<Descriptor>> feats;\
 	feats.resize(n);\
 	Timer timer
 
@@ -243,7 +243,7 @@ real_t Panorama::update_h_factor(real_t nowfactor,
 		real_t & bestfactor,
 		vector<Matrix>& mat,
 		const vector<Mat32f>& imgs,
-		const vector<vector<SIFTFeature>>& feats,
+		const vector<vector<Descriptor>>& feats,
 		const vector<MatchData>& matches) {
 
 	const int n = imgs.size(), mid = n >> 1;
@@ -252,7 +252,7 @@ real_t Panorama::update_h_factor(real_t nowfactor,
 	Warper warper(nowfactor);
 
 	vector<Mat32f> nowimgs;
-	vector<vector<SIFTFeature>> nowfeats;
+	vector<vector<Descriptor>> nowfeats;
 
 	REPL(k, start, end) {
 		nowimgs.push_back(imgs[k].clone());
