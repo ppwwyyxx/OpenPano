@@ -64,8 +64,8 @@ Matrix TransFormer::cal_affine_transform(const vector<int>& matches) const {
 	Matrix m(AFFINE_FREEDOM, 2 * n);
 	Matrix b(1, 2 * n);
 	REP(i, n) {
-		const Vec2D &m0 = f1[match.data[matches[i]].x].real_coor,
-					&m1 = f2[match.data[matches[i]].y].real_coor;
+		const Vec2D &m0 = f1[match.data[matches[i]].x].coor,
+					&m1 = f2[match.data[matches[i]].y].coor;
 		m.get(i * 2, 0) = m1.x;
 		m.get(i * 2, 1) = m1.y;
 		m.get(i * 2, 2) = 1;
@@ -94,8 +94,8 @@ Matrix TransFormer::cal_homo_transform(const vector<int>& matches) const {
 	Matrix m(HOMO_FREEDOM, 2 * n);
 	Matrix b(1, 2 * n);
 	REP(i, n) {
-		const Vec2D &m0 = f1[match.data[matches[i]].x].real_coor,
-					&m1 = f2[match.data[matches[i]].y].real_coor;
+		const Vec2D &m0 = f1[match.data[matches[i]].x].coor,
+					&m1 = f2[match.data[matches[i]].y].coor;
 		m.get(i * 2, 0) = m1.x;
 		m.get(i * 2, 1) = m1.y;
 		m.get(i * 2, 2) = 1;
@@ -132,8 +132,8 @@ Matrix TransFormer::cal_homo_transform2(const vector<int>& matches) const {
 
 	Matrix m(9, 2 * n);
 	REP(i, n) {
-		const Vec2D &m0 = f1[match.data[matches[i]].x].real_coor,
-					&m1 = f2[match.data[matches[i]].y].real_coor;
+		const Vec2D &m0 = f1[match.data[matches[i]].x].coor,
+					&m1 = f2[match.data[matches[i]].y].coor;
 		m.get(i * 2, 0) = m1.x;
 		m.get(i * 2, 1) = m1.y;
 		m.get(i * 2, 2) = 1;
@@ -188,8 +188,8 @@ Vec2D TransFormer::cal_project(const Matrix & trans, const Vec2D & old) {
 int TransFormer::cal_inliers(const Matrix & trans) const {
 	int cnt = 0;
 	for (auto & pair : match.data) {
-		Vec2D project = TransFormer::cal_project(trans, f2[pair.y].real_coor);
-		const Vec2D& fcoor = f1[pair.x].real_coor;
+		Vec2D project = TransFormer::cal_project(trans, f2[pair.y].coor);
+		const Vec2D& fcoor = f1[pair.x].coor;
 		real_t dist = (project - Vec2D(fcoor.x, fcoor.y)).sqr();
 		if (dist < sqr(RANSAC_INLIER_THRES))
 			cnt ++;
@@ -202,8 +202,8 @@ vector<int> TransFormer::get_inliers(const Matrix & trans) const {
 	int n = match.size();
 	REP(i, n) {
 		auto &pair = match.data[i];
-		Vec2D project = TransFormer::cal_project(trans, f2[pair.y].real_coor);
-		const Vec2D& fcoor = f1[pair.x].real_coor;
+		Vec2D project = TransFormer::cal_project(trans, f2[pair.y].coor);
+		const Vec2D& fcoor = f1[pair.x].coor;
 		real_t dist = (project - Vec2D(fcoor.x, fcoor.y)).sqr();
 		if (dist < sqr(RANSAC_INLIER_THRES))
 			ret.push_back(i);

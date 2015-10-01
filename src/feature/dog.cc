@@ -10,7 +10,7 @@
 #include "filter.hh"
 using namespace std;
 
-Octave::Octave(const Mat32f& m, int num_scale):
+GaussianPyramid::GaussianPyramid(const Mat32f& m, int num_scale):
 	nscale(num_scale),
 	data(num_scale), mag(num_scale), ort(num_scale),
 	w(m.width()), h(m.height())
@@ -28,7 +28,7 @@ Octave::Octave(const Mat32f& m, int num_scale):
 	}
 }
 
-void Octave::cal_mag_ort(int i) {
+void GaussianPyramid::cal_mag_ort(int i) {
 	TotalTimer tm("cal_mag_ort");
 	const Mat32f& orig = data[i];
 	int w = orig.width(), h = orig.height();

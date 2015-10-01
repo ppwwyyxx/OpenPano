@@ -34,7 +34,7 @@ Vec2D Cylinder::proj_r(const Vec2D& p) const {
 	return Vec2D(dest.x, dest.y);
 }
 
-Mat32f CylProject::project(const Mat32f& img, vector<SIFTFeature>& ft) const {
+Mat32f CylProject::project(const Mat32f& img, vector<Descriptor>& ft) const {
 	Vec2D min(numeric_limits<real_t>::max(), numeric_limits<real_t>::max()),
 		  max(0, 0);
 	REP(i, img.height()) REP(j, img.width()) {			// TODO finally: only use rect corners
@@ -61,6 +61,6 @@ Mat32f CylProject::project(const Mat32f& img, vector<SIFTFeature>& ft) const {
 	}
 
 	for (auto & f : ft)
-		f.real_coor = cyl.proj(f.real_coor) * sizefactor + offset;
+		f.coor = cyl.proj(f.coor) * sizefactor + offset;
 	return mat;
 }

@@ -8,9 +8,38 @@
 #include "lib/geometry.hh"
 #include "dog.hh"
 
+// This should be renamed to SIFTPoint
+// Descriptor should only have coor & featvec
+class SIFTPoint {
+	public:
+		Coor coor;
+		Vec2D real_coor;
+		int no, ns; // octave / scale id
+		real_t dir;
+		real_t scale_factor;
+
+		real_t descriptor[DESC_LEN];
+
+		SIFTPoint(){}
+
+		SIFTPoint(const SIFTPoint& r):
+			coor(r.coor), real_coor(r.real_coor), no(r.no), ns(r.ns), dir(r.dir),
+			scale_factor(r.scale_factor){
+			memcpy(descriptor, r.descriptor, DESC_LEN * sizeof(real_t));
+		}
+
+		Descriptor to_descriptor() const {
+			Descriptor ret;
+			REP(i, DESC_LEN)
+				ret.descriptor.emplace_back(descriptor[i]);
+			ret.coor = real_coor;
+			return ret;
+		}
+
+};
+
 class KeyPoint {
 	public:
-		std::vector<SIFTFeature> features;
 		std::vector<Coor> keyp;
 
 		KeyPoint(const DOGSpace&, const ScaleSpace& ss);
@@ -18,14 +47,17 @@ class KeyPoint {
 		void work() {
 			detect_feature();
 			calc_dir();
-			calc_descriptor();
+			calc_sift_descriptor();
 		}
+
+		std::vector<Descriptor> get_sift_descriptor() const;
 
 	protected:
 		const DOGSpace& dogsp;
 		const ScaleSpace& ss;
 		int noctave, nscale;
 
+		std::vector<SIFTPoint> features;
 
 		void detect_feature();
 
@@ -42,15 +74,15 @@ class KeyPoint {
 
 		void calc_dir();
 
-		void calc_dir(SIFTFeature&, std::vector<SIFTFeature>&);
+		void calc_dir(SIFTPoint&, std::vector<SIFTPoint>&);
 
 		std::vector<real_t> calc_hist(
-				const Octave& oct,
+				const GaussianPyramid& oct,
 				int ns, Coor coor, real_t orig_sig);
 
-		void calc_descriptor();
+		void calc_sift_descriptor();
 
 		// calculate and write to the input
-		void calc_descriptor(SIFTFeature&);
+		void calc_sift_descriptor(SIFTPoint&);
 
 };
