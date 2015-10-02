@@ -96,7 +96,7 @@ Mat32f Panorama::get() {
 		 */
 
 		float* p = ret.ptr(i, j);
-		p[0] = finalc.x, p[1] = finalc.y, p[2] = finalc.z;
+		finalc.write_to(p);
 	}
 	return ret;
 }

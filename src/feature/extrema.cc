@@ -86,7 +86,7 @@ bool ExtremaDetector::calc_kp_offset(SSPoint* sp) const {
 	}
 	if (niter == CALC_OFFSET_DEPTH) return false;
 
-	float dextr = offset.dot(delta);		// calc D(x~)
+	double dextr = offset.dot(delta);		// calc D(x~)
 	dextr = now_pyramid[nows].at(nowy, nowx) + dextr / 2;
 	// contrast too low
 	if (dextr < CONTRAST_THRES) return false;
@@ -98,17 +98,17 @@ bool ExtremaDetector::calc_kp_offset(SSPoint* sp) const {
 	sp->scale_factor = GAUSS_SIGMA * pow(
 					SCALE_FACTOR, nows / nscale);
 	sp->real_coor = Vec2D(
-			(float)nowx / w * dog.origw,
-			(float)nowy / h * dog.origh);
+			(double)nowx / w * dog.origw,
+			(double)nowy / h * dog.origh);
 	return true;
 }
 
 std::pair<Vec, Vec> ExtremaDetector::calc_kp_offset_iter(
 		const DOGSpace::DOG& now_pyramid,
 		int x , int y, int s) const {
-	Vec offset = Vector::get_zero();
+	Vec offset = Vec::get_zero();
 	Vec delta;
-	float dxx, dyy, dss, dxy, dys, dsx;
+	double dxx, dyy, dss, dxy, dys, dsx;
 
 #define D(x, y, s) now_pyramid[s].at(y, x)
 	float val = D(x, y, s);
@@ -133,13 +133,13 @@ std::pair<Vec, Vec> ExtremaDetector::calc_kp_offset_iter(
 	m.at(1, 2) = m.at(2, 1) = dys;
 
 	Matrix pdpx(3, 1);	// delta = dD / dx
-	pdpx.at(0,0) = delta.x; pdpx.at(1,0) = delta.y; pdpx.at(2,0) = delta.z;
+	delta.write_to(pdpx.ptr());
 
 	// TODO when invertible, use svd
 	Matrix inv;
 	if (m.inverse(inv)) {
 		auto prod = inv.prod(pdpx);
-		offset = Vec(prod.at(0,0),prod.at(1,0),prod.at(2,0));
+		offset = Vec(prod.ptr());
 	} else {
 		print_debug("here\n");
 	}

@@ -7,7 +7,7 @@
 #include "geometry.hh"
 #include "timer.hh"
 
-typedef mtl::matrix::dense2D<real_t> mtlM;
+typedef mtl::matrix::dense2D<double> mtlM;
 using namespace std;
 
 //TODO speedup at()
@@ -43,16 +43,16 @@ Matrix Matrix::prod(const Matrix & r) const {
  *    for (int i = 0; i < h; i ++)
  *        for (int j = 0; j < w; j ++)
  *            ret.get(i, j) = get(i, j);
- *    real_t det = 1;
- *    real_t *l = new real_t[w],
- *           *m = new real_t[w];
+ *    double det = 1;
+ *    double *l = new double[w],
+ *           *m = new double[w];
  *    for (int k = 0; k < w; k ++) {
  *        l[k] = k, m[k] = k;
- *        real_t biga = get(k, k);
+ *        double biga = get(k, k);
  *
  *        for (int i = k; i < w; i ++)
  *            for (int j = k; j < w; j ++) {
- *                real_t val = get(i, j);
+ *                double val = get(i, j);
  *                if (fabs(val) > fabs(biga)) {
  *                    biga = val;
  *                    l[k] = i, m[k] = j;
@@ -64,14 +64,14 @@ Matrix Matrix::prod(const Matrix & r) const {
  *        int i = l[k];
  *        if (i > k)
  *            for (int j = 0; j < w; j ++) {
- *                real_t tmp = -get(k, j);
+ *                double tmp = -get(k, j);
  *                ret.get(k, j) = ret.get(i, j);
  *                ret.get(i, j) = tmp;
  *            }
  *        int j = m[k];
  *        if (j > k)
  *            for (int i = 0; i < w; i ++) {
- *                real_t tmp = -get(i, k);
+ *                double tmp = -get(i, k);
  *                ret.get(i, k) = ret.get(i, j);
  *                ret.get(i, j) = tmp;
  *            }
@@ -82,7 +82,7 @@ Matrix Matrix::prod(const Matrix & r) const {
  *
  *        for (int i = 0; i < w; i ++)
  *            if (i != k) {
- *                real_t tmp = ret.get(i, k);
+ *                double tmp = ret.get(i, k);
  *                for (int j = 0; j < w; j ++)
  *                    if (j != k)
  *                        ret.get(i, j) += tmp * ret.get(k, j);
@@ -100,7 +100,7 @@ Matrix Matrix::prod(const Matrix & r) const {
  *        int i = l[k];
  *        if (i > k)
  *            for (int j = 0; j < w; j ++) {
- *                real_t tmp = ret.get(j, k);
+ *                double tmp = ret.get(j, k);
  *                ret.get(j, k) = -ret.get(j, i);
  *                ret.get(j, i) = tmp;
  *            }
@@ -108,7 +108,7 @@ Matrix Matrix::prod(const Matrix & r) const {
  *        int j = m[k];
  *        if (j > k)
  *            for (int i = 0; i < w; i ++) {
-*                real_t tmp = ret.get(k, i);
+*                double tmp = ret.get(k, i);
 *                ret.get(k, i) = -ret.get(j, i);
 *                ret.get(j, i) = tmp;
 *            }
@@ -186,7 +186,7 @@ void Matrix::normrot() {
 	q.normalize();
 	r.normalize();
 	Vec vtmp = p.cross(q);
-	real_t dist = (vtmp - r).mod();
+	double dist = (vtmp - r).mod();
 	if (dist > 1e-6)
 		r = vtmp;
 	at(0, 0) = p.x, at(1, 0) = p.y, at(2, 0) = p.z;
@@ -194,9 +194,9 @@ void Matrix::normrot() {
 	at(0, 2) = r.x, at(1, 2) = r.y, at(2, 2) = r.z;
 }
 
-real_t Matrix::sqrsum() const {
+double Matrix::sqrsum() const {
 	m_assert(m_cols == 1);
-	real_t sum = 0;
+	double sum = 0;
 	REP(i, m_rows)
 		sum += sqr(at(i, 0));
 	return sum;

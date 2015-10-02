@@ -6,12 +6,17 @@
 
 #include "geometry.hh"
 
-class Color: public Vector {
+class Color: public Vector<float> {
 	public:
-		Color(real_t r = 0, real_t g = 0, real_t b = 0):
+		Color(float r = 0, float g = 0, float b = 0):
 			Vector(r, g, b){}
 
-		static constexpr real_t C_EPS = 1e-4;
+		Color(const Vector<float>& v):
+			Vector<float>(v) {}
+
+		Color(const float* p) : Vector<float>(p) {}
+
+		static constexpr float C_EPS = 1e-4;
 
 		bool black() const
 		{ return is_zero(C_EPS); }
@@ -26,7 +31,7 @@ class Color: public Vector {
 
 		void normalize();
 
-		Color operator * (real_t p) const
+		Color operator * (float p) const
 		{ return Color(x * p, y * p, z * p); }
 
 		Color operator * (const Color& c) const

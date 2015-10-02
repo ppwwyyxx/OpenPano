@@ -9,7 +9,6 @@
 #include "debugutils.hh"
 #include "common.hh"
 
-// basic 2-d array
 class Matrix : public Mat<double> {
 	public:
 		Matrix(){}
@@ -32,7 +31,7 @@ class Matrix : public Mat<double> {
 
 		void normrot();
 
-		real_t sqrsum() const;
+		double sqrsum() const;
 
 		Matrix col(int i) const;
 
