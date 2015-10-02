@@ -188,6 +188,10 @@ void Panorama::cal_best_matrix_pano() {;
 	if (len > 1) {
 		float newfactor = 1;
 		float slope = Panorama::update_h_factor(newfactor, minslope, bestfactor, bestmat, imgs, feats, matches);
+		if (bestmat.empty()) {
+			cout << "Failed to find hfactor" << endl;
+			exit(1);
+		}
 		float centerx1 = imgs[mid].width() / 2,
 					centerx2 = TransFormer::cal_project(
 							bestmat[0], Vec2D(imgs[mid + 1].width() / 2, imgs[mid + 1].height() / 2)).x;
