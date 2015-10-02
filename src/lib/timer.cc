@@ -7,15 +7,18 @@
 #include <mutex>
 
 // static member
-std::map<std::string, double> TotalTimer::rst;
+std::map<std::string, std::pair<int, double>> TotalTimer::rst;
 
 void TotalTimer::print() {
 	for (auto& itr : rst)
-		print_debug("%s spent %lf secs in total\n", itr.first.c_str(), itr.second);
+		print_debug("%s spent %lf secs in total, called %d times.\n",
+				itr.first.c_str(), itr.second.second, itr.second.first);
 }
 
 TotalTimer::~TotalTimer() {
 	static std::mutex mt;
 	std::lock_guard<std::mutex> lg(mt);
-	rst[msg] += timer.duration();
+	auto& p = rst[msg];
+	p.second += timer.duration();
+	p.first ++;
 }

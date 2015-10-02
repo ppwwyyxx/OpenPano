@@ -70,7 +70,7 @@ class TotalTimer {
 		std::string msg;
 		Timer timer;
 
-		static std::map<std::string, double> rst;
+		static std::map<std::string, std::pair<int, double>> rst;
 };
 
 // Build a global instance of this class, to call print() before program exit.

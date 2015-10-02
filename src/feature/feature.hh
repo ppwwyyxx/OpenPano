@@ -12,6 +12,17 @@
 struct Descriptor {
 	Vec2D coor;
 	std::vector<float> descriptor;
+
+	// square of euclidean. use now_thres to early-stop
+	float euclidean_sqr(const Descriptor& r, float now_thres) const {
+		float ans = 0;
+		REP(i, descriptor.size()) {
+			ans += sqr(descriptor[i] - r.descriptor[i]);
+			if (ans > now_thres)
+				return -1;
+		}
+		return ans;
+	}
 };
 
 std::vector<Descriptor> detect_SIFT(const Mat32f& img);

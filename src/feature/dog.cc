@@ -10,12 +10,35 @@
 #include "filter.hh"
 using namespace std;
 
+namespace {
+// fast approximation to atan2.
+// atan2(a, b) = fast_atan(a, b), given max(abs(a),abs(b)) > EPS
+// http://math.stackexchange.com/questions/1098487/atan2-faster-approximation
+// save cal_mag_ort() 40% time
+float fast_atan(float y, float x) {
+	float absx = fabs(x), absy = fabs(y);
+	float m = max(absx, absy);
+
+	// undefined behavior in atan2.
+	// but here we can safely ignore by setting ort=0
+	if (m < EPS) return -M_PI;
+	float a = min(absx, absy) / m;
+	float s = a * a;
+	float r = ((-0.0464964749 * s + 0.15931422) * s - 0.327622764) * s * a + a;
+	if (absy > absx)
+		r = M_PI_2 - r;
+	if (x < 0) r = M_PI - r;
+	if (y < 0) r = -r;
+	return r;
+}
+}
+
 GaussianPyramid::GaussianPyramid(const Mat32f& m, int num_scale):
 	nscale(num_scale),
 	data(num_scale), mag(num_scale), ort(num_scale),
 	w(m.width()), h(m.height())
 {
-	TotalTimer tm("init_octave");
+	TotalTimer tm("build pyramid");
 	if (m.channels() == 3)
 		data[0] = rgb2grey(m);
 	else
@@ -43,15 +66,14 @@ void GaussianPyramid::cal_mag_ort(int i) {
 		// x == 0:
 		mag_row[0] = 0;
 		ort_row[0] = M_PI;
+
 		REPL(x, 1, w-1) {
 			if (between(y, 1, h - 1)) {
 				float dy = orig_plus[x] - orig_minus[x],
 							dx = orig_row[x + 1] - orig_row[x - 1];
 				mag_row[x] = hypotf(dx, dy);
-				if (dx == 0 && dy == 0)
-					ort_row[x] = M_PI;
-				else
-					ort_row[x] = atan2(dy, dx) + M_PI;
+				// when dx==dy==0, no need to set ort
+				ort_row[x] = fast_atan(dy, dx) + M_PI;
 			} else {
 				mag_row[x] = 0;
 				ort_row[x] = M_PI;
@@ -68,7 +90,6 @@ ScaleSpace::ScaleSpace(const Mat32f& mat, int num_octave, int num_scale):
 	noctave(num_octave), nscale(num_scale),
 	origw(mat.width()), origh(mat.height())
 {
-	GuardedTimer tm("Building scale space");
 	// #pragma omp parallel for schedule(dynamic)
 	REP(i, noctave) {
 		if (!i)
