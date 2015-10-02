@@ -83,6 +83,7 @@ bool ExtremaDetector::calc_kp_offset(SSPoint* sp) const {
 		nows += round(offset.z);
 	}
 	if (niter == CALC_OFFSET_DEPTH) return false;
+
 	float dextr = offset.dot(delta);		// calc D(x~)
 	dextr = now_pyramid[nows].at(nowy, nowx) + dextr / 2;
 	// contrast too low
