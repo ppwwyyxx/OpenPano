@@ -127,19 +127,21 @@ std::pair<Vec, Vec> ExtremaDetector::calc_kp_offset_iter(
 #undef D
 
 	Matrix m(3, 3);
-	m.get(0, 0) = dxx; m.get(1, 1) = dyy; m.get(2, 2) = dss;
-	m.get(0, 1) = m.get(1, 0) = dxy;
-	m.get(0, 2) = m.get(2, 0) = dsx;
-	m.get(1, 2) = m.get(2, 1) = dys;
+	m.at(0, 0) = dxx; m.at(1, 1) = dyy; m.at(2, 2) = dss;
+	m.at(0, 1) = m.at(1, 0) = dxy;
+	m.at(0, 2) = m.at(2, 0) = dsx;
+	m.at(1, 2) = m.at(2, 1) = dys;
 
-	Matrix inv(3, 3);
-	Matrix pdpx(1, 3);	// delta = dD / dx
-	pdpx.get(0,0) = delta.x; pdpx.get(1,0) = delta.y; pdpx.get(2,0) = delta.z;
+	Matrix pdpx(3, 1);	// delta = dD / dx
+	pdpx.at(0,0) = delta.x; pdpx.at(1,0) = delta.y; pdpx.at(2,0) = delta.z;
 
 	// TODO when invertible, use svd
+	Matrix inv;
 	if (m.inverse(inv)) {
 		auto prod = inv.prod(pdpx);
-		offset = Vec(prod.get(0,0),prod.get(1,0),prod.get(2,0));
+		offset = Vec(prod.at(0,0),prod.at(1,0),prod.at(2,0));
+	} else {
+		print_debug("here\n");
 	}
 	return {offset, delta};
 }

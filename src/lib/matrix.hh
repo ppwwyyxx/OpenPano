@@ -5,67 +5,20 @@
 #pragma once
 #include <cstring>
 #include <memory>
+#include "mat.h"
 #include "debugutils.hh"
 #include "common.hh"
 
 // basic 2-d array
-class Matrix {
+class Matrix : public Mat<double> {
 	public:
-		real_t **val;
-		int w, h;
+		Matrix(){}
 
-		Matrix(int m_w, int m_h):		// initialize with value 0
-			w(m_w), h(m_h) {
-				val = new real_t* [h];
-				REP(i, h)
-					val[i] = new real_t[w]();
-			}
+		Matrix(int rows, int cols):
+			Mat<double>(rows, cols, 1) {}
 
-		~Matrix() { free_2d<real_t>(val, h); }
-
-		// something bad
-		Matrix(const Matrix& m) {
-			w = m.w, h = m.h;
-			val = new real_t* [h];
-			REP(i, h) {
-				val[i] = new real_t[w]();
-				memcpy(val[i], m.val[i], w * sizeof(real_t));
-			}
-		}
-
-		Matrix & operator = (const Matrix & m) {
-			if (this != &m) {
-				w = m.w, h = m.h;
-				val = new real_t* [h];
-				REP(i, h) {
-					val[i] = new real_t[w]();
-					memcpy(val[i], m.val[i], w * sizeof(real_t));
-				}
-			}
-			return *this;
-		}
-
-		Matrix & operator = (Matrix && r) {
-			m_assert(this != &r);
-			free_2d<real_t>(val, h);
-			val = r.val;
-			w = r.w, h = r.h;
-			r.val = nullptr;
-			return *this;
-		}
-
-		Matrix(Matrix&& r) {
-			val = r.val;
-			w = r.w, h = r.h;
-			r.val = nullptr;
-		}
-		// something ugly
-
-		real_t & get(int i, int j)
-		{ return val[i][j]; }
-
-		const real_t & get(int i, int j) const
-		{ return val[i][j]; }
+		Matrix(const Mat<double>& r):
+			Mat<double>(r) {}
 
 		bool inverse(Matrix & ret) const;
 
@@ -75,8 +28,6 @@ class Matrix {
 
 		bool solve_overdetermined(Matrix & x, const Matrix & b) const;		//
 
-		friend std::ostream& operator << (std::ostream& os, const Matrix & m);
-
 		bool SVD(Matrix & u, Matrix & s, Matrix & v) const;
 
 		void normrot();
@@ -85,6 +36,11 @@ class Matrix {
 
 		Matrix col(int i) const;
 
+		void zero();
+
 		static Matrix I(int);
+
+		friend std::ostream& operator << (std::ostream& os, const Matrix & m);
+
 };
 

@@ -20,7 +20,8 @@ using namespace std;
 Mat32f Panorama::get() {
 	int n = imgs.size();
 	Matrix I = Matrix::I(3);
-	mat.resize(n, I);
+	mat.clear();
+	REP(i, n) mat.emplace_back(I.clone());
 	if (PANO) {
 		cal_best_matrix_pano();
 
@@ -51,7 +52,7 @@ Mat32f Panorama::get() {
 	// inverse
 	for_each(mat.begin(), mat.end(),
 		[](Matrix & m) {
-			Matrix inv(m.w, m.h);
+			Matrix inv;
 			bool ok = m.inverse(inv);
 			m_assert(ok);
 			m = move(inv);
@@ -114,7 +115,7 @@ void Panorama::straighten_simple() {
 	Vec2D center1 = TransFormer::cal_project(mat[0], Vec2D(imgs[0].width() / 2, imgs[0].height() / 2));
 	float dydx = (center2.y - center1.y) / (center2.x - center1.x);
 	Matrix S = Matrix::I(3);
-	S.get(1, 0) = dydx;
+	S.at(1, 0) = dydx;
 	Matrix Sinv(3, 3);
 	S.inverse(Sinv);
 	REP(i, n) mat[i] = Sinv.prod(mat[i]);
@@ -258,19 +259,22 @@ float Panorama::update_h_factor(float nowfactor,
 
 	vector<Matrix> nowmat;		// size = len - 1
 	REPL(k, 1, len)
-		nowmat.push_back(TransFormer(matches[k - 1 + mid], nowfeats[k - 1], nowfeats[k]).get_transform());
+		nowmat.emplace_back(
+				TransFormer(matches[k - 1 + mid], nowfeats[k - 1],
+					nowfeats[k]).get_transform());
 	// nowmat[k - 1] = TransFormer(matches[k - 1 + mid], nowfeats[k - 1], nowfeats[k]).get_transform();
 	//nowmat.push_back(Panorama::get_transform(nowfeats[k - 1], nowfeats[k]));
 	REPL(k, 1, len - 1)
 		nowmat[k] = nowmat[k - 1].prod(nowmat[k]);
 
 	Vec2D center2 = TransFormer::cal_project(
-			nowmat[len - 2], Vec2D(nowimgs[len - 2].width() / 2, nowimgs[len - 2].height() / 2)),
+			nowmat[len - 2],
+			Vec2D(nowimgs[len - 2].width() / 2, nowimgs[len - 2].height() / 2)),
 		  center1(nowimgs[0].width() / 2, nowimgs[0].height() / 2);
 	const float slope = (center2.y - center1.y) / (center2.x - center1.x);
 	if (update_min(minslope, fabs(slope))) {
 		bestfactor = nowfactor;
-		mat = nowmat;
+		mat = move(nowmat);
 	}
 	return slope;
 }

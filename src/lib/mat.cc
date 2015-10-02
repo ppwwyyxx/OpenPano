@@ -52,3 +52,4 @@ Mat<T> Mat<T>::clone() const {
 }
 
 template class Mat<float>;
+template class Mat<double>;

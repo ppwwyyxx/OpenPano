@@ -31,11 +31,10 @@ class Mat {
         int channels() const { return m_channels; }
 				int pixels() const { return m_rows * m_cols; }
 
-    private:
+    protected:
         int m_rows, m_cols;
         int m_channels;
         std::shared_ptr<T> m_data;
 };
 
 using Mat32f = Mat<float>;
-extern template class Mat<float>;
