@@ -10,26 +10,30 @@
 typedef mtl::matrix::dense2D<real_t> mtlM;
 using namespace std;
 
+//TODO speedup at()
+
 ostream& operator << (std::ostream& os, const Matrix & m) {
-	os << "[" << m.w << " " << m.h << "] :" << endl;
-	REP(i, m.h) REP(j, m.w)
-		os << m.get(i, j) << (j == m.w - 1 ? "\n" : ", ");
+	os << "[" << m.rows() << " " << m.cols() << "] :" << endl;
+	REP(i, m.rows()) REP(j, m.cols())
+		os << m.at(i, j) << (j == m.cols() - 1 ? "\n" : ", ");
 	return os;
 }
 
 Matrix Matrix::transpose() const {
-	Matrix ret(h, w);
-	REP(i, h) REP(j, w)
-		ret.get(j, i) = val[i][j];
+	Matrix ret(m_cols, m_rows);
+	REP(i, m_rows) REP(j, m_cols)
+		ret.at(j, i) = at(i, j);
 	return move(ret);
 }
 
 Matrix Matrix::prod(const Matrix & r) const {
-	m_assert(w == r.h);
+	m_assert(m_cols == r.rows());
 	const Matrix transp(r.transpose());
-	Matrix ret(r.w, h);
-	REP(i, h) REP(j, r.w) REP(k, w)
-		ret.get(i, j) += val[i][k] * transp.get(j, k);
+	Matrix ret(m_rows, r.cols());
+	ret.zero();
+
+	REP(i, m_rows) REP(j, r.cols()) REP(k, m_cols)
+		ret.at(i, j) += at(i, k) * transp.at(j, k);
 	return move(ret);
 }
 
@@ -117,11 +121,12 @@ Matrix Matrix::prod(const Matrix & r) const {
 *}
 */
 bool Matrix::inverse(Matrix &ret) const {
-	m_assert(w == h && w == ret.w && ret.w == ret.h);
-
-	mtlM input(h, w);
-	REP(i, h) REP(j, w) input(i, j) = get(i, j);
-	mtlM inverse(h, w);
+	m_assert(m_rows == m_cols);
+	int n = m_rows;
+	mtlM input(n, n);
+	REP(i, n) REP(j, n)
+		input(i, j) = at(i, j);
+	mtlM inverse(n, n);
 	try {
 		inv(input, inverse);
 	} catch (mtl::matrix_singular) {
@@ -129,17 +134,17 @@ bool Matrix::inverse(Matrix &ret) const {
 		return false;
 	}
 
-	REP(i, h) REP(j, w)
-		ret.get(i, j) = inverse(i, j);
-
+	ret = Matrix(n, n);
+	REP(i, n) REP(j, n)
+		ret.at(i, j) = inverse(i, j);
 	return true;
 }
 
 bool Matrix::solve_overdetermined(Matrix & x, const Matrix & b) const {
-	m_assert(h >= w);			// check overdetermined
+	m_assert(m_rows >= m_cols);			// check overdetermined
 	Matrix mt = transpose();
 	Matrix mtm = mt.prod(*this);
-	Matrix inverse(mtm.w, mtm.h);
+	Matrix inverse(mtm.rows(), mtm.cols());
 	if (!mtm.inverse(inverse))		// TODO judge determinant threshold 0.001
 		return false;
 	x = inverse.prod(mt).prod(b);
@@ -147,9 +152,9 @@ bool Matrix::solve_overdetermined(Matrix & x, const Matrix & b) const {
 }
 
 bool Matrix::SVD(Matrix& u, Matrix& s, Matrix& v) const {
-	mtlM A(h, w);
-	REP(i, h) REP(j, w) A(i, j) = get(i, j);
-	mtlM l(h, h), m(h, w), r(w, w);
+	mtlM A(m_rows, m_cols);
+	REP(i, m_rows) REP(j, m_cols) A(i, j) = at(i, j);
+	mtlM l(m_rows, m_rows), m(m_rows, m_cols), r(m_cols, m_cols);
 	boost::tie(l, m, r) = svd(A, 1.e-6);
 	/*
 	 *cout << "done" << endl;
@@ -160,21 +165,23 @@ bool Matrix::SVD(Matrix& u, Matrix& s, Matrix& v) const {
 	 *cout <<  result << endl;
 	 */
 
-	REP(i, h) REP(j, h)
-		u.get(i, j) = l(i, j);
-	REP(i, h) REP(j, w)
-		s.get(i, j) = m(i, j);
-	REP(i, w) REP(j, w)
-		v.get(i, j) = r(i, j);
-
+	u = Matrix(m_rows, m_rows);
+	REP(i, m_rows) REP(j, m_rows)
+		u.at(i, j) = l(i, j);
+	s = Matrix(m_rows, m_cols);
+	REP(i, m_rows) REP(j, m_cols)
+		s.at(i, j) = m(i, j);
+	v = Matrix(m_cols, m_cols);
+	REP(i, m_cols) REP(j, m_cols)
+		v.at(i, j) = r(i, j);
 	return true;
 }
 
 void Matrix::normrot() {
-	m_assert(w == 3);
-	Vec p(val[0][0], val[1][0], val[2][0]);
-	Vec q(val[0][1], val[1][1], val[2][1]);
-	Vec r(val[0][2], val[1][2], val[2][2]);
+	m_assert(m_cols == 3);
+	Vec p(at(0, 0), at(1, 0), at(2, 0));
+	Vec q(at(0, 1), at(1, 1), at(2, 1));
+	Vec r(at(0, 2), at(1, 2), at(2, 2));
 	p.normalize();
 	q.normalize();
 	r.normalize();
@@ -182,30 +189,38 @@ void Matrix::normrot() {
 	real_t dist = (vtmp - r).mod();
 	if (dist > 1e-6)
 		r = vtmp;
-	val[0][0] = p.x, val[1][0] = p.y, val[2][0] = p.z;
-	val[0][1] = q.x, val[1][1] = q.y, val[2][1] = q.z;
-	val[0][2] = r.x, val[1][2] = r.y, val[2][2] = r.z;
+	at(0, 0) = p.x, at(1, 0) = p.y, at(2, 0) = p.z;
+	at(0, 1) = q.x, at(1, 1) = q.y, at(2, 1) = q.z;
+	at(0, 2) = r.x, at(1, 2) = r.y, at(2, 2) = r.z;
 }
 
 real_t Matrix::sqrsum() const {
-	m_assert(w == 1);
+	m_assert(m_cols == 1);
 	real_t sum = 0;
-	REP(i, h)
-		sum += sqr(val[i][0]);
+	REP(i, m_rows)
+		sum += sqr(at(i, 0));
 	return sum;
 }
 
 Matrix Matrix::col(int i) const {
-	m_assert(i < w);
-	Matrix ret(1, h);
-	REP(j, h)
-		ret.get(j, 0) = get(j, i);
+	m_assert(i < m_cols);
+	Matrix ret(m_rows, 1);
+	REP(j, m_rows)
+		ret.at(j, 0) = at(j, i);
 	return move(ret);
 }
 
 Matrix Matrix::I(int k) {
 	Matrix ret(k, k);
+	ret.zero();
 	REP(i, k)
-		ret.get(i, i) = 1;
+		ret.at(i, i) = 1;
 	return move(ret);
+}
+
+void Matrix::zero() {
+	double* p = ptr();
+	int n = pixels();
+	//REP(i, n) p[i] = 0;
+	memset(p, 0, n * sizeof(double));
 }
