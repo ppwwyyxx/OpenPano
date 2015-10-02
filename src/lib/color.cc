@@ -13,7 +13,7 @@ const Color Color::BLACK(0, 0, 0),
 			Color::NO(-1, -1, -1);
 
 void Color::normalize() {
-	real_t max = get_max();
+	float max = get_max();
 	if (max > 1) {
 		/*
 		 *cout << "normalizing color" << endl;

@@ -26,35 +26,39 @@ class Geometry {
 		{ return (x >= 0 && x < w && y >= 0 && y < h); }
 };
 
+template<typename T>
 class Vector {
 	public:
-		real_t x = 0, y = 0, z = 0;
+		T x = 0, y = 0, z = 0;
 
-		explicit Vector(real_t m_x = 0, real_t m_y = 0, real_t m_z = 0):
+		explicit Vector(T m_x = 0, T m_y = 0, T m_z = 0):
 			x(m_x), y(m_y), z(m_z) {}
 
 		Vector(const Vector &p0, const Vector &p1):
 			x(p1.x - p0.x), y(p1.y -p0.y), z(p1.z - p0.z) {}
 
-		real_t index(int c) const
+		explicit Vector(const T* p):
+			x(p[0]), y(p[1]), z(p[2]) {}
+
+		T index(int c) const
 		{ return c == 0 ? x : c == 1 ? y : z; }
 
-		real_t& index(int c)
+		T& index(int c)
 		{ return c == 0 ? x : c == 1 ? y : z; }
 
-		real_t min_comp_abs() const {
-			real_t a = fabs(x), b = fabs(y), c = fabs(z);
+		T min_comp_abs() const {
+			T a = fabs(x), b = fabs(y), c = fabs(z);
 			::update_min(a, b), ::update_min(a, c);
 			return a;
 		}
 
-		real_t sqr() const
+		T sqr() const
 		{ return x * x + y * y + z * z; }
 
-		real_t mod() const
+		T mod() const
 		{ return sqrt(sqr()); }
 
-		real_t dot(const Vector &v) const
+		T dot(const Vector &v) const
 		{ return x * v.x + y * v.y + z * v.z; }
 
 		Vector cross(const Vector &v) const
@@ -64,28 +68,18 @@ class Vector {
 		{ x = v.x, y = v.y, z = v.z; return *this; }
 
 		virtual void normalize() {
-			real_t m = 1 / mod();
+			T m = 1 / mod();
 			*this *= m;		// work?
-			/*
-			 *x *= m; y *= m; z *= m;
-			 */
 			m_assert(std::isnormal(m));
-			/*		// double ensure
-			 *m = mod();
-			 *if (fabs(m - 1) > EPS) {
-			 *    m = 1 / mod();
-			 *    x *= m, y *= m, z *= m;
-			 *}
-			 */
 		}
 
 		Vector get_normalized() const
 		{ Vector ret(*this); ret.normalize(); return ret; }
 
-		bool is_zero(real_t threshold = EPS) const
+		bool is_zero(T threshold = EPS) const
 		{ return fabs(x) < threshold && fabs(y) < threshold && fabs(z) < threshold; }
 
-		bool is_positive(real_t threshold = EPS) const
+		bool is_positive(T threshold = EPS) const
 		{ return x > threshold && y > threshold && z > threshold; }
 
 		void update_min(const Vector &v)
@@ -109,13 +103,13 @@ class Vector {
 		Vector& operator -= (const Vector &v)
 		{ x -= v.x; y -= v.y; z -= v.z; return *this; }
 
-		Vector operator * (real_t p) const
+		Vector operator * (T p) const
 		{ return Vector(x * p, y * p, z * p); }
 
-		Vector& operator *= (real_t p)
+		Vector& operator *= (T p)
 		{ x *= p; y *= p; z *= p; return *this; }
 
-		Vector operator / (real_t p) const
+		Vector operator / (T p) const
 		{ return *this * (1.0 / p); }
 
 		bool operator == (const Vector &v) const
@@ -128,19 +122,22 @@ class Vector {
 		{ return os << vec.x << " " << vec.y << " " << vec.z;}
 
 		static Vector max()
-		{ return Vector(std::numeric_limits<real_t>::max(), std::numeric_limits<real_t>::max()); }
+		{ return Vector(std::numeric_limits<T>::max(), std::numeric_limits<T>::max()); }
 
 		static Vector infinity()
-		{ return Vector(std::numeric_limits<real_t>::infinity(), std::numeric_limits<real_t>::infinity()); }
+		{ return Vector(std::numeric_limits<T>::infinity(), std::numeric_limits<T>::infinity()); }
 
-		real_t get_max() const
+		T get_max() const
 		{ return std::max(x, std::max(y, z)); }
 
-		real_t get_min() const
+		T get_min() const
 		{ return std::min(x, std::min(y, z)); }
 
-		real_t get_abs_max()
+		T get_abs_max()
 		{ return std::max(fabs(x), std::max(fabs(y), fabs(z))); }
+
+		void write_to(T* p) const
+		{ p[0] = x, p[1] = y, p[2] = z; }
 
 		static Vector get_zero()
 		{ return Vector(0, 0, 0); }
@@ -184,10 +181,10 @@ class Vector2D {
 		Vector2D<T>& operator -= (const Vector2D<T> &v)
 		{ x -= v.x; y -= v.y; return *this; }
 
-		Vector2D<T> operator * (real_t f) const
+		Vector2D<T> operator * (T f) const
 		{ return Vector2D<T>(x * f, y * f); }
 
-		Vector2D<T> operator / (real_t f) const
+		Vector2D<T> operator / (T f) const
 		{ return *this * (1.0 / f); }
 
 		bool operator == (const Vector2D<T> &v) const
@@ -207,14 +204,18 @@ class Vector2D {
 		T sqr() const
 		{ return x * x + y * y; }
 
-		real_t mod() const
+		T mod() const
 		{ return hypot(x, y); }
 
-		Vector2D<T> get_normalized() const
-		{ real_t m = mod(); m_assert(m > EPS); m = 1 / m; return Vector2D<T>(x * m, y * m); }
+		Vector2D<T> get_normalized() const {
+			T m = mod();
+			m_assert(m > EPS);
+			m = 1 / m;
+			return Vector2D<T>(x * m, y * m);
+		}
 
 		virtual void normalize() {
-			real_t m = 1 / mod();
+			T m = 1 / mod();
 			x *= m, y *= m;		// work?
 			m_assert(std::isnormal(m));
 		}
@@ -235,7 +236,7 @@ std::ostream& operator << (std::ostream& os, const Vector2D<T>& v) {
 	return os;
 }
 
-typedef Vector Vec;
+typedef Vector<double> Vec;
 typedef Vector2D<int> Coor;
 
 typedef Vector2D<float> Vec2D;

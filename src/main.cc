@@ -79,7 +79,7 @@ void gallery(const char* f1, const char* f2) {
 	Matcher match(feat1, feat2);
 	auto ret = match.match();
 	for (auto &x : ret.data) {
-		pld.set_color(::Color(gen_rand(), gen_rand(), gen_rand()));
+		pld.set_color(Color(gen_rand(), gen_rand(), gen_rand()));
 		pld.circle(toCoor(feat1[x.x].coor), LABEL_LEN);
 		pld.circle(toCoor(feat2[x.y].coor) + Coor(pic1.width(), 0), LABEL_LEN);
 		pld.line(toCoor(feat1[x.x].coor), toCoor(feat2[x.y].coor) + Coor(pic1.width(), 0));
@@ -177,7 +177,7 @@ void planet(const char* fname) {
 		update_min(dist, (real_t)h - 1);
 		Color c = interpolate(test, dist, theta);
 		float* p = ret.ptr(i, j);
-		p[0] = c.x, p[1] = c.y, p[2] = c.z;
+		c.write_to(p);
 	}
 	write_rgb("planet.png", ret);
 }

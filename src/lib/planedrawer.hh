@@ -26,7 +26,7 @@ class PlaneDrawer {
 					!between(y, 0, mat.height()))
 				return;
 			float* p = mat.ptr(y, x);
-			p[0] = c.x, p[1] = c.y, p[2] = c.z;
+			c.write_to(p);
 		}
 
 		inline void point(Coor v)
