@@ -34,7 +34,7 @@ std::vector<float> OrientationAssign::calc_dir(
 	int rad = round(p.scale_factor * ORI_RADIUS);
 	float exp_denom = 2 * sqr(gauss_weight_sigma);
 	float hist[ORT_HIST_BIN_NUM];
-	float halfipi = 0.5f / M_PI;
+	static float halfipi = 0.5f / M_PI;
 	memset(hist, 0, sizeof(hist));
 
 	// calculate gaussian/magnitude weighted histogram

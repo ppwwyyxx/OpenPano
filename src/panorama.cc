@@ -5,15 +5,16 @@
 
 #include <fstream>
 #include <algorithm>
+
 #include "panorama.hh"
 #include "matcher.hh"
+#include "cylinder.hh"
+#include "warper.hh"
+#include "transformer.hh"
+
 #include "lib/timer.hh"
 #include "lib/imgproc.hh"
 #include "lib/utils.hh"
-#include "cylinder.hh"
-#include "feature/keypoint.hh"
-#include "warper.hh"
-#include "transformer.hh"
 using namespace std;
 
 Mat32f Panorama::get() {
@@ -150,13 +151,14 @@ void Panorama::cal_best_matrix_pano() {;
 		feats[k] = detect_SIFT(imgs[k]);
 	print_debug("feature takes %lf secs in total\n", timer.duration());
 
+	timer.restart();
 	vector<MatchData> matches;
 	REP(k, n - 1) {
+		print_debug("Number of Feature: %lu\n", feats[k].size());
 		Matcher match(feats[k], feats[k + 1]);
 		matches.push_back(match.match());
 	}
 	if (n > 2) {
-		timer.restart();
 		Matcher match(feats[n - 1], feats[0]);
 		auto matched = match.match();
 		print_debug("match time: %lf secs\n", timer.duration());
@@ -217,6 +219,9 @@ void Panorama::cal_best_matrix() {
 		feats[k] = detect_SIFT(imgs[k]);
 	print_debug("feature takes %lf secs in total\n", timer.duration());
 	timer.restart();
+	REP(k, n - 1) {
+		print_debug("Number of Feature: %lu\n", feats[k].size());
+	}
 
 #pragma omp parallel for schedule(dynamic)
 	REPL(k, mid + 1, n)

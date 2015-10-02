@@ -7,7 +7,7 @@
 #include "lib/imgproc.hh"
 #include "warper.hh"
 #include "feature/extrema.hh"
-#include "feature/keypoint.hh"
+#include "feature/orientation.hh"
 #include "lib/timer.hh"
 #include "matcher.hh"
 #include "panorama.hh"
@@ -24,33 +24,6 @@ inline real_t gen_rand()
 { return (real_t)rand() / RAND_MAX; }
 
 
-void test_feature(const char* fname, int mode = 1) {
-	auto mat = read_rgb(fname);
-	vector<Descriptor> ans = detect_SIFT(mat);
-
-	PlaneDrawer pld(mat);
-
-	cout << ans.size() << endl;
-	for (auto &i : ans) {
-		// XXX no dir in feature
-		/*
-		 *if (mode)
-		 *  pld.arrow(toCoor(i.coor), i.dir, LABEL_LEN);
-		 *else
-		 */
-			pld.cross(toCoor(i.coor), LABEL_LEN / 2);
-	}
-	write_rgb("feature.png", mat);
-
-	// write feature to file
-	ofstream feature_out("feature.txt");
-	for (auto &i : ans) {
-		// in r, c format
-		feature_out << int(i.coor.x) << " " << int(i.coor.y) << endl;
-	}
-	feature_out.close();
-}
-
 void test_extrema(const char* fname, int mode) {
 	auto mat = read_rgb(fname);
 
@@ -65,12 +38,29 @@ void test_extrema(const char* fname, int mode) {
 			pld.cross(i, LABEL_LEN / 2);
 	} else if (mode == 1) {
 		auto extrema = ex.get_extrema();
+		cout << extrema.size() << endl;
 		for (auto &i : extrema)
 			pld.cross(i.real_coor, LABEL_LEN / 2);
 	}
 	write_rgb("extrema.png", mat);
 }
 
+void test_orientation(const char* fname) {
+	auto mat = read_rgb(fname);
+	ScaleSpace ss(mat, NUM_OCTAVE, NUM_SCALE);
+	DOGSpace dog(ss);
+	ExtremaDetector ex(dog);
+	auto extrema = ex.get_extrema();
+	OrientationAssign ort(dog, ss, extrema);
+	auto oriented_keypoint = ort.work();
+
+	PlaneDrawer pld(mat);
+
+	cout << "FeaturePoint size: " << oriented_keypoint.size() << endl;
+	for (auto &i : oriented_keypoint)
+		pld.arrow(toCoor(i.real_coor), i.dir, LABEL_LEN);
+	write_rgb("orientation.png", mat);
+}
 
 void gallery(const char* f1, const char* f2) {
 	list<Mat32f> imagelist;
@@ -144,7 +134,7 @@ void init_config() {
 	ORI_RADIUS = Config.get("ORI_RADIUS");
 	ORT_HIST_SMOOTH_COUNT = Config.get("ORT_HIST_SMOOTH_COUNT");
 	ORT_HIST_PEAK_RATIO = Config.get("ORT_HIST_PEAK_RATIO");
-	DESC_HIST_REAL_WIDTH = Config.get("DESC_HIST_REAL_WIDTH");
+	DESC_HIST_SCALE_FACTOR = Config.get("DESC_HIST_SCALE_FACTOR");
 	DESC_NORM_THRESH = Config.get("DESC_NORM_THRESH");
 	DESC_INT_FACTOR = Config.get("DESC_INT_FACTOR");
 	MATCH_REJECT_NEXT_RATIO = Config.get("MATCH_REJECT_NEXT_RATIO");
@@ -204,8 +194,8 @@ int main(int argc, char* argv[]) {
 		test_extrema(argv[2], 0);
 	else if (command == "keypoint")
 		test_extrema(argv[2], 1);
-	else if (command == "feature")
-		test_feature(argv[2]);
+	else if (command == "orientation")
+		test_orientation(argv[2]);
 	else if (command == "gallery")
 		gallery(argv[2], argv[3]);
 	else if (command == "warp")

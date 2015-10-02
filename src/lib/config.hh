@@ -25,39 +25,39 @@ extern bool HOMO;
 
 extern int NUM_OCTAVE;
 extern int NUM_SCALE;
-extern real_t SCALE_FACTOR;
+extern float SCALE_FACTOR;
 
-extern real_t GAUSS_SIGMA;
+extern float GAUSS_SIGMA;
 extern int GAUSS_WINDOW_FACTOR;
 
-extern real_t JUDGE_EXTREMA_DIFF_THRES;
-extern real_t CONTRAST_THRES;
-extern real_t PRE_COLOR_THRES;
-extern real_t EDGE_RATIO;
+extern float JUDGE_EXTREMA_DIFF_THRES;
+extern float CONTRAST_THRES;
+extern float PRE_COLOR_THRES;
+extern float EDGE_RATIO;
 
 extern int CALC_OFFSET_DEPTH;
-extern real_t OFFSET_THRES;
+extern float OFFSET_THRES;
 
-extern real_t ORI_WINDOW_FACTOR;
-extern real_t ORI_RADIUS;
+extern float ORI_WINDOW_FACTOR;
+extern float ORI_RADIUS;
 
 extern int ORT_HIST_SMOOTH_COUNT;
-extern real_t ORT_HIST_PEAK_RATIO;
+extern float ORT_HIST_PEAK_RATIO;
 
-extern int DESC_HIST_REAL_WIDTH;
-extern real_t DESC_NORM_THRESH;
+extern int DESC_HIST_SCALE_FACTOR;
+extern float DESC_NORM_THRESH;
 extern int DESC_INT_FACTOR;
 
-extern real_t MATCH_REJECT_NEXT_RATIO;
+extern float MATCH_REJECT_NEXT_RATIO;
 extern int MATCH_MIN_SIZE;
-extern real_t CONNECTED_THRES;
+extern float CONNECTED_THRES;
 
 extern int RANSAC_ITERATIONS;
-extern real_t RANSAC_INLIER_THRES;
+extern float RANSAC_INLIER_THRES;
 
-extern real_t SLOPE_PLAIN;
+extern float SLOPE_PLAIN;
 
-extern real_t OUTPUT_SIZE_FACTOR;
+extern float OUTPUT_SIZE_FACTOR;
 
 
 // keep
@@ -68,4 +68,4 @@ const int ORT_HIST_BIN_NUM = 36;		// lowe
 
 const int DESC_HIST_WIDTH = 4;
 const int DESC_HIST_BIN_NUM = 8;
-const int DESC_LEN = 128;
+const int DESC_LEN = 128;	// (4x4)x8

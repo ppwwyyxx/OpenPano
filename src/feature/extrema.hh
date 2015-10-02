@@ -8,7 +8,7 @@
 
 class ExtremaDetector {
 	public:
-		ExtremaDetector(const DOGSpace&);
+		explicit ExtremaDetector(const DOGSpace&);
 
 		std::vector<SSPoint> get_extrema() const;
 

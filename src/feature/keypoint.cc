@@ -224,7 +224,6 @@ vector<real_t> KeyPoint::calc_hist(
 		if (hist[i] > thres && hist[i] > max(prev, next)) {
 			//real_t newbin = i + (prev - next) / (prev + next - 2 * hist[i]) / 2;		// interpolation
 			real_t newbin = (float)i - 0.5 + (hist[i] - prev) / (prev + next - 2 * hist[i]);
-			printf("%lf\n", newbin);
 			if (newbin < 0)
 				newbin += ORT_HIST_BIN_NUM;
 			else if (newbin >= ORT_HIST_BIN_NUM)
@@ -249,7 +248,7 @@ void KeyPoint::calc_sift_descriptor(SIFTPoint& feat) {
 
 	Coor coor = feat.coor;
 	real_t ort = feat.dir,
-				 hist_w = feat.scale_factor * DESC_HIST_REAL_WIDTH,
+				 hist_w = feat.scale_factor * DESC_HIST_SCALE_FACTOR,
 				 exp_denom = 2 * sqr(DESC_HIST_WIDTH / 2);		// from lowe
 
 	int radius = round(sqrt(2) * hist_w * (DESC_HIST_WIDTH + 1) / 2);
@@ -325,7 +324,7 @@ void KeyPoint::calc_sift_descriptor(SIFTPoint& feat) {
 	sum = sqrt(sum);
 	for (auto &i : feat.descriptor) {
 		i /= sum;
-		update_min(i, DESC_NORM_THRESH);
+		update_min(i, (double)DESC_NORM_THRESH);
 	}
 	sum = 0;
 	for (auto &i : feat.descriptor) sum += sqr(i);
