@@ -38,6 +38,7 @@ vector<SSPoint> ExtremaDetector::get_extrema() const {
 	REP(i, npyramid)
 		REPL(j, 1, nscale - 2) {
 			auto v = get_local_raw_extrema(i, j);
+			//print_debug("raw extrema count: %lu\n", v.size());
 			for (auto& c : v) {
 				SSPoint sp;
 				sp.coor = c;
@@ -104,12 +105,11 @@ bool ExtremaDetector::calc_kp_offset(SSPoint* sp) const {
 std::pair<Vec, Vec> ExtremaDetector::calc_kp_offset_iter(
 		const DOGSpace::DOG& now_pyramid,
 		int x , int y, int s) const {
-#define D(x, y, s) now_pyramid[s].at(y, x)
 	Vec offset = Vector::get_zero();
 	Vec delta;
 	float dxx, dyy, dss, dxy, dys, dsx;
 
-	// matrix
+#define D(x, y, s) now_pyramid[s].at(y, x)
 	float val = D(x, y, s);
 
 	delta.x = (D(x + 1, y, s) - D(x - 1, y, s)) / 2;
@@ -123,6 +123,7 @@ std::pair<Vec, Vec> ExtremaDetector::calc_kp_offset_iter(
 	dxy = (D(x + 1, y + 1, s) - D(x + 1, y - 1, s) - D(x - 1, y + 1, s) + D(x - 1, y - 1, s)) / 4;
 	dys = (D(x, y + 1, s + 1) - D(x, y - 1, s + 1) - D(x, y + 1, s - 1) + D(x, y - 1, s - 1)) / 4;
 	dsx = (D(x + 1, y, s + 1) - D(x - 1, y, s + 1) - D(x + 1, y, s - 1) + D(x - 1, y, s - 1)) / 4;
+#undef D
 
 	Matrix m(3, 3);
 	m.get(0, 0) = dxx; m.get(1, 1) = dyy; m.get(2, 2) = dss;
@@ -130,15 +131,15 @@ std::pair<Vec, Vec> ExtremaDetector::calc_kp_offset_iter(
 	m.get(0, 2) = m.get(2, 0) = dsx;
 	m.get(1, 2) = m.get(2, 1) = dys;
 
-	Matrix inv(3, 3);			// formula 3
-	Matrix delta_m(1, 3);
-	m.get(0,0) = delta.x; m.get(1,0) = delta.y; m.get(2,0) = delta.z;
+	Matrix inv(3, 3);
+	Matrix pdpx(1, 3);	// delta = dD / dx
+	pdpx.get(0,0) = delta.x; pdpx.get(1,0) = delta.y; pdpx.get(2,0) = delta.z;
 
+	// TODO when invertible, use svd
 	if (m.inverse(inv)) {
-		auto prod = inv.prod(delta_m);
+		auto prod = inv.prod(pdpx);
 		offset = Vec(prod.get(0,0),prod.get(1,0),prod.get(2,0));
 	}
-#undef D
 	return {offset, delta};
 }
 

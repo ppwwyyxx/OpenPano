@@ -66,7 +66,7 @@ Mat32f Panorama::get() {
 	REP(i, ret.height())
 		REP(j, ret.width()) {
 		Vec2D final = (Vec2D(j, i) - offset);
-		vector<pair<Color, real_t>> blender;
+		vector<pair<Color, float>> blender;
 		REP(k, n) {
 			pair<Vec2D, Vec2D>& nowcorner = corners[k];
 			if (!between(final.y, nowcorner.second.y, nowcorner.first.y) ||
@@ -75,14 +75,14 @@ Mat32f Panorama::get() {
 			Vec2D old = TransFormer::cal_project(mat[k], final);
 			if (!is_edge_color(imgs[k], old.y, old.x)) {
 				blender.push_back({interpolate(imgs[k], old.y, old.x),
-						std::max(imgs[k].width() / 2 - abs(imgs[k].width() / 2 - old.x), 1e-1)});
+						std::max(imgs[k].width() / 2 - abs(imgs[k].width() / 2 - old.x), .1f)});
 			}
 		}
 		int ncolor = blender.size();
 		if (!ncolor) continue;
 		Color finalc;
 
-		real_t sumweight = 0;
+		float sumweight = 0;
 		for (auto &c : blender) {
 			finalc = finalc + c.first * c.second;
 			sumweight += c.second;
@@ -112,7 +112,7 @@ void Panorama::straighten_simple() {
 	Vec2D center2(imgs[n - 1].width() / 2, imgs[n-1].height() / 2);
 	center2 = TransFormer::cal_project(mat[n - 1], center2);
 	Vec2D center1 = TransFormer::cal_project(mat[0], Vec2D(imgs[0].width() / 2, imgs[0].height() / 2));
-	real_t dydx = (center2.y - center1.y) / (center2.x - center1.x);
+	float dydx = (center2.y - center1.y) / (center2.x - center1.x);
 	Matrix S = Matrix::I(3);
 	S.get(1, 0) = dydx;
 	Matrix Sinv(3, 3);
@@ -154,7 +154,6 @@ void Panorama::cal_best_matrix_pano() {;
 	timer.restart();
 	vector<MatchData> matches;
 	REP(k, n - 1) {
-		print_debug("Number of Feature: %lu\n", feats[k].size());
 		Matcher match(feats[k], feats[k + 1]);
 		matches.push_back(match.match());
 	}
@@ -164,7 +163,7 @@ void Panorama::cal_best_matrix_pano() {;
 		print_debug("match time: %lf secs\n", timer.duration());
 
 		// judge circle
-		if ((real_t)matched.size() * 2 / (feats[0].size() + feats[n - 1].size()) > CONNECTED_THRES) {
+		if ((float)matched.size() * 2 / (feats[0].size() + feats[n - 1].size()) > CONNECTED_THRES) {
 			cout << "detect circle" << endl;
 			CIRCLE = true;
 			imgs.push_back(imgs[0].clone());
@@ -176,18 +175,18 @@ void Panorama::cal_best_matrix_pano() {;
 	}
 	vector<Matrix> bestmat;
 
-	real_t minslope = numeric_limits<real_t>::max();
-	real_t bestfactor = 0;
+	float minslope = numeric_limits<float>::max();
+	float bestfactor = 0;
 
 	GuardedTimer tm("transform");
 	int start = mid, end = n, len = end - start;
 	if (len > 1) {
-		real_t newfactor = 1;
-		real_t slope = Panorama::update_h_factor(newfactor, minslope, bestfactor, bestmat, imgs, feats, matches);
-		real_t centerx1 = imgs[mid].width() / 2,
+		float newfactor = 1;
+		float slope = Panorama::update_h_factor(newfactor, minslope, bestfactor, bestmat, imgs, feats, matches);
+		float centerx1 = imgs[mid].width() / 2,
 			     centerx2 = TransFormer::cal_project(
 							 bestmat[0], Vec2D(imgs[mid + 1].width() / 2, imgs[mid + 1].height() / 2)).x;
-		real_t order = (centerx2 > centerx1 ? 1 : -1);
+		float order = (centerx2 > centerx1 ? 1 : -1);
 		REP(k, 3) {
 			if (fabs(slope) < SLOPE_PLAIN) break;
 			newfactor += (slope < 0 ? order : -order) / (5 * pow(2, k));
@@ -219,9 +218,6 @@ void Panorama::cal_best_matrix() {
 		feats[k] = detect_SIFT(imgs[k]);
 	print_debug("feature takes %lf secs in total\n", timer.duration());
 	timer.restart();
-	REP(k, n - 1) {
-		print_debug("Number of Feature: %lu\n", feats[k].size());
-	}
 
 #pragma omp parallel for schedule(dynamic)
 	REPL(k, mid + 1, n)
@@ -235,9 +231,9 @@ void Panorama::cal_best_matrix() {
 }
 #undef prepare
 
-real_t Panorama::update_h_factor(real_t nowfactor,
-		real_t & minslope,
-		real_t & bestfactor,
+float Panorama::update_h_factor(float nowfactor,
+		float & minslope,
+		float & bestfactor,
 		vector<Matrix>& mat,
 		const vector<Mat32f>& imgs,
 		const vector<vector<Descriptor>>& feats,
@@ -271,7 +267,7 @@ real_t Panorama::update_h_factor(real_t nowfactor,
 	Vec2D center2 = TransFormer::cal_project(
 			nowmat[len - 2], Vec2D(nowimgs[len - 2].width() / 2, nowimgs[len - 2].height() / 2)),
 		  center1(nowimgs[0].width() / 2, nowimgs[0].height() / 2);
-	const real_t slope = (center2.y - center1.y) / (center2.x - center1.x);
+	const float slope = (center2.y - center1.y) / (center2.x - center1.x);
 	if (update_min(minslope, fabs(slope))) {
 		bestfactor = nowfactor;
 		mat = nowmat;
@@ -288,8 +284,8 @@ real_t Panorama::update_h_factor(real_t nowfactor,
  *    Matrix right(1, 2 * n);
  *    REP(k, n) {
  *        auto & nowp = ptr[k];
- *        real_t targetx = (nowp.x - (line.y - nowp.y) / line.x) / 2;
- *        real_t targety = line.x * targetx + line.y;
+ *        float targetx = (nowp.x - (line.y - nowp.y) / line.x) / 2;
+ *        float targety = line.x * targetx + line.y;
  *        left.get(2 * k, 0) = nowp.x;
  *        left.get(2 * k, 1) = nowp.y;
  *        left.get(2 * k, 2) = left.get(2 * k, 3) = 0;

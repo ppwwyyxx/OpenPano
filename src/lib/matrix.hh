@@ -65,7 +65,7 @@ class Matrix {
 		{ return val[i][j]; }
 
 		const real_t & get(int i, int j) const
-		{ m_assert(i < h && j < w); return val[i][j]; }
+		{ return val[i][j]; }
 
 		bool inverse(Matrix & ret) const;
 
