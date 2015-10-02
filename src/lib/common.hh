@@ -12,12 +12,12 @@
 typedef double real_t;
 const real_t EPS = 1e-6;
 const real_t SEPS = std::numeric_limits<real_t>::epsilon();
-inline real_t sqr(real_t x) { return x * x; }
+inline float sqr(float x) { return x * x; }
 
 #define between(a, b, c) ((a >= b) && (a <= c - 1))
-#define REP(x, y) for (int x = 0; x < (y); x ++)
-#define REPL(x, y, z) for (int x = y; x < (z); x ++)
-#define REPD(x, y, z) for (int x = y; x >= (z); x --)
+#define REP(x, y) for (auto x = decltype(y){0}; x < (y); x ++)
+#define REPL(x, y, z) for (auto x = decltype(y){y}; x < (z); x ++)
+#define REPD(x, y, z) for (auto x = decltype(y){y}; x >= (z); x --)
 
 #define toCoor(a) Coor((a).x, (a).y)
 

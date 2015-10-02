@@ -19,6 +19,7 @@ using namespace std;
 
 Mat32f Panorama::get() {
 	int n = imgs.size();
+	m_assert(n > 1);	// need log
 	Matrix I = Matrix::I(3);
 	mat.clear();
 	REP(i, n) mat.emplace_back(I.clone());
@@ -150,28 +151,31 @@ void Panorama::cal_best_matrix_pano() {;
 #pragma omp parallel for schedule(dynamic)
 	REP(k, n)
 		feats[k] = detect_SIFT(imgs[k]);
-	print_debug("feature takes %lf secs in total\n", timer.duration());
+	print_debug("feature takes %lf secs\n", timer.duration());
 
 	timer.restart();
 	vector<MatchData> matches;
-	REP(k, n - 1) {
-		Matcher match(feats[k], feats[k + 1]);
-		matches.push_back(match.match());
+	matches.resize(n == 2 ? 1 : n);
+//#pragma omp parallel for schedule(dynamic)
+	REP(k, n == 2 ? 1 : n) {
+		Matcher matcher(feats[k], feats[(k + 1) % n]);
+		matches[k] = matcher.match();
 	}
-	if (n > 2) {
-		Matcher match(feats[n - 1], feats[0]);
-		auto matched = match.match();
-		print_debug("match time: %lf secs\n", timer.duration());
+	print_debug("match time: %lf secs\n", timer.duration());
 
-		// judge circle
-		if ((float)matched.size() * 2 / (feats[0].size() + feats[n - 1].size()) > CONNECTED_THRES) {
+	if (n > 2) {
+		// head and tail
+		auto last_match = matches.back();
+		// test whether two image really matches each other
+		if ((float)last_match.size() * 2 / (feats[0].size() + feats[n - 1].size()) > CONNECTED_THRES) {
 			cout << "detect circle" << endl;
 			CIRCLE = true;
 			imgs.push_back(imgs[0].clone());
 			mat.push_back(Matrix::I(3));
 			feats.push_back(feats[0]);
-			matches.push_back(matched);
 			n ++, mid = n >> 1;
+		} else {
+			matches.pop_back();
 		}
 	}
 	vector<Matrix> bestmat;
@@ -185,8 +189,8 @@ void Panorama::cal_best_matrix_pano() {;
 		float newfactor = 1;
 		float slope = Panorama::update_h_factor(newfactor, minslope, bestfactor, bestmat, imgs, feats, matches);
 		float centerx1 = imgs[mid].width() / 2,
-			     centerx2 = TransFormer::cal_project(
-							 bestmat[0], Vec2D(imgs[mid + 1].width() / 2, imgs[mid + 1].height() / 2)).x;
+					centerx2 = TransFormer::cal_project(
+							bestmat[0], Vec2D(imgs[mid + 1].width() / 2, imgs[mid + 1].height() / 2)).x;
 		float order = (centerx2 > centerx1 ? 1 : -1);
 		REP(k, 3) {
 			if (fabs(slope) < SLOPE_PLAIN) break;
@@ -270,7 +274,7 @@ float Panorama::update_h_factor(float nowfactor,
 	Vec2D center2 = TransFormer::cal_project(
 			nowmat[len - 2],
 			Vec2D(nowimgs[len - 2].width() / 2, nowimgs[len - 2].height() / 2)),
-		  center1(nowimgs[0].width() / 2, nowimgs[0].height() / 2);
+				center1(nowimgs[0].width() / 2, nowimgs[0].height() / 2);
 	const float slope = (center2.y - center1.y) / (center2.x - center1.x);
 	if (update_min(minslope, fabs(slope))) {
 		bestfactor = nowfactor;

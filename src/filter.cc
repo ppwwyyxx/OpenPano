@@ -19,15 +19,15 @@ GaussCache::GaussCache(float sigma) {
 	normalization_factor = 2 * M_PI * sqr(sigma);
 	kernel_tot = 0;
 
-	kernel = new float*[kw];
+	kernel = new float[kw * kw];
 	REP(i, kw) {
-		kernel[i] = new float[kw];
 		REP(j, kw) {
 			float x = i - center,
 				    y = j - center;
-			kernel[i][j] = exp(-(sqr(x) + sqr(y)) / (2 * sqr(sigma)));
-			kernel[i][j] /= normalization_factor;
-			kernel_tot += kernel[i][j];
+			int loc = i * kw + j;
+			kernel[loc] = exp(-(sqr(x) + sqr(y)) / (2 * sqr(sigma)));
+			kernel[loc] /= normalization_factor;
+			kernel_tot += kernel[loc];
 		}
 	}
 }
@@ -36,11 +36,12 @@ Filter::Filter(int nscale,
 		float gauss_sigma,
 		float scale_factor) {
 	REP(k, nscale - 1) {
-		gcache.emplace_back(GaussCache(gauss_sigma));
+		gcache.emplace_back(gauss_sigma);
 		gauss_sigma *= scale_factor;
 	}
 }
 
+// TODO fast convolution
 Mat32f Filter::GaussianBlur(
 		const Mat32f& img, const GaussCache& gauss) const {
 	m_assert(img.channels() == 1);
@@ -50,37 +51,40 @@ Mat32f Filter::GaussianBlur(
 
 	const int kw = gauss.kw;
 	const int center = kw / 2;
-	float ** kernel = gauss.kernel;
+	float * kernel = gauss.kernel;
 
 	// cache. speed up a lot
 	vector<const float*> row_ptrs(h);
 	REP(i, h) row_ptrs[i] = img.ptr(i);
 
 	REP(i, h) {
-		float* now_row = ret.ptr(i);
+		float* rst_row = ret.ptr(i);
 		REP(j, w) {
 			int x_bound = min(kw, h + center - i),
 					y_bound = min(kw, w + center - j);
 
-			float kernel_tot = 0;
-			if (j >= center && x_bound == kw && i >= center && y_bound == kw)
-				kernel_tot = gauss.kernel_tot;
-			else {
+			// perform a direct zero-padded convolution is good enough
+			float kernel_tot = gauss.kernel_tot;
+			if (not (j >= center && x_bound == kw && i >= center && y_bound == kw)) {
+				kernel_tot = 0.f;
 				for (int x = max(center - i, 0); x < x_bound; x ++)
 					for (int y = max(center - j, 0); y < y_bound; y ++)
-						kernel_tot += kernel[x][y];
+						kernel_tot += kernel[x * kw + y];
 			}
 
-			float compensation = 1.0 / kernel_tot;
 			float newvalue = 0;
-			for (int x = max(0, center - i); x < x_bound; x ++)
+			for (int x = max(0, center - i); x < x_bound; x ++) {
+				int di = x - center + i;
+				const float* now_row_ptr = row_ptrs[di];
+				const float* now_krn = kernel + x * kw;
 				for (int y = max(0, center - j); y < y_bound; y ++) {
-					int dj = y - center + j,
-							di = x - center + i;
-					float curr = *(row_ptrs[di] + dj);
-					newvalue += curr * kernel[x][y] * compensation;
+					int dj = y - center + j;
+					float curr = now_row_ptr[dj];
+					newvalue += curr * now_krn[y];
 				}
-			now_row[j] = newvalue;
+			}
+			float compensation = 1.0 / kernel_tot;
+			rst_row[j] = newvalue * compensation;
 		}
 	}
 	return ret;

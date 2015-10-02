@@ -25,7 +25,8 @@ namespace {
 		sum = 0;
 		for (auto &i : ret.descriptor) sum += sqr(i);
 		sum = sqrt(sum);
-		for (auto &i : ret.descriptor) i = i / sum * DESC_INT_FACTOR;
+		sum = (float)DESC_INT_FACTOR / sum;
+		for (auto &i : ret.descriptor) i = i * sum;
 		return ret;
 	}
 
@@ -69,7 +70,6 @@ std::vector<Descriptor> SIFT::get_descriptor() const {
 Descriptor SIFT::calc_descriptor(const SSPoint& p) const {
 	static float pi2 = 2 * M_PI;
 	static float nbin_per_rad = DESC_HIST_BIN_NUM / pi2;
-	static float halfsqrt2 = sqrt(2) * 0.5;
 
 	const GaussianPyramid& pyramid = ss.pyramids[p.pyr_id];
 	int w = pyramid.w, h = pyramid.h;
@@ -83,7 +83,7 @@ Descriptor SIFT::calc_descriptor(const SSPoint& p) const {
 				// sigma is half of window width from lowe
 				exp_denom = 2 * sqr(DESC_HIST_WIDTH);
 	// radius of gaussian to use
-	int radius = round(halfsqrt2 * hist_w * (DESC_HIST_WIDTH + 1));
+	int radius = round(M_SQRT1_2 * hist_w * (DESC_HIST_WIDTH + 1));
 
 	float hist[DESC_HIST_WIDTH * DESC_HIST_WIDTH][DESC_HIST_BIN_NUM];
 	memset(hist, 0, sizeof(hist));
