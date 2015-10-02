@@ -5,6 +5,7 @@
 #include <boost/numeric/mtl/mtl.hpp>
 #include "matrix.hh"
 #include "geometry.hh"
+#include "timer.hh"
 
 typedef mtl::matrix::dense2D<real_t> mtlM;
 using namespace std;

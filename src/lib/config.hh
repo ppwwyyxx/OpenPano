@@ -42,7 +42,6 @@ extern float ORI_RADIUS;
 extern int ORI_HIST_SMOOTH_COUNT;
 
 extern int DESC_HIST_SCALE_FACTOR;
-extern float DESC_NORM_THRESH;
 extern int DESC_INT_FACTOR;
 
 extern float MATCH_REJECT_NEXT_RATIO;
@@ -68,3 +67,4 @@ const float ORI_HIST_PEAK_RATIO = 0.8f;
 const int DESC_HIST_WIDTH = 4;
 const int DESC_HIST_BIN_NUM = 8;
 const int DESC_LEN = 128;	// (4x4)x8
+const float DESC_NORM_THRESH = 0.2f;
