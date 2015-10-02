@@ -6,15 +6,15 @@
 using namespace std;
 
 namespace {
+	const int featlen = DESC_HIST_WIDTH * DESC_HIST_WIDTH * DESC_HIST_BIN_NUM;
+
 	Descriptor hist_to_descriptor(float* hist, Vec2D coor) {
-		static int featlen = sqr(DESC_HIST_WIDTH) * DESC_HIST_BIN_NUM;
 		Descriptor ret;
 		ret.coor = coor;
 		ret.descriptor.resize(featlen);
 		memcpy(ret.descriptor.data(), hist, featlen * sizeof(float));
-		//m_assert(ret.descriptor[125] == hist[15][5]);
 
-		// normalize and cut and normalize
+		// normalize and thresholding and renormalize
 		float sum = 0;
 		for (auto &i : ret.descriptor) sum += sqr(i);
 		sum = sqrt(sum);

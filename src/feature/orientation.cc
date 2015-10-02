@@ -74,7 +74,7 @@ std::vector<float> OrientationAssign::calc_dir(
 	REP(i, ORI_HIST_BIN_NUM) {
 		float prev = hist[i == 0 ? ORI_HIST_BIN_NUM - 1 : i - 1];
 		float next = hist[i == ORI_HIST_BIN_NUM - 1 ? 0 : i + 1];
-		// extrem orientation which is larger than thres
+		// choose extreme orientation which is larger than thres
 		if (hist[i] > thres && hist[i] > max(prev, next)) {
 			// parabola interpolation
 			real_t newbin = (float)i - 0.5 + (hist[i] - prev) / (prev + next - 2 * hist[i]);

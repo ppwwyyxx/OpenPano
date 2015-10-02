@@ -58,6 +58,7 @@ vector<SSPoint> ExtremaDetector::get_extrema() const {
 }
 
 bool ExtremaDetector::calc_kp_offset(SSPoint* sp) const {
+	TotalTimer tm("offset");
 	auto& now_pyramid = dog.dogs[sp->pyr_id];
 	auto& now_img = now_pyramid[sp->scale_id];
 	int w = now_img.width(), h = now_img.height();
@@ -154,15 +155,16 @@ bool ExtremaDetector::is_edge_response(Coor coor, const Mat32f& img) const {
 			img.at(y + 1, x - 1) - img.at(y - 1, x + 1)) / 4;
 	float det = dxx * dyy - dxy * dxy;
 	if (det <= 0) return true;
-	float tr = sqr(dxx + dyy);
+	float tr2 = sqr(dxx + dyy);
 
 	// Calculate principal curvature by hessian
-	if (tr / det < sqr(EDGE_RATIO + 1) / EDGE_RATIO) return false;
+	if (tr2 / det < sqr(EDGE_RATIO + 1) / EDGE_RATIO) return false;
 	return true;
 }
 
 vector<Coor> ExtremaDetector::get_local_raw_extrema(
 		int pyr_id, int scale_id) const {
+	TotalTimer tm("raw ext");
 	vector<Coor> ret;
 
 	const Mat32f& now(dog.dogs[pyr_id][scale_id]);
