@@ -38,11 +38,8 @@ extern float EDGE_RATIO;
 extern int CALC_OFFSET_DEPTH;
 extern float OFFSET_THRES;
 
-extern float ORI_WINDOW_FACTOR;
 extern float ORI_RADIUS;
-
-extern int ORT_HIST_SMOOTH_COUNT;
-extern float ORT_HIST_PEAK_RATIO;
+extern int ORI_HIST_SMOOTH_COUNT;
 
 extern int DESC_HIST_SCALE_FACTOR;
 extern float DESC_NORM_THRESH;
@@ -60,11 +57,13 @@ extern float SLOPE_PLAIN;
 extern float OUTPUT_SIZE_FACTOR;
 
 
-// keep
+// keep unchanged
 const int HOMO_FREEDOM = 8;
 const int AFFINE_FREEDOM = 6;
 
-const int ORT_HIST_BIN_NUM = 36;		// lowe
+const float ORI_WINDOW_FACTOR = 1.5f;
+const int ORI_HIST_BIN_NUM = 36;		// lowe
+const float ORI_HIST_PEAK_RATIO = 0.8f;
 
 const int DESC_HIST_WIDTH = 4;
 const int DESC_HIST_BIN_NUM = 8;

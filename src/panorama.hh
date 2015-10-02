@@ -42,7 +42,7 @@ class Panorama {
 
 		void cal_size();
 
-		static real_t update_h_factor(real_t, real_t&, real_t&,
+		static float update_h_factor(float, float&, float&,
 				std::vector<Matrix>&,
 				const std::vector<Mat32f>&,
 				const std::vector<std::vector<Descriptor>>&,

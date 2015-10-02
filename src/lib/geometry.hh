@@ -238,7 +238,7 @@ std::ostream& operator << (std::ostream& os, const Vector2D<T>& v) {
 typedef Vector Vec;
 typedef Vector2D<int> Coor;
 
-typedef Vector2D<real_t> Vec2D;
+typedef Vector2D<float> Vec2D;
 
 typedef std::pair<Coor, Coor> Line2D;
 typedef std::vector<Coor> Polygon;
