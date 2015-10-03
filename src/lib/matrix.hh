@@ -21,6 +21,8 @@ class Matrix : public Mat<double> {
 
 		bool inverse(Matrix & ret) const;
 
+		Matrix pseudo_inverse() const;
+
 		Matrix transpose() const;
 
 		Matrix prod(const Matrix & r) const;
