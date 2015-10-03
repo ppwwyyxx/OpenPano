@@ -58,6 +58,7 @@ vector<SSPoint> ExtremaDetector::get_extrema() const {
 }
 
 bool ExtremaDetector::calc_kp_offset(SSPoint* sp) const {
+	TotalTimer tm("offset");
 	auto& now_pyramid = dog.dogs[sp->pyr_id];
 	auto& now_img = now_pyramid[sp->scale_id];
 	int w = now_img.width(), h = now_img.height();
@@ -137,14 +138,12 @@ std::pair<Vec, Vec> ExtremaDetector::calc_kp_offset_iter(
 	Matrix pdpx(3, 1);	// delta = dD / dx
 	delta.write_to(pdpx.ptr());
 
-	// TODO when invertible, use svd
 	Matrix inv;
-	if (m.inverse(inv)) {
-		auto prod = inv.prod(pdpx);
-		offset = Vec(prod.ptr());
-	} else {
-		print_debug("here\n");
+	if (not m.inverse(inv)) {	  // pseudo inverse is slow
+		inv = m.pseudo_inverse();
 	}
+	auto prod = inv.prod(pdpx);
+	offset = Vec(prod.ptr());
 	return {offset, delta};
 }
 

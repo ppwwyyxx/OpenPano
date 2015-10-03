@@ -10,6 +10,23 @@
 typedef mtl::matrix::dense2D<double> mtlM;
 using namespace std;
 
+namespace {
+	inline mtlM matrix_to_mtl(const Matrix& m) {
+		mtlM ret(m.rows(), m.cols());
+		REP(i, m.rows()) REP(j, m.cols())
+			ret(i, j) = m.at(i, j);
+		return ret;
+	}
+
+	inline Matrix mtl_to_matrix(const mtlM& m) {
+		int r = m.num_rows(), c = m.num_cols();
+		Matrix ret(r, c);
+		REP(i, r) REP(j, c)
+			ret.at(i, j) = m(i, j);
+		return ret;
+	}
+}
+
 //TODO speedup at()
 
 ostream& operator << (std::ostream& os, const Matrix & m) {
@@ -120,13 +137,12 @@ Matrix Matrix::prod(const Matrix & r) const {
 *    return det;
 *}
 */
+
 // TODO speedup? better algo?
 bool Matrix::inverse(Matrix &ret) const {
 	m_assert(m_rows == m_cols);
 	int n = m_rows;
-	mtlM input(n, n);
-	REP(i, n) REP(j, n)
-		input(i, j) = at(i, j);
+	mtlM input(matrix_to_mtl(*this));
 	mtlM inverse(n, n);
 	try {
 		inv(input, inverse);
@@ -135,10 +151,23 @@ bool Matrix::inverse(Matrix &ret) const {
 		return false;
 	}
 
-	ret = Matrix(n, n);
-	REP(i, n) REP(j, n)
-		ret.at(i, j) = inverse(i, j);
+	ret = mtl_to_matrix(inverse);
 	return true;
+}
+
+// pseudo inverse by SVD
+Matrix Matrix::pseudo_inverse() const {
+	m_assert(m_rows >= m_cols);
+	mtlM A(matrix_to_mtl(*this));
+	mtlM uu, ss, vv;
+	boost::tie(uu, ss, vv) = svd(A, 1.e-6);
+	REP(i, m_cols) {
+		if (ss(i, i) > EPS)
+			ss(i, i) = 1 / ss(i, i);
+		else
+			ss(i, i) = 0;
+	}
+	return mtl_to_matrix(mtlM(vv * ss * trans(uu)));
 }
 
 bool Matrix::solve_overdetermined(Matrix & x, const Matrix & b) const {
@@ -153,10 +182,9 @@ bool Matrix::solve_overdetermined(Matrix & x, const Matrix & b) const {
 }
 
 bool Matrix::SVD(Matrix& u, Matrix& s, Matrix& v) const {
-	mtlM A(m_rows, m_cols);
-	REP(i, m_rows) REP(j, m_cols) A(i, j) = at(i, j);
-	mtlM l(m_rows, m_rows), m(m_rows, m_cols), r(m_cols, m_cols);
-	boost::tie(l, m, r) = svd(A, 1.e-6);
+	mtlM A(matrix_to_mtl(*this));
+	mtlM uu(m_rows, m_rows), ss(m_rows, m_cols), vv(m_cols, m_cols);
+	boost::tie(uu, ss, vv) = svd(A, 1.e-6);
 	/*
 	 *cout << "done" << endl;
 	 *cout << l << endl << m << endl   << r << endl;
@@ -168,13 +196,13 @@ bool Matrix::SVD(Matrix& u, Matrix& s, Matrix& v) const {
 
 	u = Matrix(m_rows, m_rows);
 	REP(i, m_rows) REP(j, m_rows)
-		u.at(i, j) = l(i, j);
+		u.at(i, j) = uu(i, j);
 	s = Matrix(m_rows, m_cols);
 	REP(i, m_rows) REP(j, m_cols)
-		s.at(i, j) = m(i, j);
+		s.at(i, j) = ss(i, j);
 	v = Matrix(m_cols, m_cols);
 	REP(i, m_cols) REP(j, m_cols)
-		v.at(i, j) = r(i, j);
+		v.at(i, j) = vv(i, j);
 	return true;
 }
 
