@@ -74,7 +74,7 @@ Mat32f Panorama::get() {
 			if (!between(final.y, nowcorner.second.y, nowcorner.first.y) ||
 					!between(final.x, nowcorner.second.x, nowcorner.first.x))
 				continue;
-			Vec2D old = TransFormer::cal_project(mat[k], final);
+			Vec2D old = TransFormer::calc_project(mat[k], final);
 			if (!is_edge_color(imgs[k], old.y, old.x)) {
 				blender.push_back({interpolate(imgs[k], old.y, old.x),
 						std::max(imgs[k].width() / 2 - abs(imgs[k].width() / 2 - old.x), .1f)});
@@ -118,13 +118,14 @@ Matrix Panorama::get_transform(const vector<Descriptor>& feat1, const vector<Des
 void Panorama::straighten_simple() {
 	int n = imgs.size();
 	Vec2D center2(imgs[n - 1].width() / 2, imgs[n-1].height() / 2);
-	center2 = TransFormer::cal_project(mat[n - 1], center2);
-	Vec2D center1 = TransFormer::cal_project(mat[0], Vec2D(imgs[0].width() / 2, imgs[0].height() / 2));
+	center2 = TransFormer::calc_project(mat[n - 1], center2);
+	Vec2D center1 = TransFormer::calc_project(mat[0], Vec2D(imgs[0].width() / 2, imgs[0].height() / 2));
 	float dydx = (center2.y - center1.y) / (center2.x - center1.x);
 	Matrix S = Matrix::I(3);
 	S.at(1, 0) = dydx;
 	Matrix Sinv(3, 3);
-	S.inverse(Sinv);
+	bool succ = S.inverse(Sinv);
+	m_assert(succ);
 	REP(i, n) mat[i] = Sinv.prod(mat[i]);
 }
 
@@ -137,7 +138,7 @@ void Panorama::cal_size() {
 	    Vec2D corner[4] = { Vec2D(0, 0), Vec2D(imgs[i].width(), 0),
 					        Vec2D(0, imgs[i].height()), Vec2D(imgs[i].width(), imgs[i].height())};
 	    for (auto &v : corner) {
-	        Vec2D newcorner = TransFormer::cal_project(mat[i], v);
+	        Vec2D newcorner = TransFormer::calc_project(mat[i], v);
 	        min.update_min(Vec2D(floor(newcorner.x), floor(newcorner.y)));
 	        max.update_max(Vec2D(ceil(newcorner.x), ceil(newcorner.y)));
 	    }
@@ -199,7 +200,7 @@ void Panorama::cal_best_matrix_pano() {;
 			exit(1);
 		}
 		float centerx1 = imgs[mid].width() / 2,
-					centerx2 = TransFormer::cal_project(
+					centerx2 = TransFormer::calc_project(
 							bestmat[0], Vec2D(imgs[mid + 1].width() / 2, imgs[mid + 1].height() / 2)).x;
 		float order = (centerx2 > centerx1 ? 1 : -1);
 		REP(k, 3) {
@@ -294,7 +295,7 @@ float Panorama::update_h_factor(float nowfactor,
 	REPL(k, 1, len - 1)
 		nowmat[k] = nowmat[k - 1].prod(nowmat[k]);
 
-	Vec2D center2 = TransFormer::cal_project(
+	Vec2D center2 = TransFormer::calc_project(
 			nowmat[len - 2],
 			Vec2D(nowimgs[len - 2].width() / 2, nowimgs[len - 2].height() / 2)),
 				center1(nowimgs[0].width() / 2, nowimgs[0].height() / 2);

@@ -12,10 +12,10 @@ using namespace std;
 // get a transform matix from second -> first
 bool TransFormer::get_transform(Matrix* ret) {
 	TotalTimer tm("get_transform");
-	int REQUIRED = (HOMO ? HOMO_FREEDOM / 2 : AFFINE_FREEDOM / 2);
+	int REQUIRED = (HOMO ? HOMO_FREEDOM: AFFINE_FREEDOM) + 1 / 2;
 	int n_match = match.size();
 	if (n_match < REQUIRED) {
-		cerr << "Only have " << n_match << " matches" << endl;
+		cerr << "Transform failed: only have " << n_match << " feature matches." << endl;
 		return false;
 	}
 
@@ -28,195 +28,116 @@ bool TransFormer::get_transform(Matrix* ret) {
 	for (int K = RANSAC_ITERATIONS; K --;) {
 		inliers.clear();
 		selected.clear();
-		REP(i, REQUIRED) {
+		REP(_, REQUIRED) {
 			int random;
-			while (1) {
+			do {
 				random = rand() % n_match;
-				if (selected.find(random) == selected.end())
-					break;
-			}
+			} while (selected.find(random) != selected.end());
 			selected.insert(random);
 			inliers.push_back(random);
 		}
-		Matrix transform(cal_transform(inliers));
-		int n_inlier = cal_inliers(transform);
+		Matrix transform(calc_transform(inliers));
+		int n_inlier = get_inliers(transform).size();
 		if (update_max(maxinlierscnt, n_inlier)) {
 			best_transform = move(transform);
 		}
 	}
-	m_assert(maxinlierscnt > 0);
+	if (maxinlierscnt <= 10) {
+		cerr << "Transform failed: cannot find a proper matrix." << endl;
+		return false;
+	}
 	inliers = get_inliers(best_transform);
-	best_transform = cal_transform(inliers);
-	inliers = get_inliers(best_transform);
-	// one more time might be good?
-	best_transform = cal_transform(inliers);
-	inliers = get_inliers(best_transform);
-	print_debug("final inlier size: %lu\n", inliers.size());
+	best_transform = calc_transform(inliers);
 
-	*ret = cal_transform(inliers);
+	print_debug("final inlier size: %lu\n", inliers.size());
+	*ret = best_transform;
 	return true;
 }
 
-Matrix TransFormer::cal_transform(const vector<int>& matches) const {
+Matrix TransFormer::calc_transform(const vector<int>& matches) const {
+	TotalTimer tm("calc_transform");
 	if (HOMO)
-		return cal_homo_transform(matches);
+		return calc_homo_transform(matches);
 	else
-		return cal_affine_transform(matches);
-	// return cal_rotate_homo_transform(matches);
+		return calc_affine_transform(matches);
 }
 
-Matrix TransFormer::cal_affine_transform(const vector<int>& matches) const {
+Matrix TransFormer::calc_affine_transform(const vector<int>& matches) const {
 	int n = matches.size();
 	m_assert(n * 2 >= AFFINE_FREEDOM);
 
-	Matrix m(2 * n, AFFINE_FREEDOM);
+	Matrix m(2 * n, AFFINE_FREEDOM); m.zero();
 	Matrix b(2 * n, 1);
 	REP(i, n) {
-		const Vec2D &m0 = f1[match.data[matches[i]].x].coor,
-					&m1 = f2[match.data[matches[i]].y].coor;
-		m.at(i * 2, 0) = m1.x;
-		m.at(i * 2, 1) = m1.y;
-		m.at(i * 2, 2) = 1;
-		m.at(i * 2, 3) = m.at(i * 2, 4) = m.at(i * 2, 5) = 0;
+		const Vec2D &m0 = f1[match.data[matches[i]].x].coor,	// rhs
+								&m1 = f2[match.data[matches[i]].y].coor;	// lhs
+		m.at(i * 2, 0) = m1.x; m.at(i * 2, 1) = m1.y; m.at(i * 2, 2) = 1;
 		b.at(i * 2, 0) = m0.x;
 
-		m.at(i * 2 + 1, 0) = m.at(i * 2 + 1, 1) = m.at(i * 2 + 1, 2) = 0;
-		m.at(i * 2 + 1, 3) = m1.x;
-		m.at(i * 2 + 1, 4) = m1.y;
-		m.at(i * 2 + 1, 5) = 1;
+		m.at(i * 2 + 1, 3) = m1.x; m.at(i * 2 + 1, 4) = m1.y; m.at(i * 2 + 1, 5) = 1;
 		b.at(i * 2 + 1, 0) = m0.y;
 	}
-	Matrix res(3, 3);
-	if (!m.solve_overdetermined(res, b)) { cout << "solve failed" << endl; return move(res); }
+	Matrix res = m.solve_overdetermined(b);
 	Matrix ret(3, 3); ret.zero();
-	REP(i, AFFINE_FREEDOM) ret.at(i / 3, i % 3) = res.at(i, 0);
+	memcpy(ret.ptr(), res.ptr(), AFFINE_FREEDOM * sizeof(double));
 	ret.at(2, 2) = 1.0;
 	return move(ret);
 }
 
-// second -> first
-Matrix TransFormer::cal_homo_transform(const vector<int>& matches) const {
+Matrix TransFormer::calc_homo_transform(const vector<int>& matches) const {
 	int n = matches.size();
 	m_assert(n * 2 >= HOMO_FREEDOM);
 
-	Matrix m(2 * n, HOMO_FREEDOM);
+	Matrix m(2 * n, HOMO_FREEDOM); m.zero();
 	Matrix b(2 * n, 1);
 	REP(i, n) {
-		const Vec2D &m0 = f1[match.data[matches[i]].x].coor,
-					&m1 = f2[match.data[matches[i]].y].coor;
-		m.at(i * 2, 0) = m1.x;
-		m.at(i * 2, 1) = m1.y;
-		m.at(i * 2, 2) = 1;
-		m.at(i * 2, 3) = m.at(i * 2, 4) = m.at(i * 2, 5) = 0;
-		m.at(i * 2, 6) = -m1.x * m0.x;
-		m.at(i * 2, 7) = -m1.y * m0.x;
+		const Vec2D &m0 = f1[match.data[matches[i]].x].coor,	//rhs
+								&m1 = f2[match.data[matches[i]].y].coor;  //lhs
+		m.at(i * 2, 0) = m1.x; m.at(i * 2, 1) = m1.y; m.at(i * 2, 2) = 1;
+		m.at(i * 2, 6) = -m1.x * m0.x; m.at(i * 2, 7) = -m1.y * m0.x;
 		b.at(i * 2, 0) = m0.x;
 
-		m.at(i * 2 + 1, 0) = m.at(i * 2 + 1, 1) = m.at(i * 2 + 1, 2) = 0;
-		m.at(i * 2 + 1, 3) = m1.x;
-		m.at(i * 2 + 1, 4) = m1.y;
-		m.at(i * 2 + 1, 5) = 1;
-		m.at(i * 2 + 1, 6) = -m1.x * m0.y;
-		m.at(i * 2 + 1, 7) = -m1.y * m0.y;
+		m.at(i * 2 + 1, 3) = m1.x; m.at(i * 2 + 1, 4) = m1.y; m.at(i * 2 + 1, 5) = 1;
+		m.at(i * 2 + 1, 6) = -m1.x * m0.y; m.at(i * 2 + 1, 7) = -m1.y * m0.y;
 		b.at(i * 2 + 1, 0) = m0.y;
 	}
-	Matrix res(3, 3);
-	if (!m.solve_overdetermined(res, b)) { cout << "solve failed" << endl; return move(res); }
+	Matrix res = m.solve_overdetermined(b);
 	Matrix ret(3, 3);
-	REP(i, HOMO_FREEDOM) ret.at(i / 3, i % 3) = res.at(i, 0);
+	memcpy(ret.ptr(), res.ptr(), HOMO_FREEDOM * sizeof(double));
 	ret.at(2, 2) = 1;
-
 	// check
 	// for (auto &i : matches) {
 	// 	Vec2D project = cal_project(ret, i.second);
 	// 	cout << i.first << " == ?" << project << endl;
 	// }
-	return move(ret);
-}
-
-Matrix TransFormer::cal_homo_transform2(const vector<int>& matches) const {
-	int n = matches.size();
-	m_assert(n * 2 >= HOMO_FREEDOM);
-
-	Matrix m(2 * n, 9);
-	REP(i, n) {
-		const Vec2D &m0 = f1[match.data[matches[i]].x].coor,
-					&m1 = f2[match.data[matches[i]].y].coor;
-		m.at(i * 2, 0) = m1.x;
-		m.at(i * 2, 1) = m1.y;
-		m.at(i * 2, 2) = 1;
-		m.at(i * 2, 3) = m.at(i * 2, 4) = m.at(i * 2, 5) = 0;
-		m.at(i * 2, 6) = -m1.x * m0.x;
-		m.at(i * 2, 7) = -m1.y * m0.x;
-		m.at(i * 2, 8) = -m0.x;
-
-		m.at(i * 2 + 1, 0) = m.at(i * 2 + 1, 1) = m.at(i * 2 + 1, 2) = 0;
-		m.at(i * 2 + 1, 3) = m1.x;
-		m.at(i * 2 + 1, 4) = m1.y;
-		m.at(i * 2 + 1, 5) = 1;
-		m.at(i * 2 + 1, 6) = -m1.x * m0.y;
-		m.at(i * 2 + 1, 7) = -m1.y * m0.y;
-		m.at(i * 2 + 1, 8) = -m0.y;
-	}
-	Matrix u, s, v;
-	m.SVD(u, s, v);
-	Matrix bestcol(9, 1);
-	real_t mineigen = numeric_limits<real_t>::max();
-	REP(i, 9) {
-		Matrix col = v.col(i);
-		real_t mod = m.prod(col).sqrsum();
-		if (update_min(mineigen, mod))
-			bestcol = col;
-	}
-
-	Matrix ret(3, 3);
-	REP(i, 9) ret.at(i / 3, i % 3) = bestcol.at(i, 0);
-	// check
-	// for (auto &i : matches) {
-	// 	Vec2D project = cal_project(ret, i.second);
-	// 	cout << i.first << " == ?" << project << endl;
-	// }
-	return move(ret);
-}
-
-
-extern bool TEMPDEBUG;
-
-Vec2D TransFormer::cal_project(const Matrix & trans, const Vec2D & old) {
-	Matrix m(3, 1);
-	m.at(0, 0) = old.x, m.at(1, 0) = old.y, m.at(2, 0) = 1;
-	Matrix res = trans.prod(m);
-	m_assert(res.rows() == 3);
-	real_t denom = res.at(2, 0);
-	// if (fabs(denom) < 1e-2) denom = 1;		// XXX wtf
-	Vec2D ret(res.at(0, 0) / denom, res.at(1, 0) / denom);
 	return ret;
 }
 
-int TransFormer::cal_inliers(const Matrix & trans) const {
-	int cnt = 0;
-	for (auto & pair : match.data) {
-		Vec2D project = TransFormer::cal_project(trans, f2[pair.y].coor);
-		const Vec2D& fcoor = f1[pair.x].coor;
-		real_t dist = (project - Vec2D(fcoor.x, fcoor.y)).sqr();
-		if (dist < sqr(RANSAC_INLIER_THRES))
-			cnt ++;
-	}
-	return cnt;
+// project a point
+Vec2D TransFormer::calc_project(const Matrix & trans, const Vec2D & old) {
+	Matrix m(3, 1);
+	m.at(0, 0) = old.x, m.at(1, 0) = old.y, m.at(2, 0) = 1;
+	Matrix res = trans.prod(m);
+	float idenom = 1.0f / res.at(2, 0);
+	return Vec2D(res.at(0, 0) * idenom, res.at(1, 0) * idenom);
 }
 
 vector<int> TransFormer::get_inliers(const Matrix & trans) const {
+	static float INLIER_DIST = RANSAC_INLIER_THRES * RANSAC_INLIER_THRES;
+	TotalTimer tm("get_inlier");
 	vector<int> ret;
 	int n = match.size();
+
+	Matrix transformed = trans.prod(f2_homo_coor);	// 3xn
 	REP(i, n) {
-		auto &pair = match.data[i];
-		Vec2D project = TransFormer::cal_project(trans, f2[pair.y].coor);
-		const Vec2D& fcoor = f1[pair.x].coor;
-		real_t dist = (project - Vec2D(fcoor.x, fcoor.y)).sqr();
-		if (dist < sqr(RANSAC_INLIER_THRES))
+		const Vec2D& fcoor = f1[match.data[i].x].coor;
+		float idenom = 1.f / transformed.at(2, i);
+		float dist = (Vec2D(transformed.at(0, i) * idenom,
+					transformed.at(1, i) * idenom) - fcoor).sqr();
+		if (dist < INLIER_DIST)
 			ret.push_back(i);
 	}
-	return move(ret);
+	return ret;
 }
 
 real_t TransFormer::get_focal_from_matrix(const Matrix& m) {

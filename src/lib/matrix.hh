@@ -27,7 +27,7 @@ class Matrix : public Mat<double> {
 
 		Matrix prod(const Matrix & r) const;
 
-		bool solve_overdetermined(Matrix & x, const Matrix & b) const;		//
+		Matrix solve_overdetermined(const Matrix & b) const;
 
 		bool SVD(Matrix & u, Matrix & s, Matrix & v) const;
 
