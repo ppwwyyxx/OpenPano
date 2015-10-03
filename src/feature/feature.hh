@@ -14,7 +14,7 @@ struct Descriptor {
 	std::vector<float> descriptor;
 
 	// square of euclidean. use now_thres to early-stop
-	float euclidean_sqr(const Descriptor& r, float now_thres) const {
+	float euclidean_sqr_base(const Descriptor& r, float now_thres) const {
 		float ans = 0;
 		REP(i, descriptor.size()) {
 			ans += sqr(descriptor[i] - r.descriptor[i]);
@@ -23,6 +23,20 @@ struct Descriptor {
 		}
 		return ans;
 	}
+
+	// sse version
+#ifdef __SSE3__
+	float euclidean_sqr_fast(const Descriptor& r, float now_thres) const;
+#endif
+
+	inline float euclidean_sqr(const Descriptor& r, float now_thres) const {
+#ifdef __SSE3__
+		return euclidean_sqr_fast(r, now_thres);
+#else
+		return euclidean_sqr_base(r, now_thres);
+#endif
+	}
+
 };
 
 std::vector<Descriptor> detect_SIFT(const Mat32f& img);
@@ -35,6 +49,3 @@ struct SSPoint {
 	float dir;
 	float scale_factor;
 };
-
-std::vector<SSPoint> detect_extrema(const Mat32f& img);
-
