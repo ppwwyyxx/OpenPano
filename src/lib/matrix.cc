@@ -147,7 +147,7 @@ bool Matrix::inverse(Matrix &ret) const {
 	try {
 		inv(input, inverse);
 	} catch (mtl::matrix_singular) {
-		cout << input << endl;
+		//cout << input << endl;
 		return false;
 	}
 
@@ -167,18 +167,19 @@ Matrix Matrix::pseudo_inverse() const {
 		else
 			ss(i, i) = 0;
 	}
-	return mtl_to_matrix(mtlM(vv * ss * trans(uu)));
+	return mtl_to_matrix(mtlM(vv * trans(ss) * trans(uu)));
 }
 
-bool Matrix::solve_overdetermined(Matrix & x, const Matrix & b) const {
+Matrix Matrix::solve_overdetermined(const Matrix & b) const {
 	m_assert(m_rows >= m_cols);			// check overdetermined
 	Matrix mt = transpose();
 	Matrix mtm = mt.prod(*this);
-	Matrix inverse(mtm.rows(), mtm.cols());
-	if (!mtm.inverse(inverse))		// TODO judge determinant threshold 0.001
-		return false;
-	x = inverse.prod(mt).prod(b);
-	return true;
+	Matrix inverse;
+	if (!mtm.inverse(inverse)) {
+		inverse = pseudo_inverse();
+		return inverse.prod(b);
+	}
+	return inverse.prod(mt).prod(b);
 }
 
 bool Matrix::SVD(Matrix& u, Matrix& s, Matrix& v) const {
