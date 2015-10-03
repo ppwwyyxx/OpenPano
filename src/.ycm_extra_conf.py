@@ -56,7 +56,8 @@ flags = [
 # For a C project, you would set this to 'c' instead of 'c++'.
 '-x',
 'c++',
-'-I.'
+'-I.',
+'-march=native'
 ]
 
 # Set this to the absolute path to the folder (NOT the file!) containing the

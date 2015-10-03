@@ -14,15 +14,6 @@ class MatchData {
 
 		int size() const { return data.size(); }
 
-		/*
-		 *MatchData reverse() const {
-		 *  MatchData ret(*this);
-		 *  for (auto &i : ret.data)
-		 *    i = Coor(i.y, i.x);
-		 *  return ret;
-		 *}
-		 */
-
 		void reverse() {
 			for (auto& i : data)
 				i = Coor(i.y, i.x);
