@@ -48,7 +48,6 @@ MatchData Matcher::match() const {
 		ret.data.emplace_back(k, min_idx);
 	}
 	if (rev)
-		return ret.reverse();
-	else
-		return ret;
+		ret.reverse();
+	return ret;
 }

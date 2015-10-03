@@ -106,7 +106,13 @@ Matrix Panorama::get_transform(const vector<Descriptor>& feat1, const vector<Des
 	Matcher match(feat1, feat2);		// this is not efficient
 	auto ret = match.match();
 	TransFormer transf(ret, feat1, feat2);
-	return move(transf.get_transform());
+	Matrix r;
+	bool succ = transf.get_transform(&r);
+	if (not succ) {
+		cerr << "The two image doesn't match. Failed" << endl;
+		exit(1);
+	}
+	return r;
 }
 
 void Panorama::straighten_simple() {
@@ -207,9 +213,17 @@ void Panorama::cal_best_matrix_pano() {;
 	REP(k, n) warper.warp(imgs[k], feats[k]);
 
 	REPL(k, mid + 1, n) mat[k] = move(bestmat[k - mid - 1]);
-	REPD(i, mid - 1, 0)
-		mat[i] = TransFormer(matches[i].reverse(), feats[i + 1], feats[i]).get_transform();
-	// mat[i] = Panorama::get_transform(feats[i + 1], feats[i]);
+	// TODO can we use inverse transform directly?
+	REPD(i, mid - 1, 0) {
+		matches[i].reverse();
+		bool succ = TransFormer(
+				matches[i],
+				feats[i + 1], feats[i]).get_transform(&mat[i]);
+		if (not succ) {
+			cerr << "The two image doesn't match. Failed" << endl;
+			exit(1);
+		}
+	}
 
 	REPD(i, mid - 2, 0) mat[i] = mat[i + 1].prod(mat[i]);
 }
@@ -266,10 +280,15 @@ float Panorama::update_h_factor(float nowfactor,
 		warper.warp(nowimgs[k], nowfeats[k]);
 
 	vector<Matrix> nowmat;		// size = len - 1
-	REPL(k, 1, len)
-		nowmat.emplace_back(
-				TransFormer(matches[k - 1 + mid], nowfeats[k - 1],
-					nowfeats[k]).get_transform());
+	REPL(k, 1, len) {
+		nowmat.emplace_back();
+		bool succ = TransFormer(matches[k - 1 + mid], nowfeats[k - 1],
+			nowfeats[k]).get_transform(&nowmat.back());
+		if (not succ) {
+			cerr << "The two image doesn't match. Failed" << endl;
+			exit(1);
+		}
+	}
 	// nowmat[k - 1] = TransFormer(matches[k - 1 + mid], nowfeats[k - 1], nowfeats[k]).get_transform();
 	//nowmat.push_back(Panorama::get_transform(nowfeats[k - 1], nowfeats[k]));
 	REPL(k, 1, len - 1)

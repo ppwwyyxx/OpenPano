@@ -29,7 +29,7 @@ class TransFormer {
 		TransFormer(const MatchData& m_match, const std::vector<Descriptor>& m_f1, const std::vector<Descriptor>& m_f2):
 			match(m_match), f1(m_f1), f2(m_f2) { }
 
-		Matrix get_transform();
+		bool get_transform(Matrix* r);
 
 		static Vec2D cal_project(const Matrix &, const Vec2D&);
 

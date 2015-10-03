@@ -31,21 +31,6 @@ float fast_atan(float y, float x) {
 	if (y < 0) r = -r;
 	return r;
 }
-
-float fast_sqrt(float number) {
-	long i;
-	float x2, y;
-	const float threehalfs = 1.5F;
-	x2 = number * 0.5F;
-	y  = number;
-	i  = * ( long * ) &y;                       // evil floating point bit level hacking
-	i  = 0x5f3759df - ( i >> 1 );               // what the fuck?
-	y  = * ( float * ) &i;
-	y  = y * ( threehalfs - ( x2 * y * y ) );   // 1st iteration
-	y  = y * ( threehalfs - ( x2 * y * y ) );   // 2nd iteration, this can be removed
-	m_assert(isnormal(y));
-	return 1.0f /y;
-}
 }
 
 GaussianPyramid::GaussianPyramid(const Mat32f& m, int num_scale):
@@ -88,7 +73,6 @@ void GaussianPyramid::cal_mag_ort(int i) {
 							dx = orig_row[x + 1] - orig_row[x - 1];
 				mag_row[x] = hypotf(dx, dy);
 				// approx here cause break working on myself/small*. fix later
-				//mag_row[x] = fast_sqrt((dx * dx + dy * dy));
 				// when dx==dy==0, no need to set ort
 				ort_row[x] = fast_atan(dy, dx) + M_PI;
 			} else {

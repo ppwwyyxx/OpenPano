@@ -2,29 +2,31 @@
 // Date: Fri May 03 23:04:58 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
-#include "lib/config.hh"
 #include "transformer.hh"
+#include "lib/config.hh"
+#include "lib/timer.hh"
 #include <set>
 using namespace std;
 
-Matrix TransFormer::get_transform() {		// second -> first
+// TODO find out when not matched
+// get a transform matix from second -> first
+bool TransFormer::get_transform(Matrix* ret) {
+	TotalTimer tm("get_transform");
 	int REQUIRED = (HOMO ? HOMO_FREEDOM / 2 : AFFINE_FREEDOM / 2);
 	int n_match = match.size();
 	if (n_match < REQUIRED) {
-		cout << "only have matches: " << n_match << endl;
-		Matrix ret(3, 3);
-		ret.zero();
-		return ret;
+		cerr << "Only have " << n_match << " matches" << endl;
+		return false;
 	}
 
-	vector<int> fit;
+	vector<int> inliers;
 	set<int> selected;
 
 	int maxinlierscnt = -1;
 	Matrix best_transform;
 
 	for (int K = RANSAC_ITERATIONS; K --;) {
-		fit.clear();
+		inliers.clear();
 		selected.clear();
 		REP(i, REQUIRED) {
 			int random;
@@ -34,21 +36,25 @@ Matrix TransFormer::get_transform() {		// second -> first
 					break;
 			}
 			selected.insert(random);
-			fit.push_back(random);
+			inliers.push_back(random);
 		}
-		Matrix transform(cal_transform(fit));
-		int inlier = cal_inliers(transform);
-		// int inlier = get_inliers(transform).size();
-		if (update_max(maxinlierscnt, inlier)) {
+		Matrix transform(cal_transform(inliers));
+		int n_inlier = cal_inliers(transform);
+		if (update_max(maxinlierscnt, n_inlier)) {
 			best_transform = move(transform);
 		}
 	}
 	m_assert(maxinlierscnt > 0);
-	auto inliers = get_inliers(best_transform);
-	best_transform = cal_transform(inliers);
 	inliers = get_inliers(best_transform);
 	best_transform = cal_transform(inliers);
-	return move(best_transform);
+	inliers = get_inliers(best_transform);
+	// one more time might be good?
+	best_transform = cal_transform(inliers);
+	inliers = get_inliers(best_transform);
+	print_debug("final inlier size: %lu\n", inliers.size());
+
+	*ret = cal_transform(inliers);
+	return true;
 }
 
 Matrix TransFormer::cal_transform(const vector<int>& matches) const {
