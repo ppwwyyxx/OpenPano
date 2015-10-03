@@ -65,6 +65,7 @@ Mat32f Filter::GaussianBlur(
 
 			// perform a direct zero-padded convolution is good enough
 			float kernel_tot = gauss.kernel_tot;
+			// when deleted, cause break in myself/small*. work later.
 			if (not (j >= center && x_bound == kw && i >= center && y_bound == kw)) {
 				kernel_tot = 0.f;
 				for (int x = max(center - i, 0); x < x_bound; x ++)
