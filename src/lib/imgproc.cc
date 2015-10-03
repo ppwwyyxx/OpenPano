@@ -18,6 +18,7 @@ using namespace std;
 
 Mat32f read_rgb(const char* fname) {
 	CImg<float> img(fname);
+	// TODO handle grey img
 	m_assert(img.spectrum() == 3);
 	img = img / 255.0;
 	Mat32f mat(img.height(), img.width(), 3);

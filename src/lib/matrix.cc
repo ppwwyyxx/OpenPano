@@ -120,6 +120,7 @@ Matrix Matrix::prod(const Matrix & r) const {
 *    return det;
 *}
 */
+// TODO speedup? better algo?
 bool Matrix::inverse(Matrix &ret) const {
 	m_assert(m_rows == m_cols);
 	int n = m_rows;

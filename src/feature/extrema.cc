@@ -110,21 +110,24 @@ std::pair<Vec, Vec> ExtremaDetector::calc_kp_offset_iter(
 	Vec delta;
 	double dxx, dyy, dss, dxy, dys, dsx;
 
+	auto& now_scale = now_pyramid[s];
 #define D(x, y, s) now_pyramid[s].at(y, x)
-	float val = D(x, y, s);
+#define DS(x, y) now_scale.at(y, x)
+	float val = DS(x, y);
 
-	delta.x = (D(x + 1, y, s) - D(x - 1, y, s)) / 2;
-	delta.y = (D(x, y + 1, s) - D(x, y - 1, s)) / 2;
+	delta.x = (DS(x + 1, y) - DS(x - 1, y)) / 2;
+	delta.y = (DS(x, y + 1) - DS(x, y - 1)) / 2;
 	delta.z = (D(x, y, s + 1) - D(x, y, s - 1)) / 2;
 
-	dxx = D(x + 1, y, s) + D(x - 1, y, s) - val - val;
-	dyy = D(x, y + 1, s) + D(x, y - 1, s) - val - val;
+	dxx = DS(x + 1, y) + DS(x - 1, y) - val - val;
+	dyy = DS(x, y + 1) + DS(x, y - 1) - val - val;
 	dss = D(x, y, s + 1) + D(x, y, s - 1) - val - val;
 
-	dxy = (D(x + 1, y + 1, s) - D(x + 1, y - 1, s) - D(x - 1, y + 1, s) + D(x - 1, y - 1, s)) / 4;
+	dxy = (DS(x + 1, y + 1) - DS(x + 1, y - 1) - DS(x - 1, y + 1) + DS(x - 1, y - 1)) / 4;
 	dys = (D(x, y + 1, s + 1) - D(x, y - 1, s + 1) - D(x, y + 1, s - 1) + D(x, y - 1, s - 1)) / 4;
 	dsx = (D(x + 1, y, s + 1) - D(x - 1, y, s + 1) - D(x + 1, y, s - 1) + D(x - 1, y, s - 1)) / 4;
 #undef D
+#undef DS
 
 	Matrix m(3, 3);
 	m.at(0, 0) = dxx; m.at(1, 1) = dyy; m.at(2, 2) = dss;
@@ -194,20 +197,21 @@ vector<Coor> ExtremaDetector::get_local_raw_extrema(
 			int nl = scale_id + ds;
 			auto& mat = this->dog.dogs[pyr_id][nl];
 
-			REPL(di, -1, 2) REPL(dj, -1, 2) {
-				float newval = mat.at(r + di, c + dj);
-				if (newval >= cmp1) max = false;
-				if (newval <= cmp2) min = false;
-				if (!max && !min) return false;
+			REPL(di, -1, 2) {
+				const float* p = mat.ptr(r + di) + c - 1;
+				REP(i, 3) {
+					float newval = p[i];
+					if (newval >= cmp1) max = false;
+					if (newval <= cmp2) min = false;
+					if (!max && !min) return false;
+				}
 			}
 		}
 		return true;
 	};
 
-	REPL(i, 1, h - 1) REPL(j, 1, w - 1) {
-		if (is_extrema(i, j)) {
+	REPL(i, 1, h - 1) REPL(j, 1, w - 1)
+		if (is_extrema(i, j))
 			ret.emplace_back(j, i);
-		}
-	}
 	return ret;
 }
