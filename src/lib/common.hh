@@ -19,8 +19,6 @@ inline float sqr(float x) { return x * x; }
 #define REPL(x, y, z) for (auto x = decltype(y){y}; x < (z); x ++)
 #define REPD(x, y, z) for (auto x = decltype(y){y}; x >= (z); x --)
 
-#define toCoor(a) Coor((a).x, (a).y)
-
 template <typename T>
 inline void free_2d(T** ptr, int w) {
 	if (ptr != nullptr)
