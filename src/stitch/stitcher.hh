@@ -83,14 +83,13 @@ class Stitcher {
 		static std::vector<Descriptor> get_feature(const Mat32f&);
 
 		void calc_feature();
+
 		// calculate feature and pairwise transform
 		void calc_transform();
-		void cal_best_matrix_pano();
+		void calc_matrix_pano();
 		void calc_matrix_simple();
 
 		void straighten_simple();
-
-		void cal_size();
 
 		float update_h_factor(float, float&, float&,
 				std::vector<Homography>&,

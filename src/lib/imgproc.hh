@@ -19,6 +19,7 @@ Mat32f crop(const Mat32f& mat);
 
 Mat32f rgb2grey(const Mat32f& mat);
 
+// judge Color::NO
 bool is_edge_color(const Mat32f& mat, float y, float x);
 
 void fill(Mat32f& mat, const Color& c);

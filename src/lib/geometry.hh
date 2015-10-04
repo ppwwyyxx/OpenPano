@@ -228,6 +228,10 @@ class Vector2D {
 
 		void update_max(const Vector2D<T> &v)
 		{ ::update_max(x, v.x); ::update_max(y, v.y);}
+
+		bool isNaN() const { return std::isnan(x); }
+
+		static Vector2D<T> NaN() { return Vector2D<T>(NAN, NAN); }
 };
 
 template<typename T>

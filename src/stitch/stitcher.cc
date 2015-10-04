@@ -16,24 +16,23 @@
 
 #include "lib/timer.hh"
 #include "lib/imgproc.hh"
+#include "blender.hh"
 using namespace std;
 
 Mat32f Stitcher::build() {
 	calc_feature();
 	calc_transform();	// calculate pairwise transform
 	bundle.update_proj_range();
-	cout << bundle.proj_min << " " << bundle.proj_max << endl;
 
 	int n = imgs.size();
 
 	int refw = imgs[bundle.identity_idx].width(),
 			refh = imgs[bundle.identity_idx].height();
 	Vec2D diff = bundle.proj_max - bundle.proj_min,
-		  offset = bundle.proj_min * (-1);
+		  proj_min = bundle.proj_min;
 	diff.x *= refw, diff.y *= refh;
-	offset.x *= refw, offset.y *= refh;
 	Coor size = Coor(diff.x, diff.y);	// target size
-	cout << "size: " << size << endl;
+	cout << "Target size: " << size << endl;
 
 	auto& comp = bundle.component;
 
@@ -42,44 +41,69 @@ Mat32f Stitcher::build() {
 
 	// blending
 	GuardedTimer tm("Blending");
-#pragma omp parallel for schedule(dynamic)
-	REP(i, ret.height()) REP(j, ret.width()) {
-		Vec2D final = (Vec2D(j, i) - offset);
-		final.x /= refw, final.y /= refh;
-		vector<pair<Color, float>> blender;
-		REP(k, n) {
-			auto& now_range = bundle.proj_ranges[k];
-			if ((final.y <= now_range.min.y)
-					|| (final.y >= now_range.max.y) ||
-					(final.x <= now_range.min.x) || (final.x >= now_range.max.x))
-				continue;
-			Vec2D old = comp[k].homo_inv.trans2d(final);
-			old.x *= imgs[k].width(), old.y *= imgs[k].height();
+	LinearBlender blender;
+	Vec2D proj_min_coor(proj_min.x * refw, proj_min.y * refh);
 
-			if (!is_edge_color(imgs[k], old.y, old.x)) {
-				blender.push_back({interpolate(imgs[k], old.y, old.x),
-						std::max(imgs[k].width() / 2 - abs(imgs[k].width() / 2 - old.x), 0.1)});
-			}
+	auto scale_coor_to_img_coor = [&](Vec2D v) {
+		v.x *= refw, v.y *= refh;
+		v = v - proj_min_coor;
+		return Coor(v.x, v.y);
+	};
+	REP(k, n) {
+		auto& cur_img = comp[k];
+		Coor top_left = scale_coor_to_img_coor(bundle.proj_ranges[k].min);
+		Coor bottom_right = scale_coor_to_img_coor(bundle.proj_ranges[k].max);
+		Coor diff = bottom_right - top_left;
+		int w = diff.x, h = diff.y;
+		Mat<Vec2D> orig_pos(h, w, 1);
+		REP(i, h) REP(j, w) {
+			Vec2D c = Vec2D(j + top_left.x, i + top_left.y) + proj_min_coor;
+			c.x /= refw, c.y /= refh;
+			Vec2D& p = (orig_pos.at(i, j) = cur_img.homo_inv.trans2d(c));
+			if (!p.isNaN() && (p.x < 0 || p.x >= 1 - EPS || p.y < 0 || p.y >= 1 - EPS))
+				p = Vec2D::NaN();
 		}
-		int ncolor = blender.size();
-		if (!ncolor) continue;
-		Color finalc;
-
-		float sumweight = 0;
-		for (auto &c : blender) {
-			finalc = finalc + c.first * c.second;
-			sumweight += c.second;
-		}
-		m_assert(fabs(sumweight) > EPS);
-		finalc = finalc * (1.0 / sumweight);
-		/*
-		 *for (auto &c : blender) finalc = finalc + c.first; // noblend
-		 *finalc = finalc * (1.0 / blender.size());
-		 */
-
-		float* p = ret.ptr(i, j);
-		finalc.write_to(p);
+		blender.add_image(top_left, orig_pos, imgs[k]);
 	}
+	blender.run(ret);
+	/*
+	 *#pragma omp parallel for schedule(dynamic)
+	 *  REP(i, ret.height()) REP(j, ret.width()) {
+	 *    Vec2D final = (Vec2D(j, i) - offset);
+	 *    final.x /= refw, final.y /= refh;
+	 *    vector<pair<Color, float>> blender;
+	 *    REP(k, n) {
+	 *      auto& now_range = bundle.proj_ranges[k];
+	 *      if ((final.y <= now_range.min.y)
+	 *          || (final.y >= now_range.max.y) ||
+	 *          (final.x <= now_range.min.x) || (final.x >= now_range.max.x))
+	 *        continue;
+	 *      Vec2D old = comp[k].homo_inv.trans2d(final);
+	 *      old.x *= imgs[k].width(), old.y *= imgs[k].height();
+	 *
+	 *      if (!is_edge_color(imgs[k], old.y, old.x)) {
+	 *        blender.push_back({interpolate(imgs[k], old.y, old.x),
+	 *            std::max(
+	 *                imgs[k].width() / 2 - abs(imgs[k].width() / 2 - old.x),
+	 *                0.1)});
+	 *      }
+	 *    }
+	 *    int ncolor = blender.size();
+	 *    if (!ncolor) continue;
+	 *    Color finalc;
+	 *
+	 *    float sumweight = 0;
+	 *    for (auto &c : blender) {
+	 *      finalc = finalc + c.first * c.second;
+	 *      sumweight += c.second;
+	 *    }
+	 *    m_assert(fabs(sumweight) > EPS);
+	 *    finalc = finalc * (1.0 / sumweight);
+	 *
+	 *    float* p = ret.ptr(i, j);
+	 *    finalc.write_to(p);
+	 *  }
+	 */
 	return ret;
 }
 
@@ -120,7 +144,7 @@ void Stitcher::calc_feature() {
 void Stitcher::calc_transform() {
 	Timer timer;
 	if (PANO) {
-		cal_best_matrix_pano();
+		calc_matrix_pano();
 		straighten_simple();
 
 		if (circle_detected) { // remove the extra
@@ -135,7 +159,7 @@ void Stitcher::calc_transform() {
 	bundle.calc_inverse_homo();
 }
 
-void Stitcher::cal_best_matrix_pano() {;
+void Stitcher::calc_matrix_pano() {;
 	int n = imgs.size(), mid = n >> 1;
 	bundle.component.resize(n);
 	REP(i, n) bundle.component[i].homo = Matrix::I(3);

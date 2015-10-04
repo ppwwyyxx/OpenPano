@@ -2,8 +2,10 @@
 //Author: Yuxin Wu <ppwwyyxx@gmail.com>
 
 #pragma once
+#include <vector>
 #include "lib/mat.h"
 #include "lib/geometry.hh"
+#include "lib/color.hh"
 
 class BlenderBase {
 	public:
@@ -21,10 +23,25 @@ class BlenderBase {
 };
 
 class LinearBlender : public BlenderBase {
+	struct WeightedPixel { Color v; float w = 0; };
+	struct Range {
+		Coor min, max;
+		bool contain(int r, int c) const {
+			return (r >= min.y && r < max.y && c >= min.x && c < max.x);
+		}
+	};
 
+	struct WeightedImage {
+		Mat<WeightedPixel> mat;
+		Range range;
+		// We must have: range.max-min == mat.w,h
+		WeightedImage(const Mat<WeightedPixel>& m, const Range& r):
+			mat(m), range(r) {}
+	};
+	std::vector<WeightedImage> imgs;
 
 	public:
-		void add_image(const Coor &upper_left,
+		void add_image(const Coor &top_left,
 				const Mat<Vec2D> &orig_pos, const Mat32f &img);
 
 		void run(Mat32f &target);
