@@ -59,7 +59,7 @@ void test_orientation(const char* fname) {
 
 	cout << "FeaturePoint size: " << oriented_keypoint.size() << endl;
 	for (auto &i : oriented_keypoint)
-		pld.arrow(toCoor(i.real_coor), i.dir, LABEL_LEN);
+		pld.arrow(Coor(i.real_coor.x, i.real_coor.y), i.dir, LABEL_LEN);
 	write_rgb("orientation.png", mat);
 }
 

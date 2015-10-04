@@ -33,9 +33,16 @@ struct ConnectedImages {
 	ProjectionMethod proj_method;
 	int identity_idx;
 
-	Vec2D proj_min, proj_max;
 	std::vector<ImageComponent> component;
 
+	struct Range {
+		Vec2D min, max;
+		Range(const Vec2D& a, const Vec2D& b): min(a), max(b) {}
+	};
+	std::vector<Range> proj_ranges;
+	Vec2D proj_min, proj_max;	// in identity image coordinate
+
+	// update range of projection of all transformations
 	void update_proj_range();
 
 	void calc_inverse_homo();
@@ -49,8 +56,6 @@ class Stitcher {
 
 		// feature for each image
 		std::vector<std::vector<Descriptor>> feats;
-
-		std::vector<std::pair<Vec2D, Vec2D>> corners;
 
 		bool circle_detected = false;
 

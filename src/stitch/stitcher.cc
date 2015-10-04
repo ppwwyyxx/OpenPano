@@ -21,25 +21,18 @@ using namespace std;
 Mat32f Stitcher::build() {
 	calc_feature();
 	calc_transform();	// calculate pairwise transform
-	int n = imgs.size();
+	bundle.update_proj_range();
+	cout << bundle.proj_min << " " << bundle.proj_max << endl;
 
-	// get size
-	cal_size();
-	Vec2D min(std::numeric_limits<int>::max(), std::numeric_limits<int>::max()),
-		  max = min * (-1);
-	for (auto &i : corners) {
-		max.update_max(i.first);
-		min.update_min(i.second);
-	}
-	cout << "min" << min << "max" << max << endl;
+	int n = imgs.size();
 
 	int refw = imgs[bundle.identity_idx].width(),
 			refh = imgs[bundle.identity_idx].height();
-	Vec2D diff = max - min,
-		  offset = min * (-1);
+	Vec2D diff = bundle.proj_max - bundle.proj_min,
+		  offset = bundle.proj_min * (-1);
 	diff.x *= refw, diff.y *= refh;
 	offset.x *= refw, offset.y *= refh;
-	Coor size = toCoor(diff);	// target size
+	Coor size = Coor(diff.x, diff.y);	// target size
 	cout << "size: " << size << endl;
 
 	auto& comp = bundle.component;
@@ -55,10 +48,10 @@ Mat32f Stitcher::build() {
 		final.x /= refw, final.y /= refh;
 		vector<pair<Color, float>> blender;
 		REP(k, n) {
-			pair<Vec2D, Vec2D>& nowcorner = corners[k];
-			if ((final.y <= nowcorner.second.y)
-					|| (final.y >= nowcorner.first.y) ||
-					(final.x <= nowcorner.second.x) || (final.x >= nowcorner.first.x))
+			auto& now_range = bundle.proj_ranges[k];
+			if ((final.y <= now_range.min.y)
+					|| (final.y >= now_range.max.y) ||
+					(final.x <= now_range.min.x) || (final.x >= now_range.max.x))
 				continue;
 			Vec2D old = comp[k].homo_inv.trans2d(final);
 			old.x *= imgs[k].width(), old.y *= imgs[k].height();
@@ -129,35 +122,17 @@ void Stitcher::calc_transform() {
 	if (PANO) {
 		cal_best_matrix_pano();
 		straighten_simple();
+
+		if (circle_detected) { // remove the extra
+			bundle.component.pop_back();
+			imgs.pop_back();
+		}
 	} else {
 		calc_matrix_simple();
 		print_debug("match & transform takes %lf secs\n", timer.duration());
 	}
 
-	if (circle_detected) { // remove the extra
-		bundle.component.pop_back();
-		imgs.pop_back();
-	}
 	bundle.calc_inverse_homo();
-}
-
-void Stitcher::cal_size() {
-	int n = imgs.size();
-
-	REPL(i, 0, n) {
-		Vec2D min(std::numeric_limits<double>::max(), std::numeric_limits<double>::max()),
-					max = min * (-1);
-		Vec2D corner[4] = {
-			Vec2D(0, 0), Vec2D(0, 1),
-			Vec2D(1, 0), Vec2D(1, 1)};
-		for (auto &v : corner) {
-			Vec2D newcorner = bundle.component[i].homo.trans2d(v);
-			min.update_min(Vec2D(newcorner.x, newcorner.y));
-			max.update_max(Vec2D(newcorner.x, newcorner.y));
-		}
-		corners.push_back({max, min});
-	}
-	return;
 }
 
 void Stitcher::cal_best_matrix_pano() {;

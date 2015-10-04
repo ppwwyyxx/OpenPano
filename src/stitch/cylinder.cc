@@ -44,7 +44,7 @@ Mat32f CylProject::project(const Mat32f& img, vector<Descriptor>& ft) const {
 	max = max * sizefactor, min = min * sizefactor;
 	Vec2D realsize = max - min,
 		  offset = min * (-1);
-	Coor size = toCoor(realsize);
+	Coor size = Coor(realsize.x, realsize.y);
 	real_t sizefactor_inv = 1.0 / sizefactor;
 
 	Mat32f mat(size.y, size.x, 3);
