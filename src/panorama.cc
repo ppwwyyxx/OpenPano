@@ -209,6 +209,7 @@ void Stitcher::cal_best_matrix_pano() {;
 		}
 	} else
 		bestfactor = 1;
+	print_debug("Best hfactor: %lf\n", bestfactor);
 	Warper warper(bestfactor);
 	REP(k, n) warper.warp(imgs[k], feats[k]);
 
