@@ -91,6 +91,8 @@ class Stitcher {
 
 		void straighten_simple();
 
+		Mat32f blend();
+
 		float update_h_factor(float, float&, float&,
 				std::vector<Homography>&,
 				const std::vector<MatchData>&);

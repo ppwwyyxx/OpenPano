@@ -55,7 +55,6 @@ bool TransFormer::get_transform(Homography* ret) {
 }
 
 Homography TransFormer::calc_transform(const vector<int>& matches) const {
-	TotalTimer tm("calc_transform");
 	if (HOMO)
 		return calc_homo_transform(matches);
 	else

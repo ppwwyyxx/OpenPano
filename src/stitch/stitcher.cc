@@ -24,6 +24,10 @@ Mat32f Stitcher::build() {
 	calc_transform();	// calculate pairwise transform
 	bundle.update_proj_range();
 
+	return blend();
+}
+
+Mat32f Stitcher::blend() {
 	int n = imgs.size();
 
 	int refw = imgs[bundle.identity_idx].width(),
@@ -31,17 +35,9 @@ Mat32f Stitcher::build() {
 	Vec2D diff = bundle.proj_max - bundle.proj_min,
 		  proj_min = bundle.proj_min;
 	diff.x *= refw, diff.y *= refh;
-	Coor size = Coor(diff.x, diff.y);	// target size
-	cout << "Target size: " << size << endl;
+	Coor size = Coor(diff.x, diff.y);
+	cout << "Final Imag Size: " << size << endl;
 
-	auto& comp = bundle.component;
-
-	Mat32f ret(size.y, size.x, 3);
-	fill(ret, Color::NO);
-
-	// blending
-	GuardedTimer tm("Blending");
-	LinearBlender blender;
 	Vec2D proj_min_coor(proj_min.x * refw, proj_min.y * refh);
 
 	auto scale_coor_to_img_coor = [&](Vec2D v) {
@@ -49,8 +45,15 @@ Mat32f Stitcher::build() {
 		v = v - proj_min_coor;
 		return Coor(v.x, v.y);
 	};
+
+	// blending
+	GuardedTimer tm("Blending");
+	Mat32f ret(size.y, size.x, 3);
+	fill(ret, Color::NO);
+
+	LinearBlender blender;
 	REP(k, n) {
-		auto& cur_img = comp[k];
+		auto& cur_img = bundle.component[k];
 		Coor top_left = scale_coor_to_img_coor(bundle.proj_ranges[k].min);
 		Coor bottom_right = scale_coor_to_img_coor(bundle.proj_ranges[k].max);
 		Coor diff = bottom_right - top_left;
@@ -59,6 +62,7 @@ Mat32f Stitcher::build() {
 		REP(i, h) REP(j, w) {
 			Vec2D c = Vec2D(j + top_left.x, i + top_left.y) + proj_min_coor;
 			c.x /= refw, c.y /= refh;
+			// TODO batch transformation to speed up
 			Vec2D& p = (orig_pos.at(i, j) = cur_img.homo_inv.trans2d(c));
 			if (!p.isNaN() && (p.x < 0 || p.x >= 1 - EPS || p.y < 0 || p.y >= 1 - EPS))
 				p = Vec2D::NaN();
@@ -66,44 +70,6 @@ Mat32f Stitcher::build() {
 		blender.add_image(top_left, orig_pos, imgs[k]);
 	}
 	blender.run(ret);
-	/*
-	 *#pragma omp parallel for schedule(dynamic)
-	 *  REP(i, ret.height()) REP(j, ret.width()) {
-	 *    Vec2D final = (Vec2D(j, i) - offset);
-	 *    final.x /= refw, final.y /= refh;
-	 *    vector<pair<Color, float>> blender;
-	 *    REP(k, n) {
-	 *      auto& now_range = bundle.proj_ranges[k];
-	 *      if ((final.y <= now_range.min.y)
-	 *          || (final.y >= now_range.max.y) ||
-	 *          (final.x <= now_range.min.x) || (final.x >= now_range.max.x))
-	 *        continue;
-	 *      Vec2D old = comp[k].homo_inv.trans2d(final);
-	 *      old.x *= imgs[k].width(), old.y *= imgs[k].height();
-	 *
-	 *      if (!is_edge_color(imgs[k], old.y, old.x)) {
-	 *        blender.push_back({interpolate(imgs[k], old.y, old.x),
-	 *            std::max(
-	 *                imgs[k].width() / 2 - abs(imgs[k].width() / 2 - old.x),
-	 *                0.1)});
-	 *      }
-	 *    }
-	 *    int ncolor = blender.size();
-	 *    if (!ncolor) continue;
-	 *    Color finalc;
-	 *
-	 *    float sumweight = 0;
-	 *    for (auto &c : blender) {
-	 *      finalc = finalc + c.first * c.second;
-	 *      sumweight += c.second;
-	 *    }
-	 *    m_assert(fabs(sumweight) > EPS);
-	 *    finalc = finalc * (1.0 / sumweight);
-	 *
-	 *    float* p = ret.ptr(i, j);
-	 *    finalc.write_to(p);
-	 *  }
-	 */
 	return ret;
 }
 
