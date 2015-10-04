@@ -5,12 +5,12 @@
 #include "lib/config.hh"
 #include "lib/planedrawer.hh"
 #include "lib/imgproc.hh"
-#include "warper.hh"
+#include "stitch/warper.hh"
 #include "feature/extrema.hh"
 #include "feature/orientation.hh"
 #include "lib/timer.hh"
-#include "matcher.hh"
-#include "stitcher.hh"
+#include "feature/matcher.hh"
+#include "stitch/stitcher.hh"
 #include <ctime>
 #include <cassert>
 

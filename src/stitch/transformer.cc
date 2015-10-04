@@ -23,7 +23,7 @@ bool TransFormer::get_transform(Matrix* ret) {
 	set<int> selected;
 
 	int maxinlierscnt = -1;
-	Matrix best_transform;
+	Homography best_transform;
 
 	for (int K = RANSAC_ITERATIONS; K --;) {
 		inliers.clear();
@@ -36,7 +36,7 @@ bool TransFormer::get_transform(Matrix* ret) {
 			selected.insert(random);
 			inliers.push_back(random);
 		}
-		Matrix transform(calc_transform(inliers));
+		Homography transform(calc_transform(inliers));
 		int n_inlier = get_inliers(transform).size();
 		if (update_max(maxinlierscnt, n_inlier)) {
 			best_transform = move(transform);
@@ -54,7 +54,7 @@ bool TransFormer::get_transform(Matrix* ret) {
 	return true;
 }
 
-Matrix TransFormer::calc_transform(const vector<int>& matches) const {
+Homography TransFormer::calc_transform(const vector<int>& matches) const {
 	TotalTimer tm("calc_transform");
 	if (HOMO)
 		return calc_homo_transform(matches);
@@ -62,7 +62,7 @@ Matrix TransFormer::calc_transform(const vector<int>& matches) const {
 		return calc_affine_transform(matches);
 }
 
-Matrix TransFormer::calc_affine_transform(const vector<int>& matches) const {
+Homography TransFormer::calc_affine_transform(const vector<int>& matches) const {
 	int n = matches.size();
 	m_assert(n * 2 >= AFFINE_FREEDOM);
 
@@ -78,13 +78,13 @@ Matrix TransFormer::calc_affine_transform(const vector<int>& matches) const {
 		b.at(i * 2 + 1, 0) = m0.y;
 	}
 	Matrix res = m.solve_overdetermined(b);
-	Matrix ret(3, 3); ret.zero();
+	Homography ret; ret.zero();
 	memcpy(ret.ptr(), res.ptr(), AFFINE_FREEDOM * sizeof(double));
 	ret.at(2, 2) = 1.0;
 	return move(ret);
 }
 
-Matrix TransFormer::calc_homo_transform(const vector<int>& matches) const {
+Homography TransFormer::calc_homo_transform(const vector<int>& matches) const {
 	int n = matches.size();
 	m_assert(n * 2 >= HOMO_FREEDOM);
 
@@ -102,7 +102,7 @@ Matrix TransFormer::calc_homo_transform(const vector<int>& matches) const {
 		b.at(i * 2 + 1, 0) = m0.y;
 	}
 	Matrix res = m.solve_overdetermined(b);
-	Matrix ret(3, 3);
+	Homography ret;
 	memcpy(ret.ptr(), res.ptr(), HOMO_FREEDOM * sizeof(double));
 	ret.at(2, 2) = 1;
 	// check
@@ -114,6 +114,7 @@ Matrix TransFormer::calc_homo_transform(const vector<int>& matches) const {
 }
 
 // project a point
+// TODO remove in the future
 Vec2D TransFormer::calc_project(const Matrix & trans, const Vec2D & old) {
 	Matrix m(3, 1);
 	m.at(0, 0) = old.x, m.at(1, 0) = old.y, m.at(2, 0) = 1;
@@ -122,7 +123,7 @@ Vec2D TransFormer::calc_project(const Matrix & trans, const Vec2D & old) {
 	return Vec2D(res.at(0, 0) * idenom, res.at(1, 0) * idenom);
 }
 
-vector<int> TransFormer::get_inliers(const Matrix & trans) const {
+vector<int> TransFormer::get_inliers(const Homography& trans) const {
 	static float INLIER_DIST = RANSAC_INLIER_THRES * RANSAC_INLIER_THRES;
 	TotalTimer tm("get_inlier");
 	vector<int> ret;
