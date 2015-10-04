@@ -1,12 +1,14 @@
-// File: panorama.cc
+// File: stitcher.cc
 // Date: Sun Sep 22 12:54:18 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 // XXX: I know it is somehow ugly
 
+
+#include "stitcher.hh"
+
 #include <fstream>
 #include <algorithm>
 
-#include "panorama.hh"
 #include "matcher.hh"
 #include "cylinder.hh"
 #include "warper.hh"

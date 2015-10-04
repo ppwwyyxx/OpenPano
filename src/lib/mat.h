@@ -10,6 +10,7 @@ class Mat {
         Mat(int rows, int cols, int channels);
         Mat(const Mat<T> &rhs);
         Mat<T> &operator=(const Mat<T> &rhs);
+				virtual ~Mat(){}
 
         T &at(int r, int c, int ch = 0);
         const T &at(int r, int c, int ch = 0) const;
