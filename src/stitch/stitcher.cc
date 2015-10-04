@@ -38,13 +38,13 @@ Mat32f Stitcher::build() {
 	cout << "size: " << size << endl;
 
 	// inverse
-	for_each(mat.begin(), mat.end(),
-		[](Matrix & m) {
-			Matrix inv;
-			bool ok = m.inverse(inv);
-			m_assert(ok);
-			m = move(inv);
-		});
+	for (auto& m : bundle.component) {
+		Homography inv;
+		bool ok = m.homo.inverse(inv);
+		m_assert(ok);
+		m.homo = inv;
+	}
+	auto& comp = bundle.component;
 
 	Mat32f ret(size.y, size.x, 3);
 	fill(ret, Color::NO);
@@ -61,7 +61,7 @@ Mat32f Stitcher::build() {
 			if (!between(final.y, nowcorner.second.y, nowcorner.first.y) ||
 					!between(final.x, nowcorner.second.x, nowcorner.first.x))
 				continue;
-			Vec2D old = TransFormer::calc_project(mat[k], final);
+			Vec2D old = TransFormer::calc_project(comp[k].homo, final);
 			if (!is_edge_color(imgs[k], old.y, old.x)) {
 				blender.push_back({interpolate(imgs[k], old.y, old.x),
 						std::max(imgs[k].width() / 2 - abs(imgs[k].width() / 2 - old.x), .1f)});
@@ -89,30 +89,32 @@ Mat32f Stitcher::build() {
 	return ret;
 }
 
-Matrix Stitcher::get_transform(int f1, int f2) const {
+Homography Stitcher::get_transform(int f1, int f2) const {
 	Matcher match(feats[f1], feats[f2]);		// this is not efficient
 	auto ret = match.match();
 	TransFormer transf(ret, feats[f1], feats[f2]);
-	Matrix r;
+	Homography r;
 	bool succ = transf.get_transform(&r);
 	if (not succ)
 		error_exit(ssprintf("Image %d & %d doesn't match.", f1, f2));
 	return r;
 }
 
-void Stitcher::straighten_simple() {
-	int n = imgs.size();
-	Vec2D center2(imgs[n - 1].width() / 2, imgs[n-1].height() / 2);
-	center2 = TransFormer::calc_project(mat[n - 1], center2);
-	Vec2D center1 = TransFormer::calc_project(mat[0], Vec2D(imgs[0].width() / 2, imgs[0].height() / 2));
-	float dydx = (center2.y - center1.y) / (center2.x - center1.x);
-	Matrix S = Matrix::I(3);
-	S.at(1, 0) = dydx;
-	Matrix Sinv(3, 3);
-	bool succ = S.inverse(Sinv);
-	m_assert(succ);
-	REP(i, n) mat[i] = Sinv.prod(mat[i]);
-}
+/*
+ *void Stitcher::straighten_simple() {
+ *  int n = imgs.size();
+ *  Vec2D center2(imgs[n - 1].width() / 2, imgs[n-1].height() / 2);
+ *  center2 = TransFormer::calc_project(mat[n - 1], center2);
+ *  Vec2D center1 = TransFormer::calc_project(mat[0], Vec2D(imgs[0].width() / 2, imgs[0].height() / 2));
+ *  float dydx = (center2.y - center1.y) / (center2.x - center1.x);
+ *  Matrix S = Matrix::I(3);
+ *  S.at(1, 0) = dydx;
+ *  Matrix Sinv(3, 3);
+ *  bool succ = S.inverse(Sinv);
+ *  m_assert(succ);
+ *  REP(i, n) mat[i] = Sinv.prod(mat[i]);
+ *}
+ */
 
 void Stitcher::calc_feature() {
 	GuardedTimer tm("calc_feature");
@@ -128,14 +130,14 @@ void Stitcher::calc_transform() {
 	Timer timer;
 	if (PANO) {
 		cal_best_matrix_pano();
-		straighten_simple();
+		//straighten_simple();
 	} else {
 		calc_matrix_simple();
 		print_debug("match & transform takes %lf secs\n", timer.duration());
 	}
 
 	if (circle_detected) { // remove the extra
-		mat.pop_back();
+		bundle.component.pop_back();
 		imgs.pop_back();
 	}
 }
@@ -149,7 +151,7 @@ void Stitcher::cal_size() {
 	    Vec2D corner[4] = { Vec2D(0, 0), Vec2D(imgs[i].width(), 0),
 					        Vec2D(0, imgs[i].height()), Vec2D(imgs[i].width(), imgs[i].height())};
 	    for (auto &v : corner) {
-	        Vec2D newcorner = TransFormer::calc_project(mat[i], v);
+	        Vec2D newcorner = TransFormer::calc_project(bundle.component[i].homo, v);
 	        min.update_min(Vec2D(floor(newcorner.x), floor(newcorner.y)));
 	        max.update_max(Vec2D(ceil(newcorner.x), ceil(newcorner.y)));
 	    }
@@ -160,8 +162,9 @@ void Stitcher::cal_size() {
 
 void Stitcher::cal_best_matrix_pano() {;
 	int n = imgs.size(), mid = n >> 1;
-	mat.resize(n);
-	REP(i, n) mat[i] = Matrix::I(3);
+	bundle.component.resize(n);
+	bundle.identity_idx = mid;
+	REP(i, n) bundle.component[i].homo = Matrix::I(3);
 
 	Timer timer;
 	vector<MatchData> matches;
@@ -180,14 +183,14 @@ void Stitcher::cal_best_matrix_pano() {;
 			print_debug("detect circle\n");
 			circle_detected = true;
 			imgs.push_back(imgs[0].clone());
-			mat.push_back(Matrix::I(3));
+			bundle.component.emplace_back(ImageComponent{Homography::I()});
 			feats.push_back(feats[0]);
 			n ++, mid = n >> 1;
 		} else {
 			matches.pop_back();
 		}
 	}
-	vector<Matrix> bestmat;
+	vector<Homography> bestmat;
 
 	float minslope = numeric_limits<float>::max();
 	float bestfactor = 0;
@@ -216,26 +219,29 @@ void Stitcher::cal_best_matrix_pano() {;
 	Warper warper(bestfactor);
 	REP(k, n) warper.warp(imgs[k], feats[k]);
 
-	REPL(k, mid + 1, n) mat[k] = move(bestmat[k - mid - 1]);
+	REPL(k, mid + 1, n) bundle.component[k].homo = move(bestmat[k - mid - 1]);
 	// TODO can we use inverse transform directly?
 	REPD(i, mid - 1, 0) {
 		matches[i].reverse();
 		bool succ = TransFormer(
 				matches[i],
-				feats[i + 1], feats[i]).get_transform(&mat[i]);
+				feats[i + 1], feats[i]).get_transform(&bundle.component[i].homo);
 		if (not succ) {
 			cerr << "The two image doesn't match. Failed" << endl;
 			exit(1);
 		}
 	}
 
-	REPD(i, mid - 2, 0) mat[i] = mat[i + 1].prod(mat[i]);
+	REPD(i, mid - 2, 0)
+		bundle.component[i].homo = Homography(
+				bundle.component[i + 1].homo.prod(bundle.component[i].homo));
 }
 
 void Stitcher::calc_matrix_simple() {
 	int n = imgs.size(), mid = n >> 1;
-	mat.resize(n);
-	mat[mid] = Matrix::I(3);
+	bundle.identity_idx = mid;
+	bundle.component.resize(n);
+	bundle.component[mid] = ImageComponent{Homography::I()};
 
 	// when not translation, do a simple-guess warping
 	if (!TRANS) {
@@ -243,24 +249,30 @@ void Stitcher::calc_matrix_simple() {
 		REP(k, n) warper.warp(imgs[k], feats[k]);
 	}
 
+	auto& comp = bundle.component;
+
 	// transform w.r.t the middle one
 #pragma omp parallel for schedule(dynamic)
 	REP(k, n) {
 		if (k >= mid + 1)
 			// get match and transform
-			mat[k] = get_transform(k - 1, k);
+			comp[k] = ImageComponent{get_transform(k - 1, k)};
 		else if (k <= mid - 1)
-			mat[k] = get_transform(k + 1, k);
+			comp[k] = ImageComponent{get_transform(k + 1, k)};
 	}
-	REPL(k, mid + 2, n) mat[k] = mat[k - 1].prod(mat[k]);
-	REPD(k, mid - 2, 0) mat[k] = mat[k + 1].prod(mat[k]);
+	REPL(k, mid + 2, n)
+		comp[k].homo = Homography(
+				comp[k - 1].homo.prod(comp[k].homo));
+	REPD(k, mid - 2, 0)
+		comp[k].homo = Homography(
+				comp[k + 1].homo.prod(comp[k].homo));
 }
 #undef prepare
 
 float Stitcher::update_h_factor(float nowfactor,
 		float & minslope,
 		float & bestfactor,
-		vector<Matrix>& mat,
+		vector<Homography>& mat,
 		const vector<Mat32f>& imgs,
 		const vector<vector<Descriptor>>& feats,
 		const vector<MatchData>& matches) {
@@ -282,7 +294,7 @@ float Stitcher::update_h_factor(float nowfactor,
 	REP(k, len)
 		warper.warp(nowimgs[k], nowfeats[k]);
 
-	vector<Matrix> nowmat;		// size = len - 1
+	vector<Homography> nowmat;		// size = len - 1
 	REPL(k, 1, len) {
 		nowmat.emplace_back();
 		bool succ = TransFormer(matches[k - 1 + mid], nowfeats[k - 1],

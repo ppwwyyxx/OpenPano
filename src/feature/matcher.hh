@@ -7,6 +7,7 @@
 #include <memory>
 #include "feature/feature.hh"
 
+// TODO. keep actual coordinate in two images
 class MatchData {
 	public:
 		// each pair contains two idx of each match

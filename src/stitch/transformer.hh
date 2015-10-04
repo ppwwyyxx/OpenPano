@@ -13,6 +13,8 @@ class TransFormer {
 	private:
 		const MatchData& match;
 		const std::vector<Descriptor>& f1, & f2;
+
+		// homogeneous coordinate of points in f2
 		Matrix f2_homo_coor;	// 3xn
 
 		Homography calc_transform(const std::vector<int>&) const;
@@ -37,7 +39,7 @@ class TransFormer {
 			REP(i, n) f2_homo_coor.at(2, i) = 1;
 		}
 
-		bool get_transform(Matrix* r);
+		bool get_transform(Homography* r);
 
 		static Vec2D calc_project(const Matrix&, const Vec2D&);
 
