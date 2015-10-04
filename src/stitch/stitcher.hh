@@ -18,7 +18,8 @@ class Descriptor;
 
 // An image to be stitched
 struct ImageComponent {
-	Homography homo;
+	Homography homo,	// from me to identity
+						 homo_inv;	// from identity to me
 	//int idx;	// its original index
 };
 
@@ -34,14 +35,14 @@ struct ConnectedImages {
 	std::vector<ImageComponent> component;
 
 	void update_proj_range();
+
+	void calc_inverse_homo();
 };
 
 class Stitcher {
 	private:
 		std::vector<Mat32f> imgs;
 
-		// transformation matrices
-		//std::vector<Matrix> mat;
 		ConnectedImages bundle;
 
 		// feature for each image

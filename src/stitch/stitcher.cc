@@ -37,13 +37,6 @@ Mat32f Stitcher::build() {
 	Coor size = toCoor(diff);
 	cout << "size: " << size << endl;
 
-	// inverse
-	for (auto& m : bundle.component) {
-		Homography inv;
-		bool ok = m.homo.inverse(inv);
-		m_assert(ok);
-		m.homo = inv;
-	}
 	auto& comp = bundle.component;
 
 	Mat32f ret(size.y, size.x, 3);
@@ -61,7 +54,7 @@ Mat32f Stitcher::build() {
 			if (!between(final.y, nowcorner.second.y, nowcorner.first.y) ||
 					!between(final.x, nowcorner.second.x, nowcorner.first.x))
 				continue;
-			Vec2D old = TransFormer::calc_project(comp[k].homo, final);
+			Vec2D old = TransFormer::calc_project(comp[k].homo_inv, final);
 			if (!is_edge_color(imgs[k], old.y, old.x)) {
 				blender.push_back({interpolate(imgs[k], old.y, old.x),
 						std::max(imgs[k].width() / 2 - abs(imgs[k].width() / 2 - old.x), .1f)});
@@ -140,6 +133,7 @@ void Stitcher::calc_transform() {
 		bundle.component.pop_back();
 		imgs.pop_back();
 	}
+	bundle.calc_inverse_homo();
 }
 
 void Stitcher::cal_size() {
@@ -251,21 +245,23 @@ void Stitcher::calc_matrix_simple() {
 
 	auto& comp = bundle.component;
 
-	// transform w.r.t the middle one
+	// transform w.r.t the identity one
 #pragma omp parallel for schedule(dynamic)
 	REP(k, n) {
 		if (k >= mid + 1)
 			// get match and transform
-			comp[k] = ImageComponent{get_transform(k - 1, k)};
+			comp[k] = ImageComponent{get_transform(k - 1, k)};	// from k to k-1
 		else if (k <= mid - 1)
-			comp[k] = ImageComponent{get_transform(k + 1, k)};
+			comp[k] = ImageComponent{get_transform(k + 1, k)};	// from k to k+1
 	}
+	// accumulate the transformations
 	REPL(k, mid + 2, n)
 		comp[k].homo = Homography(
 				comp[k - 1].homo.prod(comp[k].homo));
 	REPD(k, mid - 2, 0)
 		comp[k].homo = Homography(
 				comp[k + 1].homo.prod(comp[k].homo));
+	// then, comp[k]: from k to identity
 }
 #undef prepare
 
