@@ -167,7 +167,6 @@ void Stitcher::cal_size() {
 void Stitcher::cal_best_matrix_pano() {;
 	int n = imgs.size(), mid = n >> 1;
 	bundle.component.resize(n);
-	bundle.identity_idx = mid;
 	REP(i, n) bundle.component[i].homo = Matrix::I(3);
 
 	Timer timer;
@@ -194,6 +193,7 @@ void Stitcher::cal_best_matrix_pano() {;
 			matches.pop_back();
 		}
 	}
+	bundle.identity_idx = mid;
 	vector<Homography> bestmat;
 
 	float minslope = numeric_limits<float>::max();
