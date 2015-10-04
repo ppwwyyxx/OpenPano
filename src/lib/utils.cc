@@ -29,3 +29,38 @@ void c_fprintf(const char* col, FILE* fp, const char* fmt, ...) {
 	va_end(ap);
 }
 
+
+std::string ssprintf(const char *fmt, ...) {
+	int size = 100;
+	char *p = (char *)malloc(size);
+
+	va_list ap;
+
+	std::string ret;
+
+	while (true) {
+		va_start(ap, fmt);
+		int n = vsnprintf(p, size, fmt, ap);
+		va_end(ap);
+
+		if (n < 0) {
+			free(p);
+			return "";
+		}
+
+		if (n < size) {
+			ret = p;
+			free(p);
+			return ret;
+		}
+
+		size = n + 1;
+
+		char *np = (char *)realloc(p, size);
+		if (np == nullptr) {
+			free(p);
+			return "";
+		} else
+			p = np;
+	}
+}

@@ -4,6 +4,7 @@
 
 
 #pragma once
+#include <string>
 
 /*
  *#define P(a) std::cout << (a) << std::endl
@@ -16,6 +17,11 @@ void __m_assert_check__(bool val, const char *expr,
 
 
 void error_exit(const char *msg) __attribute__((noreturn));
+
+inline void error_exit(const std::string& s) __attribute__((noreturn));
+void error_exit(const std::string& s) {
+	error_exit(s.c_str());
+}
 
 
 #ifdef DEBUG

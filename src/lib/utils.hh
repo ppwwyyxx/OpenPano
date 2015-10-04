@@ -25,3 +25,6 @@ string TERM_COLOR(int k);
 void c_printf(const char* col, const char* fmt, ...);
 
 void c_fprintf(const char* col, FILE* fp, const char* fmt, ...);
+
+__attribute__ (( format( printf, 1, 2 ) ))
+std::string ssprintf(const char *fmt, ...);

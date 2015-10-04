@@ -101,8 +101,8 @@ void work(int argc, char* argv[]) {
 	vector<Mat32f> imgs;
 	REPL(i, 1, argc)
 		imgs.emplace_back(read_rgb(argv[i]));
-	Panorama p(imgs);
-	Mat32f res = p.get();
+	Stitcher p(move(imgs));
+	Mat32f res = p.build();
 
 	if (CROP) res = crop(res);
 	write_rgb("out.png", res);
@@ -113,11 +113,9 @@ void init_config() {
 	PANO = Config.get("PANO");
 	TRANS = Config.get("TRANS");
 	CROP = Config.get("CROP");
-	if (PANO && TRANS) {
-		cerr << "Want panorama or translation stitching? Cannot have both!" << endl;
-		exit(1);
-	}
-	HOMO = TRANS;
+	if (PANO && TRANS)
+		error_exit("Want panorama or translation stitching? Cannot have both!");
+	HOMO = TRANS;	// use homography when dealing with pure translation
 
 	NUM_OCTAVE = Config.get("NUM_OCTAVE");
 	NUM_SCALE = Config.get("NUM_SCALE");
