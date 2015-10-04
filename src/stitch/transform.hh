@@ -23,6 +23,10 @@ class Homography : public Matrix {
 			return ret;
 		}
 
+		inline Vec trans(const Vec2D& m) const {
+			return trans(Vec(m.x, m.y, 1));
+		}
+
 		// identity
 		inline static Homography I() {
 			Homography ret;
