@@ -22,16 +22,15 @@ Vec2D Sphere::proj_r(const Vec2D& p) const {
 }
 
 Vec2D Cylinder::proj(const Vec& p) const {
-	real_t longx = hypot(p.x - center.x, p.z - center.z);
-	real_t theta = acos((center.x - p.x) / longx);
-	return Vec2D(theta, (p.y - center.y) / longx);
+	real_t x = atan((p.x - center.x) / r);
+	real_t y = (p.y - center.y) / (hypot(p.x - center.x, r));
+	return Vec2D(x, y);
 }
 
 Vec2D Cylinder::proj_r(const Vec2D& p) const {
-	Vec dir(-cos(p.x), p.y, -sin(p.x));		// - means z axis point to photo
-	dir.normalize();
-	Vec dest = center - dir * (center.z / dir.z);
-	return Vec2D(dest.x, dest.y);
+	real_t x = r * tan(p.x) + center.x;
+	real_t y = p.y * r / cos(p.x) + center.y;
+	return Vec2D(x, y);
 }
 
 Mat32f CylProject::project(const Mat32f& img, vector<Descriptor>& ft) const {

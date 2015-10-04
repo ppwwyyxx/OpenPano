@@ -17,9 +17,9 @@ class Warper {
 			h_factor(m_hfactor) {}
 
 		void warp(Mat32f& mat, std::vector<Descriptor>& ft) const {
-			int r = std::max(mat.width(), mat.height()) / 2;
+			int r = mat.width() * 0.5;
 			Vec cen(mat.width() / 2, mat.height() / 2 * h_factor, r * 2);
-			CylProject cyl(r, cen, r * OUTPUT_SIZE_FACTOR);
+			CylProject cyl(r * 2, cen, r * OUTPUT_SIZE_FACTOR);
 			mat = cyl.project(mat, ft);
 		}
 
