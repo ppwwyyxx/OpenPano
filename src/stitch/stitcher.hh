@@ -83,13 +83,11 @@ class Stitcher {
 		void cal_best_matrix_pano();
 		void calc_matrix_simple();
 
-		//void straighten_simple();
+		void straighten_simple();
 
 		void cal_size();
 
-		static float update_h_factor(float, float&, float&,
+		float update_h_factor(float, float&, float&,
 				std::vector<Homography>&,
-				const std::vector<Mat32f>&,
-				const std::vector<std::vector<Descriptor>>&,
 				const std::vector<MatchData>&);
 };

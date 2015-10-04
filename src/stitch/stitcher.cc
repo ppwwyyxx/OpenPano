@@ -60,7 +60,7 @@ Mat32f Stitcher::build() {
 					|| (final.y >= nowcorner.first.y) ||
 					(final.x <= nowcorner.second.x) || (final.x >= nowcorner.first.x))
 				continue;
-			Vec2D old = TransFormer::calc_project(comp[k].homo_inv, final);
+			Vec2D old = comp[k].homo_inv.trans2d(final);
 			old.x *= imgs[k].width(), old.y *= imgs[k].height();
 
 			if (!is_edge_color(imgs[k], old.y, old.x)) {
@@ -101,21 +101,18 @@ Homography Stitcher::get_transform(int f1, int f2) const {
 	return r;
 }
 
-/*
- *void Stitcher::straighten_simple() {
- *  int n = imgs.size();
- *  Vec2D center2(imgs[n - 1].width() / 2, imgs[n-1].height() / 2);
- *  center2 = TransFormer::calc_project(mat[n - 1], center2);
- *  Vec2D center1 = TransFormer::calc_project(mat[0], Vec2D(imgs[0].width() / 2, imgs[0].height() / 2));
- *  float dydx = (center2.y - center1.y) / (center2.x - center1.x);
- *  Matrix S = Matrix::I(3);
- *  S.at(1, 0) = dydx;
- *  Matrix Sinv(3, 3);
- *  bool succ = S.inverse(Sinv);
- *  m_assert(succ);
- *  REP(i, n) mat[i] = Sinv.prod(mat[i]);
- *}
- */
+void Stitcher::straighten_simple() {
+	int n = imgs.size();
+	Vec2D center2 = bundle.component[n - 1].homo.trans2d(0.5, 0.5);
+	Vec2D center1 = bundle.component[0].homo.trans2d(0.5, 0.5);
+	float dydx = (center2.y - center1.y) / (center2.x - center1.x);
+	Matrix S = Matrix::I(3);
+	S.at(1, 0) = dydx;
+	Matrix Sinv(3, 3);
+	bool succ = S.inverse(Sinv);
+	m_assert(succ);
+	REP(i, n) bundle.component[i].homo = Sinv.prod(bundle.component[i].homo);
+}
 
 void Stitcher::calc_feature() {
 	GuardedTimer tm("calc_feature");
@@ -131,7 +128,7 @@ void Stitcher::calc_transform() {
 	Timer timer;
 	if (PANO) {
 		cal_best_matrix_pano();
-		//straighten_simple();
+		straighten_simple();
 	} else {
 		calc_matrix_simple();
 		print_debug("match & transform takes %lf secs\n", timer.duration());
@@ -154,8 +151,7 @@ void Stitcher::cal_size() {
 			Vec2D(0, 0), Vec2D(0, 1),
 			Vec2D(1, 0), Vec2D(1, 1)};
 		for (auto &v : corner) {
-			Vec2D newcorner = TransFormer::calc_project(
-					bundle.component[i].homo, v);
+			Vec2D newcorner = bundle.component[i].homo.trans2d(v);
 			min.update_min(Vec2D(newcorner.x, newcorner.y));
 			max.update_max(Vec2D(newcorner.x, newcorner.y));
 		}
@@ -203,19 +199,18 @@ void Stitcher::cal_best_matrix_pano() {;
 	int start = mid, end = n, len = end - start;
 	if (len > 1) {
 		float newfactor = 1;
-		float slope = Stitcher::update_h_factor(newfactor, minslope, bestfactor, bestmat, imgs, feats, matches);
+		float slope = update_h_factor(newfactor, minslope, bestfactor, bestmat, matches);
 		if (bestmat.empty()) {
 			cout << "Failed to find hfactor" << endl;
 			exit(1);
 		}
 		float centerx1 = 0.5,
-					centerx2 = TransFormer::calc_project(
-							bestmat[0], Vec2D(0.5, 0.5)).x;
+					centerx2 = bestmat[0].trans2d(0.5, 0.5).x;
 		float order = (centerx2 > centerx1 ? 1 : -1);
 		REP(k, 3) {
 			if (fabs(slope) < SLOPE_PLAIN) break;
 			newfactor += (slope < 0 ? order : -order) / (5 * pow(2, k));
-			slope = Stitcher::update_h_factor(newfactor, minslope, bestfactor, bestmat, imgs, feats, matches);
+			slope = Stitcher::update_h_factor(newfactor, minslope, bestfactor, bestmat, matches);
 		}
 	} else
 		bestfactor = 1;
@@ -273,19 +268,14 @@ void Stitcher::calc_matrix_simple() {
 				comp[k + 1].homo.prod(comp[k].homo));
 	// then, comp[k]: from k to identity
 }
-#undef prepare
 
 float Stitcher::update_h_factor(float nowfactor,
 		float & minslope,
 		float & bestfactor,
 		vector<Homography>& mat,
-		const vector<Mat32f>& imgs,
-		const vector<vector<Descriptor>>& feats,
 		const vector<MatchData>& matches) {
-
 	const int n = imgs.size(), mid = n >> 1;
 	const int start = mid, end = n, len = end - start;
-
 
 	vector<Mat32f> nowimgs;
 	vector<vector<Descriptor>> nowfeats;
@@ -313,7 +303,7 @@ float Stitcher::update_h_factor(float nowfactor,
 	REPL(k, 1, len - 1)
 		nowmat[k] = nowmat[k - 1].prod(nowmat[k]);	// transform to nowimgs[0] == imgs[mid]
 
-	Vec2D center2 = TransFormer::calc_project(nowmat.back(), Vec2D(0.5, 0.5));
+	Vec2D center2 = nowmat.back().trans2d(0.5, 0.5);
 	Vec2D	center1(0.5, 0.5);
 	const float slope = (center2.y - center1.y) / (center2.x - center1.x);
 	print_debug("slope: %lf\n", slope);

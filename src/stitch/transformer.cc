@@ -113,16 +113,6 @@ Homography TransFormer::calc_homo_transform(const vector<int>& matches) const {
 	return ret;
 }
 
-// project a point
-// TODO remove in the future
-Vec2D TransFormer::calc_project(const Matrix & trans, const Vec2D & old) {
-	Matrix m(3, 1);
-	m.at(0, 0) = old.x, m.at(1, 0) = old.y, m.at(2, 0) = 1;
-	Matrix res = trans.prod(m);
-	float idenom = 1.0f / res.at(2, 0);
-	return Vec2D(res.at(0, 0) * idenom, res.at(1, 0) * idenom);
-}
-
 vector<int> TransFormer::get_inliers(const Homography& trans) const {
 	static double INLIER_DIST = RANSAC_INLIER_THRES * RANSAC_INLIER_THRES;
 	TotalTimer tm("get_inlier");
