@@ -4,24 +4,24 @@
 
 #pragma once
 #include <vector>
-#include "matcher.hh"
+#include "feature/matcher.hh"
 #include "lib/matrix.hh"
+#include "transform.hh"
 
+// find transformation matrix between two set of matched feature
 class TransFormer {
 	private:
 		const MatchData& match;
 		const std::vector<Descriptor>& f1, & f2;
 		Matrix f2_homo_coor;	// 3xn
 
-		Matrix calc_transform(const std::vector<int>&) const;
+		Homography calc_transform(const std::vector<int>&) const;
 
-		Matrix calc_homo_transform(const std::vector<int>&) const;
+		Homography calc_homo_transform(const std::vector<int>&) const;
 
-		Matrix calc_affine_transform(const std::vector<int>&) const;
+		Homography calc_affine_transform(const std::vector<int>&) const;
 
-		Matrix calc_rotate_homo_transform(const std::vector<int>&) const;
-
-		std::vector<int> get_inliers(const Matrix &) const;
+		std::vector<int> get_inliers(const Homography &) const;
 
 	public:
 		TransFormer(const MatchData& m_match, const std::vector<Descriptor>& m_f1, const std::vector<Descriptor>& m_f2):
@@ -39,7 +39,7 @@ class TransFormer {
 
 		bool get_transform(Matrix* r);
 
-		static Vec2D calc_project(const Matrix &, const Vec2D&);
+		static Vec2D calc_project(const Matrix&, const Vec2D&);
 
 		static real_t get_focal_from_matrix(const Matrix& m);
 };

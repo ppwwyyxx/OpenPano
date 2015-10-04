@@ -1,4 +1,4 @@
-// File: panorama.hh
+// File: stitcher.hh
 // Date: Sat May 04 22:36:30 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
@@ -10,10 +10,31 @@
 #include "lib/matrix.hh"
 #include "lib/utils.hh"
 #include "lib/geometry.hh"
+#include "transform.hh"
 
 // forward declaration
 class MatchData;
 class Descriptor;
+
+// An image to be stitched
+class ImageComponent {
+	Homography homo;
+	//int idx;	// its original index
+};
+
+class ConnectedImages {
+	enum ProjectionMethod {
+		flat,
+		cylindrical
+	};
+	ProjectionMethod proj_method;
+	int identity_idx;
+
+	Vec2D proj_min, proj_max;
+	std::vector<ImageComponent> component;
+
+	void update_proj_range();
+};
 
 class Stitcher {
 	private:
@@ -52,7 +73,9 @@ class Stitcher {
 
 		static std::vector<Descriptor> get_feature(const Mat32f&);
 
-		void calc_mat();
+		void calc_feature();
+		// calculate feature and pairwise transform
+		void calc_transform();
 		void cal_best_matrix_pano();
 		void calc_matrix_simple();
 

@@ -9,7 +9,7 @@
 #include <fstream>
 #include <algorithm>
 
-#include "matcher.hh"
+#include "feature/matcher.hh"
 #include "cylinder.hh"
 #include "warper.hh"
 #include "transformer.hh"
@@ -19,7 +19,8 @@
 using namespace std;
 
 Mat32f Stitcher::build() {
-	calc_mat();
+	calc_feature();
+	calc_transform();	// calculate pairwise transform
 	int n = imgs.size();
 
 	// get size
@@ -113,18 +114,18 @@ void Stitcher::straighten_simple() {
 	REP(i, n) mat[i] = Sinv.prod(mat[i]);
 }
 
-void Stitcher::calc_mat() {
+void Stitcher::calc_feature() {
+	GuardedTimer tm("calc_feature");
 	int n = imgs.size();
-
 	// detect feature
-	Timer timer;
 	feats.resize(n);
 #pragma omp parallel for schedule(dynamic)
 	REP(k, n)
 		feats[k] = detect_SIFT(imgs[k]);
-	print_debug("feature takes %lf secs\n", timer.duration());
-	timer.restart();
+}
 
+void Stitcher::calc_transform() {
+	Timer timer;
 	if (PANO) {
 		cal_best_matrix_pano();
 		straighten_simple();
