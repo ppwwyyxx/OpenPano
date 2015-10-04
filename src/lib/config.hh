@@ -49,7 +49,7 @@ extern int MATCH_MIN_SIZE;
 extern float CONNECTED_THRES;
 
 extern int RANSAC_ITERATIONS;
-extern float RANSAC_INLIER_THRES;
+extern double RANSAC_INLIER_THRES;
 
 extern float SLOPE_PLAIN;
 

@@ -8,9 +8,8 @@ using namespace std;
 namespace {
 	const int featlen = DESC_HIST_WIDTH * DESC_HIST_WIDTH * DESC_HIST_BIN_NUM;
 
-	Descriptor hist_to_descriptor(float* hist, Vec2D coor) {
+	Descriptor hist_to_descriptor(float* hist) {
 		Descriptor ret;
-		ret.coor = coor;
 		ret.descriptor.resize(featlen);
 		memcpy(ret.descriptor.data(), hist, featlen * sizeof(float));
 
@@ -128,5 +127,8 @@ Descriptor SIFT::calc_descriptor(const SSPoint& p) const {
 	}
 
 	// build descriptor from hist
-	return hist_to_descriptor((float*)hist, p.real_coor);
+
+	Descriptor ret = hist_to_descriptor((float*)hist);
+	ret.coor = Vec2D(p.real_coor.x / ss.origw, p.real_coor.y / ss.origh);
+	return ret;
 }

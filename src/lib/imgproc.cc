@@ -55,8 +55,9 @@ Mat32f hconcat(const list<Mat32f>& mats) {
 		update_max(hmax, m.height());
 	}
 	int channel = mats.front().channels();
-	Mat32f ret(hmax, wsum, channel);
 
+	Mat32f ret(hmax, wsum, channel);
+	fill(ret, Color::BLACK);
 	wsum = 0;
 	for (auto & m : mats) {
 		m_assert(m.channels() == channel);

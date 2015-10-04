@@ -20,6 +20,7 @@ bool TEMPDEBUG = false;
 
 #define LABEL_LEN 7
 
+// TODO: get_rand_color() in planedrawer
 inline real_t gen_rand()
 { return (real_t)rand() / RAND_MAX; }
 
@@ -80,9 +81,13 @@ void gallery(const char* f1, const char* f2) {
 	auto ret = match.match();
 	for (auto &x : ret.data) {
 		pld.set_color(Color(gen_rand(), gen_rand(), gen_rand()));
-		pld.circle(toCoor(feat1[x.x].coor), LABEL_LEN);
-		pld.circle(toCoor(feat2[x.y].coor) + Coor(pic1.width(), 0), LABEL_LEN);
-		pld.line(toCoor(feat1[x.x].coor), toCoor(feat2[x.y].coor) + Coor(pic1.width(), 0));
+		Vec2D coor1 = feat1[x.x].coor,
+					coor2 = feat2[x.y].coor;
+		Coor icoor1 = Coor(coor1.x * pic1.width(), coor1.y * pic1.height());
+		Coor icoor2 = Coor(coor2.x * pic2.width(), coor2.y * pic2.height());
+		pld.circle(icoor1, LABEL_LEN);
+		pld.circle(icoor2 + Coor(pic1.width(), 0), LABEL_LEN);
+		pld.line(icoor1, icoor2 + Coor(pic1.width(), 0));
 	}
 	write_rgb("gallery.png", concatenated);
 }

@@ -8,6 +8,7 @@
 #include "orientation.hh"
 #include "sift.hh"
 #include "dog.hh"
+#include "lib/imgproc.hh"
 //#include "keypoint.hh"
 using namespace std;
 
