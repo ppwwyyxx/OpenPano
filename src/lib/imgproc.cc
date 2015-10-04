@@ -73,17 +73,24 @@ Mat32f hconcat(const list<Mat32f>& mats) {
 
 Color interpolate(const Mat32f& mat, float r, float c) {
 	m_assert(mat.channels() == 3);
-	Color ret = Color::BLACK;
 	int fr = floor(r), fc =  floor(c);
-	float dy = r - fr, dx = c - fc;
+	m_assert(fr >= 0 && fr < mat.rows());
+	m_assert(fc >= 0 && fc < mat.cols());
+	Color ret = Color::BLACK;
+	r -= fr, c -= fc;
+
+	if (fr == mat.rows() - 1)
+		fr --;
+	if (fc == mat.cols() - 1)
+		fc --;
 	const float* p = mat.ptr(fr, fc);
-	ret += Color(p) * ((1 - dy) * (1 - dx));
+	ret += Color(p) * ((1 - r) * (1 - c));
 	p = mat.ptr(fr + 1, fc);
-	ret += Color(p) * (dy * (1 - dx));
+	ret += Color(p) * (r * (1 - c));
 	p = mat.ptr(fr + 1, fc + 1);
-	ret += Color(p) * (dy * dx);
+	ret += Color(p) * (r * c);
 	p = mat.ptr(fr, fc + 1);
-	ret += Color(p[0], p[1], p[2]) * ((1 - dy) * dx);
+	ret += Color(p[0], p[1], p[2]) * ((1 - r) * c);
 	return ret;
 }
 
@@ -161,74 +168,74 @@ Mat32f rgb2grey(const Mat32f& mat) {
 
 namespace {
 
-void resize_bilinear(const Mat32f &src, Mat32f &dst) {
-    vector<int> tabsx(dst.rows());
-    vector<int> tabsy(dst.cols());
-    vector<float> tabrx(dst.rows());
-    vector<float> tabry(dst.cols());
+	void resize_bilinear(const Mat32f &src, Mat32f &dst) {
+		vector<int> tabsx(dst.rows());
+		vector<int> tabsy(dst.cols());
+		vector<float> tabrx(dst.rows());
+		vector<float> tabry(dst.cols());
 
-    const float fx = (float)(dst.rows()) / src.rows();
-    const float fy = (float)(dst.cols()) / src.cols();
-    const float ifx = 1.f / fx;
-    const float ify = 1.f / fy;
-    for (int dx = 0; dx < dst.rows(); ++dx) {
-        float rx = (dx+0.5f) * ifx - 0.5f;
-        int sx = floor(rx);
-        rx -= sx;
-        if (sx < 0) {
-            sx = rx = 0;
-        } else if (sx + 1 >= src.rows()) {
-            sx = src.rows() - 2;
-            rx = 1;
-        }
-        tabsx[dx] = sx;
-        tabrx[dx] = rx;
-    }
-    for (int dy = 0; dy < dst.cols(); ++dy) {
-        float ry = (dy+0.5f) * ify - 0.5f;
-        int sy = floor(ry);
-        ry -= sy;
-        if (sy < 0) {
-            sy = ry = 0;
-            ry = 0;
-        } else if (sy + 1 >= src.cols()) {
-            sy = src.cols() - 2;
-            ry = 1;
-        }
-        tabsy[dy] = sy;
-        tabry[dy] = ry;
-    }
+		const float fx = (float)(dst.rows()) / src.rows();
+		const float fy = (float)(dst.cols()) / src.cols();
+		const float ifx = 1.f / fx;
+		const float ify = 1.f / fy;
+		for (int dx = 0; dx < dst.rows(); ++dx) {
+			float rx = (dx+0.5f) * ifx - 0.5f;
+			int sx = floor(rx);
+			rx -= sx;
+			if (sx < 0) {
+				sx = rx = 0;
+			} else if (sx + 1 >= src.rows()) {
+				sx = src.rows() - 2;
+				rx = 1;
+			}
+			tabsx[dx] = sx;
+			tabrx[dx] = rx;
+		}
+		for (int dy = 0; dy < dst.cols(); ++dy) {
+			float ry = (dy+0.5f) * ify - 0.5f;
+			int sy = floor(ry);
+			ry -= sy;
+			if (sy < 0) {
+				sy = ry = 0;
+				ry = 0;
+			} else if (sy + 1 >= src.cols()) {
+				sy = src.cols() - 2;
+				ry = 1;
+			}
+			tabsy[dy] = sy;
+			tabry[dy] = ry;
+		}
 
-    const int ch = src.channels();
-    for (int dx = 0; dx < dst.rows(); ++dx) {
-        const float *p0 = src.ptr(tabsx[dx]+0);
-        const float *p1 = src.ptr(tabsx[dx]+1);
-        float *pdst = dst.ptr(dx);
-        float rx = tabrx[dx], irx = 1.0f - rx;
-        for (int dy = 0; dy < dst.cols(); ++dy) {
-            float *pcdst = pdst + dy*ch;
-            const float *pc00 = p0 + (tabsy[dy]+0)*ch;
-            const float *pc01 = p0 + (tabsy[dy]+1)*ch;
-            const float *pc10 = p1 + (tabsy[dy]+0)*ch;
-            const float *pc11 = p1 + (tabsy[dy]+1)*ch;
-            float ry = tabry[dy], iry = 1.0f - ry;
-            for (int c = 0; c < ch; ++c) {
-                float res = rx * (pc11[c]*ry + pc10[c]*iry)
-									+ irx * (pc01[c]*ry + pc00[c]*iry);
-                pcdst[c] = res;
-            }
-        }
-    }
-}
+		const int ch = src.channels();
+		for (int dx = 0; dx < dst.rows(); ++dx) {
+			const float *p0 = src.ptr(tabsx[dx]+0);
+			const float *p1 = src.ptr(tabsx[dx]+1);
+			float *pdst = dst.ptr(dx);
+			float rx = tabrx[dx], irx = 1.0f - rx;
+			for (int dy = 0; dy < dst.cols(); ++dy) {
+				float *pcdst = pdst + dy*ch;
+				const float *pc00 = p0 + (tabsy[dy]+0)*ch;
+				const float *pc01 = p0 + (tabsy[dy]+1)*ch;
+				const float *pc10 = p1 + (tabsy[dy]+0)*ch;
+				const float *pc11 = p1 + (tabsy[dy]+1)*ch;
+				float ry = tabry[dy], iry = 1.0f - ry;
+				for (int c = 0; c < ch; ++c) {
+					float res = rx * (pc11[c]*ry + pc10[c]*iry)
+						+ irx * (pc01[c]*ry + pc00[c]*iry);
+					pcdst[c] = res;
+				}
+			}
+		}
+	}
 }	// namespace
 
 template <>
 void resize<float>(const Mat32f &src, Mat32f &dst) {
-    m_assert(src.rows() > 1);
-    m_assert(src.cols() > 1);
-    m_assert(dst.rows() > 1);
-    m_assert(dst.cols() > 1);
-    m_assert(src.channels() == dst.channels());
-    m_assert(src.channels() == 1 || src.channels() == 3);
-		return resize_bilinear(src, dst);
+	m_assert(src.rows() > 1);
+	m_assert(src.cols() > 1);
+	m_assert(dst.rows() > 1);
+	m_assert(dst.cols() > 1);
+	m_assert(src.channels() == dst.channels());
+	m_assert(src.channels() == 1 || src.channels() == 3);
+	return resize_bilinear(src, dst);
 }
