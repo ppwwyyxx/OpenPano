@@ -124,7 +124,7 @@ Vec2D TransFormer::calc_project(const Matrix & trans, const Vec2D & old) {
 }
 
 vector<int> TransFormer::get_inliers(const Homography& trans) const {
-	static float INLIER_DIST = RANSAC_INLIER_THRES * RANSAC_INLIER_THRES;
+	static double INLIER_DIST = RANSAC_INLIER_THRES * RANSAC_INLIER_THRES;
 	TotalTimer tm("get_inlier");
 	vector<int> ret;
 	int n = match.size();
@@ -132,8 +132,8 @@ vector<int> TransFormer::get_inliers(const Homography& trans) const {
 	Matrix transformed = trans.prod(f2_homo_coor);	// 3xn
 	REP(i, n) {
 		const Vec2D& fcoor = f1[match.data[i].x].coor;
-		float idenom = 1.f / transformed.at(2, i);
-		float dist = (Vec2D(transformed.at(0, i) * idenom,
+		double idenom = 1.f / transformed.at(2, i);
+		double dist = (Vec2D(transformed.at(0, i) * idenom,
 					transformed.at(1, i) * idenom) - fcoor).sqr();
 		if (dist < INLIER_DIST)
 			ret.push_back(i);

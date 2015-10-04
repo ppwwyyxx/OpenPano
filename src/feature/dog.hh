@@ -44,7 +44,7 @@ class GaussianPyramid {
 class ScaleSpace {
 	public:
 		int noctave, nscale;
-		int origw, origh;
+		const int origw, origh;
 
 		std::vector<GaussianPyramid> pyramids;	// len = noctave
 

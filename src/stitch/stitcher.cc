@@ -31,10 +31,15 @@ Mat32f Stitcher::build() {
 		max.update_max(i.first);
 		min.update_min(i.second);
 	}
+	cout << "min" << min << "max" << max << endl;
 
+	int refw = imgs[bundle.identity_idx].width(),
+			refh = imgs[bundle.identity_idx].height();
 	Vec2D diff = max - min,
 		  offset = min * (-1);
-	Coor size = toCoor(diff);
+	diff.x *= refw, diff.y *= refh;
+	offset.x *= refw, offset.y *= refh;
+	Coor size = toCoor(diff);	// target size
 	cout << "size: " << size << endl;
 
 	auto& comp = bundle.component;
@@ -45,19 +50,22 @@ Mat32f Stitcher::build() {
 	// blending
 	GuardedTimer tm("Blending");
 #pragma omp parallel for schedule(dynamic)
-	REP(i, ret.height())
-		REP(j, ret.width()) {
+	REP(i, ret.height()) REP(j, ret.width()) {
 		Vec2D final = (Vec2D(j, i) - offset);
+		final.x /= refw, final.y /= refh;
 		vector<pair<Color, float>> blender;
 		REP(k, n) {
 			pair<Vec2D, Vec2D>& nowcorner = corners[k];
-			if (!between(final.y, nowcorner.second.y, nowcorner.first.y) ||
-					!between(final.x, nowcorner.second.x, nowcorner.first.x))
+			if ((final.y <= nowcorner.second.y)
+					|| (final.y >= nowcorner.first.y) ||
+					(final.x <= nowcorner.second.x) || (final.x >= nowcorner.first.x))
 				continue;
 			Vec2D old = TransFormer::calc_project(comp[k].homo_inv, final);
+			old.x *= imgs[k].width(), old.y *= imgs[k].height();
+
 			if (!is_edge_color(imgs[k], old.y, old.x)) {
 				blender.push_back({interpolate(imgs[k], old.y, old.x),
-						std::max(imgs[k].width() / 2 - abs(imgs[k].width() / 2 - old.x), .1f)});
+						std::max(imgs[k].width() / 2 - abs(imgs[k].width() / 2 - old.x), 0.1)});
 			}
 		}
 		int ncolor = blender.size();
@@ -140,15 +148,17 @@ void Stitcher::cal_size() {
 	int n = imgs.size();
 
 	REPL(i, 0, n) {
-		Vec2D min(std::numeric_limits<int>::max(), std::numeric_limits<int>::max()),
-			  max = min * (-1);
-	    Vec2D corner[4] = { Vec2D(0, 0), Vec2D(imgs[i].width(), 0),
-					        Vec2D(0, imgs[i].height()), Vec2D(imgs[i].width(), imgs[i].height())};
-	    for (auto &v : corner) {
-	        Vec2D newcorner = TransFormer::calc_project(bundle.component[i].homo, v);
-	        min.update_min(Vec2D(floor(newcorner.x), floor(newcorner.y)));
-	        max.update_max(Vec2D(ceil(newcorner.x), ceil(newcorner.y)));
-	    }
+		Vec2D min(std::numeric_limits<double>::max(), std::numeric_limits<double>::max()),
+					max = min * (-1);
+		Vec2D corner[4] = {
+			Vec2D(0, 0), Vec2D(0, 1),
+			Vec2D(1, 0), Vec2D(1, 1)};
+		for (auto &v : corner) {
+			Vec2D newcorner = TransFormer::calc_project(
+					bundle.component[i].homo, v);
+			min.update_min(Vec2D(newcorner.x, newcorner.y));
+			max.update_max(Vec2D(newcorner.x, newcorner.y));
+		}
 		corners.push_back({max, min});
 	}
 	return;
@@ -198,9 +208,9 @@ void Stitcher::cal_best_matrix_pano() {;
 			cout << "Failed to find hfactor" << endl;
 			exit(1);
 		}
-		float centerx1 = imgs[mid].width() / 2,
+		float centerx1 = 0.5,
 					centerx2 = TransFormer::calc_project(
-							bestmat[0], Vec2D(imgs[mid + 1].width() / 2, imgs[mid + 1].height() / 2)).x;
+							bestmat[0], Vec2D(0.5, 0.5)).x;
 		float order = (centerx2 > centerx1 ? 1 : -1);
 		REP(k, 3) {
 			if (fabs(slope) < SLOPE_PLAIN) break;
@@ -276,16 +286,15 @@ float Stitcher::update_h_factor(float nowfactor,
 	const int n = imgs.size(), mid = n >> 1;
 	const int start = mid, end = n, len = end - start;
 
-	Warper warper(nowfactor);
 
 	vector<Mat32f> nowimgs;
 	vector<vector<Descriptor>> nowfeats;
-
 	REPL(k, start, end) {
 		nowimgs.push_back(imgs[k].clone());
 		nowfeats.push_back(feats[k]);
 	}			// nowfeats[0] == feats[mid]
 
+	Warper warper(nowfactor);
 #pragma omp parallel for schedule(dynamic)
 	REP(k, len)
 		warper.warp(nowimgs[k], nowfeats[k]);
@@ -294,22 +303,20 @@ float Stitcher::update_h_factor(float nowfactor,
 	REPL(k, 1, len) {
 		nowmat.emplace_back();
 		bool succ = TransFormer(matches[k - 1 + mid], nowfeats[k - 1],
-			nowfeats[k]).get_transform(&nowmat.back());
+				nowfeats[k]).get_transform(&nowmat.back());
 		if (not succ) {
 			cerr << "The two image doesn't match. Failed" << endl;
 			exit(1);
 		}
 	}
-	// nowmat[k - 1] = TransFormer(matches[k - 1 + mid], nowfeats[k - 1], nowfeats[k]).get_transform();
-	//nowmat.push_back(Stitcher::get_transform(nowfeats[k - 1], nowfeats[k]));
-	REPL(k, 1, len - 1)
-		nowmat[k] = nowmat[k - 1].prod(nowmat[k]);
 
-	Vec2D center2 = TransFormer::calc_project(
-			nowmat[len - 2],
-			Vec2D(nowimgs[len - 2].width() / 2, nowimgs[len - 2].height() / 2)),
-				center1(nowimgs[0].width() / 2, nowimgs[0].height() / 2);
+	REPL(k, 1, len - 1)
+		nowmat[k] = nowmat[k - 1].prod(nowmat[k]);	// transform to nowimgs[0] == imgs[mid]
+
+	Vec2D center2 = TransFormer::calc_project(nowmat.back(), Vec2D(0.5, 0.5));
+	Vec2D	center1(0.5, 0.5);
 	const float slope = (center2.y - center1.y) / (center2.x - center1.x);
+	print_debug("slope: %lf\n", slope);
 	if (update_min(minslope, fabs(slope))) {
 		bestfactor = nowfactor;
 		mat = move(nowmat);

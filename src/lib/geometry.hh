@@ -239,7 +239,7 @@ std::ostream& operator << (std::ostream& os, const Vector2D<T>& v) {
 typedef Vector<double> Vec;
 typedef Vector2D<int> Coor;
 
-typedef Vector2D<float> Vec2D;
+typedef Vector2D<double> Vec2D;
 
 typedef std::pair<Coor, Coor> Line2D;
 typedef std::vector<Coor> Polygon;

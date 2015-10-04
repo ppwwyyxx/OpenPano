@@ -21,6 +21,8 @@ struct ImageComponent {
 	Homography homo,	// from me to identity
 						 homo_inv;	// from identity to me
 	//int idx;	// its original index
+	ImageComponent(){}
+	ImageComponent(const Homography& h): homo(h) {}
 };
 
 struct ConnectedImages {
