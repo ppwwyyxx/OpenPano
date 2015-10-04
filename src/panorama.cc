@@ -14,27 +14,11 @@
 
 #include "lib/timer.hh"
 #include "lib/imgproc.hh"
-#include "lib/utils.hh"
 using namespace std;
 
-Mat32f Panorama::get() {
+Mat32f Stitcher::build() {
+	calc_mat();
 	int n = imgs.size();
-	m_assert(n > 1);	// need log
-	Matrix I = Matrix::I(3);
-	mat.clear();
-	REP(i, n) mat.emplace_back(I.clone());
-	if (PANO) {
-		cal_best_matrix_pano();
-
-		straighten_simple();
-
-	} else
-		cal_best_matrix();
-
-	if (CIRCLE) { // remove the extra
-		mat.pop_back();
-		imgs.pop_back();
-	}
 
 	// get size
 	cal_size();
@@ -102,20 +86,18 @@ Mat32f Panorama::get() {
 	return ret;
 }
 
-Matrix Panorama::get_transform(const vector<Descriptor>& feat1, const vector<Descriptor>& feat2) {
-	Matcher match(feat1, feat2);		// this is not efficient
+Matrix Stitcher::get_transform(int f1, int f2) const {
+	Matcher match(feats[f1], feats[f2]);		// this is not efficient
 	auto ret = match.match();
-	TransFormer transf(ret, feat1, feat2);
+	TransFormer transf(ret, feats[f1], feats[f2]);
 	Matrix r;
 	bool succ = transf.get_transform(&r);
-	if (not succ) {
-		cerr << "The two image doesn't match. Failed" << endl;
-		exit(1);
-	}
+	if (not succ)
+		error_exit(ssprintf("Image %d & %d doesn't match.", f1, f2));
 	return r;
 }
 
-void Panorama::straighten_simple() {
+void Stitcher::straighten_simple() {
 	int n = imgs.size();
 	Vec2D center2(imgs[n - 1].width() / 2, imgs[n-1].height() / 2);
 	center2 = TransFormer::calc_project(mat[n - 1], center2);
@@ -129,7 +111,33 @@ void Panorama::straighten_simple() {
 	REP(i, n) mat[i] = Sinv.prod(mat[i]);
 }
 
-void Panorama::cal_size() {
+void Stitcher::calc_mat() {
+	int n = imgs.size();
+
+	// detect feature
+	Timer timer;
+	feats.resize(n);
+#pragma omp parallel for schedule(dynamic)
+	REP(k, n)
+		feats[k] = detect_SIFT(imgs[k]);
+	print_debug("feature takes %lf secs\n", timer.duration());
+	timer.restart();
+
+	if (PANO) {
+		cal_best_matrix_pano();
+		straighten_simple();
+	} else {
+		calc_matrix_simple();
+		print_debug("match & transform takes %lf secs\n", timer.duration());
+	}
+
+	if (circle_detected) { // remove the extra
+		mat.pop_back();
+		imgs.pop_back();
+	}
+}
+
+void Stitcher::cal_size() {
 	int n = imgs.size();
 
 	REPL(i, 0, n) {
@@ -147,23 +155,14 @@ void Panorama::cal_size() {
 	return;
 }
 
-#define prepare() \
-	int n = imgs.size(), mid = n >> 1;\
-	vector<vector<Descriptor>> feats;\
-	feats.resize(n);\
-	Timer timer
+void Stitcher::cal_best_matrix_pano() {;
+	int n = imgs.size(), mid = n >> 1;
+	mat.resize(n);
+	REP(i, n) mat[i] = Matrix::I(3);
 
-void Panorama::cal_best_matrix_pano() {;
-	prepare();
-#pragma omp parallel for schedule(dynamic)
-	REP(k, n)
-		feats[k] = detect_SIFT(imgs[k]);
-	print_debug("feature takes %lf secs\n", timer.duration());
-
-	timer.restart();
+	Timer timer;
 	vector<MatchData> matches;
 	matches.resize(n == 2 ? 1 : n);
-//#pragma omp parallel for schedule(dynamic)
 	REP(k, n == 2 ? 1 : n) {
 		Matcher matcher(feats[k], feats[(k + 1) % n]);
 		matches[k] = matcher.match();
@@ -175,8 +174,8 @@ void Panorama::cal_best_matrix_pano() {;
 		auto last_match = matches.back();
 		// test whether two image really matches each other
 		if ((float)last_match.size() * 2 / (feats[0].size() + feats[n - 1].size()) > CONNECTED_THRES) {
-			cout << "detect circle" << endl;
-			CIRCLE = true;
+			print_debug("detect circle\n");
+			circle_detected = true;
 			imgs.push_back(imgs[0].clone());
 			mat.push_back(Matrix::I(3));
 			feats.push_back(feats[0]);
@@ -194,7 +193,7 @@ void Panorama::cal_best_matrix_pano() {;
 	int start = mid, end = n, len = end - start;
 	if (len > 1) {
 		float newfactor = 1;
-		float slope = Panorama::update_h_factor(newfactor, minslope, bestfactor, bestmat, imgs, feats, matches);
+		float slope = Stitcher::update_h_factor(newfactor, minslope, bestfactor, bestmat, imgs, feats, matches);
 		if (bestmat.empty()) {
 			cout << "Failed to find hfactor" << endl;
 			exit(1);
@@ -206,7 +205,7 @@ void Panorama::cal_best_matrix_pano() {;
 		REP(k, 3) {
 			if (fabs(slope) < SLOPE_PLAIN) break;
 			newfactor += (slope < 0 ? order : -order) / (5 * pow(2, k));
-			slope = Panorama::update_h_factor(newfactor, minslope, bestfactor, bestmat, imgs, feats, matches);
+			slope = Stitcher::update_h_factor(newfactor, minslope, bestfactor, bestmat, imgs, feats, matches);
 		}
 	} else
 		bestfactor = 1;
@@ -229,33 +228,32 @@ void Panorama::cal_best_matrix_pano() {;
 	REPD(i, mid - 2, 0) mat[i] = mat[i + 1].prod(mat[i]);
 }
 
-void Panorama::cal_best_matrix() {
-	prepare();
+void Stitcher::calc_matrix_simple() {
+	int n = imgs.size(), mid = n >> 1;
+	mat.resize(n);
+	mat[mid] = Matrix::I(3);
 
+	// when not translation, do a simple-guess warping
 	if (!TRANS) {
 		Warper warper(1);
 		REP(k, n) warper.warp(imgs[k], feats[k]);
 	}
 
+	// transform w.r.t the middle one
 #pragma omp parallel for schedule(dynamic)
-	REP(k, n)
-		feats[k] = detect_SIFT(imgs[k]);
-	print_debug("feature takes %lf secs in total\n", timer.duration());
-	timer.restart();
-
-#pragma omp parallel for schedule(dynamic)
-	REPL(k, mid + 1, n)
-		mat[k] = Panorama::get_transform(feats[k - 1], feats[k]);
+	REP(k, n) {
+		if (k >= mid + 1)
+			// get match and transform
+			mat[k] = get_transform(k - 1, k);
+		else if (k <= mid - 1)
+			mat[k] = get_transform(k + 1, k);
+	}
 	REPL(k, mid + 2, n) mat[k] = mat[k - 1].prod(mat[k]);
-#pragma omp parallel for schedule(dynamic)
-	REPD(k, mid - 1, 0)
-		mat[k] = Panorama::get_transform(feats[k + 1], feats[k]);
 	REPD(k, mid - 2, 0) mat[k] = mat[k + 1].prod(mat[k]);
-	print_debug("match and transform time: %lf secs \n", timer.duration());
 }
 #undef prepare
 
-float Panorama::update_h_factor(float nowfactor,
+float Stitcher::update_h_factor(float nowfactor,
 		float & minslope,
 		float & bestfactor,
 		vector<Matrix>& mat,
@@ -291,7 +289,7 @@ float Panorama::update_h_factor(float nowfactor,
 		}
 	}
 	// nowmat[k - 1] = TransFormer(matches[k - 1 + mid], nowfeats[k - 1], nowfeats[k]).get_transform();
-	//nowmat.push_back(Panorama::get_transform(nowfeats[k - 1], nowfeats[k]));
+	//nowmat.push_back(Stitcher::get_transform(nowfeats[k - 1], nowfeats[k]));
 	REPL(k, 1, len - 1)
 		nowmat[k] = nowmat[k - 1].prod(nowmat[k]);
 
@@ -309,7 +307,7 @@ float Panorama::update_h_factor(float nowfactor,
 
 /*
  *
- *Matrix Panorama::shift_to_line(const vector<Vec2D>& ptr, const Vec2D& line) {
+ *Matrix Stitcher::shift_to_line(const vector<Vec2D>& ptr, const Vec2D& line) {
  *    int n = ptr.size();
  *    m_assert(n >= 4);
  *    Matrix left(4, 2 * n);
@@ -349,21 +347,21 @@ float Panorama::update_h_factor(float nowfactor,
  */
 
 /*
- *void Panorama::straighten(vector<Matrix>& mat) const {
+ *void Stitcher::straighten(vector<Matrix>& mat) const {
  *    int n = mat.size();
  *
  *    vector<Vec2D> centers;
  *    REP(k, n)
  *        centers.push_back(TransFormer::cal_project(mat[k], imgs[k]->get_center()));
- *    Vec2D kb = Panorama::line_fit(centers);
+ *    Vec2D kb = Stitcher::line_fit(centers);
  *    P(kb);
  *    if (fabs(kb.x) < 1e-3) return;		// already done
- *    Matrix shift = Panorama::shift_to_line(centers, kb);
+ *    Matrix shift = Stitcher::shift_to_line(centers, kb);
  *    P(shift);
  *    for (auto& i : mat) i = shift.prod(i);
  *}
  *
- *Vec2D Panorama::line_fit(const std::vector<Vec2D>& pts) {
+ *Vec2D Stitcher::line_fit(const std::vector<Vec2D>& pts) {
  *    int n = pts.size();
  *
  *    Matrix left(2, n);
