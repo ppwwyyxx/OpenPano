@@ -11,12 +11,24 @@ class Homography : public Matrix {
 			Matrix(3, 3)
 		{}
 
-		Vec trans(const Vec& m) const {
+		Homography(const Matrix& r):
+			Matrix(r) {}
+
+		inline Vec trans(const Vec& m) const {
 			const double* p = ptr();
 			Vec ret(p[0] * m.x + p[1] * m.y + p[2] * m.z,
 					p[3] * m.x + p[4] * m.y + p[5] * m.z,
 					p[6] * m.x + p[7] * m.y + p[8] * m.z);
 			ret.normalize();
+			return ret;
+		}
+
+		// identity
+		inline static Homography I() {
+			Homography ret;
+			ret.zero();
+			double* p = ret.ptr();
+			REP(i, 3) p[i * 3 + i] = 1;
 			return ret;
 		}
 

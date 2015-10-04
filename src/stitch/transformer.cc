@@ -10,7 +10,7 @@ using namespace std;
 
 // TODO find out when not matched
 // get a transform matix from second -> first
-bool TransFormer::get_transform(Matrix* ret) {
+bool TransFormer::get_transform(Homography* ret) {
 	TotalTimer tm("get_transform");
 	int REQUIRED = (HOMO ? HOMO_FREEDOM: AFFINE_FREEDOM) + 1 / 2;
 	int n_match = match.size();

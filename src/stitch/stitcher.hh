@@ -17,12 +17,12 @@ class MatchData;
 class Descriptor;
 
 // An image to be stitched
-class ImageComponent {
+struct ImageComponent {
 	Homography homo;
 	//int idx;	// its original index
 };
 
-class ConnectedImages {
+struct ConnectedImages {
 	enum ProjectionMethod {
 		flat,
 		cylindrical
@@ -41,7 +41,8 @@ class Stitcher {
 		std::vector<Mat32f> imgs;
 
 		// transformation matrices
-		std::vector<Matrix> mat;
+		//std::vector<Matrix> mat;
+		ConnectedImages bundle;
 
 		// feature for each image
 		std::vector<std::vector<Descriptor>> feats;
@@ -51,25 +52,25 @@ class Stitcher {
 		bool circle_detected = false;
 
 		template<typename A, typename B>
-		using disable_if_same_or_derived =
-				typename std::enable_if<
-						!std::is_base_of<A, typename std::remove_reference<B>::type
-					>::value
-				>::type;
+			using disable_if_same_or_derived =
+			typename std::enable_if<
+			!std::is_base_of<A, typename std::remove_reference<B>::type
+			>::value
+			>::type;
 
 	public:
 		// universal reference constructor to initialize imgs
 		// and avoid using this template as copy-constructor
 		template<typename U, typename X =
-        disable_if_same_or_derived<Stitcher, U>>
-		Stitcher(U&& i) : imgs(std::forward<U>(i)) {
-			if (imgs.size() <= 1)
-				error_exit(ssprintf("Cannot stitch with only %lu images.", imgs.size()));
-		}
+			disable_if_same_or_derived<Stitcher, U>>
+			Stitcher(U&& i) : imgs(std::forward<U>(i)) {
+				if (imgs.size() <= 1)
+					error_exit(ssprintf("Cannot stitch with only %lu images.", imgs.size()));
+			}
 
 		Mat32f build();
 
-		Matrix get_transform(int f1, int f2) const; // second -> first
+		Homography get_transform(int f1, int f2) const; // second -> first
 
 		static std::vector<Descriptor> get_feature(const Mat32f&);
 
@@ -79,12 +80,12 @@ class Stitcher {
 		void cal_best_matrix_pano();
 		void calc_matrix_simple();
 
-		void straighten_simple();
+		//void straighten_simple();
 
 		void cal_size();
 
 		static float update_h_factor(float, float&, float&,
-				std::vector<Matrix>&,
+				std::vector<Homography>&,
 				const std::vector<Mat32f>&,
 				const std::vector<std::vector<Descriptor>>&,
 				const std::vector<MatchData>&);
