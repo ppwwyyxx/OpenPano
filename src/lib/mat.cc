@@ -9,7 +9,6 @@ Mat<T>::Mat(int rows, int cols, int channels):
     m_rows(rows), m_cols(cols), m_channels(channels),
     m_data(new T[rows * cols * channels], [](T *d) { delete[] d; })
 {
-    m_assert(channels == 1 || channels == 3);
     //memset(m_data.get(), 0, sizeof(T) * rows * cols * channels);
 }
 

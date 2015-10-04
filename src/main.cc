@@ -10,7 +10,7 @@
 #include "feature/orientation.hh"
 #include "lib/timer.hh"
 #include "matcher.hh"
-#include "panorama.hh"
+#include "stitcher.hh"
 #include <ctime>
 #include <cassert>
 
