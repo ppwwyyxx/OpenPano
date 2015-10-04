@@ -27,6 +27,16 @@ class Homography : public Matrix {
 			return trans(Vec(m.x, m.y, 1));
 		}
 
+		inline Vec2D trans2d(const Vec2D& m) const {
+			Vec v = trans(Vec(m.x, m.y, 1));
+			double denom = 1.0 / v.z;
+			return Vec2D(v.x * denom, v.y * denom);
+		}
+
+		inline Vec2D trans2d(double x, double y) const {
+			return trans2d(Vec2D(x, y));
+		}
+
 		// identity
 		inline static Homography I() {
 			Homography ret;

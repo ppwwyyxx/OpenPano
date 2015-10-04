@@ -41,7 +41,5 @@ class TransFormer {
 
 		bool get_transform(Homography* r);
 
-		static Vec2D calc_project(const Matrix&, const Vec2D&);
-
 		static real_t get_focal_from_matrix(const Matrix& m);
 };
