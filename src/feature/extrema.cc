@@ -94,12 +94,12 @@ bool ExtremaDetector::calc_kp_offset(SSPoint* sp) const {
 	// update the point
 	sp->coor = Coor(nowx, nowy);
 	sp->scale_id = nows;
-	nows += offset.z;
 	sp->scale_factor = GAUSS_SIGMA * pow(
-					SCALE_FACTOR, nows / nscale);
+					SCALE_FACTOR, ((double)nows + offset.z) / nscale);
+	// accurate real-value coor
 	sp->real_coor = Vec2D(
-			(double)nowx / w * dog.origw,
-			(double)nowy / h * dog.origh);
+			((double)nowx + offset.x) / w,
+			((double)nowy + offset.y) / h);
 	return true;
 }
 

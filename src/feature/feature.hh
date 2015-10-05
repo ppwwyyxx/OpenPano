@@ -43,9 +43,9 @@ std::vector<Descriptor> detect_SIFT(const Mat32f& img);
 
 // A Scale-Space point
 struct SSPoint {
-	Coor coor;
-	Vec2D real_coor;
-	int pyr_id, scale_id; // octave / scale id
+	Coor coor;						// integer coordinate in the pyramid
+	Vec2D real_coor;			// scaled coordinate
+	int pyr_id, scale_id; // pyramid / scale id
 	float dir;
 	float scale_factor;
 };
