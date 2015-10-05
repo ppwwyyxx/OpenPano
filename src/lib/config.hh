@@ -22,6 +22,7 @@ extern bool TRANS;
 extern bool PANO;
 extern bool CROP;
 extern bool HOMO;
+extern float FOCAL_LENGTH;
 
 extern int NUM_OCTAVE;
 extern int NUM_SCALE;
