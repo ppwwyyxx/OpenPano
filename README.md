@@ -7,7 +7,10 @@ This is an image stitching program written in C++11.
 ### Compile Dependencies:
 
 * gcc >= 4.7	(it seeems MTL doesn't work with ICC)
-* [Boost MTL](http://www.simunova.com/node/145) (included in the repo)
+* [Eigen](http://eigen.tuxfamily.org/index.php?title=Main_Page)
+* [CImg](http://cimg.eu/) (already included in the repository)
+
+Both the two libraries are header-only, so ideally you can easily compile the code on any platform.
 
 ### Compile:
 ```
