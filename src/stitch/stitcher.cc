@@ -21,9 +21,10 @@ using namespace std;
 Mat32f Stitcher::build() {
 	calc_feature();
 	calc_transform();	// calculate pairwise transform
-	//bundle.proj_method = ConnectedImages::ProjectionMethod::cylindrical;
 	bundle.proj_method = ConnectedImages::ProjectionMethod::flat;
-	//bundle.proj_method = ConnectedImages::ProjectionMethod::spherical;
+	if (circle_detected && not PANO)
+		bundle.proj_method = ConnectedImages::ProjectionMethod::cylindrical;
+		//bundle.proj_method = ConnectedImages::ProjectionMethod::spherical;
 	bundle.update_proj_range();
 
 	return blend();

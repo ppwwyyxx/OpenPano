@@ -9,8 +9,9 @@ This is an image stitching program written in C++11.
 * gcc >= 4.7	(it seeems MTL doesn't work with ICC)
 * [Eigen](http://eigen.tuxfamily.org/index.php?title=Main_Page)
 * [CImg](http://cimg.eu/) (already included in the repository)
+* libjpeg, libpng (choose what you need by commenting the macro in lib/imgproc.cc)
 
-Both the two libraries are header-only, so ideally you can easily compile the code on any platform.
+Both Eigen and CImg are header-only, so ideally you can easily compile the code on any platform.
 
 ### Compile:
 ```
