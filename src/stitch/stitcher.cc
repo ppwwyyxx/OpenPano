@@ -71,10 +71,9 @@ Mat32f Stitcher::blend() {
 		Coor diff = bottom_right - top_left;
 		int w = diff.x, h = diff.y;
 		Mat<Vec2D> orig_pos(h, w, 1);
+
 		REP(i, h) REP(j, w) {
-			// TODO batch transformation to speed up
-			Vec2D c((j + top_left.x) * x_per_pixel + proj_min.x,
-					(i + top_left.y) * y_per_pixel + proj_min.y);
+			Vec2D c((j + top_left.x) * x_per_pixel + proj_min.x, (i + top_left.y) * y_per_pixel + proj_min.y);
 			Vec2D& p = (orig_pos.at(i, j)
 					= cur_img.homo_inv.trans_normalize(proj2homo(c)));
 			if (!p.isNaN() && (p.x < 0 || p.x >= 1 - EPS || p.y < 0 || p.y >= 1 - EPS))

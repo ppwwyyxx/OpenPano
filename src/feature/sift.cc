@@ -129,6 +129,6 @@ Descriptor SIFT::calc_descriptor(const SSPoint& p) const {
 	// build descriptor from hist
 
 	Descriptor ret = hist_to_descriptor((float*)hist);
-	ret.coor = Vec2D(p.real_coor.x / ss.origw, p.real_coor.y / ss.origh);
+	ret.coor = p.real_coor;
 	return ret;
 }
