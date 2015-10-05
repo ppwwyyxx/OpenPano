@@ -65,10 +65,10 @@ Homography TransFormer::calc_transform(const vector<int>& matches) const {
 }
 
 Homography TransFormer::calc_affine_transform(const vector<int>& matches) const {
+	using namespace Eigen;
 	int n = matches.size();
 	m_assert(n * 2 >= AFFINE_FREEDOM);
 
-	using namespace Eigen;
 	MatrixXd m(n * 2, AFFINE_FREEDOM);
 	VectorXd b(n * 2);
 	REP(i, n) {
@@ -88,10 +88,10 @@ Homography TransFormer::calc_affine_transform(const vector<int>& matches) const 
 }
 
 Homography TransFormer::calc_homo_transform(const vector<int>& matches) const {
+	using namespace Eigen;
 	int n = matches.size();
 	m_assert(n * 2 >= HOMO_FREEDOM);
 
-	using namespace Eigen;
 	MatrixXd m(n * 2, HOMO_FREEDOM);
 	VectorXd b(n * 2);
 	REP(i, n) {
