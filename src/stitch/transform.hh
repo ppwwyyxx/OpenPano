@@ -23,6 +23,12 @@ class Homography : public Matrix {
 			return ret;
 		}
 
+		inline Vec2D trans_normalize(const Vec& m) const {
+			Vec ret = trans(m);
+			double denom = 1.0 / ret.z;
+			return Vec2D(ret.x * denom, ret.y * denom);
+		}
+
 		inline Vec trans(const Vec2D& m) const {
 			return trans(Vec(m.x, m.y, 1));
 		}
@@ -75,6 +81,21 @@ namespace cylindrical {
 	static inline Vec proj2homo(const Vec2D &coord) {
 		return Vec(coord.x, sin(coord.y), cos(coord.y));
 	}
+
+/*
+ *  static inline Vec2D homo2proj(const Vec &coord) {
+ *    Vec coor = coord;
+ *    coor.x /= coord.z;
+ *    coor.y /= coord.z;
+ *    return Vec2D(
+ *        (coor.x - 0.5) / hypotf(coor.y - 0.5, 1),
+ *        atan(coor.y - 0.5));
+ *  }
+ *
+ *  static inline Vec proj2homo(const Vec2D &coord) {
+ *    return Vec(coord.x / cos(coord.y) + 0.5, tan(coord.y) + 0.5, 1);
+ *  }
+ */
 }
 
 }

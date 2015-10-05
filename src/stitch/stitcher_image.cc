@@ -2,6 +2,7 @@
 //Author: Yuxin Wu <ppwwyyxx@gmail.com>
 
 #include "stitcher.hh"
+using namespace projector;
 
 void ConnectedImages::calc_inverse_homo() {
 	for (auto& m : component)	 {
@@ -22,6 +23,7 @@ void ConnectedImages::update_proj_range() {
 					now_max = now_min * (-1);
 		for (auto& v : corner) {
 			Vec2D t_corner = m.homo.trans2d(v);
+			//Vec2D t_corner = cylindrical::homo2proj(m.homo.trans(v));
 			now_min.update_min(t_corner);
 			now_max.update_max(t_corner);
 		}
