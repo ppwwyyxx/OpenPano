@@ -27,7 +27,7 @@ void LinearBlender::add_image(const Coor &top_left,
 					t->v = interpolate(img, r, c);
 					// t.w = (0.5 - fabs(p.x - 0.5)) * (0.5 - fabs(p.y - 0.5));
 					// x-axis linear interpolation
-					t->w = max(0.5 - fabs(p.x - 0.5), 0.1);
+					t->w = 0.5 - fabs(p.x - 0.5);
 				}
 			}
 		}
