@@ -6,6 +6,7 @@
 #include "lib/config.hh"
 #include "lib/timer.hh"
 #include <set>
+#include <eigen3/Eigen/Dense>
 using namespace std;
 
 // TODO find out when not matched
@@ -67,20 +68,21 @@ Homography TransFormer::calc_affine_transform(const vector<int>& matches) const 
 	int n = matches.size();
 	m_assert(n * 2 >= AFFINE_FREEDOM);
 
-	Matrix m(2 * n, AFFINE_FREEDOM); m.zero();
-	Matrix b(2 * n, 1);
+	using namespace Eigen;
+	MatrixXd m(n * 2, AFFINE_FREEDOM);
+	VectorXd b(n * 2);
 	REP(i, n) {
 		const Vec2D &m0 = f1[match.data[matches[i]].x].coor,	// rhs
 								&m1 = f2[match.data[matches[i]].y].coor;	// lhs
-		m.at(i * 2, 0) = m1.x; m.at(i * 2, 1) = m1.y; m.at(i * 2, 2) = 1;
-		b.at(i * 2, 0) = m0.x;
+		m.row(i * 2) << m1.x, m1.y, 1, 0, 0, 0;
+		b(i * 2, 0) = m0.x;
 
-		m.at(i * 2 + 1, 3) = m1.x; m.at(i * 2 + 1, 4) = m1.y; m.at(i * 2 + 1, 5) = 1;
-		b.at(i * 2 + 1, 0) = m0.y;
+		m.row(i * 2 + 1) << 0, 0, 0, m1.x, m1.y, 1;
+		b(i * 2 + 1, 0) = m0.y;
 	}
-	Matrix res = m.solve_overdetermined(b);
+	VectorXd ans = m.jacobiSvd(ComputeThinU | ComputeThinV).solve(b);
 	Homography ret; ret.zero();
-	memcpy(ret.ptr(), res.ptr(), AFFINE_FREEDOM * sizeof(double));
+	REP(i, AFFINE_FREEDOM) ret.ptr()[i] = ans[i];
 	ret.at(2, 2) = 1.0;
 	return move(ret);
 }
@@ -89,22 +91,22 @@ Homography TransFormer::calc_homo_transform(const vector<int>& matches) const {
 	int n = matches.size();
 	m_assert(n * 2 >= HOMO_FREEDOM);
 
-	Matrix m(2 * n, HOMO_FREEDOM); m.zero();
-	Matrix b(2 * n, 1);
+	using namespace Eigen;
+	MatrixXd m(n * 2, HOMO_FREEDOM);
+	VectorXd b(n * 2);
 	REP(i, n) {
 		const Vec2D &m0 = f1[match.data[matches[i]].x].coor,	//rhs
 								&m1 = f2[match.data[matches[i]].y].coor;  //lhs
-		m.at(i * 2, 0) = m1.x; m.at(i * 2, 1) = m1.y; m.at(i * 2, 2) = 1;
-		m.at(i * 2, 6) = -m1.x * m0.x; m.at(i * 2, 7) = -m1.y * m0.x;
-		b.at(i * 2, 0) = m0.x;
+		m.row(i * 2) << m1.x, m1.y, 1, 0, 0, 0, -m1.x * m0.x, -m1.y * m0.y;
+		b(i * 2, 0) = m0.x;
 
-		m.at(i * 2 + 1, 3) = m1.x; m.at(i * 2 + 1, 4) = m1.y; m.at(i * 2 + 1, 5) = 1;
-		m.at(i * 2 + 1, 6) = -m1.x * m0.y; m.at(i * 2 + 1, 7) = -m1.y * m0.y;
-		b.at(i * 2 + 1, 0) = m0.y;
+		m.row(i * 2 + 1) << 0, 0, 0, m1.x, m1.y, 1, -m1.x * m0.y, -m1.y * m0.y;
+		b(i * 2 + 1, 0) = m0.y;
 	}
-	Matrix res = m.solve_overdetermined(b);
+
+	VectorXd ans = m.jacobiSvd(ComputeThinU | ComputeThinV).solve(b);
 	Homography ret;
-	memcpy(ret.ptr(), res.ptr(), HOMO_FREEDOM * sizeof(double));
+	REP(i, HOMO_FREEDOM) ret.ptr()[i] = ans[i];
 	ret.at(2, 2) = 1;
 	// check
 	// for (auto &i : matches) {
