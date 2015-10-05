@@ -18,6 +18,7 @@
 #include "lib/imgproc.hh"
 #include "blender.hh"
 using namespace std;
+using namespace projector;
 
 Mat32f Stitcher::build() {
 	calc_feature();
@@ -32,11 +33,21 @@ Mat32f Stitcher::blend() {
 
 	int refw = imgs[bundle.identity_idx].width(),
 			refh = imgs[bundle.identity_idx].height();
+
+	/*
+	 *Vec2D id_img_range = cylindrical::homo2proj(Vec(1, 1, 1)) -
+	 *  cylindrical::homo2proj(Vec(0, 0, 1));
+	 *cout << "id_img_range" << id_img_range << endl;
+	 *cout << "projmin:" << bundle.proj_min << "projmax" << bundle.proj_max << endl;
+	 *refw = refw / id_img_range.x;
+	 *refh = refh / id_img_range.y;
+	 */
+
 	Vec2D diff = bundle.proj_max - bundle.proj_min,
 		  proj_min = bundle.proj_min;
 	diff.x *= refw, diff.y *= refh;
 	Coor size = Coor(diff.x, diff.y);
-	cout << "Final Imag Size: " << size << endl;
+	cout << "Final Image Size: " << size << endl;
 
 	Vec2D proj_min_coor(proj_min.x * refw, proj_min.y * refh);
 
@@ -111,7 +122,7 @@ void Stitcher::calc_transform() {
 	Timer timer;
 	if (PANO) {
 		calc_matrix_pano();
-		straighten_simple();
+		//straighten_simple();
 
 		if (circle_detected) { // remove the extra
 			bundle.component.pop_back();
