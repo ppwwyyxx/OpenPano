@@ -118,6 +118,7 @@ void init_config() {
 	PANO = Config.get("PANO");
 	TRANS = Config.get("TRANS");
 	CROP = Config.get("CROP");
+	FOCAL_LENGTH = Config.get("FOCAL_LENGTH");
 	if (PANO && TRANS)
 		error_exit("Want panorama or translation stitching? Cannot have both!");
 	HOMO = TRANS;	// use homography when dealing with pure translation

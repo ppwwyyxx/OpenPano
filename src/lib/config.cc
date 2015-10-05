@@ -7,11 +7,11 @@ using namespace std;
 
 ConfigParser::ConfigParser(const char* fname) {
 	ifstream fin(fname);
-	string s;
+	string s;s.resize(1000);
 	double val;
 	while (fin >> s) {
 		if (s[0] == '#') {
-			fin.getline(&s[0], 255, '\n');
+			fin.getline(&s[0], 4096, '\n');
 			continue;
 		}
 		fin >> val;
@@ -27,6 +27,7 @@ bool TRANS;
 bool PANO;
 bool HOMO;
 bool CROP = true;
+float FOCAL_LENGTH;
 
 int NUM_OCTAVE;
 int NUM_SCALE;

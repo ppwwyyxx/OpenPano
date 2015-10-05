@@ -22,8 +22,8 @@ Mat32f Stitcher::build() {
 	calc_feature();
 	calc_transform();	// calculate pairwise transform
 	bundle.proj_method = ConnectedImages::ProjectionMethod::flat;
-	if (circle_detected && not PANO)
-		bundle.proj_method = ConnectedImages::ProjectionMethod::cylindrical;
+	//bundle.proj_method = ConnectedImages::ProjectionMethod::cylindrical;
+	print_debug("Using projection method: %d\n", bundle.proj_method);
 		//bundle.proj_method = ConnectedImages::ProjectionMethod::spherical;
 	bundle.update_proj_range();
 
@@ -238,10 +238,6 @@ void Stitcher::calc_matrix_simple() {
 		else if (k <= mid - 1)
 			comp[k] = ImageComponent{get_transform(k + 1, k)};	// from k to k+1
 	}
-	/*
-	 *REP(k, n)
-	 *  cout << comp[k].homo << endl;
-	 */
 	// accumulate the transformations
 	REPL(k, mid + 2, n)
 		comp[k].homo = Homography(
