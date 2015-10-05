@@ -30,6 +30,9 @@ void error_exit(const std::string& s) {
 	__m_assert_check__((expr), # expr, __FILE__, __PRETTY_FUNCTION__, __LINE__)
 
 
+
+#else
+// keep print_debug
 #define print_debug(fmt, ...) \
 			__print_debug__(__FILE__, __func__, __LINE__, fmt, ## __VA_ARGS__)
 
@@ -37,9 +40,7 @@ void error_exit(const std::string& s) {
 void __print_debug__(const char *file, const char *func, int line, const char *fmt, ...)
 	__attribute__((format(printf, 4, 5)));
 
-#else
-
-#define print_debug(fmt, ...)
+//#define print_debug(fmt, ...)
 
 #define m_assert(expr)
 

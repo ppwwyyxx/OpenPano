@@ -14,7 +14,7 @@
 
 // forward declaration
 class MatchData;
-class Descriptor;
+struct Descriptor;
 
 // An image to be stitched
 struct ImageComponent {

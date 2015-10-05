@@ -62,14 +62,6 @@ class Homography : public Matrix {
 				mat[i] *= fac;
 			}
 		}
-
-		double min_w() const {
-			double* mat = m_data.get();
-			if (mat[8] < EPS)
-				return -1;
-			return (std::min(mat[6], 0.0) + std::min(mat[7], 0.0) + mat[8]) / mat[8];
-		}
-
 };
 
 namespace projector {

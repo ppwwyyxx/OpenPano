@@ -6,7 +6,7 @@ TARGET = image-stitching
 CXX ?= g++
 
 INCLUDE_DIR = -Iinclude
-DEFINES = -DDEBUG
+#DEFINES = -DDEBUG
 
 OPTFLAGS = -O3 -march=native
 #OPTFLAGS = -g -O0
@@ -19,7 +19,7 @@ CXXFLAGS += $(DEFINES) -std=c++11 $(OPTFLAGS)
 
 LDFLAGS = -fopenmp $(OPTFLAGS)
 LDFLAGS += $(shell pkg-config $(LIBS) --libs)
-LDFLAGS += -lX11 -ljpeg
+LDFLAGS += -ljpeg
 
 SHELL = bash
 ccSOURCES = $(shell find -name "*.cc" | sed 's/^\.\///g')
