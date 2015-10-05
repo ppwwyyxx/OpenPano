@@ -52,50 +52,68 @@ class Homography : public Matrix {
 			return ret;
 		}
 
+		void normalize() {
+			double* mat = m_data.get();
+			double fac = 0;
+			for (int i = 0; i < 9; i ++)
+				fac += mat[i] * mat[i];
+			fac = 9 / sqrt(fac);
+			for (int i = 0; i < 9; i ++) {
+				mat[i] *= fac;
+			}
+		}
+
+		double min_w() const {
+			double* mat = m_data.get();
+			if (mat[8] < EPS)
+				return -1;
+			return (std::min(mat[6], 0.0) + std::min(mat[7], 0.0) + mat[8]) / mat[8];
+		}
+
 };
 
 namespace projector {
 
-typedef Vec2D (*homo2proj_t)(const Vec&);
-typedef Vec (*proj2homo_t)(const Vec2D&);
+	typedef Vec2D (*homo2proj_t)(const Vec&);
+	typedef Vec (*proj2homo_t)(const Vec2D&);
 
-namespace flat {
+	namespace flat {
 
-	static inline Vec2D homo2proj(const Vec &coord) {
-		return Vec2D(coord.x / coord.z, coord.y / coord.z);
+		static inline Vec2D homo2proj(const Vec &coord) {
+			return Vec2D(coord.x / coord.z, coord.y / coord.z);
+		}
+
+		static inline Vec proj2homo(const Vec2D &coord) {
+			return Vec(coord.x, coord.y, 1);
+		}
 	}
 
-	static inline Vec proj2homo(const Vec2D &coord) {
-		return Vec(coord.x, coord.y, 1);
+	namespace cylindrical {
+
+		static inline Vec2D homo2proj(const Vec &coord) {
+			return Vec2D(
+					coord.x / hypotf(coord.y, coord.z),
+					atan2(coord.y, coord.z));
+		}
+
+		static inline Vec proj2homo(const Vec2D &coord) {
+			return Vec(coord.x, sin(coord.y), cos(coord.y));
+		}
+
+		/*
+		 *  static inline Vec2D homo2proj(const Vec &coord) {
+		 *    Vec coor = coord;
+		 *    coor.x /= coord.z;
+		 *    coor.y /= coord.z;
+		 *    return Vec2D(
+		 *        (coor.x - 0.5) / hypotf(coor.y - 0.5, 1),
+		 *        atan(coor.y - 0.5));
+		 *  }
+		 *
+		 *  static inline Vec proj2homo(const Vec2D &coord) {
+		 *    return Vec(coord.x / cos(coord.y) + 0.5, tan(coord.y) + 0.5, 1);
+		 *  }
+		 */
 	}
-}
-
-namespace cylindrical {
-
-	static inline Vec2D homo2proj(const Vec &coord) {
-		return Vec2D(
-				coord.x / hypotf(coord.y, coord.z),
-				atan2(coord.y, coord.z));
-	}
-
-	static inline Vec proj2homo(const Vec2D &coord) {
-		return Vec(coord.x, sin(coord.y), cos(coord.y));
-	}
-
-/*
- *  static inline Vec2D homo2proj(const Vec &coord) {
- *    Vec coor = coord;
- *    coor.x /= coord.z;
- *    coor.y /= coord.z;
- *    return Vec2D(
- *        (coor.x - 0.5) / hypotf(coor.y - 0.5, 1),
- *        atan(coor.y - 0.5));
- *  }
- *
- *  static inline Vec proj2homo(const Vec2D &coord) {
- *    return Vec(coord.x / cos(coord.y) + 0.5, tan(coord.y) + 0.5, 1);
- *  }
- */
-}
 
 }

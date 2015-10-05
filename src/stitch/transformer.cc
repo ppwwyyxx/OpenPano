@@ -37,6 +37,8 @@ bool TransFormer::get_transform(Homography* ret) {
 			inliers.push_back(random);
 		}
 		Homography transform(calc_transform(inliers));
+		if (transform.min_w() < 0.05)
+			continue;
 		int n_inlier = get_inliers(transform).size();
 		if (update_max(maxinlierscnt, n_inlier)) {
 			best_transform = move(transform);
