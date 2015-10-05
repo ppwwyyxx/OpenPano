@@ -28,7 +28,8 @@ struct ImageComponent {
 struct ConnectedImages {
 	enum ProjectionMethod {
 		flat,
-		cylindrical
+		cylindrical,
+		spherical
 	};
 	ProjectionMethod proj_method;
 	int identity_idx;
@@ -46,6 +47,9 @@ struct ConnectedImages {
 	void update_proj_range();
 
 	void calc_inverse_homo();
+
+	projector::homo2proj_t get_homo2proj() const;
+	projector::proj2homo_t get_proj2homo() const;
 };
 
 class Stitcher {

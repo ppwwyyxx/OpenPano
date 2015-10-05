@@ -1,7 +1,6 @@
 // File: stitcher.cc
 // Date: Sun Sep 22 12:54:18 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
-// XXX: I know it is somehow ugly
 
 
 #include "stitcher.hh"
@@ -24,6 +23,7 @@ Mat32f Stitcher::build() {
 	calc_transform();	// calculate pairwise transform
 	//bundle.proj_method = ConnectedImages::ProjectionMethod::cylindrical;
 	bundle.proj_method = ConnectedImages::ProjectionMethod::flat;
+	//bundle.proj_method = ConnectedImages::ProjectionMethod::spherical;
 	bundle.update_proj_range();
 
 	return blend();
@@ -34,11 +34,8 @@ Mat32f Stitcher::blend() {
 
 	int refw = imgs[bundle.identity_idx].width(),
 			refh = imgs[bundle.identity_idx].height();
-	using namespace projector;
-	homo2proj_t homo2proj = bundle.proj_method == ConnectedImages::ProjectionMethod::flat ?
-		flat::homo2proj : cylindrical::homo2proj;
-	proj2homo_t proj2homo = bundle.proj_method == ConnectedImages::ProjectionMethod::flat ?
-		flat::proj2homo: cylindrical::proj2homo;
+	auto homo2proj = bundle.get_homo2proj();
+	auto proj2homo = bundle.get_proj2homo();
 
 	Vec2D id_img_range = homo2proj(Vec(1, 1, 1)) - homo2proj(Vec(0, 0, 1));
 	cout << "id_img_range" << id_img_range << endl;
@@ -180,6 +177,7 @@ void Stitcher::calc_matrix_pano() {;
 	int start = mid, end = n, len = end - start;
 	if (len > 1) {
 		float newfactor = 1;
+		// XXX: ugly
 		float slope = update_h_factor(newfactor, minslope, bestfactor, bestmat, matches);
 		if (bestmat.empty()) {
 			cout << "Failed to find hfactor" << endl;
@@ -254,6 +252,7 @@ void Stitcher::calc_matrix_simple() {
 	// then, comp[k]: from k to identity
 }
 
+// XXX ugly hack
 float Stitcher::update_h_factor(float nowfactor,
 		float & minslope,
 		float & bestfactor,

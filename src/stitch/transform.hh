@@ -78,7 +78,6 @@ namespace projector {
 	typedef Vec (*proj2homo_t)(const Vec2D&);
 
 	namespace flat {
-
 		static inline Vec2D homo2proj(const Vec &coord) {
 			return Vec2D(coord.x / coord.z, coord.y / coord.z);
 		}
@@ -89,7 +88,6 @@ namespace projector {
 	}
 
 	namespace cylindrical {
-
 		static inline Vec2D homo2proj(const Vec &coord) {
 			return Vec2D(atan2(coord.x, coord.z),
 					coord.y / (hypot(coord.x, coord.z)));
@@ -100,4 +98,15 @@ namespace projector {
 		}
 	}
 
+
+	namespace spherical {
+		static inline Vec2D homo2proj(const Vec &coord) {
+			return Vec2D(atan2(coord.x, coord.z),
+					atan2(coord.y, hypot(coord.x, coord.z)));
+		}
+
+		static inline Vec proj2homo(const Vec2D &coord) {
+			return Vec(sin(coord.x), tan(coord.y), cos(coord.x));
+		}
+	}
 }
