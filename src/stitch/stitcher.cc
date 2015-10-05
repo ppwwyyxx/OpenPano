@@ -37,7 +37,6 @@ Mat32f Stitcher::blend() {
 	using namespace projector;
 	homo2proj_t homo2proj = bundle.proj_method == ConnectedImages::ProjectionMethod::flat ?
 		flat::homo2proj : cylindrical::homo2proj;
-
 	proj2homo_t proj2homo = bundle.proj_method == ConnectedImages::ProjectionMethod::flat ?
 		flat::proj2homo: cylindrical::proj2homo;
 
@@ -79,7 +78,6 @@ Mat32f Stitcher::blend() {
 			// TODO batch transformation to speed up
 			Vec2D c((j + top_left.x) * x_per_pixel + proj_min.x,
 					(i + top_left.y) * y_per_pixel + proj_min.y);
-			//Vec2D& p = (orig_pos.at(i, j) = cur_img.homo_inv.trans2d(c));
 			Vec2D& p = (orig_pos.at(i, j)
 					= cur_img.homo_inv.trans_normalize(proj2homo(c)));
 			if (!p.isNaN() && (p.x < 0 || p.x >= 1 - EPS || p.y < 0 || p.y >= 1 - EPS))
