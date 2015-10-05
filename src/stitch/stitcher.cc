@@ -18,11 +18,12 @@
 #include "lib/imgproc.hh"
 #include "blender.hh"
 using namespace std;
-using namespace projector;
 
 Mat32f Stitcher::build() {
 	calc_feature();
 	calc_transform();	// calculate pairwise transform
+	//bundle.proj_method = ConnectedImages::ProjectionMethod::cylindrical;
+	bundle.proj_method = ConnectedImages::ProjectionMethod::flat;
 	bundle.update_proj_range();
 
 	return blend();
@@ -33,27 +34,31 @@ Mat32f Stitcher::blend() {
 
 	int refw = imgs[bundle.identity_idx].width(),
 			refh = imgs[bundle.identity_idx].height();
+	using namespace projector;
+	homo2proj_t homo2proj = bundle.proj_method == ConnectedImages::ProjectionMethod::flat ?
+		flat::homo2proj : cylindrical::homo2proj;
 
-	/*
-	 *Vec2D id_img_range = cylindrical::homo2proj(Vec(1, 1, 1)) -
-	 *  cylindrical::homo2proj(Vec(0, 0, 1));
-	 *cout << "id_img_range" << id_img_range << endl;
-	 *cout << "projmin:" << bundle.proj_min << "projmax" << bundle.proj_max << endl;
-	 *refw = refw / id_img_range.x;
-	 *refh = refh / id_img_range.y;
-	 */
+	proj2homo_t proj2homo = bundle.proj_method == ConnectedImages::ProjectionMethod::flat ?
+		flat::proj2homo: cylindrical::proj2homo;
 
-	Vec2D diff = bundle.proj_max - bundle.proj_min,
-		  proj_min = bundle.proj_min;
-	diff.x *= refw, diff.y *= refh;
-	Coor size = Coor(diff.x, diff.y);
+	Vec2D id_img_range = homo2proj(Vec(1, 1, 1)) - homo2proj(Vec(0, 0, 1));
+	cout << "id_img_range" << id_img_range << endl;
+	cout << "projmin:" << bundle.proj_min << "projmax" << bundle.proj_max << endl;
+
+	Vec2D proj_min = bundle.proj_min;
+	real_t x_len = bundle.proj_max.x - proj_min.x,
+		   y_len = bundle.proj_max.y - proj_min.y,
+		   x_per_pixel = id_img_range.x / refw,
+		   y_per_pixel = id_img_range.y / refh,
+		   target_width = x_len / x_per_pixel,
+		   target_height = y_len / y_per_pixel;
+
+	Coor size(target_width, target_height);
 	cout << "Final Image Size: " << size << endl;
 
-	Vec2D proj_min_coor(proj_min.x * refw, proj_min.y * refh);
-
 	auto scale_coor_to_img_coor = [&](Vec2D v) {
-		v.x *= refw, v.y *= refh;
-		v = v - proj_min_coor;
+		v = v - proj_min;
+		v.x /= x_per_pixel, v.y /= y_per_pixel;
 		return Coor(v.x, v.y);
 	};
 
@@ -71,10 +76,12 @@ Mat32f Stitcher::blend() {
 		int w = diff.x, h = diff.y;
 		Mat<Vec2D> orig_pos(h, w, 1);
 		REP(i, h) REP(j, w) {
-			Vec2D c = Vec2D(j + top_left.x, i + top_left.y) + proj_min_coor;
-			c.x /= refw, c.y /= refh;
 			// TODO batch transformation to speed up
-			Vec2D& p = (orig_pos.at(i, j) = cur_img.homo_inv.trans2d(c));
+			Vec2D c((j + top_left.x) * x_per_pixel + proj_min.x,
+					(i + top_left.y) * y_per_pixel + proj_min.y);
+			//Vec2D& p = (orig_pos.at(i, j) = cur_img.homo_inv.trans2d(c));
+			Vec2D& p = (orig_pos.at(i, j)
+					= cur_img.homo_inv.trans_normalize(proj2homo(c)));
 			if (!p.isNaN() && (p.x < 0 || p.x >= 1 - EPS || p.y < 0 || p.y >= 1 - EPS))
 				p = Vec2D::NaN();
 		}
@@ -235,6 +242,10 @@ void Stitcher::calc_matrix_simple() {
 		else if (k <= mid - 1)
 			comp[k] = ImageComponent{get_transform(k + 1, k)};	// from k to k+1
 	}
+	/*
+	 *REP(k, n)
+	 *  cout << comp[k].homo << endl;
+	 */
 	// accumulate the transformations
 	REPL(k, mid + 2, n)
 		comp[k].homo = Homography(
