@@ -97,7 +97,7 @@ void test_warp(int argc, char* argv[]) {
 	REPL(i, 2, argc) {
 		Mat32f mat = read_rgb(argv[i]);
 		warp.warp(mat);
-		write_rgb((to_string(i) + ".png").c_str(), mat);
+		write_rgb(("warp" + to_string(i) + ".png").c_str(), mat);
 	}
 }
 
