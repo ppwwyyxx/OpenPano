@@ -2,6 +2,7 @@
 //Author: Yuxin Wu <ppwwyyxx@gmail.com>
 
 #include "stitcher.hh"
+#include <cassert>
 
 void ConnectedImages::calc_inverse_homo() {
 	for (auto& m : component)	 {
@@ -15,9 +16,7 @@ void ConnectedImages::update_proj_range() {
 	static Vec2D corner[4] = {
 		Vec2D(0, 0), Vec2D(0, 1), Vec2D(1, 0), Vec2D(1, 1)};
 
-	using namespace projector;
-	homo2proj_t homo2proj = proj_method == ProjectionMethod::flat ?
-		flat::homo2proj : cylindrical::homo2proj;
+	auto homo2proj = get_homo2proj();
 
 	proj_min = Vec2D(std::numeric_limits<double>::max(), std::numeric_limits<double>::max());
 	proj_max = Vec2D(std::numeric_limits<double>::lowest(), std::numeric_limits<double>::lowest());
@@ -35,4 +34,30 @@ void ConnectedImages::update_proj_range() {
 		proj_min.update_min(now_min);
 		proj_max.update_max(now_max);
 	}
+}
+
+projector::homo2proj_t ConnectedImages::get_homo2proj() const {
+	using namespace projector;
+	switch (proj_method) {
+		case ProjectionMethod::flat:
+			return flat::homo2proj;
+		case ProjectionMethod::cylindrical:
+			return cylindrical::homo2proj;
+		case ProjectionMethod::spherical:
+			return spherical::homo2proj;
+	}
+	assert(false);
+}
+
+projector::proj2homo_t ConnectedImages::get_proj2homo() const {
+	using namespace projector;
+	switch (proj_method) {
+		case ProjectionMethod::flat:
+			return flat::proj2homo;
+		case ProjectionMethod::cylindrical:
+			return cylindrical::proj2homo;
+		case ProjectionMethod::spherical:
+			return spherical::proj2homo;
+	}
+	assert(false);
 }
