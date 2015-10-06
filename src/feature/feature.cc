@@ -21,6 +21,11 @@ vector<Descriptor> detect_SIFT(const Mat32f& mat) {
 	keyp = ort.work();
 	SIFT sift(ss, keyp);
 	auto ret = sift.get_descriptor();
+	// convert scale-coordinate to half-offset image coordinate
+	for (auto& d: ret) {
+		d.coor.x = (d.coor.x - 0.5) * mat.width();
+		d.coor.y = (d.coor.y - 0.5) * mat.height();
+	}
 	cout << "number of features: " << ret.size() << endl;
 	return ret;
 }

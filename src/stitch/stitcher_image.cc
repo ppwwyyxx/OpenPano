@@ -14,7 +14,7 @@ void ConnectedImages::calc_inverse_homo() {
 
 void ConnectedImages::update_proj_range(const vector<Mat32f>& imgs) {
 	static Vec2D corner[4] = {
-		Vec2D(0, 0), Vec2D(0, 1), Vec2D(1, 0), Vec2D(1, 1)};
+		Vec2D(-0.5, -0.5), Vec2D(-0.5, 0.5), Vec2D(0.5, -0.5), Vec2D(0.5, 0.5)};
 	int mid = imgs.size() >> 1;
 	int refw = imgs[mid].width(), refh = imgs[mid].height();
 
@@ -29,10 +29,10 @@ void ConnectedImages::update_proj_range(const vector<Mat32f>& imgs) {
 		Vec2D now_min(std::numeric_limits<double>::max(), std::numeric_limits<double>::max()),
 					now_max = now_min * (-1);
 		for (auto& v : corner) {
-			//Vec2D t_corner = m.homo.trans2d(v);
 			Vec homo = m.homo.trans(
 					Vec2D(v.x * imgs[i].width(), v.y * imgs[i].height()));
 			homo.x /= refw, homo.y /= refh;
+			homo.x += 0.5 * homo.z, homo.y += 0.5 * homo.z;
 			Vec2D t_corner = homo2proj(homo);
 			t_corner.x *= refw, t_corner.y *= refh;
 			now_min.update_min(t_corner);
