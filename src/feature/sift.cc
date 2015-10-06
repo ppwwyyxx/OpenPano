@@ -61,6 +61,12 @@ std::vector<Descriptor> SIFT::get_descriptor() const {
 	vector<Descriptor> ret;
 	for (auto& p : points) {
 		auto desp = calc_descriptor(p);
+		/*
+		 *desp.coor.x = desp.coor.x * ss.origw - ss.origw / 2;
+		 *desp.coor.y = desp.coor.y * ss.origh - ss.origh / 2;
+		 */
+		desp.coor.x = desp.coor.x * ss.origw;
+		desp.coor.y = desp.coor.y * ss.origh;
 		ret.emplace_back(move(desp));
 	}
 	return ret;

@@ -2,7 +2,7 @@
 // Date: Thu Jun 18 04:36:58 2015 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
-#include <eigen3/Eigen/Dense>
+#include <Eigen/Dense>
 #include "matrix.hh"
 #include "geometry.hh"
 #include "timer.hh"

@@ -23,6 +23,13 @@ void error_exit(const std::string& s) {
 	error_exit(s.c_str());
 }
 
+// keep print_debug
+#define print_debug(fmt, ...) \
+			__print_debug__(__FILE__, __func__, __LINE__, fmt, ## __VA_ARGS__)
+
+
+void __print_debug__(const char *file, const char *func, int line, const char *fmt, ...)
+	__attribute__((format(printf, 4, 5)));
 
 #ifdef DEBUG
 
@@ -32,13 +39,6 @@ void error_exit(const std::string& s) {
 
 
 #else
-// keep print_debug
-#define print_debug(fmt, ...) \
-			__print_debug__(__FILE__, __func__, __LINE__, fmt, ## __VA_ARGS__)
-
-
-void __print_debug__(const char *file, const char *func, int line, const char *fmt, ...)
-	__attribute__((format(printf, 4, 5)));
 
 //#define print_debug(fmt, ...)
 

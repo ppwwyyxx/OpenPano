@@ -22,10 +22,11 @@ Mat32f Stitcher::build() {
 	calc_feature();
 	calc_transform();	// calculate pairwise transform
 	bundle.proj_method = ConnectedImages::ProjectionMethod::flat;
-	//bundle.proj_method = ConnectedImages::ProjectionMethod::cylindrical;
+	if (TRANS)
+		bundle.proj_method = ConnectedImages::ProjectionMethod::cylindrical;
 	print_debug("Using projection method: %d\n", bundle.proj_method);
 		//bundle.proj_method = ConnectedImages::ProjectionMethod::spherical;
-	bundle.update_proj_range();
+	bundle.update_proj_range(imgs);
 
 	return blend();
 }
@@ -39,6 +40,7 @@ Mat32f Stitcher::blend() {
 	auto proj2homo = bundle.get_proj2homo();
 
 	Vec2D id_img_range = homo2proj(Vec(1, 1, 1)) - homo2proj(Vec(0, 0, 1));
+	id_img_range.x *= refw, id_img_range.y *= refh;
 	cout << "id_img_range" << id_img_range << endl;
 	cout << "projmin:" << bundle.proj_min << "projmax" << bundle.proj_max << endl;
 
@@ -75,9 +77,12 @@ Mat32f Stitcher::blend() {
 
 		REP(i, h) REP(j, w) {
 			Vec2D c((j + top_left.x) * x_per_pixel + proj_min.x, (i + top_left.y) * y_per_pixel + proj_min.y);
+			Vec homo = proj2homo(Vec2D(c.x / imgs[k].width(),
+								c.y / imgs[k].height()));
+			homo.x *= refw, homo.y *= refh;
 			Vec2D& p = (orig_pos.at(i, j)
-					= cur_img.homo_inv.trans_normalize(proj2homo(c)));
-			if (!p.isNaN() && (p.x < 0 || p.x >= 1 - EPS || p.y < 0 || p.y >= 1 - EPS))
+					= cur_img.homo_inv.trans_normalize(homo));
+			if (!p.isNaN() && (p.x < 0 || p.x >= imgs[k].width() || p.y < 0 || p.y >= imgs[k].height()))
 				p = Vec2D::NaN();
 		}
 		blender.add_image(top_left, orig_pos, imgs[k]);
@@ -99,6 +104,7 @@ Homography Stitcher::get_transform(int f1, int f2) const {
 
 void Stitcher::straighten_simple() {
 	int n = imgs.size();
+	// wrong
 	Vec2D center2 = bundle.component[n - 1].homo.trans2d(0.5, 0.5);
 	Vec2D center1 = bundle.component[0].homo.trans2d(0.5, 0.5);
 	float dydx = (center2.y - center1.y) / (center2.x - center1.x);
@@ -132,8 +138,8 @@ void Stitcher::calc_transform() {
 		}
 	} else {
 		calc_matrix_simple();
-		print_debug("match & transform takes %lf secs\n", timer.duration());
 	}
+	print_debug("match & transform takes %lf secs\n", timer.duration());
 
 	bundle.calc_inverse_homo();
 }
@@ -169,6 +175,7 @@ void Stitcher::calc_matrix_pano() {;
 	}
 	bundle.identity_idx = mid;
 	vector<Homography> bestmat;
+	auto& mid_img = imgs[mid];
 
 	float minslope = numeric_limits<float>::max();
 	float bestfactor = 0;
@@ -183,8 +190,8 @@ void Stitcher::calc_matrix_pano() {;
 			cout << "Failed to find hfactor" << endl;
 			exit(1);
 		}
-		float centerx1 = 0.5,
-					centerx2 = bestmat[0].trans2d(0.5, 0.5).x;
+		float centerx1 = mid_img.width() / 2,
+					centerx2 = bestmat[0].trans2d(imgs[mid+1].width() / 2, imgs[mid+1].height() / 2).x;
 		float order = (centerx2 > centerx1 ? 1 : -1);
 		REP(k, 3) {
 			if (fabs(slope) < SLOPE_PLAIN) break;
@@ -238,13 +245,28 @@ void Stitcher::calc_matrix_simple() {
 		else if (k <= mid - 1)
 			comp[k] = ImageComponent{get_transform(k + 1, k)};	// from k to k+1
 	}
+	/*
+	 *vector<float> fs;
+	 *REPL(k, 0, n - 1) {
+	 *  auto m = get_transform(k, k+1);
+	 *  auto f = TransFormer::get_focal_from_matrix(m);
+	 *  fs.emplace_back(f);
+	 *}
+	 *REPL(k, 1, n) {
+	 *  auto m = get_transform(k, k-1);
+	 *  auto f = TransFormer::get_focal_from_matrix(m);
+	 *  fs.emplace_back(f);
+	 *}
+	 *sort(fs.begin(), fs.end());
+	 *print_debug("focal: %f", fs[fs.size() / 2]);
+	 */
 	// accumulate the transformations
 	REPL(k, mid + 2, n)
 		comp[k].homo = Homography(
 				comp[k - 1].homo.prod(comp[k].homo));
 	REPD(k, mid - 2, 0)
 		comp[k].homo = Homography(
-				comp[k + 1].homo.prod(comp[k].homo));
+					comp[k + 1].homo.prod(comp[k].homo));
 	// then, comp[k]: from k to identity
 }
 
@@ -283,8 +305,8 @@ float Stitcher::update_h_factor(float nowfactor,
 	REPL(k, 1, len - 1)
 		nowmat[k] = nowmat[k - 1].prod(nowmat[k]);	// transform to nowimgs[0] == imgs[mid]
 
-	Vec2D center2 = nowmat.back().trans2d(0.5, 0.5);
-	Vec2D	center1(0.5, 0.5);
+	Vec2D center2 = nowmat.back().trans2d(nowimgs.back().width() / 2, nowimgs.back().height() / 2);
+	Vec2D	center1(nowimgs[0].width() / 2, nowimgs[0].height() / 2);
 	const float slope = (center2.y - center1.y) / (center2.x - center1.x);
 	print_debug("slope: %lf\n", slope);
 	if (update_min(minslope, fabs(slope))) {
