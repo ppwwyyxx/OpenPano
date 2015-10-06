@@ -10,7 +10,6 @@
 
 #include "feature/matcher.hh"
 #include "cylinder.hh"
-#include "warper.hh"
 #include "transformer.hh"
 
 #include "lib/timer.hh"
@@ -201,7 +200,7 @@ void Stitcher::calc_matrix_pano() {;
 	} else
 		bestfactor = 1;
 	print_debug("Best hfactor: %lf\n", bestfactor);
-	Warper warper(bestfactor);
+	CylinderWarper warper(bestfactor);
 	REP(k, n) warper.warp(imgs[k], feats[k]);
 
 	REPL(k, mid + 1, n) bundle.component[k].homo = move(bestmat[k - mid - 1]);
@@ -230,7 +229,7 @@ void Stitcher::calc_matrix_simple() {
 
 	// when not translation, do a simple-guess warping
 	if (!TRANS) {
-		Warper warper(1);
+		CylinderWarper warper(1);
 		REP(k, n) warper.warp(imgs[k], feats[k]);
 	}
 
@@ -286,7 +285,7 @@ float Stitcher::update_h_factor(float nowfactor,
 		nowfeats.push_back(feats[k]);
 	}			// nowfeats[0] == feats[mid]
 
-	Warper warper(nowfactor);
+	CylinderWarper warper(nowfactor);
 #pragma omp parallel for schedule(dynamic)
 	REP(k, len)
 		warper.warp(nowimgs[k], nowfeats[k]);
