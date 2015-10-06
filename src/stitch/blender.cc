@@ -19,7 +19,7 @@ void LinearBlender::add_image(const Coor &top_left,
 		REP(j, w) {
 			const Vec2D& p = *(orig_row + j);	// coordinate on original image
 			if (!p.isNaN()) {
-				float r = p.y * img.height(), c = p.x * img.width();
+				float r = p.y, c = p.x;
 				// since p < 1, r and c should be valid coor
 				// TODO speedup. edge & interpolate are redundant
 				if (!is_edge_color(img, r, c)){
@@ -27,7 +27,7 @@ void LinearBlender::add_image(const Coor &top_left,
 					t->v = interpolate(img, r, c);
 					// t.w = (0.5 - fabs(p.x - 0.5)) * (0.5 - fabs(p.y - 0.5));
 					// x-axis linear interpolation
-					t->w = 0.5 - fabs(p.x - 0.5);
+					t->w = 0.5 - fabs(p.x / img.width() - 0.5);
 				}
 			}
 		}

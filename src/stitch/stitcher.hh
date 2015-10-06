@@ -44,7 +44,7 @@ struct ConnectedImages {
 	Vec2D proj_min, proj_max;	// in identity image coordinate
 
 	// update range of projection of all transformations
-	void update_proj_range();
+	void update_proj_range(const std::vector<Mat32f>& imgs);
 
 	void calc_inverse_homo();
 

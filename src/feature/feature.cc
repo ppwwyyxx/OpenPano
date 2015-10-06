@@ -9,7 +9,6 @@
 #include "sift.hh"
 #include "dog.hh"
 #include "lib/imgproc.hh"
-//#include "keypoint.hh"
 using namespace std;
 
 vector<Descriptor> detect_SIFT(const Mat32f& mat) {

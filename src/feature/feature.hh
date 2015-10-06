@@ -10,7 +10,7 @@
 #include <cstring>
 
 struct Descriptor {
-	Vec2D coor;			// coordinate in range [0, 1]
+	Vec2D coor;			// coordinate in range [0, w/h)
 	std::vector<float> descriptor;
 
 	// square of euclidean. use now_thres to early-stop
