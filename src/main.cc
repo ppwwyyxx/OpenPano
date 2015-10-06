@@ -77,12 +77,12 @@ void gallery(const char* f1, const char* f2) {
 	Mat32f concatenated = hconcat(imagelist);
 	PlaneDrawer pld(concatenated);
 
-	Matcher match(feat1, feat2);
+	FeatureMatcher match(feat1, feat2);
 	auto ret = match.match();
 	for (auto &x : ret.data) {
 		pld.set_color(Color(gen_rand(), gen_rand(), gen_rand()));
-		Vec2D coor1 = feat1[x.x].coor,
-					coor2 = feat2[x.y].coor;
+		Vec2D coor1 = feat1[x.first].coor,
+					coor2 = feat2[x.second].coor;
 		Coor icoor1 = Coor(coor1.x * pic1.width(), coor1.y * pic1.height());
 		Coor icoor2 = Coor(coor2.x * pic2.width(), coor2.y * pic2.height());
 		pld.circle(icoor1, LABEL_LEN);

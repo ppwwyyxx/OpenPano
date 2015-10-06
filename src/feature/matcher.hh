@@ -11,21 +11,21 @@
 class MatchData {
 	public:
 		// each pair contains two idx of each match
-		std::vector<Coor> data;
+		std::vector<std::pair<int, int>> data;
 
 		int size() const { return data.size(); }
 
 		void reverse() {
 			for (auto& i : data)
-				i = Coor(i.y, i.x);
+				i = std::make_pair(i.second, i.first);
 		}
 };
 
-class Matcher {
+class FeatureMatcher {
 	protected:
 		const std::vector<Descriptor> &feat1, &feat2;
 	public:
-		Matcher(const std::vector<Descriptor>& f1, const std::vector<Descriptor>& f2):
+		FeatureMatcher(const std::vector<Descriptor>& f1, const std::vector<Descriptor>& f2):
 			feat1(f1), feat2(f2) { }
 
 		MatchData match() const;

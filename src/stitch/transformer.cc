@@ -70,8 +70,8 @@ Homography TransFormer::calc_affine_transform(const vector<int>& matches) const 
 	MatrixXd m(n * 2, AFFINE_FREEDOM);
 	VectorXd b(n * 2);
 	REP(i, n) {
-		const Vec2D &m0 = f1[match.data[matches[i]].x].coor,	// rhs
-								&m1 = f2[match.data[matches[i]].y].coor;	// lhs
+		const Vec2D &m0 = f1[match.data[matches[i]].first].coor,	// rhs
+								&m1 = f2[match.data[matches[i]].second].coor;	// lhs
 		m.row(i * 2) << m1.x, m1.y, 1, 0, 0, 0;
 		b(i * 2, 0) = m0.x;
 
@@ -93,8 +93,8 @@ Homography TransFormer::calc_homo_transform(const vector<int>& matches) const {
 	MatrixXd m(n * 2, HOMO_FREEDOM);
 	VectorXd b(n * 2);
 	REP(i, n) {
-		const Vec2D &m0 = f1[match.data[matches[i]].x].coor,	//rhs
-								&m1 = f2[match.data[matches[i]].y].coor;  //lhs
+		const Vec2D &m0 = f1[match.data[matches[i]].first].coor,	//rhs
+								&m1 = f2[match.data[matches[i]].second].coor;  //lhs
 		m.row(i * 2) << m1.x, m1.y, 1, 0, 0, 0, -m1.x * m0.x, -m1.y * m0.y;
 		b(i * 2, 0) = m0.x;
 
@@ -122,7 +122,7 @@ vector<int> TransFormer::get_inliers(const Homography& trans) const {
 
 	Matrix transformed = trans.prod(f2_homo_coor);	// 3xn
 	REP(i, n) {
-		const Vec2D& fcoor = f1[match.data[i].x].coor;
+		const Vec2D& fcoor = f1[match.data[i].first].coor;
 		double idenom = 1.f / transformed.at(2, i);
 		double dist = (Vec2D(transformed.at(0, i) * idenom,
 					transformed.at(1, i) * idenom) - fcoor).sqr();

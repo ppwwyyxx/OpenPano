@@ -7,7 +7,7 @@
 #include "lib/timer.hh"
 using namespace std;
 
-MatchData Matcher::match() const {
+MatchData FeatureMatcher::match() const {
 	static const float REJECT_RATIO_SQR = MATCH_REJECT_NEXT_RATIO * MATCH_REJECT_NEXT_RATIO;
 	TotalTimer tm("matcher");
 
@@ -22,6 +22,7 @@ MatchData Matcher::match() const {
 		pf1 = &feat1, pf2 = &feat2;
 	}
 
+	// TODO use knn
 	MatchData ret;
 #pragma omp parallel for schedule(dynamic)
 	REP(k, l1) {
