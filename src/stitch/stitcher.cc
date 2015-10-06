@@ -106,9 +106,8 @@ Homography Stitcher::get_transform(int f1, int f2) const {
 
 void Stitcher::straighten_simple() {
 	int n = imgs.size();
-	// wrong
-	Vec2D center2 = bundle.component[n - 1].homo.trans2d(0.5, 0.5);
-	Vec2D center1 = bundle.component[0].homo.trans2d(0.5, 0.5);
+	Vec2D center2 = bundle.component[n - 1].homo.trans2d(0, 0);
+	Vec2D center1 = bundle.component[0].homo.trans2d(0, 0);
 	float dydx = (center2.y - center1.y) / (center2.x - center1.x);
 	Matrix S = Matrix::I(3);
 	S.at(1, 0) = dydx;
@@ -177,7 +176,6 @@ void Stitcher::calc_matrix_pano() {;
 	}
 	bundle.identity_idx = mid;
 	vector<Homography> bestmat;
-	auto& mid_img = imgs[mid];
 
 	float minslope = numeric_limits<float>::max();
 	float bestfactor = 0;
