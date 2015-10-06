@@ -94,7 +94,7 @@ Mat32f Stitcher::blend() {
 }
 
 Homography Stitcher::get_transform(int f1, int f2) const {
-	Matcher match(feats[f1], feats[f2]);		// this is not efficient
+	FeatureMatcher match(feats[f1], feats[f2]);		// this is not efficient
 	auto ret = match.match();
 	TransFormer transf(ret, feats[f1], feats[f2]);
 	Homography r;
@@ -154,7 +154,7 @@ void Stitcher::calc_matrix_pano() {;
 	vector<MatchData> matches;
 	matches.resize(n == 2 ? 1 : n);
 	REP(k, n == 2 ? 1 : n) {
-		Matcher matcher(feats[k], feats[(k + 1) % n]);
+		FeatureMatcher matcher(feats[k], feats[(k + 1) % n]);
 		matches[k] = matcher.match();
 	}
 	print_debug("match time: %lf secs\n", timer.duration());

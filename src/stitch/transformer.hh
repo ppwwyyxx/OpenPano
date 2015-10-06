@@ -32,7 +32,7 @@ class TransFormer {
 		{
 			int n = match.size();
 			REP(i, n) {
-				Vec2D old = f2[match.data[i].y].coor;
+				Vec2D old = f2[match.data[i].second].coor;
 				f2_homo_coor.at(0, i) = old.x;
 				f2_homo_coor.at(1, i) = old.y;
 			}
