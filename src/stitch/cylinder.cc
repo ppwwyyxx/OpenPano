@@ -60,8 +60,10 @@ Mat32f CylProject::project(const Mat32f& img, vector<Descriptor>& ft) const {
 	}
 
 	for (auto & f : ft) {
-		Vec2D coor(f.coor.x, f.coor.y);
+		Vec2D coor(f.coor.x + img.width() / 2, f.coor.y + img.height() / 2);
 		f.coor = cyl.proj(coor) * sizefactor + offset;
+		f.coor.x -= mat.width() / 2;
+		f.coor.y -= mat.height() / 2;
 	}
 	return mat;
 }

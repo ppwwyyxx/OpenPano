@@ -79,9 +79,11 @@ Mat32f Stitcher::blend() {
 			Vec2D c((j + top_left.x) * x_per_pixel + proj_min.x, (i + top_left.y) * y_per_pixel + proj_min.y);
 			Vec homo = proj2homo(Vec2D(c.x / imgs[k].width(),
 								c.y / imgs[k].height()));
+			homo.x -= 0.5 * homo.z, homo.y -= 0.5 * homo.z;
 			homo.x *= refw, homo.y *= refh;
 			Vec2D& p = (orig_pos.at(i, j)
-					= cur_img.homo_inv.trans_normalize(homo));
+					= cur_img.homo_inv.trans_normalize(homo)
+					+ Vec2D(imgs[k].width()/2, imgs[k].height()/2));
 			if (!p.isNaN() && (p.x < 0 || p.x >= imgs[k].width() || p.y < 0 || p.y >= imgs[k].height()))
 				p = Vec2D::NaN();
 		}
@@ -190,8 +192,8 @@ void Stitcher::calc_matrix_pano() {;
 			cout << "Failed to find hfactor" << endl;
 			exit(1);
 		}
-		float centerx1 = mid_img.width() / 2,
-					centerx2 = bestmat[0].trans2d(imgs[mid+1].width() / 2, imgs[mid+1].height() / 2).x;
+		float centerx1 = 0,
+					centerx2 = bestmat[0].trans2d(0, 0).x;
 		float order = (centerx2 > centerx1 ? 1 : -1);
 		REP(k, 3) {
 			if (fabs(slope) < SLOPE_PLAIN) break;
@@ -305,8 +307,8 @@ float Stitcher::update_h_factor(float nowfactor,
 	REPL(k, 1, len - 1)
 		nowmat[k] = nowmat[k - 1].prod(nowmat[k]);	// transform to nowimgs[0] == imgs[mid]
 
-	Vec2D center2 = nowmat.back().trans2d(nowimgs.back().width() / 2, nowimgs.back().height() / 2);
-	Vec2D	center1(nowimgs[0].width() / 2, nowimgs[0].height() / 2);
+	Vec2D center2 = nowmat.back().trans2d(0, 0);
+	Vec2D	center1(0, 0);
 	const float slope = (center2.y - center1.y) / (center2.x - center1.x);
 	print_debug("slope: %lf\n", slope);
 	if (update_min(minslope, fabs(slope))) {
