@@ -5,12 +5,12 @@
 #include "lib/config.hh"
 #include "lib/planedrawer.hh"
 #include "lib/imgproc.hh"
-#include "stitch/warper.hh"
+#include "lib/timer.hh"
 #include "feature/extrema.hh"
 #include "feature/orientation.hh"
-#include "lib/timer.hh"
 #include "feature/matcher.hh"
 #include "stitch/stitcher.hh"
+#include "stitch/cylinder.hh"
 #include <ctime>
 #include <cassert>
 
@@ -93,7 +93,7 @@ void gallery(const char* f1, const char* f2) {
 }
 
 void test_warp(int argc, char* argv[]) {
-	Warper warp(1);
+	CylinderWarper warp(1);
 	REPL(i, 2, argc) {
 		Mat32f mat = read_rgb(argv[i]);
 		warp.warp(mat);
