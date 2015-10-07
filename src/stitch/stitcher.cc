@@ -22,15 +22,55 @@ using namespace feature;
 
 Mat32f Stitcher::build() {
 	calc_feature();
-	calc_transform();	// calculate pairwise transform
-	bundle.proj_method = ConnectedImages::ProjectionMethod::flat;
-	if (TRANS)
-		bundle.proj_method = ConnectedImages::ProjectionMethod::cylindrical;
-	print_debug("Using projection method: %d\n", bundle.proj_method);
+	//pairwise_match();
+	if (PANO) {
+		calc_transform();	// calculate transform
+		bundle.proj_method = ConnectedImages::ProjectionMethod::flat;
+		print_debug("Using projection method: %d\n", bundle.proj_method);
 		//bundle.proj_method = ConnectedImages::ProjectionMethod::spherical;
+	} else {
+
+		bundle.proj_method = ConnectedImages::ProjectionMethod::cylindrical;
+	}
 	bundle.update_proj_range();
 
 	return blend();
+}
+
+void Stitcher::calc_feature() {
+	GuardedTimer tm("calc_feature");
+	int n = imgs.size();
+	// detect feature
+	feats.resize(n);
+#pragma omp parallel for schedule(dynamic)
+	REP(k, n) {
+		feats[k] = feature_det->detect_feature(imgs[k]);
+		print_debug("Image %d has %lu features\n", k, feats[k].size());
+	}
+}
+
+void Stitcher::pairwise_match() {
+	size_t n = imgs.size();
+	graph.resize(n);
+	pairwise_matches.resize(n);
+	for (auto& k : pairwise_matches) k.resize(n);
+	REP(i, n) REPL(j, i + 1, n) {
+		FeatureMatcher matcher(feats[i], feats[j]);
+		auto match = matcher.match();
+		TransformEstimation transf(match, feats[i], feats[j]);
+		MatchInfo info;
+		bool succ = transf.get_transform(&info);
+		if (succ) {
+			print_debug(
+					"Connection between image %lu and %lu, ninliers=%lu, conf=%f\n",
+					i, j, info.match.size(), info.confidence);
+			graph[i].push_back(j);
+			graph[j].push_back(i);
+			pairwise_matches[i][j] = info;
+			info.homo = info.homo.inverse();
+			pairwise_matches[j][i] = move(info);
+		}
+	}
 }
 
 Mat32f Stitcher::blend() {
@@ -46,11 +86,11 @@ Mat32f Stitcher::blend() {
 
 	Vec2D proj_min = bundle.proj_range.min;
 	real_t x_len = bundle.proj_range.max.x - proj_min.x,
-		   y_len = bundle.proj_range.max.y - proj_min.y,
-		   x_per_pixel = id_img_range.x / refw,
-		   y_per_pixel = id_img_range.y / refh,
-		   target_width = x_len / x_per_pixel,
-		   target_height = y_len / y_per_pixel;
+				 y_len = bundle.proj_range.max.y - proj_min.y,
+				 x_per_pixel = id_img_range.x / refw,
+				 y_per_pixel = id_img_range.y / refh,
+				 target_width = x_len / x_per_pixel,
+				 target_height = y_len / y_per_pixel;
 
 	Coor size(target_width, target_height);
 	cout << "Final Image Size: " << size << endl;
@@ -114,18 +154,6 @@ void Stitcher::straighten_simple() {
 	bool succ = S.inverse(Sinv);
 	m_assert(succ);
 	REP(i, n) bundle.component[i].homo = Sinv.prod(bundle.component[i].homo);
-}
-
-void Stitcher::calc_feature() {
-	GuardedTimer tm("calc_feature");
-	int n = imgs.size();
-	// detect feature
-	feats.resize(n);
-#pragma omp parallel for schedule(dynamic)
-	REP(k, n) {
-		feats[k] = feature_det->detect_feature(imgs[k]);
-		print_debug("nfeature %d: %lu\n", k, feats[k].size());
-	}
 }
 
 void Stitcher::calc_transform() {
@@ -255,7 +283,7 @@ void Stitcher::calc_matrix_simple() {
 				comp[k - 1].homo.prod(comp[k].homo));
 	REPD(k, mid - 2, 0)
 		comp[k].homo = Homography(
-					comp[k + 1].homo.prod(comp[k].homo));
+				comp[k + 1].homo.prod(comp[k].homo));
 	// then, comp[k]: from k to identity
 }
 

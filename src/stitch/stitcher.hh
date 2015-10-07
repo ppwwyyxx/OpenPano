@@ -11,56 +11,12 @@
 #include "lib/utils.hh"
 #include "lib/geometry.hh"
 #include "transform.hh"
-#include "projection.hh"
+#include "match_info.hh"
 #include "feature/feature.hh"
-
-namespace feature { class MatchData; }
+#include "stitcher_image.hh"
 
 // forward declaration
-
-struct ConnectedImages {
-	struct Range {
-		Vec2D min, max;
-		Range(){}
-		Range(const Vec2D& a, const Vec2D& b): min(a), max(b) {}
-	};
-
-	// -- projections
-	enum ProjectionMethod { flat, cylindrical, spherical };
-	ProjectionMethod proj_method;
-
-	Range proj_range;	// in identity image coordinate
-
-	// update range of projection of all transformations
-	void update_proj_range();
-
-	projector::homo2proj_t get_homo2proj() const;
-	projector::proj2homo_t get_proj2homo() const;
-
-	int identity_idx;
-
-	// -- image transformations and metadata
-
-	struct ImageComponent {
-		Homography homo,			// from me to identity
-							 homo_inv;	// from identity to me
-
-		// point to the original image
-		Mat32f* imgptr;
-
-		// range after projected to identity frame
-		Range range;
-
-		ImageComponent(){}
-		ImageComponent(Mat32f* img):imgptr(img) {}
-	};
-
-	std::vector<ImageComponent> component;
-
-	// inverse all homographies
-	void calc_inverse_homo();
-
-};
+namespace feature { class MatchData; }
 
 class Stitcher {
 	private:
@@ -70,6 +26,13 @@ class Stitcher {
 		// feature of each image
 		std::vector<std::vector<feature::Descriptor>> feats;
 
+		// 2d array of all matches
+		// pairwise_matches[i][j].homo transform j to i
+		std::vector<std::vector<MatchInfo>> pairwise_matches;
+		// connection between images. stored as adj table
+		std::vector<std::vector<int>> graph;
+
+		// feature detector
 		std::unique_ptr<feature::FeatureDetector> feature_det;
 
 		template<typename A, typename B>
@@ -79,8 +42,26 @@ class Stitcher {
 			>::value
 			>::type;
 
+		// get feature descriptor for each image
+		void calc_feature();
+
+		// pairwise matching of all images
+		void pairwise_match();
+
+		// calculate and pairwise transform
+		void calc_transform();
 		void calc_matrix_pano();
 		void calc_matrix_simple();
+
+		void straighten_simple();
+
+		Mat32f blend();
+
+		float update_h_factor(float, float&, float&,
+				std::vector<Homography>&,
+				const std::vector<feature::MatchData>&);
+
+		Homography get_transform(int f1, int f2) const; // second -> first
 
 	public:
 		// universal reference constructor to initialize imgs
@@ -98,21 +79,5 @@ class Stitcher {
 			}
 
 		Mat32f build();
-
-		Homography get_transform(int f1, int f2) const; // second -> first
-
 		static std::vector<feature::Descriptor> get_feature(const Mat32f&);
-
-		void calc_feature();
-
-		// calculate feature and pairwise transform
-		void calc_transform();
-
-		void straighten_simple();
-
-		Mat32f blend();
-
-		float update_h_factor(float, float&, float&,
-				std::vector<Homography>&,
-				const std::vector<feature::MatchData>&);
 };

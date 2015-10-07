@@ -1,7 +1,7 @@
 //File: stitcher_image.cc
 //Author: Yuxin Wu <ppwwyyxx@gmail.com>
 
-#include "stitcher.hh"
+#include "stitcher_image.hh"
 #include "projection.hh"
 #include <cassert>
 
