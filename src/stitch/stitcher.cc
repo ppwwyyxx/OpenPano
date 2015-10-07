@@ -12,6 +12,7 @@
 #include "warp.hh"
 #include "transform_estimate.hh"
 #include "projection.hh"
+#include "match_info.hh"
 
 #include "lib/timer.hh"
 #include "lib/imgproc.hh"
@@ -95,11 +96,11 @@ Homography Stitcher::get_transform(int f1, int f2) const {
 	FeatureMatcher match(feats[f1], feats[f2]);		// this is not efficient
 	auto ret = match.match();
 	TransformEstimation transf(ret, feats[f1], feats[f2]);
-	Homography r;
-	bool succ = transf.get_transform(&r);
+	MatchInfo info;
+	bool succ = transf.get_transform(&info);
 	if (not succ)
 		error_exit(ssprintf("Image %d & %d doesn't match.", f1, f2));
-	return r;
+	return info.homo;
 }
 
 void Stitcher::straighten_simple() {
@@ -210,13 +211,15 @@ void Stitcher::calc_matrix_pano() {;
 	// TODO can we use inverse transform directly?
 	REPD(i, mid - 1, 0) {
 		matches[i].reverse();
+		MatchInfo info;
 		bool succ = TransformEstimation(
 				matches[i],
-				feats[i + 1], feats[i]).get_transform(&bundle.component[i].homo);
+				feats[i + 1], feats[i]).get_transform(&info);
 		if (not succ) {
 			cerr << "The two image doesn't match. Failed" << endl;
 			exit(1);
 		}
+		bundle.component[i].homo = info.homo;
 	}
 
 	REPD(i, mid - 2, 0)
@@ -246,21 +249,6 @@ void Stitcher::calc_matrix_simple() {
 		else if (k <= mid - 1)
 			comp[k].homo = get_transform(k + 1, k);	// from k to k+1
 	}
-	/*
-	 *vector<float> fs;
-	 *REPL(k, 0, n - 1) {
-	 *  auto m = get_transform(k, k+1);
-	 *  auto f = TransformEstimation::get_focal_from_matrix(m);
-	 *  fs.emplace_back(f);
-	 *}
-	 *REPL(k, 1, n) {
-	 *  auto m = get_transform(k, k-1);
-	 *  auto f = TransformEstimation::get_focal_from_matrix(m);
-	 *  fs.emplace_back(f);
-	 *}
-	 *sort(fs.begin(), fs.end());
-	 *print_debug("focal: %f", fs[fs.size() / 2]);
-	 */
 	// accumulate the transformations
 	REPL(k, mid + 2, n)
 		comp[k].homo = Homography(
@@ -294,13 +282,14 @@ float Stitcher::update_h_factor(float nowfactor,
 
 	vector<Homography> nowmat;		// size = len - 1
 	REPL(k, 1, len) {
-		nowmat.emplace_back();
+		MatchInfo info;
 		bool succ = TransformEstimation(matches[k - 1 + mid], nowfeats[k - 1],
-				nowfeats[k]).get_transform(&nowmat.back());
+				nowfeats[k]).get_transform(&info);
 		if (not succ) {
 			cerr << "The two image doesn't match. Failed" << endl;
 			exit(1);
 		}
+		nowmat.emplace_back(info.homo);
 	}
 
 	REPL(k, 1, len - 1)
