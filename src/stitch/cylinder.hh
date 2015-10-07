@@ -43,6 +43,6 @@ class CylinderWarper {
 			feature::Descriptor f;
 			f.coor = Vec2D(0, 0);
 			std::vector<feature::Descriptor> ff = {f};
-			warp(mat, {ff});
+			warp(mat, ff);
 		}
 };

@@ -22,7 +22,6 @@ vector<Descriptor> FeatureDetector::detect_feature(const Mat32f& img) const {
 		d.coor.x = (d.coor.x - 0.5) * img.width();
 		d.coor.y = (d.coor.y - 0.5) * img.height();
 	}
-	cout << "number of features: " << ret.size() << endl;
 	return ret;
 }
 
