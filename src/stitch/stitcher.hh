@@ -36,21 +36,23 @@ struct ConnectedImages {
 		Homography homo,			// from me to identity
 							 homo_inv;	// from identity to me
 
-		// reference the original image
+		// point to the original image
 		Mat32f* imgptr;
 
+		// range after projected to identity frame
 		Range range;
+
 		ImageComponent(){}
 		ImageComponent(Mat32f* img):imgptr(img) {}
 	};
 
 	std::vector<ImageComponent> component;
-	std::vector<Range> proj_ranges;
 	Vec2D proj_min, proj_max;	// in identity image coordinate
 
 	// update range of projection of all transformations
-	void update_proj_range(const std::vector<Mat32f>& imgs);
+	void update_proj_range();
 
+	// inverse all homographies
 	void calc_inverse_homo();
 
 	projector::homo2proj_t get_homo2proj() const;
@@ -65,8 +67,6 @@ class Stitcher {
 
 		// feature for each image
 		std::vector<std::vector<Descriptor>> feats;
-
-		bool circle_detected = false;
 
 		template<typename A, typename B>
 			using disable_if_same_or_derived =
