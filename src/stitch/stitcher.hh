@@ -16,15 +16,6 @@
 class MatchData;
 struct Descriptor;
 
-// An image to be stitched
-struct ImageComponent {
-	Homography homo,	// from me to identity
-						 homo_inv;	// from identity to me
-	//int idx;	// its original index
-	ImageComponent(){}
-	ImageComponent(const Homography& h): homo(h) {}
-};
-
 struct ConnectedImages {
 	enum ProjectionMethod {
 		flat,
@@ -32,14 +23,28 @@ struct ConnectedImages {
 		spherical
 	};
 	ProjectionMethod proj_method;
-	int identity_idx;
 
-	std::vector<ImageComponent> component;
+	int identity_idx;
 
 	struct Range {
 		Vec2D min, max;
 		Range(const Vec2D& a, const Vec2D& b): min(a), max(b) {}
+		Range(){}
 	};
+
+	struct ImageComponent {
+		Homography homo,			// from me to identity
+							 homo_inv;	// from identity to me
+
+		// reference the original image
+		Mat32f* imgptr;
+
+		Range range;
+		ImageComponent(){}
+		ImageComponent(Mat32f* img):imgptr(img) {}
+	};
+
+	std::vector<ImageComponent> component;
 	std::vector<Range> proj_ranges;
 	Vec2D proj_min, proj_max;	// in identity image coordinate
 

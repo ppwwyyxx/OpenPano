@@ -67,7 +67,7 @@ Mat32f Stitcher::blend() {
 
 	LinearBlender blender;
 	REP(k, n) {
-		auto& cur_img = bundle.component[k];
+		auto& cur = bundle.component[k];
 		Coor top_left = scale_coor_to_img_coor(bundle.proj_ranges[k].min);
 		Coor bottom_right = scale_coor_to_img_coor(bundle.proj_ranges[k].max);
 		Coor diff = bottom_right - top_left;
@@ -76,17 +76,17 @@ Mat32f Stitcher::blend() {
 
 		REP(i, h) REP(j, w) {
 			Vec2D c((j + top_left.x) * x_per_pixel + proj_min.x, (i + top_left.y) * y_per_pixel + proj_min.y);
-			Vec homo = proj2homo(Vec2D(c.x / imgs[k].width(),
-								c.y / imgs[k].height()));
-			homo.x -= 0.5 * homo.z, homo.y -= 0.5 * homo.z;
+			Vec homo = proj2homo(Vec2D(c.x / refw, c.y / refh));
+			homo.x -= 0.5 * homo.z, homo.y -= 0.5 * homo.z;	// shift center for homography
 			homo.x *= refw, homo.y *= refh;
 			Vec2D& p = (orig_pos.at(i, j)
-					= cur_img.homo_inv.trans_normalize(homo)
-					+ Vec2D(imgs[k].width()/2, imgs[k].height()/2));
-			if (!p.isNaN() && (p.x < 0 || p.x >= imgs[k].width() || p.y < 0 || p.y >= imgs[k].height()))
+					= cur.homo_inv.trans_normalize(homo)
+					+ Vec2D(cur.imgptr->width()/2, cur.imgptr->height()/2));
+			if (!p.isNaN() && (p.x < 0 || p.x >= cur.imgptr->width()
+						|| p.y < 0 || p.y >= cur.imgptr->height()))
 				p = Vec2D::NaN();
 		}
-		blender.add_image(top_left, orig_pos, imgs[k]);
+		blender.add_image(top_left, orig_pos, *cur.imgptr);
 	}
 	blender.run(ret);
 	return ret;
@@ -127,6 +127,10 @@ void Stitcher::calc_feature() {
 }
 
 void Stitcher::calc_transform() {
+	bundle.component.resize(imgs.size());
+	REP(i, imgs.size())
+		bundle.component[i].imgptr = &imgs[i];
+
 	Timer timer;
 	if (PANO) {
 		calc_matrix_pano();
@@ -146,8 +150,7 @@ void Stitcher::calc_transform() {
 
 void Stitcher::calc_matrix_pano() {;
 	int n = imgs.size(), mid = n >> 1;
-	bundle.component.resize(n);
-	REP(i, n) bundle.component[i].homo = Matrix::I(3);
+	REP(i, n) bundle.component[i].homo = Homography::I();
 
 	Timer timer;
 	vector<MatchData> matches;
@@ -158,21 +161,25 @@ void Stitcher::calc_matrix_pano() {;
 	}
 	print_debug("match time: %lf secs\n", timer.duration());
 
-	if (n > 2) {
-		// head and tail
-		auto last_match = matches.back();
-		// test whether two image really matches each other
-		if ((float)last_match.size() * 2 / (feats[0].size() + feats[n - 1].size()) > CONNECTED_THRES) {
-			print_debug("detect circle\n");
-			circle_detected = true;
-			imgs.push_back(imgs[0].clone());
-			bundle.component.emplace_back(ImageComponent{Homography::I()});
-			feats.push_back(feats[0]);
-			n ++, mid = n >> 1;
-		} else {
-			matches.pop_back();
-		}
-	}
+	/*	// cause strange bugs in myself/small*
+	 *if (n > 2) {
+	 *  // head and tail
+	 *  auto last_match = matches.back();
+	 *  // test whether two image really matches each other
+	 *  if ((float)last_match.size() * 2 / (feats[0].size() + feats[n - 1].size()) > CONNECTED_THRES) {
+	 *    print_debug("detect circle\n");
+	 *    circle_detected = true;
+	 *    imgs.push_back(imgs[0].clone());
+	 *    bundle.component.emplace_back();
+	 *    bundle.component.back().imgptr = &imgs[0];
+	 *    bundle.component.back().homo = Homography::I();
+	 *    feats.push_back(feats[0]);
+	 *    n ++, mid = n >> 1;
+	 *  } else {
+	 *    matches.pop_back();
+	 *  }
+	 *}
+	 */
 	bundle.identity_idx = mid;
 	vector<Homography> bestmat;
 
@@ -224,8 +231,7 @@ void Stitcher::calc_matrix_pano() {;
 void Stitcher::calc_matrix_simple() {
 	int n = imgs.size(), mid = n >> 1;
 	bundle.identity_idx = mid;
-	bundle.component.resize(n);
-	bundle.component[mid] = ImageComponent{Homography::I()};
+	bundle.component[mid].homo = Homography::I();
 
 	// when not translation, do a simple-guess warping
 	if (!TRANS) {
@@ -240,9 +246,9 @@ void Stitcher::calc_matrix_simple() {
 	REP(k, n) {
 		if (k >= mid + 1)
 			// get match and transform
-			comp[k] = ImageComponent{get_transform(k - 1, k)};	// from k to k-1
+			comp[k].homo = get_transform(k - 1, k);	// from k to k-1
 		else if (k <= mid - 1)
-			comp[k] = ImageComponent{get_transform(k + 1, k)};	// from k to k+1
+			comp[k].homo = get_transform(k + 1, k);	// from k to k+1
 	}
 	/*
 	 *vector<float> fs;
