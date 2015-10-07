@@ -12,28 +12,27 @@ using namespace std;
 namespace feature {
 
 GaussCache::GaussCache(float sigma) {
+	// TODO decide window size ?
 	/*
 	 *const int kw = round(GAUSS_WINDOW_FACTOR * sigma) + 1;
 	 */
 	kw = ceil(0.3 * (sigma / 2 - 1) + 0.8) * GAUSS_WINDOW_FACTOR;
 	if (kw % 2 == 0) kw ++;
-	// TODO decide window size ?
-
+	kernel_buf = create_auto_buf<float>(kw);
 	const int center = kw / 2;
-	normalization_factor = 2 * M_PI * sqr(sigma);
-	kernel_tot = 0;
+	kernel = kernel_buf.get() + center;
 
-	kernel = new float[kw * kw];
-	REP(i, kw) {
-		REP(j, kw) {
-			float x = i - center,
-				    y = j - center;
-			int loc = i * kw + j;
-			kernel[loc] = exp(-(sqr(x) + sqr(y)) / (2 * sqr(sigma)));
-			kernel[loc] /= normalization_factor;
-			kernel_tot += kernel[loc];
-		}
-	}
+	kernel[0] = 1;
+
+	float exp_coeff = -1.0 / (sigma * sigma * 2),
+				 wsum = 1;
+	for (int i = 1; i <= center; i ++)
+		wsum += (kernel[i] = exp(i * i * exp_coeff)) * 2;
+
+	float fac = 1.0 / wsum;
+	kernel[0] = fac;
+	for (int i = 1; i <= center; i ++)
+		kernel[-i] = (kernel[i] *= fac);
 }
 
 Filter::Filter(int nscale,
@@ -57,39 +56,54 @@ Mat32f Filter::GaussianBlur(
 	const int center = kw / 2;
 	float * kernel = gauss.kernel;
 
-	// cache. speed up a lot
-	vector<const float*> row_ptrs(h);
-	REP(i, h) row_ptrs[i] = img.ptr(i);
+	auto cur_line_mem = create_auto_buf<float>(
+			center * 2 + max(w, h), true);
+	float *cur_line = cur_line_mem.get() + center;
 
+	// apply to columns
+	REP(j, w){
+		const float* src = img.ptr(0, j);
+		// copy a column of src
+		REP(i, h) {
+			cur_line[i] = *src;
+			src += w;
+		}
+
+		// pad the border with border value
+		float v0 = cur_line[0];
+		for (int i = 1; i <= center; i ++)
+			cur_line[-i] = v0;
+		v0 = cur_line[h - 1];
+		for (int i = 0; i < center; i ++)
+			cur_line[h + i] = v0;
+
+		float *dest = ret.ptr(0, j);
+		REP(i, h) {
+			float tmp = 0;
+			for (int k = -center; k <= center; k ++)
+				tmp += kernel[k] * cur_line[i + k];
+			*dest = tmp;
+			dest += w;
+		}
+	}
+
+	// apply to rows
 	REP(i, h) {
-		float* rst_row = ret.ptr(i);
+		float *dest = ret.ptr(i);
+		memcpy(cur_line, dest, sizeof(cur_line[0]) * w);
+		{	// pad the border
+			float v0 = cur_line[0];
+			for (int j = 1; j <= center; j ++)
+				cur_line[-j] = v0;
+			v0 = cur_line[w - 1];
+			for (int j = 0; j < center; j ++)
+				cur_line[center + j] = v0;
+		}
 		REP(j, w) {
-			int x_bound = min(kw, h + center - i),
-					y_bound = min(kw, w + center - j);
-
-			// perform a direct zero-padded convolution is good enough
-			float kernel_tot = gauss.kernel_tot;
-			// when deleted, cause large error in myself/small*. work later.
-			if (not (j >= center && x_bound == kw && i >= center && y_bound == kw)) {
-				kernel_tot = 0.f;
-				for (int x = max(center - i, 0); x < x_bound; x ++)
-					for (int y = max(center - j, 0); y < y_bound; y ++)
-						kernel_tot += kernel[x * kw + y];
-			}
-
-			float newvalue = 0;
-			for (int x = max(0, center - i); x < x_bound; x ++) {
-				int di = x - center + i;
-				const float* now_row_ptr = row_ptrs[di];
-				const float* now_krn = kernel + x * kw;
-				for (int y = max(0, center - j); y < y_bound; y ++) {
-					int dj = y - center + j;
-					float curr = now_row_ptr[dj];
-					newvalue += curr * now_krn[y];
-				}
-			}
-			float compensation = 1.0 / kernel_tot;
-			rst_row[j] = newvalue * compensation;
+			float tmp = 0;
+			for (int k = -center; k <= center; k ++)
+				tmp += kernel[k] * cur_line[j + k];
+			*(dest ++) = tmp;
 		}
 	}
 	return ret;

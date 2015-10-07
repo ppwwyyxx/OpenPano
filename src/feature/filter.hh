@@ -14,36 +14,10 @@ namespace feature {
 
 class GaussCache {
 	public:
-		float * kernel;
-		float kernel_tot;
-		float normalization_factor;
-
+		std::shared_ptr<float> kernel_buf;
+		float* kernel;
 		int kw;
-
 		GaussCache(float sigma);
-
-		~GaussCache()
-		{ delete[] kernel; }
-
-		// something bad
-		GaussCache(const GaussCache& m) {
-			kernel_tot = m.kernel_tot;
-			normalization_factor = m.normalization_factor;
-			kw = m.kw;
-			kernel = new float[kw * kw];
-			memcpy(kernel, m.kernel, kw * kw * sizeof(float));
-		}
-
-		GaussCache & operator = (const GaussCache & m) = delete;
-
-		GaussCache(GaussCache&& m) {
-			kernel_tot = m.kernel_tot;
-			normalization_factor = m.normalization_factor;
-			kw = m.kw;
-			kernel = m.kernel;
-			m.kernel = nullptr;
-		}
-
 };
 
 class Filter {
