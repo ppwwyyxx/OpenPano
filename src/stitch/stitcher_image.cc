@@ -2,6 +2,7 @@
 //Author: Yuxin Wu <ppwwyyxx@gmail.com>
 
 #include "stitcher.hh"
+#include "projection.hh"
 #include <cassert>
 
 void ConnectedImages::calc_inverse_homo() {

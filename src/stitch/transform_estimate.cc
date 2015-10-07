@@ -1,8 +1,8 @@
-// File: transformer.cc
+// File: transform_estimate.cc
 // Date: Fri May 03 23:04:58 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
-#include "transformer.hh"
+#include "transform_estimate.hh"
 
 #include <set>
 #include <Eigen/Dense>
@@ -14,7 +14,7 @@
 using namespace std;
 using namespace feature;
 
-TransFormer::TransFormer(const feature::MatchData& m_match,
+TransformEstimation::TransformEstimation(const feature::MatchData& m_match,
 		const std::vector<feature::Descriptor>& m_f1,
 		const std::vector<feature::Descriptor>& m_f2):
 	match(m_match), f1(m_f1), f2(m_f2),
@@ -31,7 +31,7 @@ TransFormer::TransFormer(const feature::MatchData& m_match,
 
 // TODO find out when not matched
 // get a transform matix from second -> first
-bool TransFormer::get_transform(Homography* ret) {
+bool TransformEstimation::get_transform(Homography* ret) {
 	TotalTimer tm("get_transform");
 	int REQUIRED = (HOMO ? HOMO_FREEDOM: AFFINE_FREEDOM) + 1 / 2;
 	int n_match = match.size();
@@ -75,14 +75,14 @@ bool TransFormer::get_transform(Homography* ret) {
 	return true;
 }
 
-Homography TransFormer::calc_transform(const vector<int>& matches) const {
+Homography TransformEstimation::calc_transform(const vector<int>& matches) const {
 	if (HOMO)
 		return calc_homo_transform(matches);
 	else
 		return calc_affine_transform(matches);
 }
 
-Homography TransFormer::calc_affine_transform(const vector<int>& matches) const {
+Homography TransformEstimation::calc_affine_transform(const vector<int>& matches) const {
 	using namespace Eigen;
 	int n = matches.size();
 	m_assert(n * 2 >= AFFINE_FREEDOM);
@@ -105,7 +105,7 @@ Homography TransFormer::calc_affine_transform(const vector<int>& matches) const 
 	return move(ret);
 }
 
-Homography TransFormer::calc_homo_transform(const vector<int>& matches) const {
+Homography TransformEstimation::calc_homo_transform(const vector<int>& matches) const {
 	using namespace Eigen;
 	int n = matches.size();
 	m_assert(n * 2 >= HOMO_FREEDOM);
@@ -134,7 +134,7 @@ Homography TransFormer::calc_homo_transform(const vector<int>& matches) const {
 	return ret;
 }
 
-vector<int> TransFormer::get_inliers(const Homography& trans) const {
+vector<int> TransformEstimation::get_inliers(const Homography& trans) const {
 	static double INLIER_DIST = RANSAC_INLIER_THRES * RANSAC_INLIER_THRES;
 	TotalTimer tm("get_inlier");
 	vector<int> ret;
@@ -152,7 +152,7 @@ vector<int> TransFormer::get_inliers(const Homography& trans) const {
 	return ret;
 }
 
-real_t TransFormer::get_focal_from_matrix(const Matrix& m) {
+real_t TransformEstimation::get_focal_from_matrix(const Matrix& m) {
 	/*
 	 *  real_t f2;
 	 *  real_t p1 = sqr(m.at(0, 0)) + sqr(m.at(0, 1)) - sqr(m.at(1, 0)) - sqr(m.at(1, 1));

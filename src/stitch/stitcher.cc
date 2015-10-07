@@ -9,8 +9,9 @@
 #include <algorithm>
 
 #include "feature/matcher.hh"
-#include "cylinder.hh"
-#include "transformer.hh"
+#include "warp.hh"
+#include "transform_estimate.hh"
+#include "projection.hh"
 
 #include "lib/timer.hh"
 #include "lib/imgproc.hh"
@@ -93,7 +94,7 @@ Mat32f Stitcher::blend() {
 Homography Stitcher::get_transform(int f1, int f2) const {
 	FeatureMatcher match(feats[f1], feats[f2]);		// this is not efficient
 	auto ret = match.match();
-	TransFormer transf(ret, feats[f1], feats[f2]);
+	TransformEstimation transf(ret, feats[f1], feats[f2]);
 	Homography r;
 	bool succ = transf.get_transform(&r);
 	if (not succ)
@@ -209,7 +210,7 @@ void Stitcher::calc_matrix_pano() {;
 	// TODO can we use inverse transform directly?
 	REPD(i, mid - 1, 0) {
 		matches[i].reverse();
-		bool succ = TransFormer(
+		bool succ = TransformEstimation(
 				matches[i],
 				feats[i + 1], feats[i]).get_transform(&bundle.component[i].homo);
 		if (not succ) {
@@ -249,12 +250,12 @@ void Stitcher::calc_matrix_simple() {
 	 *vector<float> fs;
 	 *REPL(k, 0, n - 1) {
 	 *  auto m = get_transform(k, k+1);
-	 *  auto f = TransFormer::get_focal_from_matrix(m);
+	 *  auto f = TransformEstimation::get_focal_from_matrix(m);
 	 *  fs.emplace_back(f);
 	 *}
 	 *REPL(k, 1, n) {
 	 *  auto m = get_transform(k, k-1);
-	 *  auto f = TransFormer::get_focal_from_matrix(m);
+	 *  auto f = TransformEstimation::get_focal_from_matrix(m);
 	 *  fs.emplace_back(f);
 	 *}
 	 *sort(fs.begin(), fs.end());
@@ -294,7 +295,7 @@ float Stitcher::update_h_factor(float nowfactor,
 	vector<Homography> nowmat;		// size = len - 1
 	REPL(k, 1, len) {
 		nowmat.emplace_back();
-		bool succ = TransFormer(matches[k - 1 + mid], nowfeats[k - 1],
+		bool succ = TransformEstimation(matches[k - 1 + mid], nowfeats[k - 1],
 				nowfeats[k]).get_transform(&nowmat.back());
 		if (not succ) {
 			cerr << "The two image doesn't match. Failed" << endl;
@@ -349,7 +350,7 @@ float Stitcher::update_h_factor(float nowfactor,
  *    ret.get(1, 1) = res.get(3, 0);
  *    ret.get(2, 2) = 1;
  *    for (auto &i : ptr) {
- *        Vec2D project = TransFormer::cal_project(ret, i);
+ *        Vec2D project = TransformEstimation::cal_project(ret, i);
  *        cout << project << " ==?" << (line.x * project.x + line.y) << endl;
  *    }
  *    return move(ret);
@@ -363,7 +364,7 @@ float Stitcher::update_h_factor(float nowfactor,
  *
  *    vector<Vec2D> centers;
  *    REP(k, n)
- *        centers.push_back(TransFormer::cal_project(mat[k], imgs[k]->get_center()));
+ *        centers.push_back(TransformEstimation::cal_project(mat[k], imgs[k]->get_center()));
  *    Vec2D kb = Stitcher::line_fit(centers);
  *    P(kb);
  *    if (fabs(kb.x) < 1e-3) return;		// already done

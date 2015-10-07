@@ -17,6 +17,7 @@ GaussCache::GaussCache(float sigma) {
 	 *const int kw = round(GAUSS_WINDOW_FACTOR * sigma) + 1;
 	 */
 	kw = ceil(0.3 * (sigma / 2 - 1) + 0.8) * GAUSS_WINDOW_FACTOR;
+	//cout << kw << " " << sigma << endl;
 	if (kw % 2 == 0) kw ++;
 	kernel_buf = create_auto_buf<float>(kw);
 	const int center = kw / 2;
