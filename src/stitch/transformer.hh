@@ -4,15 +4,20 @@
 
 #pragma once
 #include <vector>
-#include "feature/matcher.hh"
+//#include "feature/matcher.hh"
 #include "lib/matrix.hh"
 #include "transform.hh"
+
+namespace feature {
+	class MatchData;
+	struct Descriptor;
+}
 
 // find transformation matrix between two set of matched feature
 class TransFormer {
 	private:
-		const MatchData& match;
-		const std::vector<Descriptor>& f1, & f2;
+		const feature::MatchData& match;
+		const std::vector<feature::Descriptor>& f1, & f2;
 
 		// homogeneous coordinate of points in f2
 		Matrix f2_homo_coor;	// 3xn
@@ -26,18 +31,9 @@ class TransFormer {
 		std::vector<int> get_inliers(const Homography &) const;
 
 	public:
-		TransFormer(const MatchData& m_match, const std::vector<Descriptor>& m_f1, const std::vector<Descriptor>& m_f2):
-			match(m_match), f1(m_f1), f2(m_f2),
-			f2_homo_coor(3, match.size())
-		{
-			int n = match.size();
-			REP(i, n) {
-				Vec2D old = f2[match.data[i].second].coor;
-				f2_homo_coor.at(0, i) = old.x;
-				f2_homo_coor.at(1, i) = old.y;
-			}
-			REP(i, n) f2_homo_coor.at(2, i) = 1;
-		}
+		TransFormer(const feature::MatchData& m_match,
+				const std::vector<feature::Descriptor>& m_f1,
+				const std::vector<feature::Descriptor>& m_f2);
 
 		bool get_transform(Homography* r);
 

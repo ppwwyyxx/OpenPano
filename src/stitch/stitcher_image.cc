@@ -20,8 +20,8 @@ void ConnectedImages::update_proj_range() {
 
 	auto homo2proj = get_homo2proj();
 
-	proj_min = Vec2D(std::numeric_limits<double>::max(), std::numeric_limits<double>::max());
-	proj_max = Vec2D(std::numeric_limits<double>::lowest(), std::numeric_limits<double>::lowest());
+	Vec2D proj_min = Vec2D(std::numeric_limits<double>::max(), std::numeric_limits<double>::max());
+	Vec2D proj_max = Vec2D(std::numeric_limits<double>::lowest(), std::numeric_limits<double>::lowest());
 	for (auto& m : component) {
 		Vec2D now_min(std::numeric_limits<double>::max(), std::numeric_limits<double>::max()),
 					now_max = now_min * (-1);
@@ -39,6 +39,7 @@ void ConnectedImages::update_proj_range() {
 		proj_min.update_min(now_min);
 		proj_max.update_max(now_max);
 	}
+	proj_range.min = proj_min, proj_range.max = proj_max;
 }
 
 projector::homo2proj_t ConnectedImages::get_homo2proj() const {

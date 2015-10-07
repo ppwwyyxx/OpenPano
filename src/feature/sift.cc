@@ -8,8 +8,8 @@ using namespace std;
 namespace {
 	const int featlen = DESC_HIST_WIDTH * DESC_HIST_WIDTH * DESC_HIST_BIN_NUM;
 
-	Descriptor hist_to_descriptor(float* hist) {
-		Descriptor ret;
+	feature::Descriptor hist_to_descriptor(float* hist) {
+		feature::Descriptor ret;
 		ret.descriptor.resize(featlen);
 		memcpy(ret.descriptor.data(), hist, featlen * sizeof(float));
 
@@ -50,6 +50,8 @@ namespace {
 		}
 	}
 }
+
+namespace feature {
 
 SIFT::SIFT(const ScaleSpace& ss,
 		const vector<SSPoint>& keypoints):
@@ -131,4 +133,6 @@ Descriptor SIFT::calc_descriptor(const SSPoint& p) const {
 	Descriptor ret = hist_to_descriptor((float*)hist);
 	ret.coor = p.real_coor;
 	return ret;
+}
+
 }

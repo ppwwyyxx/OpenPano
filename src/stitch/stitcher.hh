@@ -11,26 +11,34 @@
 #include "lib/utils.hh"
 #include "lib/geometry.hh"
 #include "transform.hh"
+#include "feature/feature.hh"
+
+namespace feature { class MatchData; }
 
 // forward declaration
-class MatchData;
-struct Descriptor;
 
 struct ConnectedImages {
-	enum ProjectionMethod {
-		flat,
-		cylindrical,
-		spherical
+	struct Range {
+		Vec2D min, max;
+		Range(){}
+		Range(const Vec2D& a, const Vec2D& b): min(a), max(b) {}
 	};
+
+	// -- projections
+	enum ProjectionMethod { flat, cylindrical, spherical };
 	ProjectionMethod proj_method;
+
+	Range proj_range;	// in identity image coordinate
+
+	// update range of projection of all transformations
+	void update_proj_range();
+
+	projector::homo2proj_t get_homo2proj() const;
+	projector::proj2homo_t get_proj2homo() const;
 
 	int identity_idx;
 
-	struct Range {
-		Vec2D min, max;
-		Range(const Vec2D& a, const Vec2D& b): min(a), max(b) {}
-		Range(){}
-	};
+	// -- image transformations and metadata
 
 	struct ImageComponent {
 		Homography homo,			// from me to identity
@@ -47,26 +55,21 @@ struct ConnectedImages {
 	};
 
 	std::vector<ImageComponent> component;
-	Vec2D proj_min, proj_max;	// in identity image coordinate
-
-	// update range of projection of all transformations
-	void update_proj_range();
 
 	// inverse all homographies
 	void calc_inverse_homo();
 
-	projector::homo2proj_t get_homo2proj() const;
-	projector::proj2homo_t get_proj2homo() const;
 };
 
 class Stitcher {
 	private:
 		std::vector<Mat32f> imgs;
-
+		// transformation and metadata of each image
 		ConnectedImages bundle;
+		// feature of each image
+		std::vector<std::vector<feature::Descriptor>> feats;
 
-		// feature for each image
-		std::vector<std::vector<Descriptor>> feats;
+		std::unique_ptr<feature::FeatureDetector> feature_det;
 
 		template<typename A, typename B>
 			using disable_if_same_or_derived =
@@ -74,6 +77,9 @@ class Stitcher {
 			!std::is_base_of<A, typename std::remove_reference<B>::type
 			>::value
 			>::type;
+
+		void calc_matrix_pano();
+		void calc_matrix_simple();
 
 	public:
 		// universal reference constructor to initialize imgs
@@ -83,20 +89,19 @@ class Stitcher {
 			Stitcher(U&& i) : imgs(std::forward<U>(i)) {
 				if (imgs.size() <= 1)
 					error_exit(ssprintf("Cannot stitch with only %lu images.", imgs.size()));
+				feature_det.reset(new feature::SIFTDetector());
 			}
 
 		Mat32f build();
 
 		Homography get_transform(int f1, int f2) const; // second -> first
 
-		static std::vector<Descriptor> get_feature(const Mat32f&);
+		static std::vector<feature::Descriptor> get_feature(const Mat32f&);
 
 		void calc_feature();
 
 		// calculate feature and pairwise transform
 		void calc_transform();
-		void calc_matrix_pano();
-		void calc_matrix_simple();
 
 		void straighten_simple();
 
@@ -104,5 +109,5 @@ class Stitcher {
 
 		float update_h_factor(float, float&, float&,
 				std::vector<Homography>&,
-				const std::vector<MatchData>&);
+				const std::vector<feature::MatchData>&);
 };

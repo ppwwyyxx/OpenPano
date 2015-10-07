@@ -8,6 +8,8 @@
 #include "lib/mat.h"
 #include "lib/config.hh"
 
+namespace feature {
+
 // Given an image, build an octave with different blurred version
 class GaussianPyramid {
 	private:
@@ -75,3 +77,5 @@ class DOGSpace {
 		DOGSpace(ScaleSpace&);
 
 };
+
+}

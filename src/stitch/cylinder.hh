@@ -17,7 +17,7 @@ class CylinderProject {
 			center(m_center), r(m_r),
 			sizefactor(m_size){}
 
-		Mat32f project(const Mat32f& img, std::vector<Descriptor>& ft) const;
+		Mat32f project(const Mat32f& img, std::vector<feature::Descriptor>& ft) const;
 
 	private:
 		// return (angle with x) and (angle vertical)
@@ -37,12 +37,12 @@ class CylinderWarper {
 		CylinderWarper(real_t m_hfactor):
 			h_factor(m_hfactor) {}
 
-		void warp(Mat32f& mat, std::vector<Descriptor>& ft) const;
+		void warp(Mat32f& mat, std::vector<feature::Descriptor>& ft) const;
 
 		inline void warp(Mat32f& mat) const {
-			Descriptor f;
+			feature::Descriptor f;
 			f.coor = Vec2D(0, 0);
-			std::vector<Descriptor> ff = {f};
-			warp(mat, ff);
+			std::vector<feature::Descriptor> ff = {f};
+			warp(mat, {ff});
 		}
 };

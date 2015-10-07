@@ -16,6 +16,7 @@
 #include "lib/imgproc.hh"
 #include "blender.hh"
 using namespace std;
+using namespace feature;
 
 Mat32f Stitcher::build() {
 	calc_feature();
@@ -39,11 +40,11 @@ Mat32f Stitcher::blend() {
 	Vec2D id_img_range = homo2proj(Vec(1, 1, 1)) - homo2proj(Vec(0, 0, 1));
 	id_img_range.x *= refw, id_img_range.y *= refh;
 	cout << "id_img_range" << id_img_range << endl;
-	cout << "projmin:" << bundle.proj_min << "projmax" << bundle.proj_max << endl;
+	cout << "projmin:" << bundle.proj_range.min << "projmax" << bundle.proj_range.max << endl;
 
-	Vec2D proj_min = bundle.proj_min;
-	real_t x_len = bundle.proj_max.x - proj_min.x,
-		   y_len = bundle.proj_max.y - proj_min.y,
+	Vec2D proj_min = bundle.proj_range.min;
+	real_t x_len = bundle.proj_range.max.x - proj_min.x,
+		   y_len = bundle.proj_range.max.y - proj_min.y,
 		   x_per_pixel = id_img_range.x / refw,
 		   y_per_pixel = id_img_range.y / refh,
 		   target_width = x_len / x_per_pixel,
@@ -120,7 +121,7 @@ void Stitcher::calc_feature() {
 	feats.resize(n);
 #pragma omp parallel for schedule(dynamic)
 	REP(k, n)
-		feats[k] = detect_SIFT(imgs[k]);
+		feats[k] = feature_det->detect_feature(imgs[k]);
 }
 
 void Stitcher::calc_transform() {

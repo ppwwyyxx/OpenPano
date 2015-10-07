@@ -6,6 +6,9 @@
 #include "dog.hh"
 #include "feature.hh"
 
+
+namespace feature {
+
 class OrientationAssign {
 	public:
 		OrientationAssign(
@@ -22,3 +25,5 @@ class OrientationAssign {
 
 		std::vector<float> calc_dir(const SSPoint& p) const;
 };
+
+}

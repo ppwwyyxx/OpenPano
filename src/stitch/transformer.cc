@@ -3,11 +3,31 @@
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "transformer.hh"
-#include "lib/config.hh"
-#include "lib/timer.hh"
+
 #include <set>
 #include <Eigen/Dense>
+
+#include "lib/config.hh"
+#include "lib/timer.hh"
+#include "feature/feature.hh"
+#include "feature/matcher.hh"
 using namespace std;
+using namespace feature;
+
+TransFormer::TransFormer(const feature::MatchData& m_match,
+		const std::vector<feature::Descriptor>& m_f1,
+		const std::vector<feature::Descriptor>& m_f2):
+	match(m_match), f1(m_f1), f2(m_f2),
+	f2_homo_coor(3, match.size())
+{
+	int n = match.size();
+	REP(i, n) {
+		Vec2D old = f2[match.data[i].second].coor;
+		f2_homo_coor.at(0, i) = old.x;
+		f2_homo_coor.at(1, i) = old.y;
+	}
+	REP(i, n) f2_homo_coor.at(2, i) = 1;
+}
 
 // TODO find out when not matched
 // get a transform matix from second -> first
@@ -71,7 +91,7 @@ Homography TransFormer::calc_affine_transform(const vector<int>& matches) const 
 	VectorXd b(n * 2);
 	REP(i, n) {
 		const Vec2D &m0 = f1[match.data[matches[i]].first].coor,	// rhs
-								&m1 = f2[match.data[matches[i]].second].coor;	// lhs
+					&m1 = f2[match.data[matches[i]].second].coor;	// lhs
 		m.row(i * 2) << m1.x, m1.y, 1, 0, 0, 0;
 		b(i * 2, 0) = m0.x;
 
@@ -94,7 +114,7 @@ Homography TransFormer::calc_homo_transform(const vector<int>& matches) const {
 	VectorXd b(n * 2);
 	REP(i, n) {
 		const Vec2D &m0 = f1[match.data[matches[i]].first].coor,	//rhs
-								&m1 = f2[match.data[matches[i]].second].coor;  //lhs
+					&m1 = f2[match.data[matches[i]].second].coor;  //lhs
 		m.row(i * 2) << m1.x, m1.y, 1, 0, 0, 0, -m1.x * m0.x, -m1.y * m0.y;
 		b(i * 2, 0) = m0.x;
 
@@ -133,53 +153,53 @@ vector<int> TransFormer::get_inliers(const Homography& trans) const {
 }
 
 real_t TransFormer::get_focal_from_matrix(const Matrix& m) {
-/*
- *  real_t f2;
- *  real_t p1 = sqr(m.at(0, 0)) + sqr(m.at(0, 1)) - sqr(m.at(1, 0)) - sqr(m.at(1, 1));
- *  if (fabs(p1) > EPS)  {
- *    f2 = (sqr(m.at(1, 2)) - sqr(m.at(0, 2))) / (p1);
- *  } else {
- *    p1 = m.at(0, 0) * m.at(1, 0) + m.at(0, 1) * m.at(1, 1);
- *    if (fabs(p1) > EPS)
- *      f2 = -(m.at(0, 2) * m.at(1, 2)) / p1;
- *    else {
- *      return Vec(m.at(0, 0), m.at(0, 1), m.at(0, 2)).dot(Vec(m.at(2, 0), m.at(2, 1), m.at(2, 2)));
- *    }
- *  }
- *  return sqrt(fabs(f2));
- *
- */
+	/*
+	 *  real_t f2;
+	 *  real_t p1 = sqr(m.at(0, 0)) + sqr(m.at(0, 1)) - sqr(m.at(1, 0)) - sqr(m.at(1, 1));
+	 *  if (fabs(p1) > EPS)  {
+	 *    f2 = (sqr(m.at(1, 2)) - sqr(m.at(0, 2))) / (p1);
+	 *  } else {
+	 *    p1 = m.at(0, 0) * m.at(1, 0) + m.at(0, 1) * m.at(1, 1);
+	 *    if (fabs(p1) > EPS)
+	 *      f2 = -(m.at(0, 2) * m.at(1, 2)) / p1;
+	 *    else {
+	 *      return Vec(m.at(0, 0), m.at(0, 1), m.at(0, 2)).dot(Vec(m.at(2, 0), m.at(2, 1), m.at(2, 2)));
+	 *    }
+	 *  }
+	 *  return sqrt(fabs(f2));
+	 *
+	 */
 
-    const double* h = m.ptr();
+	const double* h = m.ptr();
 
-    double d1, d2; // Denominators
-    double v1, v2; // Focal squares value candidates
-		double f1, f0;
-		bool f1_ok, f0_ok;
+	double d1, d2; // Denominators
+	double v1, v2; // Focal squares value candidates
+	double f1, f0;
+	bool f1_ok, f0_ok;
 
-    f1_ok = true;
-    d1 = h[6] * h[7];
-    d2 = (h[7] - h[6]) * (h[7] + h[6]);
-    v1 = -(h[0] * h[1] + h[3] * h[4]) / d1;
-    v2 = (h[0] * h[0] + h[3] * h[3] - h[1] * h[1] - h[4] * h[4]) / d2;
-    if (v1 < v2) std::swap(v1, v2);
-    if (v1 > 0 && v2 > 0) f1 = std::sqrt(std::abs(d1) > std::abs(d2) ? v1 : v2);
-    else if (v1 > 0) f1 = std::sqrt(v1);
-    else f1_ok = false;
+	f1_ok = true;
+	d1 = h[6] * h[7];
+	d2 = (h[7] - h[6]) * (h[7] + h[6]);
+	v1 = -(h[0] * h[1] + h[3] * h[4]) / d1;
+	v2 = (h[0] * h[0] + h[3] * h[3] - h[1] * h[1] - h[4] * h[4]) / d2;
+	if (v1 < v2) std::swap(v1, v2);
+	if (v1 > 0 && v2 > 0) f1 = std::sqrt(std::abs(d1) > std::abs(d2) ? v1 : v2);
+	else if (v1 > 0) f1 = std::sqrt(v1);
+	else f1_ok = false;
 
-    f0_ok = true;
-    d1 = h[0] * h[3] + h[1] * h[4];
-    d2 = h[0] * h[0] + h[1] * h[1] - h[3] * h[3] - h[4] * h[4];
-    v1 = -h[2] * h[5] / d1;
-    v2 = (h[5] * h[5] - h[2] * h[2]) / d2;
-    if (v1 < v2) std::swap(v1, v2);
-    if (v1 > 0 && v2 > 0) f0 = std::sqrt(std::abs(d1) > std::abs(d2) ? v1 : v2);
-    else if (v1 > 0) f0 = std::sqrt(v1);
-    else f0_ok = false;
-		if (f1_ok && f0_ok) return sqrt(f1 * f0);
-		/*
-		 *if (f1_ok) return f1;
-		 *if (f0_ok) return f0;
-		 */
-		return 0;
+	f0_ok = true;
+	d1 = h[0] * h[3] + h[1] * h[4];
+	d2 = h[0] * h[0] + h[1] * h[1] - h[3] * h[3] - h[4] * h[4];
+	v1 = -h[2] * h[5] / d1;
+	v2 = (h[5] * h[5] - h[2] * h[2]) / d2;
+	if (v1 < v2) std::swap(v1, v2);
+	if (v1 > 0 && v2 > 0) f0 = std::sqrt(std::abs(d1) > std::abs(d2) ? v1 : v2);
+	else if (v1 > 0) f0 = std::sqrt(v1);
+	else f0_ok = false;
+	if (f1_ok && f0_ok) return sqrt(f1 * f0);
+	/*
+	 *if (f1_ok) return f1;
+	 *if (f0_ok) return f0;
+	 */
+	return 0;
 }

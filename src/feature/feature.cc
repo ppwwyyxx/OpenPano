@@ -11,7 +11,10 @@
 #include "lib/imgproc.hh"
 using namespace std;
 
-vector<Descriptor> detect_SIFT(const Mat32f& mat) {
+
+namespace feature {
+
+vector<Descriptor> SIFTDetector::detect_feature(const Mat32f& mat) const {
 	ScaleSpace ss(mat, NUM_OCTAVE, NUM_SCALE);
 	DOGSpace sp(ss);
 
@@ -34,8 +37,8 @@ vector<Descriptor> detect_SIFT(const Mat32f& mat) {
 #ifdef __SSE3__
 #include <x86intrin.h>
 
-// %35 faster than base
-float Descriptor::euclidean_sqr_fast(const Descriptor& r, float now_thres) const {
+// %35 faster
+float Descriptor::euclidean_sqr(const Descriptor& r, float now_thres) const {
 	float ans = 0;
 	const float *x = descriptor.data(),
 							*y = r.descriptor.data();
@@ -68,4 +71,19 @@ float Descriptor::euclidean_sqr_fast(const Descriptor& r, float now_thres) const
 	_mm_store_ss(&ans, rst);
 	return ans;
 }
+
+#else
+
+float Descriptor::euclidean_sqr(const Descriptor& r, float now_thres) const {
+	float ans = 0;
+	REP(i, descriptor.size()) {
+		ans += sqr(descriptor[i] - r.descriptor[i]);
+		if (ans > now_thres)
+			return -1;
+	}
+	return ans;
+}
+
 #endif
+
+}

@@ -6,6 +6,8 @@
 #include "dog.hh"
 #include "feature.hh"
 
+namespace feature {
+
 class ExtremaDetector {
 	public:
 		explicit ExtremaDetector(const DOGSpace&);
@@ -32,3 +34,5 @@ class ExtremaDetector {
 		// Eliminating edge responses. Sec 4.1 of Lowe,IJCV04
 		bool is_edge_response(Coor coor, const Mat32f& img) const;
 };
+
+}
