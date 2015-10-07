@@ -66,4 +66,12 @@ class Homography : public Matrix {
 				mat[i] *= fac;
 			}
 		}
+
+		Homography inverse() const {
+			Homography ret;
+			bool succ = Matrix::inverse(ret);
+			m_assert(succ);
+			ret.normalize();
+			return ret;
+		}
 };

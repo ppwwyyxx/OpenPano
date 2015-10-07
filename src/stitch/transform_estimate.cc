@@ -7,6 +7,7 @@
 #include <set>
 #include <Eigen/Dense>
 
+#include "match_info.hh"
 #include "lib/config.hh"
 #include "lib/timer.hh"
 #include "feature/feature.hh"
@@ -21,6 +22,7 @@ TransformEstimation::TransformEstimation(const feature::MatchData& m_match,
 	f2_homo_coor(3, match.size())
 {
 	int n = match.size();
+	if (n < 6) return;
 	REP(i, n) {
 		Vec2D old = f2[match.data[i].second].coor;
 		f2_homo_coor.at(0, i) = old.x;
@@ -29,13 +31,12 @@ TransformEstimation::TransformEstimation(const feature::MatchData& m_match,
 	REP(i, n) f2_homo_coor.at(2, i) = 1;
 }
 
-// TODO find out when not matched
 // get a transform matix from second -> first
-bool TransformEstimation::get_transform(Homography* ret) {
+bool TransformEstimation::get_transform(MatchInfo* info) {
 	TotalTimer tm("get_transform");
-	int REQUIRED = (HOMO ? HOMO_FREEDOM: AFFINE_FREEDOM) + 1 / 2;
+	int nr_match_used = (HOMO ? HOMO_FREEDOM: AFFINE_FREEDOM) + 1 / 2;
 	int n_match = match.size();
-	if (n_match < REQUIRED) {
+	if (n_match < 6) {
 		cerr << "Transform failed: only have " << n_match << " feature matches." << endl;
 		return false;
 	}
@@ -49,7 +50,7 @@ bool TransformEstimation::get_transform(Homography* ret) {
 	for (int K = RANSAC_ITERATIONS; K --;) {
 		inliers.clear();
 		selected.clear();
-		REP(_, REQUIRED) {
+		REP(_, nr_match_used) {
 			int random;
 			do {
 				random = rand() % n_match;
@@ -71,7 +72,8 @@ bool TransformEstimation::get_transform(Homography* ret) {
 	best_transform = calc_transform(inliers);
 
 	print_debug("final inlier size: %lu\n", inliers.size());
-	*ret = best_transform;
+	fill_inliers_to_matchinfo(inliers, info);
+	info->homo = best_transform;
 	return true;
 }
 
@@ -150,6 +152,20 @@ vector<int> TransformEstimation::get_inliers(const Homography& trans) const {
 			ret.push_back(i);
 	}
 	return ret;
+}
+
+void TransformEstimation::fill_inliers_to_matchinfo(
+		const std::vector<int>& inliers, MatchInfo* info) const {
+	info->match.clear();
+	for (auto& idx : inliers) {
+		info->match.emplace_back(
+				f1[match.data[idx].first].coor,
+				f2[match.data[idx].second].coor
+				);
+	}
+	info->confidence = inliers.size() / (8 + 0.3 * match.size());
+	if (info->confidence > 3)
+		info->confidence = 0.;		// overlap too much. not helpful
 }
 
 real_t TransformEstimation::get_focal_from_matrix(const Matrix& m) {

@@ -6,11 +6,8 @@
 #include <cassert>
 
 void ConnectedImages::calc_inverse_homo() {
-	for (auto& m : component)	 {
-		bool ok = m.homo.inverse(m.homo_inv);
-		m_assert(ok);
-		m.homo_inv.normalize();
-	}
+	for (auto& m : component)
+		m.homo_inv = m.homo.inverse();
 }
 
 void ConnectedImages::update_proj_range() {

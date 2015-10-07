@@ -1,10 +1,9 @@
-// File: transformer.hh
+// File: transform_estimate.hh
 // Date: Fri May 03 04:50:30 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
 #include <vector>
-//#include "feature/matcher.hh"
 #include "lib/matrix.hh"
 #include "transform.hh"
 
@@ -12,6 +11,7 @@ namespace feature {
 	class MatchData;
 	struct Descriptor;
 }
+class MatchInfo;
 
 // find transformation matrix between two set of matched feature
 class TransformEstimation {
@@ -28,6 +28,8 @@ class TransformEstimation {
 
 		Homography calc_affine_transform(const std::vector<int>&) const;
 
+		void fill_inliers_to_matchinfo(const std::vector<int>&, MatchInfo*) const;
+
 		std::vector<int> get_inliers(const Homography &) const;
 
 	public:
@@ -35,7 +37,7 @@ class TransformEstimation {
 				const std::vector<feature::Descriptor>& m_f1,
 				const std::vector<feature::Descriptor>& m_f2);
 
-		bool get_transform(Homography* r);
+		bool get_transform(MatchInfo* info);
 
 		static real_t get_focal_from_matrix(const Matrix& m);
 };
