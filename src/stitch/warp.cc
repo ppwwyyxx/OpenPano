@@ -1,9 +1,9 @@
-// File: cylinder.cc
+// File: warp.cc
 // Date: Thu Jul 04 11:43:00 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 
-#include "cylinder.hh"
+#include "warp.hh"
 #include "lib/imgproc.hh"
 using namespace std;
 using namespace feature;

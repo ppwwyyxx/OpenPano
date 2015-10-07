@@ -11,6 +11,7 @@
 #include "lib/utils.hh"
 #include "lib/geometry.hh"
 #include "transform.hh"
+#include "projection.hh"
 #include "feature/feature.hh"
 
 namespace feature { class MatchData; }

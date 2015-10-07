@@ -10,7 +10,7 @@
 #include "feature/orientation.hh"
 #include "feature/matcher.hh"
 #include "stitch/stitcher.hh"
-#include "stitch/cylinder.hh"
+#include "stitch/warp.hh"
 #include <ctime>
 #include <cassert>
 

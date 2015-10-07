@@ -14,7 +14,7 @@ namespace feature {
 }
 
 // find transformation matrix between two set of matched feature
-class TransFormer {
+class TransformEstimation {
 	private:
 		const feature::MatchData& match;
 		const std::vector<feature::Descriptor>& f1, & f2;
@@ -31,7 +31,7 @@ class TransFormer {
 		std::vector<int> get_inliers(const Homography &) const;
 
 	public:
-		TransFormer(const feature::MatchData& m_match,
+		TransformEstimation(const feature::MatchData& m_match,
 				const std::vector<feature::Descriptor>& m_f1,
 				const std::vector<feature::Descriptor>& m_f2);
 
