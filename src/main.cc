@@ -121,7 +121,8 @@ void init_config() {
 	FOCAL_LENGTH = Config.get("FOCAL_LENGTH");
 	if (PANO && TRANS)
 		error_exit("Want panorama or translation stitching? Cannot have both!");
-	HOMO = TRANS;	// use homography when dealing with pure translation
+	//HOMO = true;	// use homography when dealing with pure translation
+	HOMO = TRANS;
 
 	NUM_OCTAVE = Config.get("NUM_OCTAVE");
 	NUM_SCALE = Config.get("NUM_SCALE");
