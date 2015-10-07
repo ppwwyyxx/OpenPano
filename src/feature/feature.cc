@@ -8,13 +8,25 @@
 #include "orientation.hh"
 #include "sift.hh"
 #include "dog.hh"
+#include "brief.hh"
 #include "lib/imgproc.hh"
 using namespace std;
 
 
 namespace feature {
 
-vector<Descriptor> SIFTDetector::detect_feature(const Mat32f& mat) const {
+vector<Descriptor> FeatureDetector::detect_feature(const Mat32f& img) const {
+	auto ret = do_detect_feature(img);
+	// convert scale-coordinate to half-offset image coordinate
+	for (auto& d: ret) {
+		d.coor.x = (d.coor.x - 0.5) * img.width();
+		d.coor.y = (d.coor.y - 0.5) * img.height();
+	}
+	cout << "number of features: " << ret.size() << endl;
+	return ret;
+}
+
+vector<Descriptor> SIFTDetector::do_detect_feature(const Mat32f& mat) const {
 	ScaleSpace ss(mat, NUM_OCTAVE, NUM_SCALE);
 	DOGSpace sp(ss);
 
@@ -24,15 +36,29 @@ vector<Descriptor> SIFTDetector::detect_feature(const Mat32f& mat) const {
 	keyp = ort.work();
 	SIFT sift(ss, keyp);
 	auto ret = sift.get_descriptor();
-	// convert scale-coordinate to half-offset image coordinate
-	for (auto& d: ret) {
-		d.coor.x = (d.coor.x - 0.5) * mat.width();
-		d.coor.y = (d.coor.y - 0.5) * mat.height();
-	}
-	cout << "number of features: " << ret.size() << endl;
 	return ret;
 }
 
+BRIEFDetector::BRIEFDetector() {
+	pattern.reset(new BriefPattern(
+				BRIEF::gen_brief_pattern(BRIEF_PATH_SIZE, BRIEF_NR_PAIR)));
+}
+
+BRIEFDetector::~BRIEFDetector() {}
+
+vector<Descriptor> BRIEFDetector::do_detect_feature(const Mat32f& mat) const {
+	ScaleSpace ss(mat, NUM_OCTAVE, NUM_SCALE);
+	DOGSpace sp(ss);
+
+	ExtremaDetector ex(sp);
+	auto keyp = ex.get_extrema();
+	//OrientationAssign ort(sp, ss, keyp);
+	//keyp = ort.work();
+	BRIEF brief(mat, keyp, *pattern);
+
+	auto ret = brief.get_descriptor();
+	return ret;
+}
 
 #ifdef __SSE3__
 #include <x86intrin.h>
@@ -86,4 +112,13 @@ float Descriptor::euclidean_sqr(const Descriptor& r, float now_thres) const {
 
 #endif
 
+int Descriptor::hamming(const Descriptor& r) const {
+	int sum = 0;
+	REP(i, descriptor.size()) {
+		unsigned int* p1 = (unsigned int*)&descriptor[i];
+		unsigned int* p2 = (unsigned int*)&r.descriptor[i];
+		sum += __builtin_popcount((*p1) ^ *(p2));
+	}
+	return sum;
+}
 }

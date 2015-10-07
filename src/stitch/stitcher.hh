@@ -89,7 +89,11 @@ class Stitcher {
 			Stitcher(U&& i) : imgs(std::forward<U>(i)) {
 				if (imgs.size() <= 1)
 					error_exit(ssprintf("Cannot stitch with only %lu images.", imgs.size()));
-				feature_det.reset(new feature::SIFTDetector());
+
+				if (USE_SIFT)
+					feature_det.reset(new feature::SIFTDetector);
+				else
+					feature_det.reset(new feature::BRIEFDetector);
 			}
 
 		Mat32f build();

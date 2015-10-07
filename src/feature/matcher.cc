@@ -25,31 +25,48 @@ MatchData FeatureMatcher::match() const {
 		pf1 = &feat1, pf2 = &feat2;
 	}
 
-	// TODO use knn
 	MatchData ret;
 #pragma omp parallel for schedule(dynamic)
 	REP(k, l1) {
 		const Descriptor& i = (*pf1)[k];
-		float min = numeric_limits<float>::max(),
+		int min_idx = -1;
+		// TODO use knn
+		if (USE_SIFT) {
+			float min = numeric_limits<float>::max(),
+						next_min = min;
+			REP(kk, l2) {
+				float dist = i.euclidean_sqr((*pf2)[kk], next_min);
+				if (dist < 0) continue;
+				if (dist < min) {
 					next_min = min;
-		int min_idx = 0;
-		REP(kk, l2) {
-			float dist = i.euclidean_sqr((*pf2)[kk], next_min);
-			if (dist < 0) continue;
-			if (dist < min) {
-				next_min = min;
-				min = dist;
-				min_idx = kk;
-			} else {
-				update_min(next_min, dist);
+					min = dist;
+					min_idx = kk;
+				} else {
+					update_min(next_min, dist);
+				}
 			}
+			if (min > std::min(
+						REJECT_RATIO_SQR * next_min, 40000.0f))
+				continue;
+		} else {
+			int min = std::numeric_limits<int>::max(), next_min = min;
+			REP(kk, l2) {
+				int dist = i.hamming((*pf2)[kk]);
+				if (dist < min) {
+					next_min = min;
+					min = dist;
+					min_idx = kk;
+				} else {
+					update_min(next_min, dist);
+				}
+			}
+			if (min > MATCH_REJECT_NEXT_RATIO * next_min)
+				continue;
 		}
-		if (min > std::min(
-					REJECT_RATIO_SQR * next_min, 40000.0f))
-			continue;
 
 #pragma omp critical
-		ret.data.emplace_back(k, min_idx);
+		if (min_idx != -1)
+			ret.data.emplace_back(k, min_idx);
 	}
 	if (rev)
 		ret.reverse();

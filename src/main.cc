@@ -72,9 +72,13 @@ void gallery(const char* f1, const char* f2) {
 	imagelist.push_back(pic2);
 
 
-	auto detector = SIFTDetector();
-	vector<Descriptor> feat1 = detector.detect_feature(pic1),
-										 feat2 = detector.detect_feature(pic2);
+	unique_ptr<FeatureDetector> detector;
+	if (USE_SIFT)
+		detector.reset(new SIFTDetector);
+	else
+		detector.reset(new BRIEFDetector);
+	vector<Descriptor> feat1 = detector->detect_feature(pic1),
+										 feat2 = detector->detect_feature(pic2);
 
 	Mat32f concatenated = hconcat(imagelist);
 	PlaneDrawer pld(concatenated);
@@ -85,8 +89,8 @@ void gallery(const char* f1, const char* f2) {
 		pld.set_color(Color(gen_rand(), gen_rand(), gen_rand()));
 		Vec2D coor1 = feat1[x.first].coor,
 					coor2 = feat2[x.second].coor;
-		Coor icoor1 = Coor(coor1.x * pic1.width(), coor1.y * pic1.height());
-		Coor icoor2 = Coor(coor2.x * pic2.width(), coor2.y * pic2.height());
+		Coor icoor1 = Coor(coor1.x + pic1.width()/2, coor1.y + pic1.height()/2);
+		Coor icoor2 = Coor(coor2.x + pic2.width()/2, coor2.y + pic2.height()/2);
 		pld.circle(icoor1, LABEL_LEN);
 		pld.circle(icoor2 + Coor(pic1.width(), 0), LABEL_LEN);
 		pld.line(icoor1, icoor2 + Coor(pic1.width(), 0));
@@ -121,6 +125,7 @@ void init_config() {
 	TRANS = Config.get("TRANS");
 	CROP = Config.get("CROP");
 	FOCAL_LENGTH = Config.get("FOCAL_LENGTH");
+	USE_SIFT = Config.get("USE_SIFT");
 	if (PANO && TRANS)
 		error_exit("Want panorama or translation stitching? Cannot have both!");
 	//HOMO = true;	// use homography when dealing with pure translation

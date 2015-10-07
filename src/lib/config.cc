@@ -28,6 +28,7 @@ bool PANO;
 bool HOMO;
 bool CROP = true;
 float FOCAL_LENGTH;
+bool USE_SIFT;
 
 int NUM_OCTAVE;
 int NUM_SCALE;

@@ -10,7 +10,8 @@ namespace feature {
 
 class SIFT {
 	public:
-		SIFT(const ScaleSpace& ss, const std::vector<SSPoint>& keypoints);
+		SIFT(const ScaleSpace& ss,
+				const std::vector<SSPoint>& keypoints);
 
 		std::vector<Descriptor> get_descriptor() const;
 

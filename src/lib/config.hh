@@ -23,6 +23,7 @@ extern bool PANO;
 extern bool CROP;
 extern bool HOMO;
 extern float FOCAL_LENGTH;
+extern bool USE_SIFT;
 
 extern int NUM_OCTAVE;
 extern int NUM_SCALE;
@@ -57,7 +58,9 @@ extern float SLOPE_PLAIN;
 extern float OUTPUT_SIZE_FACTOR;
 
 
+
 // keep unchanged
+// TODO use literal
 const int HOMO_FREEDOM = 8;
 const int AFFINE_FREEDOM = 6;
 
@@ -69,3 +72,7 @@ const int DESC_HIST_WIDTH = 4;
 const int DESC_HIST_BIN_NUM = 8;
 const int DESC_LEN = 128;	// (4x4)x8
 const float DESC_NORM_THRESH = 0.2f;
+
+const int BRIEF_PATH_SIZE = 9;
+const int BRIEF_NR_PAIR = 256;
+
