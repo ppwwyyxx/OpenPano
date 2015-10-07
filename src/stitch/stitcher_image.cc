@@ -12,25 +12,22 @@ void ConnectedImages::calc_inverse_homo() {
 	}
 }
 
-void ConnectedImages::update_proj_range(const vector<Mat32f>& imgs) {
+void ConnectedImages::update_proj_range() {
 	static Vec2D corner[4] = {
 		Vec2D(-0.5, -0.5), Vec2D(-0.5, 0.5), Vec2D(0.5, -0.5), Vec2D(0.5, 0.5)};
-	int mid = imgs.size() >> 1;
-	int refw = imgs[mid].width(), refh = imgs[mid].height();
+	int refw = component[identity_idx].imgptr->width(),
+			refh = component[identity_idx].imgptr->height();
 
 	auto homo2proj = get_homo2proj();
-	m_assert(imgs.size() == component.size());
 
 	proj_min = Vec2D(std::numeric_limits<double>::max(), std::numeric_limits<double>::max());
 	proj_max = Vec2D(std::numeric_limits<double>::lowest(), std::numeric_limits<double>::lowest());
-	proj_ranges.clear();
-	REP(i, imgs.size()) {
-		auto& m = component[i];
+	for (auto& m : component) {
 		Vec2D now_min(std::numeric_limits<double>::max(), std::numeric_limits<double>::max()),
 					now_max = now_min * (-1);
 		for (auto& v : corner) {
 			Vec homo = m.homo.trans(
-					Vec2D(v.x * imgs[i].width(), v.y * imgs[i].height()));
+					Vec2D(v.x * m.imgptr->width(), v.y * m.imgptr->height()));
 			homo.x /= refw, homo.y /= refh;
 			homo.x += 0.5 * homo.z, homo.y += 0.5 * homo.z;
 			Vec2D t_corner = homo2proj(homo);
@@ -38,7 +35,7 @@ void ConnectedImages::update_proj_range(const vector<Mat32f>& imgs) {
 			now_min.update_min(t_corner);
 			now_max.update_max(t_corner);
 		}
-		proj_ranges.emplace_back(now_min, now_max);
+		m.range = Range(now_min, now_max);
 		proj_min.update_min(now_min);
 		proj_max.update_max(now_max);
 	}

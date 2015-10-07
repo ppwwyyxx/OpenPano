@@ -25,14 +25,12 @@ Mat32f Stitcher::build() {
 		bundle.proj_method = ConnectedImages::ProjectionMethod::cylindrical;
 	print_debug("Using projection method: %d\n", bundle.proj_method);
 		//bundle.proj_method = ConnectedImages::ProjectionMethod::spherical;
-	bundle.update_proj_range(imgs);
+	bundle.update_proj_range();
 
 	return blend();
 }
 
 Mat32f Stitcher::blend() {
-	int n = imgs.size();
-
 	int refw = imgs[bundle.identity_idx].width(),
 			refh = imgs[bundle.identity_idx].height();
 	auto homo2proj = bundle.get_homo2proj();
@@ -66,10 +64,9 @@ Mat32f Stitcher::blend() {
 	fill(ret, Color::NO);
 
 	LinearBlender blender;
-	REP(k, n) {
-		auto& cur = bundle.component[k];
-		Coor top_left = scale_coor_to_img_coor(bundle.proj_ranges[k].min);
-		Coor bottom_right = scale_coor_to_img_coor(bundle.proj_ranges[k].max);
+	for (auto& cur : bundle.component) {
+		Coor top_left = scale_coor_to_img_coor(cur.range.min);
+		Coor bottom_right = scale_coor_to_img_coor(cur.range.max);
 		Coor diff = bottom_right - top_left;
 		int w = diff.x, h = diff.y;
 		Mat<Vec2D> orig_pos(h, w, 1);
@@ -135,11 +132,6 @@ void Stitcher::calc_transform() {
 	if (PANO) {
 		calc_matrix_pano();
 		//straighten_simple();
-
-		if (circle_detected) { // remove the extra
-			bundle.component.pop_back();
-			imgs.pop_back();
-		}
 	} else {
 		calc_matrix_simple();
 	}
