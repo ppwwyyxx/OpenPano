@@ -9,7 +9,7 @@ EIGEN_PATH ?= /usr/include/eigen3
 INCLUDE_DIR = -I. -isystem $(EIGEN_PATH)
 DEFINES = -DDEBUG
 
-OPTFLAGS ?= -O3 -march=native
+OPTFLAGS ?= -O3 -msse3 #-march=native
 #OPTFLAGS = -g -O0
 
 LIBS = libpng

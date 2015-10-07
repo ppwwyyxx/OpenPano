@@ -120,8 +120,10 @@ void Stitcher::calc_feature() {
 	// detect feature
 	feats.resize(n);
 #pragma omp parallel for schedule(dynamic)
-	REP(k, n)
+	REP(k, n) {
 		feats[k] = feature_det->detect_feature(imgs[k]);
+		print_debug("nfeature %d: %lu\n", k, feats[k].size());
+	}
 }
 
 void Stitcher::calc_transform() {
