@@ -64,14 +64,10 @@ bool TransformEstimation::get_transform(MatchInfo* info) {
 			best_transform = move(transform);
 		}
 	}
-	if (maxinlierscnt <= 10) {
-		cerr << "Transform failed: cannot find a proper matrix." << endl;
-		return false;
-	}
 	inliers = get_inliers(best_transform);
+	if (inliers.size() <= 10)
+		return false;
 	best_transform = calc_transform(inliers);
-
-	print_debug("final inlier size: %lu\n", inliers.size());
 	fill_inliers_to_matchinfo(inliers, info);
 	info->homo = best_transform;
 	return true;

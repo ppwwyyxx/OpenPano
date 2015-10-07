@@ -26,6 +26,16 @@ MatchData FeatureMatcher::match() const {
 	}
 
 	MatchData ret;
+
+#define update_min_and_second_min \
+		if (dist < min) { \
+			next_min = min; \
+			min = dist; \
+			min_idx = kk; \
+		} else { \
+			update_min(next_min, dist); \
+		}
+
 #pragma omp parallel for schedule(dynamic)
 	REP(k, l1) {
 		const Descriptor& i = (*pf1)[k];
@@ -37,28 +47,16 @@ MatchData FeatureMatcher::match() const {
 			REP(kk, l2) {
 				float dist = i.euclidean_sqr((*pf2)[kk], next_min);
 				if (dist < 0) continue;
-				if (dist < min) {
-					next_min = min;
-					min = dist;
-					min_idx = kk;
-				} else {
-					update_min(next_min, dist);
-				}
+				update_min_and_second_min;
 			}
-			if (min > std::min(
-						REJECT_RATIO_SQR * next_min, 40000.0f))
+			if (min > REJECT_RATIO_SQR * next_min)
 				continue;
 		} else {
+			// match brief descriptor with hamming
 			int min = std::numeric_limits<int>::max(), next_min = min;
 			REP(kk, l2) {
 				int dist = i.hamming((*pf2)[kk]);
-				if (dist < min) {
-					next_min = min;
-					min = dist;
-					min_idx = kk;
-				} else {
-					update_min(next_min, dist);
-				}
+				update_min_and_second_min;
 			}
 			if (min > MATCH_REJECT_NEXT_RATIO * next_min)
 				continue;

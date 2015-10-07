@@ -11,7 +11,7 @@
 struct MatchInfo {
 	typedef std::pair<Vec2D, Vec2D> PCC;			// to, from
 	std::vector<PCC> match;
-	float confidence;
+	float confidence = 0;
 	Homography homo;
 
 };
