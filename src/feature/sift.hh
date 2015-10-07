@@ -5,6 +5,9 @@
 #include "feature.hh"
 #include "dog.hh"
 
+
+namespace feature {
+
 class SIFT {
 	public:
 		SIFT(const ScaleSpace& ss, const std::vector<SSPoint>& keypoints);
@@ -17,3 +20,5 @@ class SIFT {
 
 		Descriptor calc_descriptor(const SSPoint&) const;
 };
+
+}

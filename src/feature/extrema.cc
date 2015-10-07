@@ -10,6 +10,8 @@
 #include <vector>
 using namespace std;
 
+namespace feature {
+
 ExtremaDetector::ExtremaDetector(const DOGSpace& dg):
 	dog(dg) {}
 
@@ -211,4 +213,6 @@ vector<Coor> ExtremaDetector::get_local_raw_extrema(
 		if (is_extrema(i, j))
 			ret.emplace_back(j, i);
 	return ret;
+}
+
 }

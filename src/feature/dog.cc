@@ -33,6 +33,8 @@ float fast_atan(float y, float x) {
 }
 }
 
+namespace feature {
+
 GaussianPyramid::GaussianPyramid(const Mat32f& m, int num_scale):
 	nscale(num_scale),
 	data(num_scale), mag(num_scale), ort(num_scale),
@@ -133,4 +135,6 @@ DOGSpace::DOGSpace(ScaleSpace& ss):
 		REP(j, ns - 1)
 			dogs[i].emplace_back(diff(o.get(j), o.get(j+1)));
 	}
+}
+
 }

@@ -9,6 +9,9 @@
 #include "lib/mat.h"
 #include "lib/color.hh"
 
+
+namespace feature {
+
 class GaussCache {
 	public:
 		float * kernel;
@@ -53,3 +56,5 @@ class Filter {
 		Mat32f GaussianBlur(const Mat32f& img, int n) const
 		{ return GaussianBlur(img, gcache[n - 1]); }
 };
+
+}

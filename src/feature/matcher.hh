@@ -7,6 +7,9 @@
 #include <memory>
 #include "feature/feature.hh"
 
+
+namespace feature {
+
 // TODO. keep actual coordinate in two images
 class MatchData {
 	public:
@@ -32,3 +35,5 @@ class FeatureMatcher {
 
 
 };
+
+}

@@ -9,37 +9,26 @@
 #include "lib/geometry.hh"
 #include <cstring>
 
+namespace feature {
+
 struct Descriptor {
 	Vec2D coor;			// coordinate in range [0, w/h)
 	std::vector<float> descriptor;
 
 	// square of euclidean. use now_thres to early-stop
-	float euclidean_sqr_base(const Descriptor& r, float now_thres) const {
-		float ans = 0;
-		REP(i, descriptor.size()) {
-			ans += sqr(descriptor[i] - r.descriptor[i]);
-			if (ans > now_thres)
-				return -1;
-		}
-		return ans;
-	}
-
-	// sse version
-#ifdef __SSE3__
-	float euclidean_sqr_fast(const Descriptor& r, float now_thres) const;
-#endif
-
-	inline float euclidean_sqr(const Descriptor& r, float now_thres) const {
-#ifdef __SSE3__
-		return euclidean_sqr_fast(r, now_thres);
-#else
-		return euclidean_sqr_base(r, now_thres);
-#endif
-	}
-
+	float euclidean_sqr(const Descriptor& r, float now_thres) const;
 };
 
-std::vector<Descriptor> detect_SIFT(const Mat32f& img);
+class FeatureDetector {
+	public:
+		virtual ~FeatureDetector() = default;
+		virtual std::vector<Descriptor> detect_feature(const Mat32f& img) const = 0;
+};
+
+class SIFTDetector : public FeatureDetector {
+	public:
+		std::vector<Descriptor> detect_feature(const Mat32f& img) const;
+};
 
 // A Scale-Space point
 struct SSPoint {
@@ -49,3 +38,5 @@ struct SSPoint {
 	float dir;
 	float scale_factor;
 };
+
+}

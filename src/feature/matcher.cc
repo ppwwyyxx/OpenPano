@@ -7,6 +7,9 @@
 #include "lib/timer.hh"
 using namespace std;
 
+
+namespace feature {
+
 MatchData FeatureMatcher::match() const {
 	static const float REJECT_RATIO_SQR = MATCH_REJECT_NEXT_RATIO * MATCH_REJECT_NEXT_RATIO;
 	TotalTimer tm("matcher");
@@ -51,4 +54,6 @@ MatchData FeatureMatcher::match() const {
 	if (rev)
 		ret.reverse();
 	return ret;
+}
+
 }

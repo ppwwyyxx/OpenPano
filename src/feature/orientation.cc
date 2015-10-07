@@ -6,6 +6,9 @@
 #include "lib/timer.hh"
 using namespace std;
 
+
+namespace feature {
+
 OrientationAssign::OrientationAssign(
 		const DOGSpace& dog, const ScaleSpace& ss,
 		const std::vector<SSPoint>& keypoints):
@@ -87,4 +90,6 @@ std::vector<float> OrientationAssign::calc_dir(
 		}
 	}
 	return ret;
+}
+
 }

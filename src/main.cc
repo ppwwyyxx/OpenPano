@@ -15,6 +15,7 @@
 #include <cassert>
 
 using namespace std;
+using namespace feature;
 
 bool TEMPDEBUG = false;
 
@@ -71,8 +72,9 @@ void gallery(const char* f1, const char* f2) {
 	imagelist.push_back(pic2);
 
 
-	vector<Descriptor> feat1 = detect_SIFT(pic1),
-										 feat2 = detect_SIFT(pic2);
+	auto detector = SIFTDetector();
+	vector<Descriptor> feat1 = detector.detect_feature(pic1),
+										 feat2 = detector.detect_feature(pic2);
 
 	Mat32f concatenated = hconcat(imagelist);
 	PlaneDrawer pld(concatenated);

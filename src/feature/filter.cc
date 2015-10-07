@@ -8,6 +8,9 @@
 #include "lib/timer.hh"
 using namespace std;
 
+
+namespace feature {
+
 GaussCache::GaussCache(float sigma) {
 	/*
 	 *const int kw = round(GAUSS_WINDOW_FACTOR * sigma) + 1;
@@ -91,3 +94,5 @@ Mat32f Filter::GaussianBlur(
 	return ret;
 }
 
+
+}
