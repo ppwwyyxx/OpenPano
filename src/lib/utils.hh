@@ -9,6 +9,7 @@
 #include <cstdlib>
 #include <string>
 #include <sstream>
+#include <memory>
 #include <sys/time.h>
 using namespace std;
 
@@ -28,3 +29,12 @@ void c_fprintf(const char* col, FILE* fp, const char* fmt, ...);
 
 __attribute__ (( format( printf, 1, 2 ) ))
 std::string ssprintf(const char *fmt, ...);
+
+
+template <typename T>
+std::shared_ptr<T> create_auto_buf(size_t len, bool init_zero = false) {
+	std::shared_ptr<T> ret(new T[len], [](T *ptr){delete []ptr;});
+	if (init_zero)
+		memset(ret.get(), 0, sizeof(T) * len);
+	return ret;
+}
