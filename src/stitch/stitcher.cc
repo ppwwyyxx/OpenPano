@@ -287,7 +287,8 @@ float Stitcher::update_h_factor(float nowfactor,
 		bool succ = TransformEstimation(matches[k - 1 + mid], nowfeats[k - 1],
 				nowfeats[k]).get_transform(&info);
 		if (not succ)
-			error_exit("The two image doesn't match. Failed");
+			return 0;
+			//error_exit("The two image doesn't match. Failed");
 		nowmat.emplace_back(info.homo);
 	}
 
@@ -345,6 +346,7 @@ Mat32f Stitcher::perspective_correction(const Mat32f& img) {
 	}
 	blender.add_image(Coor(0, 0), orig_pos, img);
 	auto ret = Mat32f(h, w, 3);
+	fill(ret, Color::NO);
 	blender.run(ret);
 	return ret;
 }
