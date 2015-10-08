@@ -22,26 +22,25 @@ using namespace feature;
 
 Mat32f Stitcher::build() {
 	calc_feature();
-	//pairwise_match();
 	if (PANO) {
-		calc_transform();	// calculate transform
+		build_bundle_warp();
 		bundle.proj_method = ConnectedImages::ProjectionMethod::flat;
-		print_debug("Using projection method: %d\n", bundle.proj_method);
-		//bundle.proj_method = ConnectedImages::ProjectionMethod::spherical;
 	} else {
-
+	  //pairwise_match();
+		assume_pano_pairwise();
+		build_bundle_linear_simple();
 		bundle.proj_method = ConnectedImages::ProjectionMethod::cylindrical;
 	}
+	print_debug("Using projection method: %d\n", bundle.proj_method);
 	bundle.update_proj_range();
 
 	return blend();
 }
 
 void Stitcher::calc_feature() {
-	GuardedTimer tm("calc_feature");
+	GuardedTimer tm("calc_feature()");
 	int n = imgs.size();
 	// detect feature
-	feats.resize(n);
 #pragma omp parallel for schedule(dynamic)
 	REP(k, n) {
 		feats[k] = feature_det->detect_feature(imgs[k]);
@@ -50,10 +49,9 @@ void Stitcher::calc_feature() {
 }
 
 void Stitcher::pairwise_match() {
+	GuardedTimer tm("pairwise_match()");
 	size_t n = imgs.size();
-	graph.resize(n);
-	pairwise_matches.resize(n);
-	for (auto& k : pairwise_matches) k.resize(n);
+
 	REP(i, n) REPL(j, i + 1, n) {
 		FeatureMatcher matcher(feats[i], feats[j]);
 		auto match = matcher.match();
@@ -73,7 +71,30 @@ void Stitcher::pairwise_match() {
 	}
 }
 
+void Stitcher::assume_pano_pairwise() {
+	GuardedTimer tm("assume_pano_pairwise()");
+	int n = imgs.size();
+	REP(i, n) {
+		int next = (i + 1) % n;
+		FeatureMatcher matcher(feats[i], feats[next]);
+		auto match = matcher.match();
+		TransformEstimation transf(match, feats[i], feats[next]);
+		MatchInfo info;
+		bool succ = transf.get_transform(&info);
+		if (not succ)
+			error_exit(ssprintf("Image %d and %d doesn't match.\n", i, next));
+		print_debug("Match between image %d and %d, ninliers=%lu, conf=%f\n",
+				i, next, info.match.size(), info.confidence);
+		graph[i].push_back(next);
+		graph[next].push_back(i);
+		pairwise_matches[i][next] = info;
+		info.homo = info.homo.inverse();
+		pairwise_matches[next][i] = move(info);
+	}
+}
+
 Mat32f Stitcher::blend() {
+	GuardedTimer tm("blend()");
 	int refw = imgs[bundle.identity_idx].width(),
 			refh = imgs[bundle.identity_idx].height();
 	auto homo2proj = bundle.get_homo2proj();
@@ -102,7 +123,6 @@ Mat32f Stitcher::blend() {
 	};
 
 	// blending
-	GuardedTimer tm("Blending");
 	Mat32f ret(size.y, size.x, 3);
 	fill(ret, Color::NO);
 
@@ -156,135 +176,92 @@ void Stitcher::straighten_simple() {
 	REP(i, n) bundle.component[i].homo = Sinv.prod(bundle.component[i].homo);
 }
 
-void Stitcher::calc_transform() {
+
+void Stitcher::build_bundle_linear_simple() {
+	// assume pano pairwise
 	bundle.component.resize(imgs.size());
 	REP(i, imgs.size())
 		bundle.component[i].imgptr = &imgs[i];
 
-	Timer timer;
-	if (PANO) {
-		calc_matrix_pano();
-		//straighten_simple();
-	} else {
-		calc_matrix_simple();
-	}
-	print_debug("match & transform takes %lf secs\n", timer.duration());
+	int n = imgs.size(), mid = n >> 1;
+	bundle.identity_idx = mid;
+	bundle.component[mid].homo = Homography::I();
 
+	auto& comp = bundle.component;
+
+	// accumulate the transformations
+	comp[mid+1].homo = pairwise_matches[mid][mid+1].homo;
+	REPL(k, mid + 2, n)
+		comp[k].homo = Homography(
+				comp[k - 1].homo.prod(pairwise_matches[k][k-1].homo));
+	comp[mid-1].homo = pairwise_matches[mid][mid-1].homo;
+	REPD(k, mid - 2, 0)
+		comp[k].homo = Homography(
+				comp[k + 1].homo.prod(pairwise_matches[k][k+1].homo));
+	// then, comp[k]: from k to identity
 	bundle.calc_inverse_homo();
 }
 
+void Stitcher::build_bundle_warp() {
+	bundle.component.resize(imgs.size());
+	REP(i, imgs.size())
+		bundle.component[i].imgptr = &imgs[i];
+	calc_matrix_pano();
+	bundle.calc_inverse_homo();
+}
+
+
 void Stitcher::calc_matrix_pano() {;
+	GuardedTimer tm("calc_matrix_pano()");
 	int n = imgs.size(), mid = n >> 1;
+	bundle.identity_idx = mid;
 	REP(i, n) bundle.component[i].homo = Homography::I();
 
 	Timer timer;
-	vector<MatchData> matches;
-	matches.resize(n == 2 ? 1 : n);
-	REP(k, n == 2 ? 1 : n) {
+	vector<MatchData> matches;		// matches[k]: k,k+1
+	matches.resize(n-1);
+	REP(k, n - 1) {
 		FeatureMatcher matcher(feats[k], feats[(k + 1) % n]);
 		matches[k] = matcher.match();
 	}
 	print_debug("match time: %lf secs\n", timer.duration());
 
-	/*	// cause strange bugs in myself/small*
-	 *if (n > 2) {
-	 *  // head and tail
-	 *  auto last_match = matches.back();
-	 *  // test whether two image really matches each other
-	 *  if ((float)last_match.size() * 2 / (feats[0].size() + feats[n - 1].size()) > CONNECTED_THRES) {
-	 *    print_debug("detect circle\n");
-	 *    circle_detected = true;
-	 *    imgs.push_back(imgs[0].clone());
-	 *    bundle.component.emplace_back();
-	 *    bundle.component.back().imgptr = &imgs[0];
-	 *    bundle.component.back().homo = Homography::I();
-	 *    feats.push_back(feats[0]);
-	 *    n ++, mid = n >> 1;
-	 *  } else {
-	 *    matches.pop_back();
-	 *  }
-	 *}
-	 */
-	bundle.identity_idx = mid;
 	vector<Homography> bestmat;
 
 	float minslope = numeric_limits<float>::max();
-	float bestfactor = 0;
-
-	GuardedTimer tm("transform");
-	int start = mid, end = n, len = end - start;
-	if (len > 1) {
+	float bestfactor = 1;
+	if (n - mid > 1) {
 		float newfactor = 1;
 		// XXX: ugly
 		float slope = update_h_factor(newfactor, minslope, bestfactor, bestmat, matches);
-		if (bestmat.empty()) {
-			cout << "Failed to find hfactor" << endl;
-			exit(1);
-		}
-		float centerx1 = 0,
-					centerx2 = bestmat[0].trans2d(0, 0).x;
+		if (bestmat.empty())
+			error_exit("Failed to find hfactor");
+		float centerx1 = 0, centerx2 = bestmat[0].trans2d(0, 0).x;
 		float order = (centerx2 > centerx1 ? 1 : -1);
 		REP(k, 3) {
 			if (fabs(slope) < SLOPE_PLAIN) break;
 			newfactor += (slope < 0 ? order : -order) / (5 * pow(2, k));
 			slope = Stitcher::update_h_factor(newfactor, minslope, bestfactor, bestmat, matches);
 		}
-	} else
-		bestfactor = 1;
+	}
 	print_debug("Best hfactor: %lf\n", bestfactor);
 	CylinderWarper warper(bestfactor);
 	REP(k, n) warper.warp(imgs[k], feats[k]);
 
+	// accumulate
 	REPL(k, mid + 1, n) bundle.component[k].homo = move(bestmat[k - mid - 1]);
-	// TODO can we use inverse transform directly?
 	REPD(i, mid - 1, 0) {
 		matches[i].reverse();
 		MatchInfo info;
 		bool succ = TransformEstimation(
-				matches[i],
-				feats[i + 1], feats[i]).get_transform(&info);
-		if (not succ) {
-			cerr << "The two image doesn't match. Failed" << endl;
-			exit(1);
-		}
+				matches[i], feats[i + 1], feats[i]).get_transform(&info);
+		if (not succ)
+			error_exit("The two image doesn't match. Failed");
 		bundle.component[i].homo = info.homo;
 	}
-
 	REPD(i, mid - 2, 0)
 		bundle.component[i].homo = Homography(
 				bundle.component[i + 1].homo.prod(bundle.component[i].homo));
-}
-
-void Stitcher::calc_matrix_simple() {
-	int n = imgs.size(), mid = n >> 1;
-	bundle.identity_idx = mid;
-	bundle.component[mid].homo = Homography::I();
-
-	// when not translation, do a simple-guess warping
-	if (!TRANS) {
-		CylinderWarper warper(1);
-		REP(k, n) warper.warp(imgs[k], feats[k]);
-	}
-
-	auto& comp = bundle.component;
-
-	// transform w.r.t the identity one
-#pragma omp parallel for schedule(dynamic)
-	REP(k, n) {
-		if (k >= mid + 1)
-			// get match and transform
-			comp[k].homo = get_transform(k - 1, k);	// from k to k-1
-		else if (k <= mid - 1)
-			comp[k].homo = get_transform(k + 1, k);	// from k to k+1
-	}
-	// accumulate the transformations
-	REPL(k, mid + 2, n)
-		comp[k].homo = Homography(
-				comp[k - 1].homo.prod(comp[k].homo));
-	REPD(k, mid - 2, 0)
-		comp[k].homo = Homography(
-				comp[k + 1].homo.prod(comp[k].homo));
-	// then, comp[k]: from k to identity
 }
 
 // XXX ugly hack
@@ -293,7 +270,7 @@ float Stitcher::update_h_factor(float nowfactor,
 		float & bestfactor,
 		vector<Homography>& mat,
 		const vector<MatchData>& matches) {
-	const int n = imgs.size(), mid = n >> 1;
+	const int n = imgs.size(), mid = bundle.identity_idx;
 	const int start = mid, end = n, len = end - start;
 
 	vector<Mat32f> nowimgs;
@@ -313,10 +290,8 @@ float Stitcher::update_h_factor(float nowfactor,
 		MatchInfo info;
 		bool succ = TransformEstimation(matches[k - 1 + mid], nowfeats[k - 1],
 				nowfeats[k]).get_transform(&info);
-		if (not succ) {
-			cerr << "The two image doesn't match. Failed" << endl;
-			exit(1);
-		}
+		if (not succ)
+			error_exit("The two image doesn't match. Failed");
 		nowmat.emplace_back(info.homo);
 	}
 
@@ -324,8 +299,7 @@ float Stitcher::update_h_factor(float nowfactor,
 		nowmat[k] = nowmat[k - 1].prod(nowmat[k]);	// transform to nowimgs[0] == imgs[mid]
 
 	Vec2D center2 = nowmat.back().trans2d(0, 0);
-	Vec2D	center1(0, 0);
-	const float slope = (center2.y - center1.y) / (center2.x - center1.x);
+	const float slope = center2.y/ center2.x;
 	print_debug("slope: %lf\n", slope);
 	if (update_min(minslope, fabs(slope))) {
 		bestfactor = nowfactor;

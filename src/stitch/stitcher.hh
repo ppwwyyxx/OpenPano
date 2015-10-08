@@ -47,16 +47,20 @@ class Stitcher {
 
 		// pairwise matching of all images
 		void pairwise_match();
+		// equivalent to pairwise_match when dealing with panorama
+		void assume_pano_pairwise();
 
-		// calculate and pairwise transform
-		void calc_transform();
-		void calc_matrix_pano();
-		void calc_matrix_simple();
+		// build bundle assuming linear imgs
+		void build_bundle_linear_simple();
+		// build bundle with pre-warping
+		void build_bundle_warp();
 
-		void straighten_simple();
 
 		Mat32f blend();
 
+		// old hacking code
+		void calc_matrix_pano();
+		void straighten_simple();
 		float update_h_factor(float, float&, float&,
 				std::vector<Homography>&,
 				const std::vector<feature::MatchData>&);
@@ -76,6 +80,12 @@ class Stitcher {
 					feature_det.reset(new feature::SIFTDetector);
 				else
 					feature_det.reset(new feature::BRIEFDetector);
+
+				graph.resize(imgs.size());
+				pairwise_matches.resize(imgs.size());
+				for (auto& k : pairwise_matches) k.resize(imgs.size());
+
+				feats.resize(imgs.size());
 			}
 
 		Mat32f build();
