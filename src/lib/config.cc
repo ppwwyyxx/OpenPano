@@ -24,7 +24,7 @@ double ConfigParser::get(const std::string& s) {
 }
 
 bool TRANS;
-bool PANO;
+bool CYLINDER;
 bool HOMO;
 bool CROP = true;
 float FOCAL_LENGTH;
