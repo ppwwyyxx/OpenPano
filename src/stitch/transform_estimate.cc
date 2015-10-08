@@ -10,6 +10,7 @@
 #include "match_info.hh"
 #include "lib/config.hh"
 #include "lib/timer.hh"
+#include "lib/imgproc.hh"
 #include "feature/feature.hh"
 #include "feature/matcher.hh"
 using namespace std;
@@ -34,7 +35,7 @@ TransformEstimation::TransformEstimation(const feature::MatchData& m_match,
 // get a transform matix from second -> first
 bool TransformEstimation::get_transform(MatchInfo* info) {
 	TotalTimer tm("get_transform");
-	int nr_match_used = (HOMO ? HOMO_FREEDOM: AFFINE_FREEDOM) + 1 / 2;
+	int nr_match_used = (HOMO ? 8: 6) + 1 / 2;
 	int n_match = match.size();
 	if (n_match < 6) {
 		cerr << "Transform failed: only have " << n_match << " feature matches." << endl;
@@ -74,62 +75,17 @@ bool TransformEstimation::get_transform(MatchInfo* info) {
 }
 
 Homography TransformEstimation::calc_transform(const vector<int>& matches) const {
+	int n = matches.size();
+	m_assert(n >= HOMO ? 4 : 3);
+	vector<Vec2D> p1, p2;
+	REP(i, n) {
+		p1.emplace_back(f1[match.data[matches[i]].first].coor);
+		p2.emplace_back(f2[match.data[matches[i]].second].coor);
+	}
 	if (HOMO)
-		return calc_homo_transform(matches);
+		return Homography(getPerspectiveTransform(p1, p2));
 	else
-		return calc_affine_transform(matches);
-}
-
-Homography TransformEstimation::calc_affine_transform(const vector<int>& matches) const {
-	using namespace Eigen;
-	int n = matches.size();
-	m_assert(n * 2 >= AFFINE_FREEDOM);
-
-	MatrixXd m(n * 2, AFFINE_FREEDOM);
-	VectorXd b(n * 2);
-	REP(i, n) {
-		const Vec2D &m0 = f1[match.data[matches[i]].first].coor,	// rhs
-					&m1 = f2[match.data[matches[i]].second].coor;	// lhs
-		m.row(i * 2) << m1.x, m1.y, 1, 0, 0, 0;
-		b(i * 2, 0) = m0.x;
-
-		m.row(i * 2 + 1) << 0, 0, 0, m1.x, m1.y, 1;
-		b(i * 2 + 1, 0) = m0.y;
-	}
-	VectorXd ans = m.jacobiSvd(ComputeThinU | ComputeThinV).solve(b);
-	Homography ret; ret.zero();
-	REP(i, AFFINE_FREEDOM) ret.ptr()[i] = ans[i];
-	ret.at(2, 2) = 1.0;
-	return move(ret);
-}
-
-Homography TransformEstimation::calc_homo_transform(const vector<int>& matches) const {
-	using namespace Eigen;
-	int n = matches.size();
-	m_assert(n * 2 >= HOMO_FREEDOM);
-
-	MatrixXd m(n * 2, HOMO_FREEDOM);
-	VectorXd b(n * 2);
-	REP(i, n) {
-		const Vec2D &m0 = f1[match.data[matches[i]].first].coor,	//rhs
-					&m1 = f2[match.data[matches[i]].second].coor;  //lhs
-		m.row(i * 2) << m1.x, m1.y, 1, 0, 0, 0, -m1.x * m0.x, -m1.y * m0.y;
-		b(i * 2, 0) = m0.x;
-
-		m.row(i * 2 + 1) << 0, 0, 0, m1.x, m1.y, 1, -m1.x * m0.y, -m1.y * m0.y;
-		b(i * 2 + 1, 0) = m0.y;
-	}
-
-	VectorXd ans = m.jacobiSvd(ComputeThinU | ComputeThinV).solve(b);
-	Homography ret;
-	REP(i, HOMO_FREEDOM) ret.ptr()[i] = ans[i];
-	ret.at(2, 2) = 1;
-	// check
-	// for (auto &i : matches) {
-	// 	Vec2D project = cal_project(ret, i.second);
-	// 	cout << i.first << " == ?" << project << endl;
-	// }
-	return ret;
+		return Homography(getAffineTransform(p1, p2));
 }
 
 vector<int> TransformEstimation::get_inliers(const Homography& trans) const {

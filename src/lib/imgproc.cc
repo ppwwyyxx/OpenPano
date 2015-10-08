@@ -10,9 +10,11 @@
 #define cimg_use_png
 #define cimg_use_jpeg
 #include "CImg.h"
+#include <Eigen/Dense>
 
 #include "debugutils.hh"
 #include "common.hh"
+#include "matrix.hh"
 
 using namespace cimg_library;
 using namespace std;
@@ -164,6 +166,50 @@ Mat32f rgb2grey(const Mat32f& mat) {
 		dst[i] = (src[idx] + src[idx+1] + src[idx+2]) / 3.f;
 		idx += 3;
 	}
+	return ret;
+}
+
+Matrix getPerspectiveTransform(const std::vector<Vec2D>& p1, const std::vector<Vec2D>& p2) {
+	using namespace Eigen;
+	int n = p1.size();
+	m_assert(n == (int)p2.size() && n >= 4);
+
+	MatrixXd m(n * 2, 8);
+	VectorXd b(n * 2);
+	REP(i, n) {
+		const Vec2D &m0 = p1[i], &m1 = p2[i];
+		m.row(i * 2) << m1.x, m1.y, 1, 0, 0, 0, -m1.x * m0.x, -m1.y * m0.y;
+		b(i * 2, 0) = m0.x;
+
+		m.row(i * 2 + 1) << 0, 0, 0, m1.x, m1.y, 1, -m1.x * m0.y, -m1.y * m0.y;
+		b(i * 2 + 1, 0) = m0.y;
+	}
+	VectorXd ans = m.jacobiSvd(ComputeThinU | ComputeThinV).solve(b);
+	::Matrix ret(3, 3);
+	REP(i, 8) ret.ptr()[i] = ans[i];
+	ret.at(2, 2) = 1;
+	return ret;
+}
+
+Matrix getAffineTransform(const std::vector<Vec2D>& p1, const std::vector<Vec2D>& p2) {
+	using namespace Eigen;
+	int n = p1.size();
+	m_assert(n == (int)p2.size() && n >= 3);
+
+	MatrixXd m(n * 2, 6);
+	VectorXd b(n * 2);
+	REP(i, n) {
+		const Vec2D &m0 = p1[i], &m1 = p2[i];
+		m.row(i * 2) << m1.x, m1.y, 1, 0, 0, 0;
+		b(i * 2, 0) = m0.x;
+		m.row(i * 2 + 1) << 0, 0, 0, m1.x, m1.y, 1;
+		b(i * 2 + 1, 0) = m0.y;
+	}
+
+	VectorXd ans = m.jacobiSvd(ComputeThinU | ComputeThinV).solve(b);
+	::Matrix ret(3, 3); ret.zero();
+	REP(i, 6) ret.ptr()[i] = ans[i];
+	ret.at(2, 2) = 1;
 	return ret;
 }
 

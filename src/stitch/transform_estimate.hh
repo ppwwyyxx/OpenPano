@@ -24,10 +24,6 @@ class TransformEstimation {
 
 		Homography calc_transform(const std::vector<int>&) const;
 
-		Homography calc_homo_transform(const std::vector<int>&) const;
-
-		Homography calc_affine_transform(const std::vector<int>&) const;
-
 		void fill_inliers_to_matchinfo(const std::vector<int>&, MatchInfo*) const;
 
 		std::vector<int> get_inliers(const Homography &) const;

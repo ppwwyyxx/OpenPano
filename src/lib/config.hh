@@ -60,10 +60,6 @@ extern float OUTPUT_SIZE_FACTOR;
 
 
 // keep unchanged
-// TODO use literal
-const int HOMO_FREEDOM = 8;
-const int AFFINE_FREEDOM = 6;
-
 const float ORI_WINDOW_FACTOR = 1.5f;
 const int ORI_HIST_BIN_NUM = 36;		// lowe
 const float ORI_HIST_PEAK_RATIO = 0.8f;
