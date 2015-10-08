@@ -38,6 +38,4 @@ class TransformEstimation {
 				const std::vector<feature::Descriptor>& m_f2);
 
 		bool get_transform(MatchInfo* info);
-
-		static real_t get_focal_from_matrix(const Matrix& m);
 };

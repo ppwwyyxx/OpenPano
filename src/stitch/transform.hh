@@ -8,11 +8,9 @@
 class Homography : public Matrix {
 	public:
 		Homography():
-			Matrix(3, 3)
-		{}
+			Matrix(3, 3) {}
 
-		Homography(const Matrix& r):
-			Matrix(r) {}
+		Homography(const Matrix& r): Matrix(r) {}
 
 		inline Vec trans(const Vec& m) const {
 			const double* p = ptr();
@@ -67,7 +65,7 @@ class Homography : public Matrix {
 			}
 		}
 
-		Homography inverse() const {
+		inline Homography inverse() const {
 			Homography ret;
 			bool succ = Matrix::inverse(ret);
 			m_assert(succ);
