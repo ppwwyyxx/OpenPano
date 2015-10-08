@@ -165,6 +165,8 @@ Mat32f Stitcher::blend() {
 		blender.add_image(top_left, orig_pos, *cur.imgptr);
 	}
 	blender.run(ret);
+	if (PANO)
+		return perspective_correction(ret);
 	return ret;
 }
 
@@ -302,78 +304,47 @@ float Stitcher::update_h_factor(float nowfactor,
 	return slope;
 }
 
-/*
- *
- *Matrix Stitcher::shift_to_line(const vector<Vec2D>& ptr, const Vec2D& line) {
- *    int n = ptr.size();
- *    m_assert(n >= 4);
- *    Matrix left(4, 2 * n);
- *    Matrix right(1, 2 * n);
- *    REP(k, n) {
- *        auto & nowp = ptr[k];
- *        float targetx = (nowp.x - (line.y - nowp.y) / line.x) / 2;
- *        float targety = line.x * targetx + line.y;
- *        left.get(2 * k, 0) = nowp.x;
- *        left.get(2 * k, 1) = nowp.y;
- *        left.get(2 * k, 2) = left.get(2 * k, 3) = 0;
- *        right.get(2 * k, 0) = targetx;
- *
- *        left.get(2 * k + 1, 0) = left.get(2 * k + 1, 1) = 0;
- *        left.get(2 * k + 1, 2) = nowp.x;
- *        left.get(2 * k + 1, 3) = nowp.y;
- *        right.get(2 * k + 1, 0) = targety;
- *    }
- *    Matrix res(1, 4);
- *    if (!left.solve_overdetermined(res, right)) {
- *        cout << "line_fit solve failed" << endl;
- *        return move(res);
- *    }
- *    Matrix ret(3, 3);
- *    ret.get(0, 0) = res.get(0, 0);
- *    ret.get(0, 1) = res.get(1, 0);
- *    ret.get(1, 0) = res.get(2, 0);
- *    ret.get(1, 1) = res.get(3, 0);
- *    ret.get(2, 2) = 1;
- *    for (auto &i : ptr) {
- *        Vec2D project = TransformEstimation::cal_project(ret, i);
- *        cout << project << " ==?" << (line.x * project.x + line.y) << endl;
- *    }
- *    return move(ret);
- *}
- *
- */
+Mat32f Stitcher::perspective_correction(const Mat32f& img) {
+	// in warp mode, the last hack
+	int w = img.width(), h = img.height();
+	int refw = imgs[bundle.identity_idx].width(),
+			refh = imgs[bundle.identity_idx].height();
+	auto homo2proj = bundle.get_homo2proj();
+	Vec2D proj_min = bundle.proj_range.min;
 
-/*
- *void Stitcher::straighten(vector<Matrix>& mat) const {
- *    int n = mat.size();
- *
- *    vector<Vec2D> centers;
- *    REP(k, n)
- *        centers.push_back(TransformEstimation::cal_project(mat[k], imgs[k]->get_center()));
- *    Vec2D kb = Stitcher::line_fit(centers);
- *    P(kb);
- *    if (fabs(kb.x) < 1e-3) return;		// already done
- *    Matrix shift = Stitcher::shift_to_line(centers, kb);
- *    P(shift);
- *    for (auto& i : mat) i = shift.prod(i);
- *}
- *
- *Vec2D Stitcher::line_fit(const std::vector<Vec2D>& pts) {
- *    int n = pts.size();
- *
- *    Matrix left(2, n);
- *    Matrix right(1, n);
- *    REP(k, n) {
- *        left.get(k, 0) = pts[k].x, left.get(k, 1) = 1;
- *        right.get(k, 0) = pts[k].y;
- *    }
- *
- *    Matrix res(0, 0);
- *    if (!left.solve_overdetermined(res, right)) {
- *        cout << "line_fit solve failed" << endl;
- *        return Vec2D(0, 0);
- *    }
- *    return Vec2D(res.get(0, 0), res.get(1, 0));
- *}
- *
- */
+	vector<Vec2D> corners;
+	auto cur = &(bundle.component.front());
+	auto to_ref_coor = [&](Vec2D v) {
+		v.x *= cur->imgptr->width(), v.y *= cur->imgptr->height();
+		Vec homo = cur->homo.trans(v);
+		homo.x /= refw, homo.y /= refh;
+		homo.x += 0.5 * homo.z, homo.y += 0.5 * homo.z;
+		Vec2D t_corner = homo2proj(homo);
+		t_corner.x *= refw, t_corner.y *= refh;
+		t_corner = t_corner - proj_min;
+		corners.push_back(t_corner);
+	};
+	to_ref_coor(Vec2D(-0.5, -0.5));
+	to_ref_coor(Vec2D(-0.5, 0.5));
+	cur = &(bundle.component.back());
+	to_ref_coor(Vec2D(0.5, -0.5));
+	to_ref_coor(Vec2D(0.5, 0.5));
+
+	vector<Vec2D> corners_std = {
+		Vec2D(0, 0), Vec2D(0, h),
+		Vec2D(w, 0), Vec2D(w, h)};
+	Matrix m = getPerspectiveTransform(corners, corners_std);
+	Homography inv(m);
+
+	LinearBlender blender;
+	Mat<Vec2D> orig_pos(h, w, 1);
+	REP(i, h) REP(j, w) {
+		Vec2D& p = (orig_pos.at(i, j) = inv.trans2d(Vec2D(j, i)));
+		if (!p.isNaN() && (p.x < 0 || p.x >= w || p.y < 0 || p.y >= h))
+			p = Vec2D::NaN();
+	}
+	blender.add_image(Coor(0, 0), orig_pos, img);
+	auto ret = Mat32f(h, w, 3);
+	blender.run(ret);
+	return ret;
+}

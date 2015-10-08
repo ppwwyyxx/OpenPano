@@ -178,11 +178,11 @@ Matrix getPerspectiveTransform(const std::vector<Vec2D>& p1, const std::vector<V
 	VectorXd b(n * 2);
 	REP(i, n) {
 		const Vec2D &m0 = p1[i], &m1 = p2[i];
-		m.row(i * 2) << m1.x, m1.y, 1, 0, 0, 0, -m1.x * m0.x, -m1.y * m0.y;
-		b(i * 2, 0) = m0.x;
+		m.row(i) << m1.x, m1.y, 1, 0, 0, 0, -m1.x * m0.x, -m1.y * m0.x;
+		b(i, 0) = m0.x;
 
-		m.row(i * 2 + 1) << 0, 0, 0, m1.x, m1.y, 1, -m1.x * m0.y, -m1.y * m0.y;
-		b(i * 2 + 1, 0) = m0.y;
+		m.row(n + i) << 0, 0, 0, m1.x, m1.y, 1, -m1.x * m0.y, -m1.y * m0.y;
+		b(n + i, 0) = m0.y;
 	}
 	VectorXd ans = m.jacobiSvd(ComputeThinU | ComputeThinV).solve(b);
 	::Matrix ret(3, 3);

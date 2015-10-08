@@ -198,6 +198,7 @@ int main(int argc, char* argv[]) {
 	TotalTimerGlobalGuard _g;
 	srand(time(NULL));
 	init_config();
+
 	string command = argv[1];
 	if (command == "raw_extrema")
 		test_extrema(argv[2], 0);
