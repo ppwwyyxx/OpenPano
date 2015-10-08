@@ -19,7 +19,7 @@ class ConfigParser {
 };
 
 extern bool TRANS;
-extern bool PANO;
+extern bool CYLINDER;
 extern bool CROP;
 extern bool HOMO;
 extern float FOCAL_LENGTH;

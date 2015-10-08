@@ -49,7 +49,7 @@ class Stitcher {
 		// pairwise matching of all images
 		void pairwise_match();
 		// equivalent to pairwise_match when dealing with panorama
-		void assume_pano_pairwise();
+		void assume_linear_pairwise();
 
 		// estimate camera parameters
 		void estimate_camera();

@@ -22,12 +22,12 @@ using namespace feature;
 
 Mat32f Stitcher::build() {
 	calc_feature();
-	if (PANO) {
+	if (CYLINDER) {
 		build_bundle_warp();
 		bundle.proj_method = ConnectedImages::ProjectionMethod::flat;
 	} else {
 	  //pairwise_match();
-		assume_pano_pairwise();
+		assume_linear_pairwise();
 		estimate_camera();
 		build_bundle_linear_simple();
 		bundle.proj_method = ConnectedImages::ProjectionMethod::cylindrical;
@@ -72,10 +72,10 @@ void Stitcher::pairwise_match() {
 	}
 }
 
-void Stitcher::assume_pano_pairwise() {
-	GuardedTimer tm("assume_pano_pairwise()");
+void Stitcher::assume_linear_pairwise() {
+	GuardedTimer tm("assume_linear_pairwise()");
 	int n = imgs.size();
-	REP(i, n) {
+	REP(i, n-1) {
 		int next = (i + 1) % n;
 		FeatureMatcher matcher(feats[i], feats[next]);
 		auto match = matcher.match();
@@ -165,7 +165,7 @@ Mat32f Stitcher::blend() {
 		blender.add_image(top_left, orig_pos, *cur.imgptr);
 	}
 	blender.run(ret);
-	if (PANO)
+	if (CYLINDER)
 		return perspective_correction(ret);
 	return ret;
 }

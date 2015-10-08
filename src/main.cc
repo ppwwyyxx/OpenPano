@@ -121,13 +121,13 @@ void work(int argc, char* argv[]) {
 
 void init_config() {
 	ConfigParser Config("config.cfg");
-	PANO = Config.get("PANO");
+	CYLINDER = Config.get("CYLINDER");
 	TRANS = Config.get("TRANS");
 	CROP = Config.get("CROP");
 	FOCAL_LENGTH = Config.get("FOCAL_LENGTH");
 	USE_SIFT = Config.get("USE_SIFT");
-	if (PANO && TRANS)
-		error_exit("Want panorama or translation stitching? Cannot have both!");
+	if (CYLINDER && TRANS)
+		error_exit("Want cylinder or translation stitching? Cannot have both!");
 	//HOMO = true;	// use homography when dealing with pure translation
 	HOMO = TRANS;
 
