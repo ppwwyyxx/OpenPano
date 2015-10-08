@@ -17,7 +17,6 @@ class Homography : public Matrix {
 			Vec ret(p[0] * m.x + p[1] * m.y + p[2] * m.z,
 					p[3] * m.x + p[4] * m.y + p[5] * m.z,
 					p[6] * m.x + p[7] * m.y + p[8] * m.z);
-			ret.normalize();
 			return ret;
 		}
 

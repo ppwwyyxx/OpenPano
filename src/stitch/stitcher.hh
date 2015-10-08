@@ -66,6 +66,7 @@ class Stitcher {
 		float update_h_factor(float, float&, float&,
 				std::vector<Homography>&,
 				const std::vector<feature::MatchData>&);
+		Mat32f perspective_correction(const Mat32f&);
 
 	public:
 		// universal reference constructor to initialize imgs
