@@ -241,17 +241,19 @@ void Stitcher::build_bundle_warp() {;
 	}
 	print_debug("Best hfactor: %lf\n", bestfactor);
 	CylinderWarper warper(bestfactor);
+#pragma omp parallel for schedule(dynamic)
 	REP(k, n) warper.warp(imgs[k], feats[k]);
 
 	// accumulate
 	REPL(k, mid + 1, n) bundle.component[k].homo = move(bestmat[k - mid - 1]);
+#pragma omp parallel for schedule(dynamic)
 	REPD(i, mid - 1, 0) {
 		matches[i].reverse();
 		MatchInfo info;
 		bool succ = TransformEstimation(
 				matches[i], feats[i + 1], feats[i]).get_transform(&info);
 		if (not succ)
-			error_exit("The two image doesn't match. Failed");
+			error_exit(ssprintf("Image %d and %d doesn't match. Failed", i, i+1));
 		bundle.component[i].homo = info.homo;
 	}
 	REPD(i, mid - 2, 0)
@@ -282,15 +284,19 @@ float Stitcher::update_h_factor(float nowfactor,
 		warper.warp(nowimgs[k], nowfeats[k]);
 
 	vector<Homography> nowmat;		// size = len - 1
+	nowmat.resize(len - 1);
+	bool failed = false;
+#pragma omp parallel for schedule(dynamic)
 	REPL(k, 1, len) {
 		MatchInfo info;
 		bool succ = TransformEstimation(matches[k - 1 + mid], nowfeats[k - 1],
 				nowfeats[k]).get_transform(&info);
 		if (not succ)
-			return 0;
+			failed = true;
 			//error_exit("The two image doesn't match. Failed");
-		nowmat.emplace_back(info.homo);
+		nowmat[k-1] = info.homo;
 	}
+	if (failed) return 0;
 
 	REPL(k, 1, len - 1)
 		nowmat[k] = nowmat[k - 1].prod(nowmat[k]);	// transform to nowimgs[0] == imgs[mid]
