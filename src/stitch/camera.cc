@@ -9,7 +9,7 @@ using namespace std;
 
 namespace {
 
-//Creating Full View Panoramic Image Mosaics - Szeliski
+// Creating Full View Panoramic Image Mosaics - Szeliski
 double get_focal_from_matrix(const Matrix& m) {
 	const double* h = m.ptr();
 
@@ -41,6 +41,17 @@ double get_focal_from_matrix(const Matrix& m) {
 	return 0;
 }
 
+}
+
+Camera::Camera() : R(Homography::I()), t(0,0,0) { }
+
+Homography Camera::K() const {
+	Homography ret(Homography::I());
+	ret.at(0,0) = focal;
+	ret.at(0,2) = ppx;
+	ret.at(1,1) = focal * aspect;
+	ret.at(1,2) = ppy;
+	return ret;
 }
 
 double Camera::estimate_focal(
