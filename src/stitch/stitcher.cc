@@ -28,6 +28,7 @@ Mat32f Stitcher::build() {
 	} else {
 	  //pairwise_match();
 		assume_pano_pairwise();
+		estimate_camera();
 		build_bundle_linear_simple();
 		bundle.proj_method = ConnectedImages::ProjectionMethod::cylindrical;
 	}
@@ -93,6 +94,21 @@ void Stitcher::assume_pano_pairwise() {
 	}
 }
 
+void Stitcher::estimate_camera() {
+	int n = imgs.size();
+	{ // assign an initial focal length
+		double focal = Camera::estimate_focal(pairwise_matches);
+		if (focal > 0)
+			for (auto& c : cameras)
+				c.focal = focal;
+		else
+			REP(i, n) // hack focal
+				cameras[i].focal = (imgs[i].width() / imgs[i].height()) * 0.5;
+	}
+	// TODO estimate camera rotation
+
+}
+
 Mat32f Stitcher::blend() {
 	GuardedTimer tm("blend()");
 	int refw = imgs[bundle.identity_idx].width(),
@@ -152,17 +168,6 @@ Mat32f Stitcher::blend() {
 	return ret;
 }
 
-Homography Stitcher::get_transform(int f1, int f2) const {
-	FeatureMatcher match(feats[f1], feats[f2]);		// this is not efficient
-	auto ret = match.match();
-	TransformEstimation transf(ret, feats[f1], feats[f2]);
-	MatchInfo info;
-	bool succ = transf.get_transform(&info);
-	if (not succ)
-		error_exit(ssprintf("Image %d & %d doesn't match.", f1, f2));
-	return info.homo;
-}
-
 void Stitcher::straighten_simple() {
 	int n = imgs.size();
 	Vec2D center2 = bundle.component[n - 1].homo.trans2d(0, 0);
@@ -179,10 +184,6 @@ void Stitcher::straighten_simple() {
 
 void Stitcher::build_bundle_linear_simple() {
 	// assume pano pairwise
-	bundle.component.resize(imgs.size());
-	REP(i, imgs.size())
-		bundle.component[i].imgptr = &imgs[i];
-
 	int n = imgs.size(), mid = n >> 1;
 	bundle.identity_idx = mid;
 	bundle.component[mid].homo = Homography::I();
@@ -202,17 +203,9 @@ void Stitcher::build_bundle_linear_simple() {
 	bundle.calc_inverse_homo();
 }
 
-void Stitcher::build_bundle_warp() {
-	bundle.component.resize(imgs.size());
-	REP(i, imgs.size())
-		bundle.component[i].imgptr = &imgs[i];
-	calc_matrix_pano();
-	bundle.calc_inverse_homo();
-}
 
-
-void Stitcher::calc_matrix_pano() {;
-	GuardedTimer tm("calc_matrix_pano()");
+void Stitcher::build_bundle_warp() {;
+	GuardedTimer tm("build_bundle_warp()");
 	int n = imgs.size(), mid = n >> 1;
 	bundle.identity_idx = mid;
 	REP(i, n) bundle.component[i].homo = Homography::I();
@@ -262,6 +255,7 @@ void Stitcher::calc_matrix_pano() {;
 	REPD(i, mid - 2, 0)
 		bundle.component[i].homo = Homography(
 				bundle.component[i + 1].homo.prod(bundle.component[i].homo));
+	bundle.calc_inverse_homo();
 }
 
 // XXX ugly hack

@@ -10,15 +10,14 @@ class Camera {
 	public:
 		Camera();
 
-		Matrix K() const;
+		Homography K() const;
 
-
-		double focal; // Focal length
-		double aspect; // Aspect ratio
-		double ppx; // Principal point X
-		double ppy; // Principal point Y
-		Matrix R; // Rotation
-		Matrix t; // Translation
+		double focal = 1; // Focal length
+		double aspect = 1; // Aspect ratio
+		double ppx = 0; // Principal point X
+		double ppy = 0; // Principal point Y
+		Homography R; // Rotation
+		Vec t; // Translation
 
 		static double estimate_focal(
 				const std::vector<std::vector<MatchInfo>>& matches);

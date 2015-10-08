@@ -14,6 +14,7 @@
 #include "match_info.hh"
 #include "feature/feature.hh"
 #include "stitcher_image.hh"
+#include "camera.hh"
 
 // forward declaration
 namespace feature { class MatchData; }
@@ -25,13 +26,13 @@ class Stitcher {
 		ConnectedImages bundle;
 		// feature of each image
 		std::vector<std::vector<feature::Descriptor>> feats;
-
 		// 2d array of all matches
 		// pairwise_matches[i][j].homo transform j to i
 		std::vector<std::vector<MatchInfo>> pairwise_matches;
 		// connection between images. stored as adj table
 		std::vector<std::vector<int>> graph;
-
+		// camera intrinsic params for all images
+		std::vector<Camera> cameras;
 		// feature detector
 		std::unique_ptr<feature::FeatureDetector> feature_det;
 
@@ -50,22 +51,21 @@ class Stitcher {
 		// equivalent to pairwise_match when dealing with panorama
 		void assume_pano_pairwise();
 
+		// estimate camera parameters
+		void estimate_camera();
+
 		// build bundle assuming linear imgs
 		void build_bundle_linear_simple();
-		// build bundle with pre-warping
-		void build_bundle_warp();
 
 
 		Mat32f blend();
 
 		// old hacking code
-		void calc_matrix_pano();
-		void straighten_simple();
+		void build_bundle_warp(); // build bundle with pre-warping
+		void straighten_simple();	// straighten which doesn't work
 		float update_h_factor(float, float&, float&,
 				std::vector<Homography>&,
 				const std::vector<feature::MatchData>&);
-
-		Homography get_transform(int f1, int f2) const; // second -> first
 
 	public:
 		// universal reference constructor to initialize imgs
@@ -81,11 +81,16 @@ class Stitcher {
 				else
 					feature_det.reset(new feature::BRIEFDetector);
 
+				// allocate space for members
 				graph.resize(imgs.size());
 				pairwise_matches.resize(imgs.size());
 				for (auto& k : pairwise_matches) k.resize(imgs.size());
-
 				feats.resize(imgs.size());
+				cameras.resize(imgs.size());
+
+				bundle.component.resize(imgs.size());
+				REP(i, imgs.size())
+					bundle.component[i].imgptr = &imgs[i];
 			}
 
 		Mat32f build();
