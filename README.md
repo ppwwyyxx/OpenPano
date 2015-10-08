@@ -4,6 +4,8 @@
 
 This is an image stitching program written in C++11.
 
+(Recently I'm working on refactoring & improvements, so there will be lots of changes)
+
 ### Compile Dependencies:
 
 * gcc >= 4.7	(it seeems MTL doesn't work with ICC)
@@ -22,20 +24,12 @@ $ make
 
 Various parameters are saved in ``src/config.cfg``
 
-Without special needs, we only have to set ``PANO``, ``TRANS``, ``CROP``.
-
-The program does some extra work to optimize the output
-when knowing the input pictures were taken by a camera moving in pure translation or pure rotation.
-
-* ``PANO = 1`` indicates that the camera moved in pure rotation. A panorama is expected to be the output;
-* ``TRANS = 1`` indicates that the camera moved in pure translation. Result will be better than one without this option set;
-* ``CROP`` decides whether to crop the final image to a rectangular;
-* NOTE that PANO and TRANS can not be both set.
+Without special needs, you only have to set ``CROP``, which decides whether to crop the final image to a rectangular;
 
 ### Run:
 
 ```
-$ ./main <file1> <file2> ...
+$ ./image-stitching <file1> <file2> ...
 ```
 
 The output file is ``out.png``.
