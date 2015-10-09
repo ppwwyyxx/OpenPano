@@ -82,10 +82,8 @@ Homography TransformEstimation::calc_transform(const vector<int>& matches) const
 		p1.emplace_back(f1[match.data[matches[i]].first].coor);
 		p2.emplace_back(f2[match.data[matches[i]].second].coor);
 	}
-	if (HOMO)
 		return Homography(getPerspectiveTransform(p1, p2));
-	else
-		return Homography(getAffineTransform(p1, p2));
+	//	return Homography(getAffineTransform(p1, p2));
 }
 
 vector<int> TransformEstimation::get_inliers(const Homography& trans) const {

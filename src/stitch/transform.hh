@@ -65,6 +65,7 @@ class Homography : public Matrix {
 		}
 
 		inline Homography inverse() const {
+			// TODO rewrite it by calling eigen directly might speed up
 			Homography ret;
 			bool succ = Matrix::inverse(ret);
 			m_assert(succ);
