@@ -7,6 +7,7 @@
 
 #include <fstream>
 #include <algorithm>
+#include <queue>
 
 #include "feature/matcher.hh"
 #include "warp.hh"
@@ -23,11 +24,14 @@ using namespace feature;
 Mat32f Stitcher::build() {
 	calc_feature();
 	if (CYLINDER) {
+		assign_center();
 		build_bundle_warp();
 		bundle.proj_method = ConnectedImages::ProjectionMethod::flat;
 	} else {
 	  //pairwise_match();
 		assume_linear_pairwise();
+		// check connectivity
+		assign_center();
 		estimate_camera();
 		build_bundle_linear_simple();
 		bundle.proj_method = ConnectedImages::ProjectionMethod::cylindrical;
@@ -89,23 +93,57 @@ void Stitcher::assume_linear_pairwise() {
 		graph[i].push_back(next);
 		graph[next].push_back(i);
 		pairwise_matches[i][next] = info;
+		cout << "i" << i << info.homo << endl;
 		info.homo = info.homo.inverse();
 		pairwise_matches[next][i] = move(info);
 	}
+}
+
+void Stitcher::assign_center() {
+	// naively. when changing here, keep mid for CYLINDER
+	bundle.identity_idx = imgs.size() >> 1;
 }
 
 void Stitcher::estimate_camera() {
 	int n = imgs.size();
 	{ // assign an initial focal length
 		double focal = Camera::estimate_focal(pairwise_matches);
-		if (focal > 0)
+		if (focal > 0) {
 			for (auto& c : cameras)
 				c.focal = focal;
-		else
+			print_debug("Estimated focal: %lf\n", focal);
+		} else
 			REP(i, n) // hack focal
 				cameras[i].focal = (imgs[i].width() / imgs[i].height()) * 0.5;
 	}
-	// TODO estimate camera rotation
+	int start = bundle.identity_idx;
+	queue<int> q; q.push(start);
+	vector<bool> vst(graph.size(), false);		// in queue
+	vst[start] = true;
+	while (q.size()) {
+		int now = q.front(); q.pop();
+		for (int next: graph[now]) {
+			if (vst[next]) continue;
+			vst[next] = true;
+			// from now to next
+			auto Kfrom = cameras[now].K();
+			auto Kto = cameras[next].K();
+			cameras[next].R = Kfrom.inverse() * pairwise_matches[next][now].homo * Kto * cameras[now].R;
+			q.push(next);
+		}
+	}
+	// TODO BA here
+	/*
+	 *for (auto& c : cameras) {
+	 *  cout << c.R.prod(c.K().inverse()) << "," << c.R << endl;
+	 *}
+	 */
+	/*
+	 *REP(i, imgs.size()) {
+	 *  bundle.component[i].homo = cameras[i].R.prod(cameras[i].K().inverse());
+	 *}
+	 *bundle.calc_inverse_homo();
+	 */
 
 }
 
@@ -186,8 +224,7 @@ void Stitcher::straighten_simple() {
 
 void Stitcher::build_bundle_linear_simple() {
 	// assume pano pairwise
-	int n = imgs.size(), mid = n >> 1;
-	bundle.identity_idx = mid;
+	int n = imgs.size(), mid = bundle.identity_idx;
 	bundle.component[mid].homo = Homography::I();
 
 	auto& comp = bundle.component;
@@ -208,8 +245,7 @@ void Stitcher::build_bundle_linear_simple() {
 
 void Stitcher::build_bundle_warp() {;
 	GuardedTimer tm("build_bundle_warp()");
-	int n = imgs.size(), mid = n >> 1;
-	bundle.identity_idx = mid;
+	int n = imgs.size(), mid = bundle.identity_idx;
 	REP(i, n) bundle.component[i].homo = Homography::I();
 
 	Timer timer;

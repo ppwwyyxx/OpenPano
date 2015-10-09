@@ -51,6 +51,9 @@ class Stitcher {
 		// equivalent to pairwise_match when dealing with panorama
 		void assume_linear_pairwise();
 
+		// assign a center to be identity
+		void assign_center();
+
 		// estimate camera parameters
 		void estimate_camera();
 
