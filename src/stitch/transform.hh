@@ -69,7 +69,6 @@ class Homography : public Matrix {
 			Homography ret;
 			bool succ = Matrix::inverse(ret);
 			m_assert(succ);
-			ret.normalize();
 			return ret;
 		}
 };
