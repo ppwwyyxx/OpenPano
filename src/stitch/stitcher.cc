@@ -33,7 +33,7 @@ Mat32f Stitcher::build() {
 		// check connectivity
 		assign_center();
 		estimate_camera();
-		build_bundle_linear_simple();
+		//build_bundle_linear_simple();
 		bundle.proj_method = ConnectedImages::ProjectionMethod::cylindrical;
 	}
 	print_debug("Using projection method: %d\n", bundle.proj_method);
@@ -93,7 +93,6 @@ void Stitcher::assume_linear_pairwise() {
 		graph[i].push_back(next);
 		graph[next].push_back(i);
 		pairwise_matches[i][next] = info;
-		cout << "i" << i << info.homo << endl;
 		info.homo = info.homo.inverse();
 		pairwise_matches[next][i] = move(info);
 	}
@@ -128,22 +127,25 @@ void Stitcher::estimate_camera() {
 			// from now to next
 			auto Kfrom = cameras[now].K();
 			auto Kto = cameras[next].K();
-			cameras[next].R = Kfrom.inverse() * pairwise_matches[next][now].homo * Kto * cameras[now].R;
+			auto Hinv = pairwise_matches[now][next].homo;	// TODO
+			auto Mat = Kfrom.inverse() * Hinv * Kto;
+			cameras[next].R = cameras[now].R * Mat;
+			cout << "From " << now << " to " << next << " Hinv=" << Hinv << " Mat=" << Mat
+				<< "nextR=" << cameras[next].R;
 			q.push(next);
 		}
 	}
+	REP(i, n) {
+		cameras[i].ppx = imgs[i].width() * 0.5;
+		cameras[i].ppy = imgs[i].height() * 0.5;
+	}
+
+	REP(i, n) {
+		bundle.component[i].homo_inv = cameras[i].K() * cameras[i].R.transpose();
+		bundle.component[i].homo = cameras[i].R * cameras[i].K().inverse();
+	}
+	//bundle.calc_inverse_homo();
 	// TODO BA here
-	/*
-	 *for (auto& c : cameras) {
-	 *  cout << c.R.prod(c.K().inverse()) << "," << c.R << endl;
-	 *}
-	 */
-	/*
-	 *REP(i, imgs.size()) {
-	 *  bundle.component[i].homo = cameras[i].R.prod(cameras[i].K().inverse());
-	 *}
-	 *bundle.calc_inverse_homo();
-	 */
 
 }
 
@@ -233,11 +235,11 @@ void Stitcher::build_bundle_linear_simple() {
 	comp[mid+1].homo = pairwise_matches[mid][mid+1].homo;
 	REPL(k, mid + 2, n)
 		comp[k].homo = Homography(
-				comp[k - 1].homo.prod(pairwise_matches[k][k-1].homo));
+				comp[k - 1].homo.prod(pairwise_matches[k-1][k].homo));
 	comp[mid-1].homo = pairwise_matches[mid][mid-1].homo;
 	REPD(k, mid - 2, 0)
 		comp[k].homo = Homography(
-				comp[k + 1].homo.prod(pairwise_matches[k][k+1].homo));
+				comp[k + 1].homo.prod(pairwise_matches[k+1][k].homo));
 	// then, comp[k]: from k to identity
 	bundle.calc_inverse_homo();
 }
