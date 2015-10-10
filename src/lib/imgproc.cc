@@ -6,48 +6,13 @@
 
 #include <vector>
 
-#define cimg_display 0
-#define cimg_use_png
-#define cimg_use_jpeg
-#include "CImg.h"
 #include <Eigen/Dense>
 
 #include "debugutils.hh"
 #include "common.hh"
 #include "matrix.hh"
 
-using namespace cimg_library;
 using namespace std;
-
-Mat32f read_rgb(const char* fname) {
-	CImg<float> img(fname);
-	// TODO handle grey img
-	m_assert(img.spectrum() == 3);
-	img = img / 255.0;
-	Mat32f mat(img.height(), img.width(), 3);
-	REP(i, mat.rows())
-		REP(j, mat.cols()) {
-			mat.at(i, j, 0) = img(j, i, 0);
-			mat.at(i, j, 1) = img(j, i, 1);
-			mat.at(i, j, 2) = img(j, i, 2);
-		}
-	return mat;
-}
-
-
-void write_rgb(const char* fname, const Mat32f& mat) {
-	m_assert(mat.channels() == 3);
-	CImg<float> img(mat.cols(), mat.rows(), 1, 3);
-	REP(i, mat.rows())
-		REP(j, mat.cols()) {
-			// use black background. Color::NO turns to 0
-			img(j, i, 0) = max(mat.at(i, j, 0), 0.f) * 255;
-			img(j, i, 1) = max(mat.at(i, j, 1), 0.f) * 255;
-			img(j, i, 2) = max(mat.at(i, j, 2), 0.f) * 255;
-		}
-	img.save(fname);
-}
-
 
 // hconcat using largest height and zero padding
 Mat32f hconcat(const list<Mat32f>& mats) {
@@ -188,6 +153,17 @@ Matrix getPerspectiveTransform(const std::vector<Vec2D>& p1, const std::vector<V
 	::Matrix ret(3, 3);
 	REP(i, 8) ret.ptr()[i] = ans[i];
 	ret.at(2, 2) = 1;
+	/*
+	 *MatrixXd m(n*2, 9);
+	 *REP(i, n) {
+	 *  const Vec2D &m0 = p1[i], &m1 = p2[i];
+	 *  m.row(i) << m1.x, m1.y, 1, 0, 0, 0, -m1.x * m0.x, -m1.y * m0.x, -m0.x;
+	 *  m.row(n + i) << 0, 0, 0, m1.x, m1.y, 1, -m1.x * m0.y, -m1.y * m0.y, -m0.y;
+	 *}
+	 *VectorXd ans = m.jacobiSvd(ComputeThinU | ComputeThinV).matrixV().col(8);
+	 *::Matrix ret(3, 3);
+	 *REP(i, 9) ret.ptr()[i] = ans(i) / ans(8);
+	 */
 	return ret;
 }
 

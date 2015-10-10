@@ -44,7 +44,7 @@ double get_focal_from_matrix(const Matrix& m) {
 
 }
 
-Camera::Camera() : R(Homography::I()), t(0,0,0) { }
+Camera::Camera() : R(Homography::I()) { }
 
 Homography Camera::K() const {
 	Homography ret(Homography::I());

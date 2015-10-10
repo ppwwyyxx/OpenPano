@@ -11,8 +11,7 @@
 
 class BundleAdjuster {
 	public:
-		BundleAdjuster(
-				const std::vector<Mat32f>& imgs,
+		BundleAdjuster(const std::vector<Mat32f>& imgs,
 				const std::vector<std::vector<MatchInfo>>& pairwise_matches);
 
 		bool estimate(std::vector<Camera>& cameras);
@@ -27,4 +26,18 @@ class BundleAdjuster {
 
 		double calcError(std::vector<double>& err);
 		void calcJacobian(Eigen::MatrixXd& J);
+};
+
+class HomoEstimator {
+	public:
+		HomoEstimator(const MatchInfo& match_info);
+		bool estimate(Homography& homo);
+
+	protected:
+		const MatchInfo& match;
+		int nr_match;
+		std::vector<double> params;
+		double calcError(std::vector<double>& err);
+		void calcJacobian(Eigen::MatrixXd& J);
+
 };
