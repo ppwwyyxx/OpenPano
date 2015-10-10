@@ -116,7 +116,9 @@ void TransformEstimation::fill_inliers_to_matchinfo(
 				);
 	}
 	info->confidence = inliers.size() / (8 + 0.3 * match.size());
-	if (info->confidence > 3)
-		info->confidence = 0.;		// overlap too much. not helpful
+	if (info->confidence > 3) {
+		info->confidence = 0.;
+		// overlap too much. not helpful. but still keep it
+	}
 }
 

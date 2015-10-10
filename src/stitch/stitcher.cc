@@ -14,6 +14,7 @@
 #include "transform_estimate.hh"
 #include "projection.hh"
 #include "match_info.hh"
+#include "bundle_adjuster.hh"
 
 #include "lib/timer.hh"
 #include "lib/imgproc.hh"
@@ -22,7 +23,7 @@ using namespace std;
 using namespace feature;
 
 // in development. estimate camera parameters
-bool CAMERA_MODE = false;
+bool CAMERA_MODE = true;
 
 Mat32f Stitcher::build() {
 	calc_feature();
@@ -31,8 +32,8 @@ Mat32f Stitcher::build() {
 		build_bundle_warp();
 		bundle.proj_method = ConnectedImages::ProjectionMethod::flat;
 	} else {
-	  //pairwise_match();
-		assume_linear_pairwise();
+	  pairwise_match();
+		//assume_linear_pairwise();
 		// check connectivity
 		assign_center();
 		if (CAMERA_MODE)
@@ -69,13 +70,17 @@ void Stitcher::pairwise_match() {
 		MatchInfo info;
 		bool succ = transf.get_transform(&info);
 		if (succ) {
+			bool ok;
+			auto inv = info.homo.inverse(&ok);
+			if (not ok) continue;	// cannot inverse. mal-formed homography
 			print_debug(
 					"Connection between image %lu and %lu, ninliers=%lu, conf=%f\n",
 					i, j, info.match.size(), info.confidence);
 			graph[i].push_back(j);
 			graph[j].push_back(i);
 			pairwise_matches[i][j] = info;
-			info.homo = info.homo.inverse();
+			info.homo = inv;
+			info.reverse();
 			pairwise_matches[j][i] = move(info);
 		}
 	}
@@ -99,6 +104,7 @@ void Stitcher::assume_linear_pairwise() {
 		graph[next].push_back(i);
 		pairwise_matches[i][next] = info;
 		info.homo = info.homo.inverse();
+		info.reverse();
 		pairwise_matches[next][i] = move(info);
 	}
 }
@@ -142,7 +148,26 @@ void Stitcher::estimate_camera() {
 			q.push(next);
 		}
 	}
+	/*
+	 *for (auto& c : cameras) {
+	 *  double rx, ry, rz;
+	 *  Camera::rotation_to_angle(c.R, rx, ry, rz);
+	 *  print_debug("%f,%f,%f\n", rx, ry, rz);
+	 *  cout << c.R << endl;
+	 *  cout << "transformed:" << endl;
+	 *  Camera::angle_to_rotation(rx, ry, rz, c.R);
+	 *  cout << c.R << endl;
+	 *  Camera::rotation_to_angle(c.R, rx, ry, rz);
+	 *  Camera::angle_to_rotation(rx, ry, rz, c.R);
+	 *  cout << c.R << endl;
+	 *}
+	 */
 
+	BundleAdjuster ba(imgs, pairwise_matches);
+	ba.estimate(cameras);
+	for (auto& c : cameras) {
+		cout << c.K() << endl;
+	}
 	REP(i, n) {
 		bundle.component[i].homo_inv = cameras[i].K() * cameras[i].R.transpose();
 		bundle.component[i].homo = cameras[i].R * cameras[i].K().inverse();
