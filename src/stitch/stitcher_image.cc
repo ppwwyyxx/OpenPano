@@ -34,13 +34,16 @@ void ConnectedImages::update_proj_range() {
 	for (auto& m : component) {
 		Vec2D now_min(numeric_limits<double>::max(), std::numeric_limits<double>::max()),
 					now_max = now_min * (-1);
-		for (auto& v : corner) {
+		for (auto v : corner) {
+			if (CAMERA_MODE) {
+				v.x += 0.5, v.y += 0.5;
+			}
 			Vec homo = m.homo.trans(
 					Vec2D(v.x * m.imgptr->width(), v.y * m.imgptr->height()));
 			if (not CAMERA_MODE) {
 				homo.x /= refw, homo.y /= refh;
+				homo.x += 0.5 * homo.z, homo.y += 0.5 * homo.z;
 			}
-			homo.x += 0.5 * homo.z, homo.y += 0.5 * homo.z;
 			Vec2D t_corner = homo2proj(homo);
 			now_min.update_min(t_corner);
 			now_max.update_max(t_corner);
@@ -55,8 +58,8 @@ void ConnectedImages::update_proj_range() {
 						Vec2D(v.x * m.imgptr->width(), v.y * m.imgptr->height()));
 				if (not CAMERA_MODE) {
 					homo.x /= refw, homo.y /= refh;
+					homo.x += 0.5 * homo.z, homo.y += 0.5 * homo.z;
 				}
-				homo.x += 0.5 * homo.z, homo.y += 0.5 * homo.z;
 				Vec2D t_corner = homo2proj(homo);
 				if (t_corner.x < 0) t_corner.x += 2*M_PI;
 				now_min.update_min(t_corner);

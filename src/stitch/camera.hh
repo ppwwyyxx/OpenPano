@@ -17,7 +17,7 @@ class Camera {
 		double ppx = 0; // Principal point X
 		double ppy = 0; // Principal point Y
 		Homography R; // Rotation
-		Vec t; // Translation
+		//Vec t; // Translation
 
 		static double estimate_focal(
 				const std::vector<std::vector<MatchInfo>>& matches);

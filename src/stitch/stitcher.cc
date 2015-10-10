@@ -23,7 +23,7 @@ using namespace std;
 using namespace feature;
 
 // in development. estimate camera parameters
-bool CAMERA_MODE = false;
+bool CAMERA_MODE = true;
 
 Mat32f Stitcher::build() {
 	if (CYLINDER)
@@ -76,6 +76,11 @@ void Stitcher::pairwise_match() {
 			bool ok;
 			auto inv = info.homo.inverse(&ok);
 			if (not ok) continue;	// cannot inverse. mal-formed homography
+			/*
+			 *HomoEstimator h(info);
+			 *h.estimate(info.homo);
+			 *inv = info.homo.inverse(&ok);
+			 */
 			print_debug(
 					"Connection between image %lu and %lu, ninliers=%lu, conf=%f\n",
 					i, j, info.match.size(), info.confidence);
@@ -146,25 +151,17 @@ void Stitcher::estimate_camera() {
 			cameras[next].R = cameras[now].R * Mat;
 	// XXX this R is actually R.inv. and also in the final construction in H
 	// but it goes like this in opencv
-			cout << "From " << now << " to " << next << " Hinv=" << Hinv << " Mat=" << Mat
-				<< "nextR=" << cameras[next].R;
+			/*
+			 *cout << "From " << now << " to " << next << " Hinv=" << Hinv << " Mat=" << Mat
+			 *  << "nextR=" << cameras[next].R;
+			 */
 			q.push(next);
 		}
 	}
-	/*
-	 *for (auto& c : cameras) {
-	 *  double rx, ry, rz;
-	 *  Camera::rotation_to_angle(c.R, rx, ry, rz);
-	 *  print_debug("%f,%f,%f\n", rx, ry, rz);
-	 *  cout << c.R << endl;
-	 *  cout << "transformed:" << endl;
-	 *  Camera::angle_to_rotation(rx, ry, rz, c.R);
-	 *  cout << c.R << endl;
-	 *  Camera::rotation_to_angle(c.R, rx, ry, rz);
-	 *  Camera::angle_to_rotation(rx, ry, rz, c.R);
-	 *  cout << c.R << endl;
-	 *}
-	 */
+	REP(i, n) {
+		cameras[i].ppx = imgs[i].width() / 2;
+		cameras[i].ppy = imgs[i].height() / 2;
+	}
 
 	BundleAdjuster ba(imgs, pairwise_matches);
 	ba.estimate(cameras);
@@ -175,7 +172,6 @@ void Stitcher::estimate_camera() {
 		bundle.component[i].homo_inv = cameras[i].K() * cameras[i].R.transpose();
 		bundle.component[i].homo = cameras[i].R * cameras[i].K().inverse();
 	}
-	// TODO BA here
 
 }
 
@@ -227,13 +223,14 @@ Mat32f Stitcher::blend() {
 		REP(i, h) REP(j, w) {
 			Vec2D c((j + top_left.x) * x_per_pixel + proj_min.x, (i + top_left.y) * y_per_pixel + proj_min.y);
 			Vec homo = proj2homo(Vec2D(c.x / refw, c.y / refh));
-			homo.x -= 0.5 * homo.z, homo.y -= 0.5 * homo.z;	// shift center for homography
 			if (not CAMERA_MODE)  {	// scale is in camera intrinsic
+				homo.x -= 0.5 * homo.z, homo.y -= 0.5 * homo.z;	// shift center for homography
 				homo.x *= refw, homo.y *= refh;
 			}
-			Vec2D& p = (orig_pos.at(i, j)
-					= cur.homo_inv.trans_normalize(homo)
-					+ Vec2D(cur.imgptr->width()/2, cur.imgptr->height()/2));
+			Vec2D orig = cur.homo_inv.trans_normalize(homo);
+			if (not CAMERA_MODE)
+				orig = orig + Vec2D(cur.imgptr->width()/2, cur.imgptr->height()/2);
+			Vec2D& p = (orig_pos.at(i, j) = orig);
 			//print_debug("target %d,%d <- orig %lf, %lf\n", i, j, p.y, p.x);
 			if (!p.isNaN() && (p.x < 0 || p.x >= cur.imgptr->width()
 						|| p.y < 0 || p.y >= cur.imgptr->height()))
@@ -241,7 +238,7 @@ Mat32f Stitcher::blend() {
 		}
 		blender.add_image(top_left, orig_pos, *cur.imgptr);
 	}
-	blender.debug_run(size.x, size.y);
+	//blender.debug_run(size.x, size.y);
 
 	blender.run(ret);
 	if (CYLINDER)
