@@ -21,6 +21,9 @@
 using namespace std;
 using namespace feature;
 
+// in development. estimate camera parameters
+bool CAMERA_MODE = false;
+
 Mat32f Stitcher::build() {
 	calc_feature();
 	if (CYLINDER) {
@@ -32,8 +35,10 @@ Mat32f Stitcher::build() {
 		assume_linear_pairwise();
 		// check connectivity
 		assign_center();
-		estimate_camera();
-		//build_bundle_linear_simple();
+		if (CAMERA_MODE)
+			estimate_camera();
+		else
+			build_bundle_linear_simple();
 		bundle.proj_method = ConnectedImages::ProjectionMethod::cylindrical;
 	}
 	print_debug("Using projection method: %d\n", bundle.proj_method);
@@ -127,24 +132,21 @@ void Stitcher::estimate_camera() {
 			// from now to next
 			auto Kfrom = cameras[now].K();
 			auto Kto = cameras[next].K();
-			auto Hinv = pairwise_matches[now][next].homo;	// TODO
+			auto Hinv = pairwise_matches[now][next].homo;
 			auto Mat = Kfrom.inverse() * Hinv * Kto;
 			cameras[next].R = cameras[now].R * Mat;
+	// XXX this R is actually R.inv. and also in the final construction in H
+	// but it goes like this in opencv
 			cout << "From " << now << " to " << next << " Hinv=" << Hinv << " Mat=" << Mat
 				<< "nextR=" << cameras[next].R;
 			q.push(next);
 		}
-	}
-	REP(i, n) {
-		cameras[i].ppx = imgs[i].width() * 0.5;
-		cameras[i].ppy = imgs[i].height() * 0.5;
 	}
 
 	REP(i, n) {
 		bundle.component[i].homo_inv = cameras[i].K() * cameras[i].R.transpose();
 		bundle.component[i].homo = cameras[i].R * cameras[i].K().inverse();
 	}
-	//bundle.calc_inverse_homo();
 	// TODO BA here
 
 }
@@ -178,6 +180,8 @@ Mat32f Stitcher::blend() {
 		return Coor(v.x, v.y);
 	};
 
+	// test
+
 	// blending
 	Mat32f ret(size.y, size.x, 3);
 	fill(ret, Color::NO);
@@ -194,7 +198,9 @@ Mat32f Stitcher::blend() {
 			Vec2D c((j + top_left.x) * x_per_pixel + proj_min.x, (i + top_left.y) * y_per_pixel + proj_min.y);
 			Vec homo = proj2homo(Vec2D(c.x / refw, c.y / refh));
 			homo.x -= 0.5 * homo.z, homo.y -= 0.5 * homo.z;	// shift center for homography
-			homo.x *= refw, homo.y *= refh;
+			if (not CAMERA_MODE)  {	// scale is in camera intrinsic
+				homo.x *= refw, homo.y *= refh;
+			}
 			Vec2D& p = (orig_pos.at(i, j)
 					= cur.homo_inv.trans_normalize(homo)
 					+ Vec2D(cur.imgptr->width()/2, cur.imgptr->height()/2));
@@ -331,7 +337,7 @@ float Stitcher::update_h_factor(float nowfactor,
 				nowfeats[k]).get_transform(&info);
 		if (not succ)
 			failed = true;
-			//error_exit("The two image doesn't match. Failed");
+		//error_exit("The two image doesn't match. Failed");
 		nowmat[k-1] = info.homo;
 	}
 	if (failed) return 0;

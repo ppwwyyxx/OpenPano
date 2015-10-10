@@ -5,6 +5,8 @@
 #include "projection.hh"
 #include <cassert>
 
+extern bool CAMERA_MODE;	// debug
+
 void ConnectedImages::calc_inverse_homo() {
 	for (auto& m : component)
 		m.homo_inv = m.homo.inverse();
@@ -26,7 +28,9 @@ void ConnectedImages::update_proj_range() {
 		for (auto& v : corner) {
 			Vec homo = m.homo.trans(
 					Vec2D(v.x * m.imgptr->width(), v.y * m.imgptr->height()));
-			homo.x /= refw, homo.y /= refh;
+			if (not CAMERA_MODE) {
+				homo.x /= refw, homo.y /= refh;
+			}
 			homo.x += 0.5 * homo.z, homo.y += 0.5 * homo.z;
 			Vec2D t_corner = homo2proj(homo);
 			t_corner.x *= refw, t_corner.y *= refh;
