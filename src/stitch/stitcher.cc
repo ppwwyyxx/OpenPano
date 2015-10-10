@@ -23,9 +23,12 @@ using namespace std;
 using namespace feature;
 
 // in development. estimate camera parameters
-bool CAMERA_MODE = true;
+bool CAMERA_MODE = false;
 
 Mat32f Stitcher::build() {
+	if (CYLINDER)
+		CAMERA_MODE = false;
+
 	calc_feature();
 	if (CYLINDER) {
 		assign_center();
@@ -205,14 +208,16 @@ Mat32f Stitcher::blend() {
 		return Coor(v.x, v.y);
 	};
 
-	// test
 
 	// blending
 	Mat32f ret(size.y, size.x, 3);
 	fill(ret, Color::NO);
 
 	LinearBlender blender;
+	int idx = 0;
 	for (auto& cur : bundle.component) {
+		idx ++;
+		//if (idx != 11) continue;
 		Coor top_left = scale_coor_to_img_coor(cur.range.min);
 		Coor bottom_right = scale_coor_to_img_coor(cur.range.max);
 		Coor diff = bottom_right - top_left;
@@ -229,12 +234,15 @@ Mat32f Stitcher::blend() {
 			Vec2D& p = (orig_pos.at(i, j)
 					= cur.homo_inv.trans_normalize(homo)
 					+ Vec2D(cur.imgptr->width()/2, cur.imgptr->height()/2));
+			//print_debug("target %d,%d <- orig %lf, %lf\n", i, j, p.y, p.x);
 			if (!p.isNaN() && (p.x < 0 || p.x >= cur.imgptr->width()
 						|| p.y < 0 || p.y >= cur.imgptr->height()))
 				p = Vec2D::NaN();
 		}
 		blender.add_image(top_left, orig_pos, *cur.imgptr);
 	}
+	blender.debug_run(size.x, size.y);
+
 	blender.run(ret);
 	if (CYLINDER)
 		return perspective_correction(ret);
