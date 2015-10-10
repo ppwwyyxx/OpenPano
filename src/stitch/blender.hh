@@ -45,4 +45,7 @@ class LinearBlender : public BlenderBase {
 				const Mat<Vec2D> &orig_pos, const Mat32f &img);
 
 		void run(Mat32f &target);
+
+		// render each component, for debug
+		void debug_run(int w, int h);
 };
