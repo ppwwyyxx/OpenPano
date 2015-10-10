@@ -114,6 +114,12 @@ void work(int argc, char* argv[]) {
 		imgs.emplace_back(read_rgb(argv[i]));
 	Stitcher p(move(imgs));
 	Mat32f res = p.build();
+	if (res.width() * res.height() > 40000000) {
+		print_debug("resizing...");
+		Mat32f dst(res.height() * 0.5, res.width() * 0.5, 3);
+		resize(res, dst);
+		res = dst;
+	}
 
 	if (CROP) res = crop(res);
 	write_rgb("out.png", res);

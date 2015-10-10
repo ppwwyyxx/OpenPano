@@ -4,6 +4,7 @@
 #include "camera.hh"
 #include "transform.hh"
 #include <algorithm>
+#include <Eigen/Dense>
 using namespace std;
 // implement stuffs about matrices
 
@@ -72,4 +73,69 @@ double Camera::estimate_focal(
 		return estimates[ne >> 1];
 	else
 		return (estimates[ne >> 1] + estimates[(ne >> 1) - 1]) * 0.5;
+}
+
+
+void Camera::rotation_to_angle(const Homography& r, double& rx, double& ry, double& rz) {
+	using namespace Eigen;
+	// XXX const cast
+	auto R_eigen = Map<Eigen::Matrix<double, 3, 3, RowMajor>>(const_cast<double*>(r.ptr()));
+	JacobiSVD<MatrixXd> svd(R_eigen, ComputeFullU | ComputeFullV);
+	Matrix3d Rnew = svd.matrixU() * (svd.matrixV().transpose());
+	if (Rnew.determinant() < 0)
+		Rnew *= -1;
+
+	// copy from opencv
+	rx = Rnew(2,1) - Rnew(1,2);
+	ry = Rnew(0,2) - Rnew(2,0);
+	rz = Rnew(1,0) - Rnew(0,1);
+	double c = (Rnew(0,0) + Rnew(1,1) + Rnew(2,2) - 1)*0.5;
+	c = c > 1. ? 1. : c < -1. ? -1. : c;
+	double theta = acos(c);
+	double s = sqrt((rx*rx + ry*ry + rz*rz)*0.25);
+	if (s < 1e-5) {
+		double t;
+		if( c > 0 )
+			rx = ry = rz = 0;
+		else {
+			t = (Rnew(0,0) + 1)*0.5; rx = sqrt(max(t,0.));
+			t = (Rnew(1,1) + 1)*0.5; ry = sqrt(max(t,0.))*(Rnew(0,1) < 0 ? -1. : 1.);
+			t = (Rnew(2,2) + 1)*0.5; rz = sqrt(max(t,0.))*(Rnew(0,2) < 0 ? -1. : 1.);
+			if(fabs(rx) < fabs(ry) && fabs(rx) < fabs(rz) && (Rnew(1,2) > 0) != (ry*rz > 0) )
+				rz = -rz;
+			theta /= sqrt(rx*rx + ry*ry + rz*rz);
+			rx *= theta;
+			ry *= theta;
+			rz *= theta;
+		}
+	} else {
+		double vth = 1/(2*s);
+		vth *= theta;
+		rx *= vth; ry *= vth; rz *= vth;
+	}
+}
+
+void Camera::angle_to_rotation(double rx, double ry, double rz, Homography& r) {
+	// copy from opencv
+	double theta = sqrt(rx*rx + ry*ry + rz*rz);
+	if (theta < 1e-10) {
+		r = Homography::I();
+		return;
+	}
+
+	double c = cos(theta);
+	double s = sin(theta);
+	double c1 = 1. - c;
+	double itheta = theta ? 1./theta : 0.;
+	rx *= itheta; ry *= itheta; rz *= itheta;
+
+	double rrt[] = { rx*rx, rx*ry, rx*rz, rx*ry, ry*ry, ry*rz, rx*rz, ry*rz, rz*rz };
+	double _r_x_[] = { 0, -rz, ry, rz, 0, -rx, -ry, rx, 0 };
+	r = Homography::I();
+	double* R = r.ptr();
+
+	// R = cos(theta)*I + (1 - cos(theta))*r*rT + sin(theta)*[r_x]
+	// where [r_x] is [0 -rz ry; rz 0 -rx; -ry rx 0]
+	REP(k, 9)
+		R[k] = c*R[k] + c1*rrt[k] + s*_r_x_[k];
 }

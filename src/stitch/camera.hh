@@ -21,4 +21,8 @@ class Camera {
 
 		static double estimate_focal(
 				const std::vector<std::vector<MatchInfo>>& matches);
+
+		static void rotation_to_angle(const Homography& r, double& rx, double& ry, double& rz);
+
+		static void angle_to_rotation(double rx, double ry, double rz, Homography& r);
 };

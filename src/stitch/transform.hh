@@ -64,11 +64,14 @@ class Homography : public Matrix {
 			}
 		}
 
-		inline Homography inverse() const {
+		inline Homography inverse(bool* succ= nullptr) const {
 			// TODO rewrite it by calling eigen directly might speed up
 			Homography ret;
-			bool succ = Matrix::inverse(ret);
-			m_assert(succ);
+			bool ok = Matrix::inverse(ret);
+			if (succ==nullptr)
+				m_assert(ok);
+			else
+				*succ = ok;
 			return ret;
 		}
 };
