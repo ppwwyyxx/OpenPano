@@ -35,9 +35,11 @@ Mat32f Stitcher::build() {
 		build_bundle_warp();
 		bundle.proj_method = ConnectedImages::ProjectionMethod::flat;
 	} else {
-	  pairwise_match();
-		//assume_linear_pairwise();
-		// check connectivity
+		if (CAMERA_MODE)
+			pairwise_match();
+		else
+			assume_linear_pairwise();
+	  // TODO check connectivity
 		assign_center();
 		if (CAMERA_MODE)
 			estimate_camera();
@@ -47,7 +49,6 @@ Mat32f Stitcher::build() {
 	}
 	print_debug("Using projection method: %d\n", bundle.proj_method);
 	bundle.update_proj_range();
-
 	return blend();
 }
 
@@ -100,12 +101,15 @@ void Stitcher::assume_linear_pairwise() {
 		bool succ = transf.get_transform(&info);
 		if (not succ)
 			error_exit(ssprintf("Image %d and %d doesn't match.\n", i, next));
+		auto inv = info.homo.inverse(&succ);
+		if (not succ) // cannot inverse. mal-formed homography
+			error_exit(ssprintf("Image %d and %d doesn't match.\n", i, next));
 		print_debug("Match between image %d and %d, ninliers=%lu, conf=%f\n",
 				i, next, info.match.size(), info.confidence);
 		graph[i].push_back(next);
 		graph[next].push_back(i);
 		pairwise_matches[i][next] = info;
-		info.homo = info.homo.inverse();
+		info.homo = inv;
 		info.reverse();
 		pairwise_matches[next][i] = move(info);
 	}
@@ -159,75 +163,11 @@ void Stitcher::estimate_camera() {
 
 	BundleAdjuster ba(imgs, pairwise_matches);
  	ba.estimate(cameras);
+	// TODO rotate to identity
 	REP(i, n) {
 		bundle.component[i].homo_inv = cameras[i].K() * cameras[i].R.transpose();
 		bundle.component[i].homo = cameras[i].R * cameras[i].K().inverse();
 	}
-}
-
-Mat32f Stitcher::blend() {
-	GuardedTimer tm("blend()");
-	// it's hard to do coordinates.......
-	int refw = imgs[bundle.identity_idx].width(),
-			refh = imgs[bundle.identity_idx].height();
-	auto homo2proj = bundle.get_homo2proj();
-	auto proj2homo = bundle.get_proj2homo();
-
-	Vec2D id_img_range = homo2proj(Vec(1, 1, 1)) - homo2proj(Vec(0, 0, 1));
-	id_img_range.x *= refw, id_img_range.y *= refh;
-	cout << "projmin:" << bundle.proj_range.min << "projmax" << bundle.proj_range.max << endl;
-
-	Vec2D proj_min = bundle.proj_range.min;
-	double x_len = bundle.proj_range.max.x - proj_min.x,
-				 y_len = bundle.proj_range.max.y - proj_min.y,
-				 x_per_pixel = id_img_range.x / refw,
-				 y_per_pixel = id_img_range.y / refh,
-				 target_width = x_len / x_per_pixel,
-				 target_height = y_len / y_per_pixel;
-
-	Coor size(target_width, target_height);
-	print_debug("Final Image Size: (%d, %d)\n", size.x, size.y);
-
-	auto scale_coor_to_img_coor = [&](Vec2D v) {
-		v = v - proj_min;
-		v.x /= x_per_pixel, v.y /= y_per_pixel;
-		return Coor(v.x, v.y);
-	};
-
-	// blending
-	Mat32f ret(size.y, size.x, 3);
-	fill(ret, Color::NO);
-
-	LinearBlender blender;
-	for (auto& cur : bundle.component) {
-		Coor top_left = scale_coor_to_img_coor(cur.range.min);
-		Coor bottom_right = scale_coor_to_img_coor(cur.range.max);
-		Coor diff = bottom_right - top_left;
-		int w = diff.x, h = diff.y;
-		Mat<Vec2D> orig_pos(h, w, 1);
-
-		REP(i, h) REP(j, w) {
-			Vec2D c((j + top_left.x) * x_per_pixel + proj_min.x, (i + top_left.y) * y_per_pixel + proj_min.y);
-			Vec homo = proj2homo(Vec2D(c.x / refw, c.y / refh));
-			if (not CAMERA_MODE)  {	// scale and offset is in camera intrinsic
-				homo.x -= 0.5 * homo.z, homo.y -= 0.5 * homo.z;	// shift center for homography
-				homo.x *= refw, homo.y *= refh;
-			}
-			Vec2D orig = cur.homo_inv.trans_normalize(homo);
-			if (not CAMERA_MODE)
-				orig = orig + Vec2D(cur.imgptr->width()/2, cur.imgptr->height()/2);
-			Vec2D& p = (orig_pos.at(i, j) = orig);
-			if (!p.isNaN() && (p.x < 0 || p.x >= cur.imgptr->width()
-						|| p.y < 0 || p.y >= cur.imgptr->height()))
-				p = Vec2D::NaN();
-		}
-		blender.add_image(top_left, orig_pos, *cur.imgptr);
-	}
-	//blender.debug_run(size.x, size.y);
-	blender.run(ret);
-	if (CYLINDER)
-		return perspective_correction(ret);
-	return ret;
 }
 
 void Stitcher::build_bundle_linear_simple() {
@@ -306,7 +246,6 @@ void Stitcher::build_bundle_warp() {;
 	bundle.calc_inverse_homo();
 }
 
-// XXX ugly hack
 float Stitcher::update_h_factor(float nowfactor,
 		float & minslope,
 		float & bestfactor,
@@ -337,7 +276,7 @@ float Stitcher::update_h_factor(float nowfactor,
 				nowfeats[k]).get_transform(&info);
 		if (not succ)
 			failed = true;
-		//error_exit("The two image doesn't match. Failed");
+			//error_exit("The two image doesn't match. Failed");
 		nowmat[k-1] = info.homo;
 	}
 	if (failed) return 0;
@@ -345,6 +284,7 @@ float Stitcher::update_h_factor(float nowfactor,
 	REPL(k, 1, len - 1)
 		nowmat[k] = nowmat[k - 1].prod(nowmat[k]);	// transform to nowimgs[0] == imgs[mid]
 
+	// check the slope of the result image
 	Vec2D center2 = nowmat.back().trans2d(0, 0);
 	const float slope = center2.y/ center2.x;
 	print_debug("slope: %lf\n", slope);
@@ -356,7 +296,6 @@ float Stitcher::update_h_factor(float nowfactor,
 }
 
 Mat32f Stitcher::perspective_correction(const Mat32f& img) {
-	// in warp mode, the last hack
 	int w = img.width(), h = img.height();
 	int refw = imgs[bundle.identity_idx].width(),
 			refh = imgs[bundle.identity_idx].height();
@@ -381,6 +320,7 @@ Mat32f Stitcher::perspective_correction(const Mat32f& img) {
 	to_ref_coor(Vec2D(0.5, -0.5));
 	to_ref_coor(Vec2D(0.5, 0.5));
 
+	// stretch the four corner to rectangle
 	vector<Vec2D> corners_std = {
 		Vec2D(0, 0), Vec2D(0, h),
 		Vec2D(w, 0), Vec2D(w, h)};
@@ -400,3 +340,69 @@ Mat32f Stitcher::perspective_correction(const Mat32f& img) {
 	blender.run(ret);
 	return ret;
 }
+
+Mat32f Stitcher::blend() {
+	GuardedTimer tm("blend()");
+	// it's hard to do coordinates.......
+	int refw = imgs[bundle.identity_idx].width(),
+			refh = imgs[bundle.identity_idx].height();
+	auto homo2proj = bundle.get_homo2proj();
+	auto proj2homo = bundle.get_proj2homo();
+
+	Vec2D id_img_range = homo2proj(Vec(1, 1, 1)) - homo2proj(Vec(0, 0, 1));
+	id_img_range.x *= refw, id_img_range.y *= refh;
+	cout << "projmin:" << bundle.proj_range.min << "projmax" << bundle.proj_range.max << endl;
+
+	Vec2D proj_min = bundle.proj_range.min;
+	double x_len = bundle.proj_range.max.x - proj_min.x,
+				 y_len = bundle.proj_range.max.y - proj_min.y,
+				 x_per_pixel = id_img_range.x / refw,
+				 y_per_pixel = id_img_range.y / refh,
+				 target_width = x_len / x_per_pixel,
+				 target_height = y_len / y_per_pixel;
+
+	Coor size(target_width, target_height);
+	print_debug("Final Image Size: (%d, %d)\n", size.x, size.y);
+
+	auto scale_coor_to_img_coor = [&](Vec2D v) {
+		v = v - proj_min;
+		v.x /= x_per_pixel, v.y /= y_per_pixel;
+		return Coor(v.x, v.y);
+	};
+
+	// blending
+	Mat32f ret(size.y, size.x, 3);
+	fill(ret, Color::NO);
+
+	LinearBlender blender;
+	for (auto& cur : bundle.component) {
+		Coor top_left = scale_coor_to_img_coor(cur.range.min);
+		Coor bottom_right = scale_coor_to_img_coor(cur.range.max);
+		Coor diff = bottom_right - top_left;
+		int w = diff.x, h = diff.y;
+		Mat<Vec2D> orig_pos(h, w, 1);
+
+		REP(i, h) REP(j, w) {
+			Vec2D c((j + top_left.x) * x_per_pixel + proj_min.x, (i + top_left.y) * y_per_pixel + proj_min.y);
+			Vec homo = proj2homo(Vec2D(c.x / refw, c.y / refh));
+			if (not CAMERA_MODE)  {	// scale and offset is in camera intrinsic
+				homo.x -= 0.5 * homo.z, homo.y -= 0.5 * homo.z;	// shift center for homography
+				homo.x *= refw, homo.y *= refh;
+			}
+			Vec2D orig = cur.homo_inv.trans_normalize(homo);
+			if (not CAMERA_MODE)
+				orig = orig + Vec2D(cur.imgptr->width()/2, cur.imgptr->height()/2);
+			Vec2D& p = (orig_pos.at(i, j) = orig);
+			if (!p.isNaN() && (p.x < 0 || p.x >= cur.imgptr->width()
+						|| p.y < 0 || p.y >= cur.imgptr->height()))
+				p = Vec2D::NaN();
+		}
+		blender.add_image(top_left, orig_pos, *cur.imgptr);
+	}
+	//blender.debug_run(size.x, size.y);
+	blender.run(ret);
+	if (CYLINDER)
+		return perspective_correction(ret);
+	return ret;
+}
+
