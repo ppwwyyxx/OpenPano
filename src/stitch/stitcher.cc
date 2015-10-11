@@ -33,7 +33,7 @@ Mat32f Stitcher::build() {
 
 	calc_feature();
 	if (CYLINDER) {
-		// TODO choose a better starting point by MST
+		// TODO choose a better starting point by MST use centrality
 		assign_center();
 		build_bundle_warp();
 		bundle.proj_method = ConnectedImages::ProjectionMethod::flat;
@@ -77,7 +77,10 @@ void Stitcher::pairwise_match() {
 		TransformEstimation transf(match, feats[i], feats[j]);
 		MatchInfo info;
 		bool succ = transf.get_transform(&info);
-		if (not succ) continue;
+		if (not succ) {
+			//print_debug("Only %f match from %lu to %lu\n", info.confidence, i, j);
+			continue;
+		}
 		auto inv = info.homo.inverse(&succ);
 		if (not succ) continue;	// cannot inverse. mal-formed homography
 		print_debug(
@@ -356,7 +359,7 @@ Mat32f Stitcher::blend() {
 	Vec2D proj_min = bundle.proj_range.min;
 	double x_len = bundle.proj_range.max.x - proj_min.x,
 				 y_len = bundle.proj_range.max.y - proj_min.y,
-				 x_per_pixel = id_img_range.x / refw,
+				 x_per_pixel = id_img_range.x / (CYLINDER ? refw : refh),	// huh?
 				 y_per_pixel = id_img_range.y / refh,
 				 target_width = x_len / x_per_pixel,
 				 target_height = y_len / y_per_pixel;

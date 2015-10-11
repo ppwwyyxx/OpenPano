@@ -69,8 +69,10 @@ bool TransformEstimation::get_transform(MatchInfo* info) {
 			best_transform = move(transform);
 	}
 	inliers = get_inliers(best_transform);
-	if (inliers.size() <= 10)
+	if (inliers.size() <= 8) {
+		//info->confidence = inliers.size();	// debug
 		return false;
+	}
 	best_transform = calc_transform(inliers);
 	fill_inliers_to_matchinfo(inliers, info);
 	info->homo = best_transform;
