@@ -18,10 +18,8 @@ class ConfigParser {
 
 };
 
-extern bool TRANS;
 extern bool CYLINDER;
 extern bool CROP;
-extern bool HOMO;
 extern float FOCAL_LENGTH;
 extern bool USE_SIFT;
 

@@ -22,25 +22,27 @@ TransformEstimation::TransformEstimation(const feature::MatchData& m_match,
 	match(m_match), f1(m_f1), f2(m_f2),
 	f2_homo_coor(3, match.size())
 {
+	if (CYLINDER)
+		transform_type = Affine;
+	else
+		transform_type = Homo;
 	int n = match.size();
-	if (n < 6) return;
+	if (n < ESTIMATE_MIN_NR_MATCH) return;
 	REP(i, n) {
 		Vec2D old = f2[match.data[i].second].coor;
 		f2_homo_coor.at(0, i) = old.x;
 		f2_homo_coor.at(1, i) = old.y;
+		f2_homo_coor.at(2, i) = 1;
 	}
-	REP(i, n) f2_homo_coor.at(2, i) = 1;
 }
 
-// get a transform matix from second -> first
 bool TransformEstimation::get_transform(MatchInfo* info) {
 	TotalTimer tm("get_transform");
-	int nr_match_used = (HOMO ? 8: 6) + 1 / 2;
-	int n_match = match.size();
-	if (n_match < 6) {
-		cerr << "Transform failed: only have " << n_match << " feature matches." << endl;
+	// use Affine in cylinder mode, and Homography in normal mode
+	int nr_match_used = (transform_type == Affine ? 6: 8) + 1 / 2;
+	int nr_match = match.size();
+	if (nr_match < ESTIMATE_MIN_NR_MATCH)
 		return false;
-	}
 
 	vector<int> inliers;
 	set<int> selected;
@@ -54,16 +56,15 @@ bool TransformEstimation::get_transform(MatchInfo* info) {
 		REP(_, nr_match_used) {
 			int random;
 			do {
-				random = rand() % n_match;
+				random = rand() % nr_match;
 			} while (selected.find(random) != selected.end());
 			selected.insert(random);
 			inliers.push_back(random);
 		}
 		Homography transform(calc_transform(inliers));
 		int n_inlier = get_inliers(transform).size();
-		if (update_max(maxinlierscnt, n_inlier)) {
+		if (update_max(maxinlierscnt, n_inlier))
 			best_transform = move(transform);
-		}
 	}
 	inliers = get_inliers(best_transform);
 	if (inliers.size() <= 10)
@@ -76,13 +77,12 @@ bool TransformEstimation::get_transform(MatchInfo* info) {
 
 Homography TransformEstimation::calc_transform(const vector<int>& matches) const {
 	int n = matches.size();
-	m_assert(n >= HOMO ? 4 : 3);
 	vector<Vec2D> p1, p2;
 	REP(i, n) {
 		p1.emplace_back(f1[match.data[matches[i]].first].coor);
 		p2.emplace_back(f2[match.data[matches[i]].second].coor);
 	}
-	if (CYLINDER)
+	if (transform_type == Homo)
 		return Homography(getAffineTransform(p1, p2));
 	else
 		return Homography(getPerspectiveTransform(p1, p2));
@@ -116,9 +116,9 @@ void TransformEstimation::fill_inliers_to_matchinfo(
 				);
 	}
 	info->confidence = inliers.size() / (8 + 0.3 * match.size());
-	if (info->confidence > 3) {
+
+	// overlap too much. not helpful. but still keep it
+	if (info->confidence > 3)
 		info->confidence = 0.;
-		// overlap too much. not helpful. but still keep it
-	}
 }
 
