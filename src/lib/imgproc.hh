@@ -14,6 +14,7 @@ Mat32f read_rgb(const char* fname);
 void write_rgb(const char* fname, const Mat32f& mat);
 
 Mat32f hconcat(const std::list<Mat32f>& mats);
+Mat32f vconcat(const std::list<Mat32f>& mats);
 
 Color interpolate(const Mat32f& mat, float r, float c);
 

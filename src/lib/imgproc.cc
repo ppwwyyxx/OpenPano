@@ -39,6 +39,31 @@ Mat32f hconcat(const list<Mat32f>& mats) {
 	return ret;
 }
 
+// vconcat using largest width and zero padding
+Mat32f vconcat(const list<Mat32f>& mats) {
+	int hsum = 0;
+	int wmax = 0;
+	for (auto& m: mats) {
+		hsum += m.height();
+		update_max(wmax, m.width());
+	}
+	int channel = mats.front().channels();
+
+	Mat32f ret(hsum, wmax, channel);
+	fill(ret, Color::BLACK);
+	hsum = 0;
+	for (auto & m : mats) {
+		m_assert(m.channels() == channel);
+		REP(i, m.height()) {
+			const float* src = m.ptr(i);
+			float* dst = ret.ptr(hsum + i, 0);
+			memcpy(dst, src, m.width() * channel * sizeof(float));
+		}
+		hsum += m.height();
+	}
+	return ret;
+}
+
 Color interpolate(const Mat32f& mat, float r, float c) {
 	m_assert(mat.channels() == 3);
 	int fr = floor(r), fc =  floor(c);

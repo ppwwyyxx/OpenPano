@@ -75,10 +75,23 @@ class Homography : public Matrix {
 			return ret;
 		}
 
-		double min_w() const {
+		bool health() const {
 			const double* mat = ptr();
 			if (mat[8] < EPS)
-				return -1;
-			return (std::min(mat[6], 0.) + std::min(mat[7], 0.) + mat[8]) / mat[8];
+				return false;
+			// perspective test
+			if (fabs(mat[6]) > 2e-3)
+				return false;
+			if (fabs(mat[7]) > 2e-3)
+				return false;
+			// flip test
+			Vec x0 = trans(0, 0),
+					x1 = trans(0, 1);
+			if (x1.y <= x0.y)
+				return false;
+			Vec x2 = trans(1, 1);
+			if (x2.x <= x1.x)
+				return false;
+			return true;
 		}
 };
