@@ -49,11 +49,15 @@ void ConnectedImages::update_proj_range() {
 			now_max.update_max(t_corner);
 		}
 		// assume no image has FOV > 180
+		// XXX ugly
 		if (now_max.x - now_min.x > M_PI) {
 			// head and tail
 			now_min = Vec2D(numeric_limits<double>::max(), std::numeric_limits<double>::max());
 			now_max = now_min * (-1);
-			for (auto& v : corner) {
+			for (auto v : corner) {
+				if (CAMERA_MODE) {
+					v.x += 0.5, v.y += 0.5;
+				}
 				Vec homo = m.homo.trans(
 						Vec2D(v.x * m.imgptr->width(), v.y * m.imgptr->height()));
 				if (not CAMERA_MODE) {

@@ -10,6 +10,8 @@ using namespace std;
 const int NR_PARAM_PER_IMAGE = 6;
 const int NR_TERM_PER_MATCH = 2;
 
+// XXX this whole file is ugly and inefficient
+
 namespace {
 	void camera_to_params(const vector<Camera>& cameras,
 			vector<double>& params) {
