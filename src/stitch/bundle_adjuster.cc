@@ -7,8 +7,8 @@
 #include <Eigen/Dense>
 using namespace std;
 
-const int NR_PARAM_PER_IMAGE = 6;
-const int NR_TERM_PER_MATCH = 2;
+const static int NR_PARAM_PER_IMAGE = 6;
+const static int NR_TERM_PER_MATCH = 2;
 const double LM_lambda = 0.05;
 const int LM_MAX_ITER = 100;
 
