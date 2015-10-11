@@ -6,40 +6,47 @@
 #include <algorithm>
 #include <Eigen/Dense>
 using namespace std;
-// implement stuffs about matrices
+// Implement stuffs about camera K,R matrices
+// Mostly copy from OpenCV, for stability
 
 namespace {
 
-// Creating Full View Panoramic Image Mosaics - Szeliski
+// From Creating Full View Panoramic Image Mosaics - Szeliski
 double get_focal_from_matrix(const Matrix& m) {
 	const double* h = m.ptr();
 
 	double d1, d2; // Denominators
 	double v1, v2; // Focal squares value candidates
 	double f1, f0;
-	bool f1_ok, f0_ok;
 
-	f1_ok = true;
 	d1 = h[6] * h[7];
 	d2 = (h[7] - h[6]) * (h[7] + h[6]);
 	v1 = -(h[0] * h[1] + h[3] * h[4]) / d1;
 	v2 = (h[0] * h[0] + h[3] * h[3] - h[1] * h[1] - h[4] * h[4]) / d2;
-	if (v1 < v2) swap(v1, v2);
-	if (v1 > 0 && v2 > 0) f1 = sqrt(abs(d1) > abs(d2) ? v1 : v2);
-	else if (v1 > 0) f1 = sqrt(v1);
-	else f1_ok = false;
+	if (v1 < v2)
+		swap(v1, v2);
+	if (v1 > 0 && v2 > 0)
+		f1 = sqrt(abs(d1) > abs(d2) ? v1 : v2);
+	else if (v1 > 0)
+		f1 = sqrt(v1);
+	else
+		return 0;
 
-	f0_ok = true;
 	d1 = h[0] * h[3] + h[1] * h[4];
 	d2 = h[0] * h[0] + h[1] * h[1] - h[3] * h[3] - h[4] * h[4];
 	v1 = -h[2] * h[5] / d1;
 	v2 = (h[5] * h[5] - h[2] * h[2]) / d2;
-	if (v1 < v2) swap(v1, v2);
-	if (v1 > 0 && v2 > 0) f0 = sqrt(abs(d1) > abs(d2) ? v1 : v2);
-	else if (v1 > 0) f0 = sqrt(v1);
-	else f0_ok = false;
-	if (f1_ok && f0_ok) return sqrt(f1 * f0);
-	return 0;
+	if (v1 < v2)
+		swap(v1, v2);
+	if (v1 > 0 && v2 > 0)
+		f0 = sqrt(abs(d1) > abs(d2) ? v1 : v2);
+	else if (v1 > 0)
+		f0 = sqrt(v1);
+	else
+		return 0;
+	if (std::isinf(f1) || std::isinf(f0))
+		return 0;
+	return sqrt(f1 * f0);
 }
 
 }
@@ -78,8 +85,7 @@ double Camera::estimate_focal(
 
 void Camera::rotation_to_angle(const Homography& r, double& rx, double& ry, double& rz) {
 	using namespace Eigen;
-	// XXX const cast
-	auto R_eigen = Map<Eigen::Matrix<double, 3, 3, RowMajor>>(const_cast<double*>(r.ptr()));
+	auto R_eigen = Map<const Eigen::Matrix<double, 3, 3, RowMajor>>(r.ptr());
 	JacobiSVD<MatrixXd> svd(R_eigen, ComputeFullU | ComputeFullV);
 	Matrix3d Rnew = svd.matrixU() * (svd.matrixV().transpose());
 	if (Rnew.determinant() < 0)
