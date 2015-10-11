@@ -36,44 +36,45 @@ class Stitcher {
 		// feature detector
 		std::unique_ptr<feature::FeatureDetector> feature_det;
 
+		// get feature descriptor for each image
+		void calc_feature();
+
+		// pairwise matching of all images
+		void pairwise_match();
+		// equivalent to pairwise_match when dealing with linear images
+		void assume_linear_pairwise();
+
+		// assign a center to be identity
+		void assign_center();
+
+		// build bundle by estimating camera parameters
+		void estimate_camera();
+
+		// naively build bundle assuming linear imgs
+		void build_bundle_linear_simple();
+
+		// build bundle with cylindrical pre-warping
+		void build_bundle_warp();
+
+		// blend the bundle
+		Mat32f blend();
+
+		// in cylindrical mode, search warping parameter for straightening
+		float update_h_factor(float, float&, float&,
+				std::vector<Homography>&,
+				const std::vector<feature::MatchData>&);
+		// in cylindrical mode, perspective correction on the final image
+		Mat32f perspective_correction(const Mat32f&);
+
+		// helper template to prevent generic constructor being used as copy constructor
 		template<typename A, typename B>
 			using disable_if_same_or_derived =
 			typename std::enable_if<
 			!std::is_base_of<A, typename std::remove_reference<B>::type
 			>::value
 			>::type;
-
-		// get feature descriptor for each image
-		void calc_feature();
-
-		// pairwise matching of all images
-		void pairwise_match();
-		// equivalent to pairwise_match when dealing with panorama
-		void assume_linear_pairwise();
-
-		// assign a center to be identity
-		void assign_center();
-
-		// estimate camera parameters
-		void estimate_camera();
-
-		// build bundle assuming linear imgs
-		void build_bundle_linear_simple();
-
-
-		Mat32f blend();
-
-		// old hacking code
-		void build_bundle_warp(); // build bundle with pre-warping
-		void straighten_simple();	// straighten which doesn't work
-		float update_h_factor(float, float&, float&,
-				std::vector<Homography>&,
-				const std::vector<feature::MatchData>&);
-		Mat32f perspective_correction(const Mat32f&);
-
 	public:
 		// universal reference constructor to initialize imgs
-		// and avoid using this template as copy-constructor
 		template<typename U, typename X =
 			disable_if_same_or_derived<Stitcher, U>>
 			Stitcher(U&& i) : imgs(std::forward<U>(i)) {
@@ -85,18 +86,16 @@ class Stitcher {
 				else
 					feature_det.reset(new feature::BRIEFDetector);
 
-				// allocate space for members
+				// initialize members
 				graph.resize(imgs.size());
 				pairwise_matches.resize(imgs.size());
 				for (auto& k : pairwise_matches) k.resize(imgs.size());
 				feats.resize(imgs.size());
 				cameras.resize(imgs.size());
-
 				bundle.component.resize(imgs.size());
 				REP(i, imgs.size())
 					bundle.component[i].imgptr = &imgs[i];
 			}
 
 		Mat32f build();
-		static std::vector<feature::Descriptor> get_feature(const Mat32f&);
 };

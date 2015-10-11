@@ -72,25 +72,19 @@ void Stitcher::pairwise_match() {
 		TransformEstimation transf(match, feats[i], feats[j]);
 		MatchInfo info;
 		bool succ = transf.get_transform(&info);
-		if (succ) {
-			bool ok;
-			auto inv = info.homo.inverse(&ok);
-			if (not ok) continue;	// cannot inverse. mal-formed homography
-			/*
-			 *HomoEstimator h(info);
-			 *h.estimate(info.homo);
-			 *inv = info.homo.inverse(&ok);
-			 */
-			print_debug(
-					"Connection between image %lu and %lu, ninliers=%lu, conf=%f\n",
-					i, j, info.match.size(), info.confidence);
-			graph[i].push_back(j);
-			graph[j].push_back(i);
-			pairwise_matches[i][j] = info;
-			info.homo = inv;
-			info.reverse();
-			pairwise_matches[j][i] = move(info);
-		}
+		if (not succ) continue;
+		auto inv = info.homo.inverse(&succ);
+		if (not succ) continue;	// cannot inverse. mal-formed homography
+		print_debug(
+				"Connection between image %lu and %lu, ninliers=%lu, conf=%f\n",
+				i, j, info.match.size(), info.confidence);
+		graph[i].push_back(j);
+		graph[j].push_back(i);
+		// fill in pairwise matches
+		pairwise_matches[i][j] = info;
+		info.homo = inv;
+		info.reverse();
+		pairwise_matches[j][i] = move(info);
 	}
 }
 
@@ -165,18 +159,15 @@ void Stitcher::estimate_camera() {
 
 	BundleAdjuster ba(imgs, pairwise_matches);
  	ba.estimate(cameras);
-	for (auto& c : cameras) {
-		cout << c.K() << endl;
-	}
 	REP(i, n) {
 		bundle.component[i].homo_inv = cameras[i].K() * cameras[i].R.transpose();
 		bundle.component[i].homo = cameras[i].R * cameras[i].K().inverse();
 	}
-
 }
 
 Mat32f Stitcher::blend() {
 	GuardedTimer tm("blend()");
+	// it's hard to do coordinates.......
 	int refw = imgs[bundle.identity_idx].width(),
 			refh = imgs[bundle.identity_idx].height();
 	auto homo2proj = bundle.get_homo2proj();
@@ -184,11 +175,10 @@ Mat32f Stitcher::blend() {
 
 	Vec2D id_img_range = homo2proj(Vec(1, 1, 1)) - homo2proj(Vec(0, 0, 1));
 	id_img_range.x *= refw, id_img_range.y *= refh;
-	cout << "id_img_range" << id_img_range << endl;
 	cout << "projmin:" << bundle.proj_range.min << "projmax" << bundle.proj_range.max << endl;
 
 	Vec2D proj_min = bundle.proj_range.min;
-	real_t x_len = bundle.proj_range.max.x - proj_min.x,
+	double x_len = bundle.proj_range.max.x - proj_min.x,
 				 y_len = bundle.proj_range.max.y - proj_min.y,
 				 x_per_pixel = id_img_range.x / refw,
 				 y_per_pixel = id_img_range.y / refh,
@@ -196,7 +186,7 @@ Mat32f Stitcher::blend() {
 				 target_height = y_len / y_per_pixel;
 
 	Coor size(target_width, target_height);
-	cout << "Final Image Size: " << size << endl;
+	print_debug("Final Image Size: (%d, %d)\n", size.x, size.y);
 
 	auto scale_coor_to_img_coor = [&](Vec2D v) {
 		v = v - proj_min;
@@ -204,16 +194,12 @@ Mat32f Stitcher::blend() {
 		return Coor(v.x, v.y);
 	};
 
-
 	// blending
 	Mat32f ret(size.y, size.x, 3);
 	fill(ret, Color::NO);
 
 	LinearBlender blender;
-	int idx = 0;
 	for (auto& cur : bundle.component) {
-		idx ++;
-		//if (idx != 11) continue;
 		Coor top_left = scale_coor_to_img_coor(cur.range.min);
 		Coor bottom_right = scale_coor_to_img_coor(cur.range.max);
 		Coor diff = bottom_right - top_left;
@@ -223,7 +209,7 @@ Mat32f Stitcher::blend() {
 		REP(i, h) REP(j, w) {
 			Vec2D c((j + top_left.x) * x_per_pixel + proj_min.x, (i + top_left.y) * y_per_pixel + proj_min.y);
 			Vec homo = proj2homo(Vec2D(c.x / refw, c.y / refh));
-			if (not CAMERA_MODE)  {	// scale is in camera intrinsic
+			if (not CAMERA_MODE)  {	// scale and offset is in camera intrinsic
 				homo.x -= 0.5 * homo.z, homo.y -= 0.5 * homo.z;	// shift center for homography
 				homo.x *= refw, homo.y *= refh;
 			}
@@ -231,7 +217,6 @@ Mat32f Stitcher::blend() {
 			if (not CAMERA_MODE)
 				orig = orig + Vec2D(cur.imgptr->width()/2, cur.imgptr->height()/2);
 			Vec2D& p = (orig_pos.at(i, j) = orig);
-			//print_debug("target %d,%d <- orig %lf, %lf\n", i, j, p.y, p.x);
 			if (!p.isNaN() && (p.x < 0 || p.x >= cur.imgptr->width()
 						|| p.y < 0 || p.y >= cur.imgptr->height()))
 				p = Vec2D::NaN();
@@ -239,26 +224,11 @@ Mat32f Stitcher::blend() {
 		blender.add_image(top_left, orig_pos, *cur.imgptr);
 	}
 	//blender.debug_run(size.x, size.y);
-
 	blender.run(ret);
 	if (CYLINDER)
 		return perspective_correction(ret);
 	return ret;
 }
-
-void Stitcher::straighten_simple() {
-	int n = imgs.size();
-	Vec2D center2 = bundle.component[n - 1].homo.trans2d(0, 0);
-	Vec2D center1 = bundle.component[0].homo.trans2d(0, 0);
-	float dydx = (center2.y - center1.y) / (center2.x - center1.x);
-	Matrix S = Matrix::I(3);
-	S.at(1, 0) = dydx;
-	Matrix Sinv(3, 3);
-	bool succ = S.inverse(Sinv);
-	m_assert(succ);
-	REP(i, n) bundle.component[i].homo = Sinv.prod(bundle.component[i].homo);
-}
-
 
 void Stitcher::build_bundle_linear_simple() {
 	// assume pano pairwise

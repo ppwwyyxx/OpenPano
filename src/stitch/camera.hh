@@ -6,10 +6,12 @@
 #include "lib/matrix.hh"
 #include "match_info.hh"
 
+// TODO might not need aspect any more
 class Camera {
 	public:
 		Camera();
 
+		// return the intrinsic matrix
 		Homography K() const;
 
 		double focal = 1; // Focal length
@@ -17,7 +19,6 @@ class Camera {
 		double ppx = 0; // Principal point X
 		double ppy = 0; // Principal point Y
 		Homography R; // Rotation
-		//Vec t; // Translation
 
 		static double estimate_focal(
 				const std::vector<std::vector<MatchInfo>>& matches);
