@@ -19,12 +19,7 @@ using namespace feature;
 
 bool TEMPDEBUG = false;
 
-#define LABEL_LEN 7
-
-// TODO: get_rand_color() in planedrawer
-inline real_t gen_rand()
-{ return (real_t)rand() / RAND_MAX; }
-
+const int LABEL_LEN = 7;
 
 void test_extrema(const char* fname, int mode) {
 	auto mat = read_rgb(fname);
@@ -86,7 +81,7 @@ void gallery(const char* f1, const char* f2) {
 	FeatureMatcher match(feat1, feat2);
 	auto ret = match.match();
 	for (auto &x : ret.data) {
-		pld.set_color(Color(gen_rand(), gen_rand(), gen_rand()));
+		pld.set_rand_color();
 		Vec2D coor1 = feat1[x.first].coor,
 					coor2 = feat2[x.second].coor;
 		Coor icoor1 = Coor(coor1.x + pic1.width()/2, coor1.y + pic1.height()/2);

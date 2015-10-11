@@ -74,4 +74,11 @@ class Homography : public Matrix {
 				*succ = ok;
 			return ret;
 		}
+
+		double min_w() const {
+			const double* mat = ptr();
+			if (mat[8] < EPS)
+				return -1;
+			return (std::min(mat[6], 0.) + std::min(mat[7], 0.) + mat[8]) / mat[8];
+		}
 };

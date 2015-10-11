@@ -10,15 +10,16 @@
 #include <queue>
 
 #include "feature/matcher.hh"
-#include "warp.hh"
-#include "transform_estimate.hh"
-#include "projection.hh"
-#include "match_info.hh"
-#include "bundle_adjuster.hh"
-
-#include "lib/timer.hh"
 #include "lib/imgproc.hh"
+#include "lib/planedrawer.hh"
+#include "lib/timer.hh"
+
 #include "blender.hh"
+#include "bundle_adjuster.hh"
+#include "match_info.hh"
+#include "projection.hh"
+#include "transform_estimate.hh"
+#include "warp.hh"
 using namespace std;
 using namespace feature;
 
@@ -39,6 +40,7 @@ Mat32f Stitcher::build() {
 			pairwise_match();
 		else
 			assume_linear_pairwise();
+		debug_matchinfo();
 	  // TODO check connectivity
 		assign_center();
 		if (CAMERA_MODE)
@@ -162,7 +164,7 @@ void Stitcher::estimate_camera() {
 	}
 
 	BundleAdjuster ba(imgs, pairwise_matches);
- 	ba.estimate(cameras);
+ 	//ba.estimate(cameras);
 	// TODO rotate to identity
 	REP(i, n) {
 		bundle.component[i].homo_inv = cameras[i].K() * cameras[i].R.transpose();
@@ -406,3 +408,26 @@ Mat32f Stitcher::blend() {
 	return ret;
 }
 
+
+void Stitcher::debug_matchinfo() {
+	int n = imgs.size();
+	REP(i, n) REPL(j, i+1, n) {
+		auto& m = pairwise_matches[j][i];
+		if (m.confidence <= 0) continue;
+		print_debug("Dump matchinfo of %d->%d\n", i, j);
+		list<Mat32f> imagelist{imgs[i], imgs[j]};
+		Mat32f conc = hconcat(imagelist);
+		PlaneDrawer pld(conc);
+		for (auto& p : m.match) {
+			pld.set_rand_color();
+			Coor icoor1 = Coor(p.second.x + imgs[i].width()/2,
+					p.second.y + imgs[i].height()/2);
+			Coor icoor2 = Coor(p.first.x + imgs[j].width()/2,
+					p.first.y + imgs[j].height()/2);
+			pld.circle(icoor1, 7);
+			pld.circle(icoor2 + Coor(imgs[i].width(), 0), 7);
+			pld.line(icoor1, icoor2 + Coor(imgs[i].width(), 0));
+		}
+		write_rgb(ssprintf("/t/match%d-%d.png", i, j).c_str(), conc);
+	}
+}
