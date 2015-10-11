@@ -62,16 +62,16 @@ bool TransformEstimation::get_transform(MatchInfo* info) {
 			inliers.push_back(random);
 		}
 		Homography transform(calc_transform(inliers));
-		if (transform.min_w() < 0.05)
+		if (not transform.health())
 			continue;
 		int n_inlier = get_inliers(transform).size();
 		if (update_max(maxinlierscnt, n_inlier))
 			best_transform = move(transform);
 	}
-	if (maxinlierscnt <= 10)	// best_transform then will be empty
+	if (maxinlierscnt <= 14)	// best_transform then will be empty
 		return false;
 	inliers = get_inliers(best_transform);
-	if (inliers.size() <= 10)
+	if (inliers.size() <= 14)
 		return false;
 	best_transform = calc_transform(inliers);
 	fill_inliers_to_matchinfo(inliers, info);

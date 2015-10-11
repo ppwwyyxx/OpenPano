@@ -81,6 +81,7 @@ void Stitcher::pairwise_match() {
 		print_debug(
 				"Connection between image %lu and %lu, ninliers=%lu, conf=%f\n",
 				i, j, info.match.size(), info.confidence);
+		cout << "Estimated H" << info.homo << endl;
 		graph[i].push_back(j);
 		graph[j].push_back(i);
 		// fill in pairwise matches
@@ -134,6 +135,8 @@ void Stitcher::estimate_camera() {
 			REP(i, n) // hack focal
 				cameras[i].focal = (imgs[i].width() / imgs[i].height()) * 0.5;
 	}
+
+	// TODO bfs with best edge first
 	int start = bundle.identity_idx;
 	queue<int> q; q.push(start);
 	vector<bool> vst(graph.size(), false);		// in queue
@@ -416,7 +419,7 @@ void Stitcher::debug_matchinfo() {
 		if (m.confidence <= 0) continue;
 		print_debug("Dump matchinfo of %d->%d\n", i, j);
 		list<Mat32f> imagelist{imgs[i], imgs[j]};
-		Mat32f conc = hconcat(imagelist);
+		Mat32f conc = vconcat(imagelist);
 		PlaneDrawer pld(conc);
 		for (auto& p : m.match) {
 			pld.set_rand_color();
@@ -425,8 +428,8 @@ void Stitcher::debug_matchinfo() {
 			Coor icoor2 = Coor(p.first.x + imgs[j].width()/2,
 					p.first.y + imgs[j].height()/2);
 			pld.circle(icoor1, 7);
-			pld.circle(icoor2 + Coor(imgs[i].width(), 0), 7);
-			pld.line(icoor1, icoor2 + Coor(imgs[i].width(), 0));
+			pld.circle(icoor2 + Coor(0, imgs[i].height()), 7);
+			pld.line(icoor1, icoor2 + Coor(0, imgs[i].height()));
 		}
 		write_rgb(ssprintf("/t/match%d-%d.png", i, j).c_str(), conc);
 	}
