@@ -11,6 +11,7 @@
 #include "feature/matcher.hh"
 #include "stitch/stitcher.hh"
 #include "stitch/warp.hh"
+#include "stitch/transform_estimate.hh"
 #include <ctime>
 #include <cassert>
 
@@ -59,13 +60,13 @@ void test_orientation(const char* fname) {
 	write_rgb("orientation.png", mat);
 }
 
+// draw feature and their match
 void gallery(const char* f1, const char* f2) {
 	list<Mat32f> imagelist;
 	Mat32f pic1 = read_rgb(f1);
 	Mat32f pic2 = read_rgb(f2);
 	imagelist.push_back(pic1);
 	imagelist.push_back(pic2);
-
 
 	unique_ptr<FeatureDetector> detector;
 	if (USE_SIFT)
@@ -80,6 +81,7 @@ void gallery(const char* f1, const char* f2) {
 
 	FeatureMatcher match(feat1, feat2);
 	auto ret = match.match();
+	print_debug("Match size: %d\n", ret.size());
 	for (auto &x : ret.data) {
 		pld.set_rand_color();
 		Vec2D coor1 = feat1[x.first].coor,
@@ -91,6 +93,46 @@ void gallery(const char* f1, const char* f2) {
 		pld.line(icoor1, icoor2 + Coor(pic1.width(), 0));
 	}
 	write_rgb("gallery.png", concatenated);
+}
+
+// draw inliers of the estimated homography
+void match(const char* f1, const char* f2) {
+	list<Mat32f> imagelist;
+	Mat32f pic1 = read_rgb(f1);
+	Mat32f pic2 = read_rgb(f2);
+	imagelist.push_back(pic1);
+	imagelist.push_back(pic2);
+
+	unique_ptr<FeatureDetector> detector;
+	if (USE_SIFT)
+		detector.reset(new SIFTDetector);
+	else
+		detector.reset(new BRIEFDetector);
+	vector<Descriptor> feat1 = detector->detect_feature(pic1),
+										 feat2 = detector->detect_feature(pic2);
+
+	Mat32f concatenated = hconcat(imagelist);
+	PlaneDrawer pld(concatenated);
+	FeatureMatcher match(feat1, feat2);
+	auto ret = match.match();
+	print_debug("Match size: %d\n", ret.size());
+
+	TransformEstimation est(ret, feat1, feat2);
+	MatchInfo info;
+	bool succ = est.get_transform(&info);
+	print_debug("Inlier size: %d, conf=%lf\n", info.match.size(), info.confidence);
+
+	for (auto &x : info.match) {
+		pld.set_rand_color();
+		Vec2D coor1 = x.first,
+					coor2 = x.second;
+		Coor icoor1 = Coor(coor1.x + pic1.width()/2, coor1.y + pic1.height()/2);
+		Coor icoor2 = Coor(coor2.x + pic2.width()/2, coor2.y + pic2.height()/2);
+		pld.circle(icoor1, LABEL_LEN);
+		pld.circle(icoor2 + Coor(pic1.width(), 0), LABEL_LEN);
+		pld.line(icoor1, icoor2 + Coor(pic1.width(), 0));
+	}
+	write_rgb("match.png", concatenated);
 }
 
 void test_warp(int argc, char* argv[]) {
@@ -208,6 +250,8 @@ int main(int argc, char* argv[]) {
 		test_orientation(argv[2]);
 	else if (command == "gallery")
 		gallery(argv[2], argv[3]);
+	else if (command == "match")
+		match(argv[2], argv[3]);
 	else if (command == "warp")
 		test_warp(argc, argv);
 	//planet(argv[1]);
