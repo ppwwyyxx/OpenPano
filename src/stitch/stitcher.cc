@@ -167,7 +167,8 @@ void Stitcher::estimate_camera() {
 
 	BundleAdjuster ba(imgs, pairwise_matches);
  	ba.estimate(cameras);
-	Camera::straighten(cameras);
+	if (STRAIGHTEN)
+		Camera::straighten(cameras);
 	// TODO rotate to identity
 	REP(i, n) {
 		bundle.component[i].homo_inv = cameras[i].K() * cameras[i].R.transpose();

@@ -166,13 +166,15 @@ void work(int argc, char* argv[]) {
 void init_config() {
 	ConfigParser Config("config.cfg");
 	CYLINDER = Config.get("CYLINDER");
-	CROP = Config.get("CROP");
-	FOCAL_LENGTH = Config.get("FOCAL_LENGTH");
-	USE_SIFT = Config.get("USE_SIFT");
 	if (CYLINDER)
 		print_debug("Run with cylinder mode.\n");
 	else
 		print_debug("Run with general mode.\n");
+
+	CROP = Config.get("CROP");
+	STRAIGHTEN = Config.get("STRAIGHTEN");
+	FOCAL_LENGTH = Config.get("FOCAL_LENGTH");
+	USE_SIFT = Config.get("USE_SIFT");
 
 	NUM_OCTAVE = Config.get("NUM_OCTAVE");
 	NUM_SCALE = Config.get("NUM_SCALE");
