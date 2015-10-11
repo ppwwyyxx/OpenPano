@@ -20,6 +20,11 @@ class PlaneDrawer {
 		void set_color(Color m_c)
 		{ c = m_c; }
 
+		void set_rand_color() {
+			auto gen_rand = []() { return (real_t)rand() / RAND_MAX; };
+			set_color(Color(gen_rand(), gen_rand(), gen_rand()));
+		}
+
 		inline void point(int x, int y) {
 			// drawing algorithms are easy to draw out-of-range
 			if (!between(x, 0, mat.width()) ||

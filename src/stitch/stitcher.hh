@@ -73,6 +73,9 @@ class Stitcher {
 			!std::is_base_of<A, typename std::remove_reference<B>::type
 			>::value
 			>::type;
+
+		// for debug
+		void debug_matchinfo();
 	public:
 		// universal reference constructor to initialize imgs
 		template<typename U, typename X =
