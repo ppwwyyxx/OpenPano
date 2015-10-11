@@ -164,7 +164,7 @@ void Stitcher::estimate_camera() {
 	}
 
 	BundleAdjuster ba(imgs, pairwise_matches);
-	ba.estimate(cameras);
+ 	ba.estimate(cameras);
 	for (auto& c : cameras) {
 		cout << c.K() << endl;
 	}
