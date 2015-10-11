@@ -27,6 +27,7 @@ bool CYLINDER;
 bool CROP = true;
 float FOCAL_LENGTH;
 bool USE_SIFT;
+bool STRAIGHTEN;
 
 int NUM_OCTAVE;
 int NUM_SCALE;

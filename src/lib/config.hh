@@ -22,6 +22,7 @@ extern bool CYLINDER;
 extern bool CROP;
 extern float FOCAL_LENGTH;
 extern bool USE_SIFT;
+extern bool STRAIGHTEN;
 
 extern int NUM_OCTAVE;
 extern int NUM_SCALE;

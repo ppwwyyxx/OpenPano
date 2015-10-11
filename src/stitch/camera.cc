@@ -160,7 +160,7 @@ void Camera::straighten(std::vector<Camera>& cameras) {
 	}
 	// want to solve Cov * u == 0
 	auto V = cov.jacobiSvd(ComputeFullU | ComputeFullV).matrixV();
-	Vector3d norm = V.col(2);		// corrected y-vector
+	Vector3d normY = V.col(2);		// corrected y-vector
 
 	Vector3d vz = Vector3d::Zero();
 	for (auto& c : cameras) {
@@ -168,11 +168,11 @@ void Camera::straighten(std::vector<Camera>& cameras) {
 		vz(1) += c.R.ptr()[5];
 		vz(2) += c.R.ptr()[8];
 	}
-	Vector3d normX = norm.cross(vz);
+	Vector3d normX = normY.cross(vz);
 	normX.normalize();
-	Vector3d normZ = normX.cross(norm);
+	Vector3d normZ = normX.cross(normY);
 	cout << "normX" << normX << endl;
-	cout << "normY" << norm << endl;
+	cout << "normY" << normY << endl;
 	cout << "normZ" << normZ << endl;
 
 	double s = 0;
@@ -180,11 +180,11 @@ void Camera::straighten(std::vector<Camera>& cameras) {
 		Vector3d v; v << c.R.ptr()[0], c.R.ptr()[3], c.R.ptr()[6];
 		s += normX.dot(v);
 	}
-	if (s < 0) normX *= -1, norm *= -1;	// ?
+	if (s < 0) normX *= -1, normY *= -1;	// ?
 
 	Homography r;
 	REP(i, 3) r.ptr(0)[i] = normX(i);
-	REP(i, 3) r.ptr(1)[i] = norm(i);
+	REP(i, 3) r.ptr(1)[i] = normY(i);
 	REP(i, 3) r.ptr(2)[i] = normZ(i);
 	for (auto& c : cameras)
 		c.R = r * c.R;
