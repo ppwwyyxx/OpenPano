@@ -66,7 +66,7 @@ bool BundleAdjuster::estimate(std::vector<Camera>& cameras) {
 
 	int itr = 0;
 	int nr_non_decrease = 0;	// number of non-decreasing iteration
-	while (itr < LM_MAX_ITER) {
+	while (itr++ < LM_MAX_ITER) {
 		Eigen::MatrixXd J(NR_TERM_PER_MATCH * nr_match, NR_PARAM_PER_IMAGE * nr_img);
 		calcJacobian(J);
 		Eigen::MatrixXd JtJ = J.transpose() * J;

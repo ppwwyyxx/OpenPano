@@ -110,6 +110,7 @@ void match(const char* f1, const char* f2) {
 		detector.reset(new BRIEFDetector);
 	vector<Descriptor> feat1 = detector->detect_feature(pic1),
 										 feat2 = detector->detect_feature(pic2);
+	print_debug("Feature: %lu, %lu\n", feat1.size(), feat2.size());
 
 	Mat32f concatenated = hconcat(imagelist);
 	PlaneDrawer pld(concatenated);
@@ -119,8 +120,8 @@ void match(const char* f1, const char* f2) {
 
 	TransformEstimation est(ret, feat1, feat2);
 	MatchInfo info;
-	bool succ = est.get_transform(&info);
-	print_debug("Inlier size: %d, conf=%lf\n", info.match.size(), info.confidence);
+	est.get_transform(&info);
+	print_debug("Inlier size: %lu, conf=%lf\n", info.match.size(), info.confidence);
 
 	for (auto &x : info.match) {
 		pld.set_rand_color();
