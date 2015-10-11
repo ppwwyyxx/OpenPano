@@ -25,6 +25,7 @@ using namespace feature;
 
 // in development. estimate camera parameters
 bool CAMERA_MODE = true;
+const bool DEBUG_OUT = false;
 
 Mat32f Stitcher::build() {
 	if (CYLINDER)
@@ -41,8 +42,8 @@ Mat32f Stitcher::build() {
 			pairwise_match();
 		else
 			assume_linear_pairwise();
-		//debug_matchinfo();
-	  // TODO check connectivity
+		if (DEBUG_OUT)
+			debug_matchinfo();
 		assign_center();
 		if (CAMERA_MODE)
 			estimate_camera();
@@ -82,7 +83,7 @@ void Stitcher::pairwise_match() {
 		print_debug(
 				"Connection between image %lu and %lu, ninliers=%lu, conf=%f\n",
 				i, j, info.match.size(), info.confidence);
-		cout << "Estimated H" << info.homo << endl;
+		//cout << "Estimated H" << info.homo << endl;
 		// fill in pairwise matches
 		pairwise_matches[i][j] = info;
 		info.homo = inv;
@@ -398,7 +399,8 @@ Mat32f Stitcher::blend() {
 		}
 		blender.add_image(top_left, orig_pos, *cur.imgptr);
 	}
-	//blender.debug_run(size.x, size.y);
+	if (DEBUG_OUT)
+		blender.debug_run(size.x, size.y);
 	blender.run(ret);
 	if (CYLINDER)
 		return perspective_correction(ret);
@@ -465,7 +467,7 @@ bool Stitcher::max_spanning_tree(vector<vector<int>>& graph) {
 			in_tree[e.v1] = in_tree[e.v2] = true;
 			graph[e.v1].push_back(e.v2);
 			graph[e.v2].push_back(e.v1);
-			//print_debug("Good from %dto%d\n", e.v1, e.v2);
+			print_debug("MST: Best edge from %d to %d\n", e.v1, e.v2);
 			edges.erase(itr);
 			edge_cnt ++;
 			break;

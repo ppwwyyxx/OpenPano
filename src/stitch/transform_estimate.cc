@@ -68,10 +68,8 @@ bool TransformEstimation::get_transform(MatchInfo* info) {
 		if (update_max(maxinlierscnt, n_inlier))
 			best_transform = move(transform);
 	}
-	if (maxinlierscnt <= 14)	// best_transform then will be empty
-		return false;
 	inliers = get_inliers(best_transform);
-	if (inliers.size() <= 14)
+	if (inliers.size() <= 10)
 		return false;
 	best_transform = calc_transform(inliers);
 	fill_inliers_to_matchinfo(inliers, info);

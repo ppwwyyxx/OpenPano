@@ -62,6 +62,7 @@ void LinearBlender::run(Mat32f &target) {
 void LinearBlender::debug_run(int w, int h) {
 	REP(k, imgs.size()) {
 		Mat32f target(h, w, 3);
+		fill(target, Color::BLACK);
 		for (int i = 0; i < target.height(); i ++) {
 			float *row = target.ptr(i);
 			for (int j = 0; j < target.width(); j ++) {
