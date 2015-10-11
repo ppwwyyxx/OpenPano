@@ -57,6 +57,9 @@ class Stitcher {
 		// find MST from pair-matches, by confidence
 		bool max_spanning_tree(std::vector<std::vector<int>>& graph);
 
+		// straighten camera parameters
+		void straighten();
+
 		// blend the bundle
 		Mat32f blend();
 

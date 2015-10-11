@@ -26,4 +26,6 @@ class Camera {
 		static void rotation_to_angle(const Homography& r, double& rx, double& ry, double& rz);
 
 		static void angle_to_rotation(double rx, double ry, double rz, Homography& r);
+
+		static void straighten(std::vector<Camera>&);
 };
