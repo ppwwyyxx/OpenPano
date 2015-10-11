@@ -75,6 +75,8 @@ class Homography : public Matrix {
 			return ret;
 		}
 
+		//http://answers.opencv.org/question/2588/check-if-homography-is-good/
+		//http://stackoverflow.com/questions/14954220/how-to-check-if-obtained-homography-matrix-is-good
 		bool health() const {
 			const double* mat = ptr();
 			if (mat[8] < EPS)

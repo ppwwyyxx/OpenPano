@@ -32,6 +32,7 @@ Mat32f Stitcher::build() {
 
 	calc_feature();
 	if (CYLINDER) {
+		// TODO choose a better starting point by MST
 		assign_center();
 		build_bundle_warp();
 		bundle.proj_method = ConnectedImages::ProjectionMethod::flat;
@@ -40,7 +41,7 @@ Mat32f Stitcher::build() {
 			pairwise_match();
 		else
 			assume_linear_pairwise();
-		debug_matchinfo();
+		//debug_matchinfo();
 	  // TODO check connectivity
 		assign_center();
 		if (CAMERA_MODE)
@@ -82,8 +83,6 @@ void Stitcher::pairwise_match() {
 				"Connection between image %lu and %lu, ninliers=%lu, conf=%f\n",
 				i, j, info.match.size(), info.confidence);
 		cout << "Estimated H" << info.homo << endl;
-		graph[i].push_back(j);
-		graph[j].push_back(i);
 		// fill in pairwise matches
 		pairwise_matches[i][j] = info;
 		info.homo = inv;
@@ -109,8 +108,6 @@ void Stitcher::assume_linear_pairwise() {
 			error_exit(ssprintf("Image %d and %d doesn't match.\n", i, next));
 		print_debug("Match between image %d and %d, ninliers=%lu, conf=%f\n",
 				i, next, info.match.size(), info.confidence);
-		graph[i].push_back(next);
-		graph[next].push_back(i);
 		pairwise_matches[i][next] = info;
 		info.homo = inv;
 		info.reverse();
@@ -135,8 +132,9 @@ void Stitcher::estimate_camera() {
 			REP(i, n) // hack focal
 				cameras[i].focal = (imgs[i].width() / imgs[i].height()) * 0.5;
 	}
+	vector<vector<int>> graph;
+	max_spanning_tree(graph);
 
-	// TODO bfs with best edge first
 	int start = bundle.identity_idx;
 	queue<int> q; q.push(start);
 	vector<bool> vst(graph.size(), false);		// in queue
@@ -152,12 +150,8 @@ void Stitcher::estimate_camera() {
 			auto Hinv = pairwise_matches[now][next].homo;
 			auto Mat = Kfrom.inverse() * Hinv * Kto;
 			cameras[next].R = cameras[now].R * Mat;
-	// XXX this R is actually R.inv. and also in the final construction in H
-	// but it goes like this in opencv
-			/*
-			 *cout << "From " << now << " to " << next << " Hinv=" << Hinv << " Mat=" << Mat
-			 *  << "nextR=" << cameras[next].R;
-			 */
+			// XXX this R is actually R.inv. and also in the final construction in H
+			// but it goes like this in opencv
 			q.push(next);
 		}
 	}
@@ -167,7 +161,7 @@ void Stitcher::estimate_camera() {
 	}
 
 	BundleAdjuster ba(imgs, pairwise_matches);
- 	//ba.estimate(cameras);
+ 	ba.estimate(cameras);
 	// TODO rotate to identity
 	REP(i, n) {
 		bundle.component[i].homo_inv = cameras[i].K() * cameras[i].R.transpose();
@@ -433,4 +427,59 @@ void Stitcher::debug_matchinfo() {
 		}
 		write_rgb(ssprintf("/t/match%d-%d.png", i, j).c_str(), conc);
 	}
+}
+
+bool Stitcher::max_spanning_tree(vector<vector<int>>& graph) {
+	struct Edge {
+		int v1, v2;
+		float weight;
+		bool have(int v) { return v1 == v || v2 == v; }
+		Edge(int a, int b, float v):v1(a), v2(b), weight(v) {}
+		bool operator < (const Edge& r) const
+		{ return weight > r.weight;	}
+	};
+
+	int n = imgs.size();
+	graph.clear(); graph.resize(n);
+	vector<Edge> edges;
+	REP(i, n) REPL(j, i+1, n) {
+		auto& m = pairwise_matches[i][j];
+		if (m.confidence <= 0) continue;
+		edges.emplace_back(i, j, m.confidence);
+	}
+	sort(edges.begin(), edges.end());		// large weight to small weight
+	vector<bool> in_tree(n, false);
+	int edge_cnt = 0;
+	in_tree[edges.front().v1] = true;
+	while (true) {
+		int old_edge_cnt = edge_cnt;
+		auto itr = begin(edges);
+		for (; itr != edges.end(); ++itr) {
+			Edge& e = *itr;
+			if (in_tree[e.v1] && in_tree[e.v2]) {
+				edges.erase(itr);
+				break;
+			}
+			if (not in_tree[e.v1] && not in_tree[e.v2])
+				continue;
+			in_tree[e.v1] = in_tree[e.v2] = true;
+			graph[e.v1].push_back(e.v2);
+			graph[e.v2].push_back(e.v1);
+			//print_debug("Good from %dto%d\n", e.v1, e.v2);
+			edges.erase(itr);
+			edge_cnt ++;
+			break;
+		}
+		if (edge_cnt == n - 1) // tree is full
+			break;
+		if (edge_cnt == old_edge_cnt && itr == edges.end())
+			// no edge to add
+			break;
+	}
+	if (edge_cnt != n - 1) {
+		print_debug("Found a tree of size %d!=%d, images not connected!",
+				edge_cnt, n - 1);
+		abort();
+	}
+	return true;
 }

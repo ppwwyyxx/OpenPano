@@ -29,8 +29,6 @@ class Stitcher {
 		// 2d array of all matches
 		// pairwise_matches[i][j].homo transform j to i
 		std::vector<std::vector<MatchInfo>> pairwise_matches;
-		// connection between images. stored as adj table
-		std::vector<std::vector<int>> graph;
 		// camera intrinsic params for all images
 		std::vector<Camera> cameras;
 		// feature detector
@@ -55,6 +53,9 @@ class Stitcher {
 
 		// build bundle with cylindrical pre-warping
 		void build_bundle_warp();
+
+		// find MST from pair-matches, by confidence
+		bool max_spanning_tree(std::vector<std::vector<int>>& graph);
 
 		// blend the bundle
 		Mat32f blend();
@@ -90,7 +91,6 @@ class Stitcher {
 					feature_det.reset(new feature::BRIEFDetector);
 
 				// initialize members
-				graph.resize(imgs.size());
 				pairwise_matches.resize(imgs.size());
 				for (auto& k : pairwise_matches) k.resize(imgs.size());
 				feats.resize(imgs.size());
