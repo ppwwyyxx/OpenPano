@@ -3,11 +3,12 @@
 
 #include "camera.hh"
 #include "transform.hh"
+#include "lib/timer.hh"
 #include <algorithm>
 #include <Eigen/Dense>
 using namespace std;
 // Implement stuffs about camera K,R matrices
-// Mostly copy from OpenCV, for stability
+// Mostly copy from OpenCV for stability
 
 namespace {
 
@@ -144,4 +145,47 @@ void Camera::angle_to_rotation(double rx, double ry, double rz, Homography& r) {
 	// where [r_x] is [0 -rz ry; rz 0 -rx; -ry rx 0]
 	REP(k, 9)
 		R[k] = c*R[k] + c1*rrt[k] + s*_r_x_[k];
+}
+
+void Camera::straighten(std::vector<Camera>& cameras) {
+	GuardedTimer tm("straighten");
+	using namespace Eigen;
+	Matrix3d cov = Matrix3d::Zero();
+	for (auto& c : cameras) {
+		// R is from current image to reference image
+		// the first column is X vector (R * [1 0 0]^T)
+		const double* ptr = c.R.ptr();
+		Vector3d v; v << ptr[0], ptr[3], ptr[6];
+		cov += v * v.transpose();
+	}
+	// want to solve Cov * u == 0
+	auto V = cov.jacobiSvd(ComputeFullU | ComputeFullV).matrixV();
+	Vector3d norm = V.col(2);		// corrected y-vector
+
+	Vector3d vz = Vector3d::Zero();
+	for (auto& c : cameras) {
+		vz(0) += c.R.ptr()[2];
+		vz(1) += c.R.ptr()[5];
+		vz(2) += c.R.ptr()[8];
+	}
+	Vector3d normX = norm.cross(vz);
+	normX.normalize();
+	Vector3d normZ = normX.cross(norm);
+	cout << "normX" << normX << endl;
+	cout << "normY" << norm << endl;
+	cout << "normZ" << normZ << endl;
+
+	double s = 0;
+	for (auto& c : cameras) {
+		Vector3d v; v << c.R.ptr()[0], c.R.ptr()[3], c.R.ptr()[6];
+		s += normX.dot(v);
+	}
+	if (s < 0) normX *= -1, norm *= -1;	// ?
+
+	Homography r;
+	REP(i, 3) r.ptr(0)[i] = normX(i);
+	REP(i, 3) r.ptr(1)[i] = norm(i);
+	REP(i, 3) r.ptr(2)[i] = normZ(i);
+	for (auto& c : cameras)
+		c.R = r * c.R;
 }

@@ -156,6 +156,7 @@ void Stitcher::estimate_camera() {
 			cameras[next].R = cameras[now].R * Mat;
 			// XXX this R is actually R.inv. and also in the final construction in H
 			// but it goes like this in opencv
+			// this is the R going from this image to identity
 			q.push(next);
 		}
 	}
@@ -166,12 +167,14 @@ void Stitcher::estimate_camera() {
 
 	BundleAdjuster ba(imgs, pairwise_matches);
  	ba.estimate(cameras);
+	Camera::straighten(cameras);
 	// TODO rotate to identity
 	REP(i, n) {
 		bundle.component[i].homo_inv = cameras[i].K() * cameras[i].R.transpose();
 		bundle.component[i].homo = cameras[i].R * cameras[i].K().inverse();
 	}
 }
+
 
 void Stitcher::build_bundle_linear_simple() {
 	// assume pano pairwise
