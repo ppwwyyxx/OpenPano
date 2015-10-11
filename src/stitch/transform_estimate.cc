@@ -121,8 +121,10 @@ void TransformEstimation::fill_inliers_to_matchinfo(
 	}
 	info->confidence = inliers.size() / (8 + 0.3 * match.size());
 
-	// overlap too much. not helpful. but still keep it
-	if (info->confidence > 3)
+	// overlap too much. not helpful. but still keep it for connectivity
+	if (info->confidence > 3.1) {
 		info->confidence = 0.;
+		print_debug("If you are not giving two almost identical image, then there is a bug..\n");
+	}
 }
 
