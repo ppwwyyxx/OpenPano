@@ -24,7 +24,7 @@ class BundleAdjuster {
 
 		std::vector<double> params;
 
-		double calcError(std::vector<double>& err);
+		double calcError(const std::vector<double>& params, std::vector<double>& err);
 		void calcJacobian(Eigen::MatrixXd& J);
 };
 
