@@ -7,6 +7,9 @@
 #include <Eigen/Dense>
 using namespace std;
 
+// TODO incremental bundle adjustment, add in the order of confidence
+// TODO reject some connections if it breaks the bundle
+
 const static int NR_PARAM_PER_IMAGE = 6;
 const static int NR_TERM_PER_MATCH = 2;
 const double LM_lambda = 0.05;
