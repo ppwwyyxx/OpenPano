@@ -3,42 +3,36 @@ TEX=xelatex -shell-escape
 BIBTEX=biber
 READER=mupdf
 
-all: rebuild
+all: try
 
 rebuild output/$(TARGET).pdf: *.tex *.bib output
 	cd output && rm -f *.tex *.bib && ln -s ../*.tex ../*.bib .
-	cd output && $(TEX) $(TARGET).tex $(BIBTEX) $(TARGET)
+	cd output &&  $(TEX) $(TARGET).tex && $(BIBTEX) $(TARGET)
+	cp output/$(TARGET).pdf ../readme.pdf -f
+	killall -HUP mupdf || true
 
+try:
+	zsh -c "pgrep -a 'xelatex' || { timeout 10 make rebuild && notify-send 'rebuilt' || notify-send 'build failed' }"
 
 output:
 	mkdir output -p
-	cd output && rm -f res && ln -s ../res .
+	cd output && rm -f res img code && ln -s ../res ../img ../../code .
 
 view: output/$(TARGET).pdf
 	$(READER) output/$(TARGET).pdf &
-	(inotifywait -mqe CLOSE_WRITE output/report.pdf | while read; do killall -SIGHUP mupdf; done)
 
 clean:
 	rm -rf output
-
-run: view
 
 # compile twice to get cross reference right
 final : *.tex *.bib output
 	cd output && rm -f *.tex *.bib && ln -s ../*.tex ../*.bib .
 	cd output && $(TEX) $(TARGET).tex && $(BIBTEX) $(TARGET) && \
 		$(TEX) $(TARGET).tex && $(TEX) $(TARGET).tex
-	gs -sDEVICE=pdfwrite -dMaxSubsetPct=100 -dPDFSETTINGS=/ebook -dAutoFilterColorImages=false -dColorImageFilter=/FlateEncode -sOutputFile="../readme.pdf" -dNOPAUSE -dBATCH output/$(TARGET).pdf
 
 count:
 	@word_count *.tex
 
-dist: output/$(TARGET).pdf
-	rm -rf paper
-	mkdir paper
-	cp output/$(TARGET).pdf paper/
-	cp -r screenshots paper/
-	7z a -tzip paper.zip paper
-	rm -rf paper
+run: view
 
-.PHONY: all view clean rebuild dist
+.PHONY: all view clean rebuild run

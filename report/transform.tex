@@ -1,0 +1,57 @@
+%File: transform.tex
+%Author: Yuxin Wu <ppwwyyxx@gmail.com>
+
+\subsection{Transformation}
+\label{sec:transform}
+
+For any two images taken from a camera at some fixed point,
+they can be related by a homography matrix $H$,
+such that for a pair of corresponding point $ p=(x,y,1), q = (u,v,1)$,
+we have
+\[ p \sim Hq\]
+The homogrpahy matrix has the following two fomulations:
+\begin{enumerate}
+  \item Homography I: $H = \begin{bmatrix} a_{11} &a_{12} & a_{13}\\ a_{21} & a_{22} & a_{23}\\ a_{31} & a_{32} & 1\end{bmatrix}$
+
+  \item Homography II:
+    $H = \begin{bmatrix} a_{11} &a_{12} & a_{13}\\ a_{21} & a_{22} & a_{23}\\ a_{31} & a_{32} & a_{33}\end{bmatrix} $
+    and $\begin{Vmatrix} H \end{Vmatrix} = 1$
+\end{enumerate}
+
+When two images are taken with only camera translation
+and rotation aligned with the image plane (no skew),
+then they can be related by an affine matrix of the following form:
+\[ A = \begin{bmatrix} a_{11} &a_{12} & a_{13}\\ a_{21} & a_{22} & a_{23}\\ 0 & 0 & 1\end{bmatrix} \]
+
+% TODO solve
+\textbf{RANSAC} (Random Sample Consensus) algorithm\cite{ransac} is used to calculate a transformation matrix.
+In every iteration, several matched pairs is randomly chosen to calculate a best-fit transformation matrix,
+and the pairs which agree with the matrix are taken as inliers. It's implemented in \verb|stitch/transform_estimate.cc|.
+
+Given a set of matches, affine and the first kind of homography transformation can be solved
+by least-squares fitting an over-determined linear system.
+The second kind of homography transformation can be solved by finding eigenvectors.
+These estimation are implemented in \verb|lib/imgproc.cc|.
+
+After each matrix estimation, I performed
+a ``health check`` to the matrix,
+to avoid mal-formed transformation
+estimated from false matches.
+This includes two checks: (see \verb|stitch/transform.hh|)
+\begin{enumerate}
+
+  \item  The skew factor in homography
+    ($ H_{3,1},H_{3,2}$) cannot be too large. Their
+    absolute values are usually less than 0.002.
+
+  \item Flipping cannot happen in image stitching.
+    A homography is rejected if it flips either $x$
+    or $y$ coordinate.
+\end{enumerate}
+
+For a matched pair of images,
+a confidence for this match
+is assigned by taking the ratio of inliers
+among all the feature matches. This is
+suggested by \cite{panoramic-sift}, and is useful
+in the construction of global structure.

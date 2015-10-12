@@ -6,54 +6,59 @@
 Dependencies:
 
 \begin{enumerate}
-    \item gcc >= 4.7
+    \item gcc $ \ge$ 4.7
     \item GNU make
-    \item Magick++
-    \item boost MTL (Matrix Template Library) installed in /usr/include/boost/numeric/.
-      It can be downloaded from \url{http://www.simunova.com/node/145}.
-\end{enumerate}
+    \item Eigen\footnote{\url{http://eigen.tuxfamily.org}}
+    \item CImg\footnote{\url{http://cimg.eu}} (already included in the repository)
+    \end{enumerate}
+    CImg is only used to read and write images, and it optionally depends
+    on libpng, libjpeg.
 
 Compilation:
 \begin{lstlisting}
-$ make
+$ cd src && make
 \end{lstlisting}
 
 \subsection{Run}
 Various parameters are saved in \verb|src/config.cfg|.
-Without special needs, we only have to modify \verb|PANO, TRANS, CROP|.
+Here I'm introducing some of them.
 
-The program does some extra work to beautify the output
-if knowing the input pictures were taken by a camera
-moving in pure translation or pure rotation.
+Two modes of stitching are available (set/unset the option \verb|CYLINDER|)
+\begin{description}
+  \item[cylinder mode] When the following conditions meet, this mode usually yields better results:
+\begin{itemize}
+  \item Images are taken with almost-pure rotation. (as common panoramas)
+	\item Images are given in the correct order. (I might fix this in the future)
+  \item Images are taken with the same camera, and a good \verb|FOCAL_LENGTH| is set.
+\end{itemize}
 
-\verb|PANO = 1| tells that the camera moved in pure rotation. A panorama is expected to be the output;
+\item [general mode] This mode has no assumptions on input images. So it'll be slower.
+\end{description}
 
-\verb|TRANS = 1| tells that the camera moved in pure translation. Result will be better than the one with \verb|TRANS| unset;
+%TODO See \secref{} for details on this two modes.
 
-\verb|CROP| decides whether to crop the final image to a rectangular;
+Some other options users may care:
+\begin{itemize}
+    \item \verb|FOCAL_LENGTH|: focal length of your camera in
+      35mm equivalent\footnote{\url{https://en.wikipedia.org/wiki/35_mm_equivalent_focal_length}}. Only used in cylinder mode.
+    \item \verb|STRAIGHTEN|: Only used in general mode. Whether to try straighten the result. Good to set when dealing with rotational panorama.
+    \item \verb|CROP|: whether to crop the final image to avoid black border.
+\end{itemize}
+% TODO see xxx for details
 
-Use \verb|./main <file1> <file2> <file3> ...| in the command line to run the program.
+Other parameters are quality-related.
+The default values are generally good for images with more than 0.7 megapixels.
+If your images are too small and cannot give satisfactory results,
+it might be better to resize your images rather than tune the parameters.
+
+
+To run the stitcher, use
+\begin{lstlisting}
+./image-stitching <file1> <file2> <file3> ...
+\end{lstlisting}
+
 Output file is \verb|out.png|.
 
-Usually, input images should not exeeds $20(files)\times 1500(pixels) \times 1000(pixels)$, since this program consumes a lot of memory.
 
-The input file names given in the command line need to be well ordered, to make sure the adjacent images can be stitched together.
+In cylinder mode, the input file names need to have the correct order.
 
-\subsection{Examples}
-\begin{enumerate}
-\item TRANS = 1
-  \begin{lstlisting}
-$ ./main ../data/flower/small*
-  \end{lstlisting}
-\begin{figure}[H]
-  \centering
-  \includegraphics[scale=0.27]{res/results/flower.jpg}
-\end{figure}
-
-
-  \item PANO = 1
-    \begin{lstlisting}
-$ ./main ../data/ground/small*
-    \end{lstlisting}
-    The result is shown in \figref{cropped}.
-\end{enumerate}

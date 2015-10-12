@@ -79,8 +79,6 @@ class Homography : public Matrix {
 		//http://stackoverflow.com/questions/14954220/how-to-check-if-obtained-homography-matrix-is-good
 		bool health() const {
 			const double* mat = ptr();
-			if (mat[8] < EPS)
-				return false;
 			// perspective test
 			if (fabs(mat[6]) > 2e-3)
 				return false;

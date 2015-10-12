@@ -3,227 +3,44 @@
 % Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 \section{Algorithms}
-\subsection{Feature Detection}
-Lowe's SIFT algorithm\cite{sift} is implemented.
-The procedure of the algorithm is briefly described as followed. For more details, please refer to the original paper.
-\begin{enumerate}
-  \item \textbf{Scale Space}
-
-    A Scale Space consisting of $ S \times O$ grey images is built.
-    The original image is resized in $ O$ different sizes (AKA. octaves), and each is then Gaussian-Blured
-    by $ S$ different $ \sigma$.
-    \begin{figure}[H]
-      \centering
-      \includegraphics[scale=0.35]{res/dog.jpg}
-      \caption{Scale Space and DOG Space \label{fig:dog}}
-    \end{figure}
-
-  \item \textbf{DOG Space}
-
-    In each octave, calculate the differences of every two adjacent blured images, to build a Difference-of-Gaussian Space.
-    Therefore, DOG Space consists of $ (S - 1) \times O$ grey images.
-    As shown in \figref{dog}.
-
-  \item \textbf{Extrema Detection}
-
-    In DOG Space, detect all the minimum and maximum
-    by comparing a pixel with its 26 neighbors in \textbf{three directions}: $ x, y, \sigma$.
-    See \figref{extrema} and \figref{extrema2}
-    \begin{figure}[H]
-      \begin{minipage}[b]{0.46\linewidth}
-        \centering
-        \includegraphics[scale=0.4]{res/extrema.png}
-        \caption{Extrema Detection\label{fig:extrema}}
-      \end{minipage}
-      \hspace{1em}
-      \begin{minipage}[b]{0.46\linewidth}
-        \centering
-        \includegraphics[scale=0.35]{res/extrema_lenna.png}
-        \caption{Extrema Example\label{fig:extrema2}}
-      \end{minipage}
-    \end{figure}
-
-  \item \textbf{Keypoint Localization}
-
-    Calculate the offset by \textbf{linear interpolation},
-    to move the extrema to a more accurate location.
-    Then reject the points with \textbf{low contrast} or \textbf{on the edge}, to get more distinctive features.
-    See \figref{feature1}, \figref{feature2}, \figref{feature3}.
-    \begin{figure}[H]
-      \begin{minipage}[b]{0.46\linewidth}
-        \centering
-        \includegraphics[scale=0.4]{res/feature_after_offset.png}
-        \caption{After Localization \label{fig:feature1}}
-      \end{minipage}
-      \hspace{1em}
-      \begin{minipage}[b]{0.46\linewidth}
-        \centering
-        \includegraphics[scale=0.4]{res/feature_after_contrast.png}
-        \caption{After Rejecting Low Contrast\label{fig:feature2}}
-      \end{minipage}
-
-      \begin{minipage}[b]{0.46\linewidth}
-        \centering
-        \includegraphics[scale=0.4]{res/feature_point.png}
-        \caption{After Eliminating Edge Point\label{fig:feature3}}
-      \end{minipage}
-      \hspace{1em}
-      \begin{minipage}[b]{0.46\linewidth}
-        \centering
-        \includegraphics[scale=0.4]{res/feature_dir.png}
-        \caption{After Assigning Orientation\label{fig:feature4}}
-      \end{minipage}
-    \end{figure}
-
-  \item \textbf{Orientation Assignment}
-
-    First, we have to calculate \textbf{gradient and orientation} for every point in the Scale Space.
-    For each keypoint detected by the previous procedure,
-    the orientations of its nearby points will be collected and used to build an \textbf{orientation histogram},
-    weighted by the magnitude of the gradient at each point, as well as an a gaussian kernel centered at the keypoint.
-    The peak in the histogram is chosen to be the main orientation of the keypoint, as shown by the arrows in \figref{feature4}.
-
-  \item \textbf{Descriptor Representation}
-
-    D. Lowe suggested choosing 16 points around the keypoint, and building orientation histograms for each point,
-    each histogram with 8 different possible values(bins). Therefore the final SIFT feature is a \textbf{128-dimensional} array.
-    Since the major orientation of the keypoint is known, by using relative orientation to the keypoint,
-    this feature is roatation-invariant.
-
-  \item \textbf{Feature Matching}
-
-    \textbf{Euclidean distance} of the 128-dimensional descriptor is the criteria for feature matching between two images.
-    A match is considered not convincing and therefore rejected,
-    if the distances from it to its closest neighbor and second-closest neighbor are similar.
-    The result is shown in \figref{match}.
-    \begin{figure}[H]
-      \centering
-      \includegraphics[width=\textwidth]{res/match.jpg}
-      \caption{Matching Result\label{fig:match}}
-    \end{figure}
-
-
-    \subsection{Warping}
-    A \textbf{homography transform} is needed to match the keypoints.
-    But a pure homography transform on a planar works
-    only if the camera moves in pure translation or, moves toward a fixed center.
-
-    If a rotational input is given, as most panoramas are built, using homography on a planar leads to \textbf{vertical distortion}, such as \figref{distort}.
-    \begin{figure}[H]
-      \centering
-      \includegraphics[width=0.9\textwidth]{res/distort.png}
-      \caption{Vertical Distortion with Homography on a Planar\label{fig:distort}}
-    \end{figure}
-
-    Therefore, if the option \verb|TRANS = 0| is set,
-    every input image will be first projected to a cylinder
-    \footnote{A comprehensive app revealing the reason of this projection can be seen at \url{http://graphics.stanford.edu/courses/cs178-12/applets/projection.html}}
-    by the following formula:
-
-    \[  \begin{cases}
-        x' = k\arccos{\dfrac{x}{\sqrt{x^2 + z^2}}}\\
-        y' = k\dfrac{y}{\sqrt{x^2 + z^2}}
-      \end{cases}\]
-    where $ z$ is chosen to be $ \max\{width, height\}$.  The result is in shown in \figref{cyl}.
-    \begin{figure}[H]
-      \centering
-      \begin{minipage}[b]{0.24\linewidth}
-        \includegraphics[scale=0.3]{res/1.png}
-      \end{minipage}
-      \begin{minipage}[b]{0.24\linewidth}
-        \includegraphics[scale=0.3]{res/2.png}
-      \end{minipage}
-      \begin{minipage}[b]{0.24\linewidth}
-        \includegraphics[scale=0.3]{res/3.png}
-      \end{minipage}
-      \begin{minipage}[b]{0.24\linewidth}
-        \includegraphics[scale=0.3]{res/4.png}
-      \end{minipage}
-
-      \includegraphics[width=0.9\textwidth]{res/warped_stitch.png}
-      \caption{Stitching Result After Projection\label{fig:cyl}}
-    \end{figure}
-
-\end{enumerate}
-
-\subsection{Transformation}
-\textbf{RANSAC} (Random Sample Consensus) algorithm\cite{ransac} is used to calculate a transformation matrix.
-In every iteration, several matched pairs is randomly chosen to calculate a best-fit transformation matrix,
-and the number of pairs it fits within all the data is calculated.
-
-I tried three kinds of transformation:
-\begin{enumerate}
-  \item Homography I: $H = \begin{bmatrix} a_{11} &a_{12} & a_{13}\\ a_{21} & a_{22} & a_{23}\\ a_{31} & a_{32} & 1\end{bmatrix}$
-
-  \item Homography II:
-    $H = \begin{bmatrix} a_{11} &a_{12} & a_{13}\\ a_{21} & a_{22} & a_{23}\\ a_{31} & a_{32} & a_{33}\end{bmatrix} $
-    and $\begin{Vmatrix} H \end{Vmatrix} = 1$
-
-  \item Affine:
-    $A = \begin{bmatrix} a_{11} &a_{12} & a_{13}\\ a_{21} & a_{22} & a_{23}\\ 0 & 0 & 1\end{bmatrix}$
-\end{enumerate}
-
-Given a set of matches, affine and the first kind of homography transformation can be solved
-by least-squares fitting an over-determined linear system.
-The second kind of homography transformation can be solved by singular value decomposition.
-The two homography lead to similar results, which are used when \verb|TRANS = 1|.
-For warped images, all the three types of transformation work well.
-In this project, affine transformation is used for generating panoramas.
-
-\subsection{Straightening}
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=\textwidth]{res/bend.jpg}
-  \caption{Bended Panorama\label{fig:bend}}
-\end{figure}
-
-Since the tilt of camera is unknown, the output panorama might be bended as shown in \figref{bend}.
-Instead of using the first image as the pivot, and calculating all the other transformation relative to it,
-using the image in the middle as the pivot can help reduce the tilt effect.
-Moreover, when the option \verb|PANO = 1| is set, an automatic straightening process will be executed.
-
-First, a binary search on the tilt factor is performed, aiming to make the result ``longer''.
-Second, we try to concatenate the first image after the last one,
-and then do a global rotation to ensure that the head and tail are aligned horizontally.
-After this two processes, the result is like \figref{unbend}.
-
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=\textwidth]{res/unbend.png}
-  \caption{Straightened Panorama\label{fig:unbend}}
-\end{figure}
+\input{feature}
+\input{transform}
+\input{cylinder}
+\input{general}
 
 \subsection{Blending}
-The size of the final result is determined immediately after calculating all the transformations.
-And the pixel value in the result image is calculated by an inverse transformation and interpolation with nearby pixels,
+The size of the final result is determined after having all the transformations.
+And the pixel value in the result image is calculated
+by an inverse transformation and bilinear interpolation with nearby pixels,
 in order to reduce alias effect.
 
-As for the overlap effect, the distance from the overlapped pixel to each image center is used to calculate a weighted sum of the pixel value.
-The result is almost seamless, as shown in \figref{blend}.
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=\textwidth]{res/blend.png}
-  \caption{Blended Result\label{fig:blend}}
-\end{figure}
+For overlapped regions, the distance from the
+overlapped pixel to each image center is used to calculate
+a weighted sum of the pixel value.
+I only used the distance along the $x$ axis to calculate the weight,
+to get better result in panoramic image.
+The result is almost seamless. Compare \figref{unbend-persp} and \figref{general-straighten}
+to see the effect of blending.
 
 \subsection{Cropping}
 When the option \verb|CROP = 1| is set,
-the program simply manage to find a rectangular with largest area within the original irregular result.
+the program simply manage to find a rectangular with largest area within the original result.
 
-A classic $ O(n \times m)$ algorithm is used, where $ n, m$ is the height and width of the original result.
+A $ O(n \times m)$ algorithm is used, where $ n, m$ is the height and width of the original result.
+The algorithm works like this:
 
 For each row $i$, the update
 \begin{flalign*}
- h[j] &= \begin{cases}0,& if\ i = 0\ or\ A[i][j]\ is\ outside\ the\ area\\ h[j] + 1,& otherwise\end{cases}\\
- r[j] &= \max\{ k \in [0, m) \cap \mathbf{N}: h[t] \ge h[j], \forall j \le t \le k\} \\
-l[j]  &= \min\{ k \in [0, m) \cap \mathbf{N} : h[t] \ge h[j], \forall k \le t \le j\}\\
+  h[j] &= \begin{cases}0,& if\ i = 0\ or\ A[i][j]\ is\ outside\ the\ area\\ h[j] + 1,& otherwise\end{cases}\\
+  r[j] &= \max\{ k \in [0, m) \cap \mathbf{N}: h[t] \ge h[j], \forall j \le t \le k\} \\
+  l[j]  &= \min\{ k \in [0, m) \cap \mathbf{N} : h[t] \ge h[j], \forall k \le t \le j\}\\
 \end{flalign*} for every $ j \in [0, n) $ can be done in amortized $ O(1)$ time, and the corresponding area is $ (r[j] - l[j] + 1) \times h[j]$.
 After the iteration, the rectangular $[i - h[j] + 1, i] \times [l[j], r[j]] $ with maximum area is our result.
 
 The cropped final result is shown in \figref{cropped}
 \begin{figure}[H]
   \centering
-  \includegraphics[width=\textwidth]{res/results/ground.jpg}
+  \includegraphics[width=\textwidth]{res/results/CMU1.jpg}
   \caption{Cropped Result\label{fig:cropped}}
 \end{figure}
 
