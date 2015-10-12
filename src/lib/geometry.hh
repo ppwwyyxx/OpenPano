@@ -232,6 +232,11 @@ class Vector2D {
 		bool isNaN() const { return std::isnan(x); }
 
 		static Vector2D<T> NaN() { return Vector2D<T>(NAN, NAN); }
+
+		static Vector2D<T> max()
+		{ return Vector2D<T>(
+				std::numeric_limits<T>::max(),
+				std::numeric_limits<T>::max()); }
 };
 
 template<typename T>

@@ -11,9 +11,8 @@
 namespace feature {
 
 struct BriefPattern {
-	typedef std::pair<int, int> PII;
 	int s;	// size
-	std::vector<PII> pattern;
+	std::vector<std::pair<int, int>> pattern;
 };
 
 
@@ -22,6 +21,7 @@ class BRIEF {
 	public:
 		BRIEF(const Mat32f& img, const std::vector<SSPoint>&,
 				const BriefPattern&);
+		BRIEF(const BRIEF&) = delete;
 
 		std::vector<Descriptor> get_descriptor() const;
 

@@ -45,7 +45,7 @@ Filter::Filter(int nscale,
 	}
 }
 
-// TODO fast convolution
+// TODO faster convolution
 Mat32f Filter::GaussianBlur(
 		const Mat32f& img, const GaussCache& gauss) const {
 	m_assert(img.channels() == 1);

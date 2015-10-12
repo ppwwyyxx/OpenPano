@@ -11,8 +11,10 @@
 
 namespace feature {
 
+struct BriefPattern;	// forward declaration
+
 struct Descriptor {
-	Vec2D coor;			// coordinate in range [0, w/h)
+	Vec2D coor;			// coordinate in range [0, w or h)
 	std::vector<float> descriptor;
 
 	// square of euclidean. use now_thres to early-stop
@@ -23,7 +25,9 @@ struct Descriptor {
 
 class FeatureDetector {
 	public:
+		FeatureDetector() = default;
 		virtual ~FeatureDetector() = default;
+		FeatureDetector(const FeatureDetector&) = delete;
 
 		std::vector<Descriptor> detect_feature(const Mat32f& img) const;
 		virtual std::vector<Descriptor> do_detect_feature(const Mat32f& img) const = 0;
@@ -35,20 +39,21 @@ class SIFTDetector : public FeatureDetector {
 };
 
 
-class BriefPattern;
 class BRIEFDetector : public FeatureDetector {
+
 	public:
 		BRIEFDetector();
 		virtual ~BRIEFDetector();
 		std::vector<Descriptor> do_detect_feature(const Mat32f& img) const;
 
+	protected:
 		std::unique_ptr<BriefPattern> pattern;
 };
 
 // A Scale-Space point
 struct SSPoint {
 	Coor coor;						// integer coordinate in the pyramid
-	Vec2D real_coor;			// scaled coordinate
+	Vec2D real_coor;			// scaled [0,1) coordinate in the original image
 	int pyr_id, scale_id; // pyramid / scale id
 	float dir;
 	float scale_factor;

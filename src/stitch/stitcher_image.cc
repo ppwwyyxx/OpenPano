@@ -20,24 +20,22 @@ void ConnectedImages::update_proj_range() {
 	 */
 	vector<Vec2D> corner;
 	REP(i, 1000)
-		REP(j, 1000) {
+		REP(j, 1000)
 			corner.emplace_back((double)i / 1000 - 0.5, (double)j / 1000 - 0.5);
-		}
 
 	int refw = component[identity_idx].imgptr->width(),
 			refh = component[identity_idx].imgptr->height();
 
 	auto homo2proj = get_homo2proj();
 
-	Vec2D proj_min = Vec2D(numeric_limits<double>::max(), std::numeric_limits<double>::max());
-	Vec2D proj_max = Vec2D(numeric_limits<double>::lowest(), std::numeric_limits<double>::lowest());
+	Vec2D proj_min = Vec2D::max();
+	Vec2D proj_max = proj_min * (-1);
 	for (auto& m : component) {
 		Vec2D now_min(numeric_limits<double>::max(), std::numeric_limits<double>::max()),
 					now_max = now_min * (-1);
 		for (auto v : corner) {
-			if (CAMERA_MODE) {
+			if (CAMERA_MODE)
 				v.x += 0.5, v.y += 0.5;
-			}
 			Vec homo = m.homo.trans(
 					Vec2D(v.x * m.imgptr->width(), v.y * m.imgptr->height()));
 			if (not CAMERA_MODE) {
@@ -55,9 +53,8 @@ void ConnectedImages::update_proj_range() {
 			now_min = Vec2D(numeric_limits<double>::max(), std::numeric_limits<double>::max());
 			now_max = now_min * (-1);
 			for (auto v : corner) {
-				if (CAMERA_MODE) {
+				if (CAMERA_MODE)
 					v.x += 0.5, v.y += 0.5;
-				}
 				Vec homo = m.homo.trans(
 						Vec2D(v.x * m.imgptr->width(), v.y * m.imgptr->height()));
 				if (not CAMERA_MODE) {
@@ -77,6 +74,10 @@ void ConnectedImages::update_proj_range() {
 		proj_max.update_max(now_max);
 		print_debug("Range: (%lf,%lf)~(%lf,%lf)\n",
 				m.range.min.x / refw, m.range.min.y / refh, m.range.max.x / refw, m.range.max.y / refh);
+	}
+	if (proj_method == ProjectionMethod::cylindrical) {
+		// TODO keep everything inside 2 * pi
+		// doesn't seem to be trivial. need to maintain range of each component
 	}
 	proj_range.min = proj_min, proj_range.max = proj_max;
 }
