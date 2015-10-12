@@ -1,8 +1,7 @@
 obj
 main
+data/
 *.png
-*.jpg
-*.jpg
 *.zip
 .tags
 output
