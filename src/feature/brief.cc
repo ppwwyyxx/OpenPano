@@ -56,8 +56,7 @@ Descriptor BRIEF::calc_descriptor(const SSPoint& p) const {
 		int idx = i / 32,
 				offset = i % 32;
 		int* ptr = (int*)&ret.descriptor[idx];
-		*ptr = *ptr | (1U << offset);
-		//cout << "st:" << ret.descriptor[idx] << endl;
+		*ptr = *ptr | (1 << offset);
 	}
 	return ret;
 }

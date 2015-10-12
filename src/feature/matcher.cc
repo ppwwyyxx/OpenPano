@@ -40,7 +40,7 @@ MatchData FeatureMatcher::match() const {
 	REP(k, l1) {
 		const Descriptor& i = (*pf1)[k];
 		int min_idx = -1;
-		// TODO use knn
+		// TODO use knn for sift
 		if (USE_SIFT) {
 			float min = numeric_limits<float>::max(),
 						next_min = min;

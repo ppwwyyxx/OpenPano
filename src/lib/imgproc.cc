@@ -164,6 +164,7 @@ Matrix getPerspectiveTransform(const std::vector<Vec2D>& p1, const std::vector<V
 	int n = p1.size();
 	m_assert(n == (int)p2.size() && n >= 4);
 
+	// solve with constraint h(2,2) = 1
 	MatrixXd m(n * 2, 8);
 	VectorXd b(n * 2);
 	REP(i, n) {
@@ -178,7 +179,8 @@ Matrix getPerspectiveTransform(const std::vector<Vec2D>& p1, const std::vector<V
 	::Matrix ret(3, 3);
 	REP(i, 8) ret.ptr()[i] = ans[i];
 	ret.at(2, 2) = 1;
-	/*
+
+	/* // solve with constraint |h| = 1
 	 *MatrixXd m(n*2, 9);
 	 *REP(i, n) {
 	 *  const Vec2D &m0 = p1[i], &m1 = p2[i];

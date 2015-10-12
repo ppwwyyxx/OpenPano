@@ -49,6 +49,7 @@ Mat32f Stitcher::build() {
 			estimate_camera();
 		else
 			build_bundle_linear_simple();
+		// TODO determine projection method
 		bundle.proj_method = ConnectedImages::ProjectionMethod::cylindrical;
 	}
 	print_debug("Using projection method: %d\n", bundle.proj_method);
@@ -122,6 +123,7 @@ void Stitcher::assume_linear_pairwise() {
 void Stitcher::assign_center() {
 	// naively. when changing here, keep mid for CYLINDER
 	bundle.identity_idx = imgs.size() >> 1;
+	//bundle.identity_idx = 0;
 }
 
 void Stitcher::estimate_camera() {
@@ -185,14 +187,18 @@ void Stitcher::build_bundle_linear_simple() {
 	auto& comp = bundle.component;
 
 	// accumulate the transformations
-	comp[mid+1].homo = pairwise_matches[mid][mid+1].homo;
-	REPL(k, mid + 2, n)
-		comp[k].homo = Homography(
-				comp[k - 1].homo.prod(pairwise_matches[k-1][k].homo));
-	comp[mid-1].homo = pairwise_matches[mid][mid-1].homo;
-	REPD(k, mid - 2, 0)
-		comp[k].homo = Homography(
-				comp[k + 1].homo.prod(pairwise_matches[k+1][k].homo));
+	if (mid + 1 < n) {
+		comp[mid+1].homo = pairwise_matches[mid][mid+1].homo;
+		REPL(k, mid + 2, n)
+			comp[k].homo = Homography(
+					comp[k - 1].homo.prod(pairwise_matches[k-1][k].homo));
+	}
+	if (mid - 1 >= 0) {
+		comp[mid-1].homo = pairwise_matches[mid][mid-1].homo;
+		REPD(k, mid - 2, 0)
+			comp[k].homo = Homography(
+					comp[k + 1].homo.prod(pairwise_matches[k+1][k].homo));
+	}
 	// then, comp[k]: from k to identity
 	bundle.calc_inverse_homo();
 }
@@ -283,7 +289,7 @@ float Stitcher::update_h_factor(float nowfactor,
 				nowfeats[k]).get_transform(&info);
 		if (not succ)
 			failed = true;
-			//error_exit("The two image doesn't match. Failed");
+		//error_exit("The two image doesn't match. Failed");
 		nowmat[k-1] = info.homo;
 	}
 	if (failed) return 0;
@@ -363,7 +369,7 @@ Mat32f Stitcher::blend() {
 	Vec2D proj_min = bundle.proj_range.min;
 	double x_len = bundle.proj_range.max.x - proj_min.x,
 				 y_len = bundle.proj_range.max.y - proj_min.y,
-				 x_per_pixel = id_img_range.x / (CYLINDER ? refw : refh),	// huh?
+				 x_per_pixel = id_img_range.x / (CAMERA_MODE ? refh : refw),	// huh?
 				 y_per_pixel = id_img_range.y / refh,
 				 target_width = x_len / x_per_pixel,
 				 target_height = y_len / y_per_pixel;
