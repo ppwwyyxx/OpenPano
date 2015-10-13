@@ -169,10 +169,18 @@ void init_config() {
 	const char* config_file = "config.cfg";
 	ConfigParser Config(config_file);
 	CYLINDER = Config.get("CYLINDER");
+	TRANS = Config.get("TRANS");
+	ESTIMATE_CAMERA = Config.get("ESTIMATE_CAMERA");
+	if (int(CYLINDER) + int(TRANS) + int(ESTIMATE_CAMERA) >= 2)
+		error_exit("You set two many modes...");
 	if (CYLINDER)
 		print_debug("Run with cylinder mode.\n");
+	else if (TRANS)
+		print_debug("Run with translation mode.\n");
+	else if (ESTIMATE_CAMERA)
+		print_debug("Run with camera estimation mode.\n");
 	else
-		print_debug("Run with general mode.\n");
+		print_debug("Run with naive mode.\n");
 
 	CROP = Config.get("CROP");
 	STRAIGHTEN = Config.get("STRAIGHTEN");

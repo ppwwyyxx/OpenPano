@@ -183,7 +183,6 @@ bool HomoEstimator::estimate(Homography& m) {
 }
 
 double HomoEstimator::calcError(vector<double>& err) {
-	GuardedTimer tm("calcError()");
 	m_assert((int)err.size() == NR_TERM_PER_MATCH * nr_match);
 	Homography m;
 	REP(i, 8) m.ptr()[i] = params[i];

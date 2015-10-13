@@ -24,33 +24,32 @@ using namespace std;
 using namespace feature;
 
 // in development. estimate camera parameters
-bool CAMERA_MODE = true;
 const bool DEBUG_OUT = false;
 
 Mat32f Stitcher::build() {
-	if (CYLINDER)
-		CAMERA_MODE = false;
-
 	calc_feature();
+	// TODO choose a better starting point by MST use centrality
 	if (CYLINDER) {
-		// TODO choose a better starting point by MST use centrality
 		assign_center();
 		build_bundle_warp();
 		bundle.proj_method = ConnectedImages::ProjectionMethod::flat;
 	} else {
-		if (CAMERA_MODE)
-			pairwise_match();
-		else
+		if (TRANS)
 			assume_linear_pairwise();
+		else
+			pairwise_match();
 		if (DEBUG_OUT)
 			debug_matchinfo();
 		assign_center();
-		if (CAMERA_MODE)
+		if (ESTIMATE_CAMERA)
 			estimate_camera();
 		else
 			build_bundle_linear_simple();
 		// TODO determine projection method
-		bundle.proj_method = ConnectedImages::ProjectionMethod::cylindrical;
+		if (ESTIMATE_CAMERA)
+			bundle.proj_method = ConnectedImages::ProjectionMethod::cylindrical;
+		else
+			bundle.proj_method = ConnectedImages::ProjectionMethod::flat;
 	}
 	print_debug("Using projection method: %d\n", bundle.proj_method);
 	bundle.update_proj_range();
@@ -369,7 +368,7 @@ Mat32f Stitcher::blend() {
 	Vec2D proj_min = bundle.proj_range.min;
 	double x_len = bundle.proj_range.max.x - proj_min.x,
 				 y_len = bundle.proj_range.max.y - proj_min.y,
-				 x_per_pixel = id_img_range.x / (CAMERA_MODE ? refh : refw),	// huh?
+				 x_per_pixel = id_img_range.x / (ESTIMATE_CAMERA ? refh : refw),	// huh?
 				 y_per_pixel = id_img_range.y / refh,
 				 target_width = x_len / x_per_pixel,
 				 target_height = y_len / y_per_pixel;
@@ -398,12 +397,12 @@ Mat32f Stitcher::blend() {
 		REP(i, h) REP(j, w) {
 			Vec2D c((j + top_left.x) * x_per_pixel + proj_min.x, (i + top_left.y) * y_per_pixel + proj_min.y);
 			Vec homo = proj2homo(Vec2D(c.x / refw, c.y / refh));
-			if (not CAMERA_MODE)  {	// scale and offset is in camera intrinsic
+			if (not ESTIMATE_CAMERA)  {	// scale and offset is in camera intrinsic
 				homo.x -= 0.5 * homo.z, homo.y -= 0.5 * homo.z;	// shift center for homography
 				homo.x *= refw, homo.y *= refh;
 			}
 			Vec2D orig = cur.homo_inv.trans_normalize(homo);
-			if (not CAMERA_MODE)
+			if (not ESTIMATE_CAMERA)
 				orig = orig + Vec2D(cur.imgptr->width()/2, cur.imgptr->height()/2);
 			Vec2D& p = (orig_pos.at(i, j) = orig);
 			if (!p.isNaN() && (p.x < 0 || p.x >= cur.imgptr->width()
@@ -415,7 +414,7 @@ Mat32f Stitcher::blend() {
 	if (DEBUG_OUT)
 		blender.debug_run(size.x, size.y);
 	blender.run(ret);
-	if (CYLINDER)
+	if (CYLINDER or TRANS)
 		return perspective_correction(ret);
 	return ret;
 }

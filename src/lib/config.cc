@@ -23,12 +23,16 @@ ConfigParser::ConfigParser(const char* fname) {
 }
 
 double ConfigParser::get(const std::string& s) {
+	if (data.count(s) == 0)
+		error_exit(ssprintf("No option %s in config file!", s.c_str()));
 	return data[s];
 }
 
 bool CYLINDER;
+bool TRANS;
 bool CROP = true;
 float FOCAL_LENGTH;
+bool ESTIMATE_CAMERA;
 bool USE_SIFT;
 bool STRAIGHTEN;
 
