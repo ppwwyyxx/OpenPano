@@ -22,7 +22,7 @@ TransformEstimation::TransformEstimation(const feature::MatchData& m_match,
 	match(m_match), f1(m_f1), f2(m_f2),
 	f2_homo_coor(3, match.size())
 {
-	if (CYLINDER)
+	if (CYLINDER or TRANS)
 		transform_type = Affine;
 	else
 		transform_type = Homo;

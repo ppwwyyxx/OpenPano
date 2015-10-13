@@ -7,7 +7,6 @@ Dependencies:
 
 \begin{enumerate}
     \item gcc $ \ge$ 4.7
-    \item GNU make
     \item Eigen\footnote{\url{http://eigen.tuxfamily.org}}
     \item CImg\footnote{\url{http://cimg.eu}} (already included in the repository)
     \end{enumerate}
@@ -23,25 +22,34 @@ $ cd src && make
 Various parameters are saved in \verb|src/config.cfg|.
 Here I'm introducing some of them.
 
-Two modes of stitching are available (set/unset the option \verb|CYLINDER|)
+Four modes of stitching are available (set/unset the options in config file)
 \begin{description}
   \item[cylinder mode] When the following conditions meet, this mode usually yields better results:
 \begin{itemize}
   \item Images are taken with almost-pure rotation. (as common panoramas)
-	\item Images are given in the correct order. (I might fix this in the future)
+  \item Images are given in the left-to-right order. (I might fix this in the future)
   \item Images are taken with the same camera, and a good \verb|FOCAL_LENGTH| is set.
 \end{itemize}
 
-\item [general mode] This mode has no assumptions on input images. So it'll be slower.
+\item[camera estimation mode] No translation is the only requirement.
+  It can usually work well as long as you don't have too few images.
+  But it's slower because it needs to perform pairwise matches.
+
+\item[translation mode] Simply stitch images together by affine transformation.
+  It works when camera performs pure translation.  It also requires ordered input.
+
+\item[naive mode] Just stitch images together by homography and all done. Not very useful.
 \end{description}
 
-%TODO See \secref{} for details on this two modes.
+The first two modes are complex and they will be introduced in \secref{cylinder}
+and \secref{camera_estimate}.
+
 
 Some other options users may care:
 \begin{itemize}
     \item \verb|FOCAL_LENGTH|: focal length of your camera in
       35mm equivalent\footnote{\url{https://en.wikipedia.org/wiki/35_mm_equivalent_focal_length}}. Only used in cylinder mode.
-    \item \verb|STRAIGHTEN|: Only used in general mode. Whether to try straighten the result. Good to set when dealing with rotational panorama.
+    \item \verb|STRAIGHTEN|: Only used in camera estimation mode. Whether to try straighten the result. Good to set when dealing with rotational panorama.
     \item \verb|CROP|: whether to crop the final image to avoid black border.
 \end{itemize}
 % TODO see xxx for details
@@ -51,7 +59,6 @@ The default values are generally good for images with more than 0.7 megapixels.
 If your images are too small and cannot give satisfactory results,
 it might be better to resize your images rather than tune the parameters.
 
-
 To run the stitcher, use
 \begin{lstlisting}
 ./image-stitching <file1> <file2> <file3> ...
@@ -60,5 +67,5 @@ To run the stitcher, use
 Output file is \verb|out.png|.
 
 
-In cylinder mode, the input file names need to have the correct order.
+In cylinder and translation mode, the input file names need to have the correct order.
 

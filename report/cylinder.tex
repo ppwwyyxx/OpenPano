@@ -2,6 +2,7 @@
 %Author: Yuxin Wu <ppwwyyxx@gmail.com>
 
 \subsection{Cylinder Mode}
+\label{sec:cylinder}
 \subsubsection{Necessity of Projection}
 If a rotational input is given, as most panoramas are built,
 using planar homography leads to \textbf{vertical distortion}, such as \figref{distort}.
@@ -18,7 +19,7 @@ become a line.
 
 There are two ways to handle with this problem: to warp before or after
 transform estimation.
-\footnote{A comprehensive app revealing the reason of this projection can be seen at \url{http://graphics.stanford.edu/courses/cs178-12/applets/projection.html}}
+\footnote{A good app revealing the reason of this projection can be seen at \url{http://graphics.stanford.edu/courses/cs178-12/applets/projection.html}}
 These are the two modes used in this system. In this section we will
 introduce the algorithms used in cylinder mode.
 

@@ -3,10 +3,10 @@
 
 #include "stitcher_image.hh"
 #include "projection.hh"
+#include "lib/config.hh"
 #include <cassert>
 
 using namespace std;
-extern bool CAMERA_MODE;	// debug
 
 void ConnectedImages::calc_inverse_homo() {
 	for (auto& m : component)
@@ -34,11 +34,11 @@ void ConnectedImages::update_proj_range() {
 		Vec2D now_min(numeric_limits<double>::max(), std::numeric_limits<double>::max()),
 					now_max = now_min * (-1);
 		for (auto v : corner) {
-			if (CAMERA_MODE)
+			if (ESTIMATE_CAMERA)
 				v.x += 0.5, v.y += 0.5;
 			Vec homo = m.homo.trans(
 					Vec2D(v.x * m.imgptr->width(), v.y * m.imgptr->height()));
-			if (not CAMERA_MODE) {
+			if (not ESTIMATE_CAMERA) {
 				homo.x /= refw, homo.y /= refh;
 				homo.x += 0.5 * homo.z, homo.y += 0.5 * homo.z;
 			}
@@ -53,11 +53,11 @@ void ConnectedImages::update_proj_range() {
 			now_min = Vec2D(numeric_limits<double>::max(), std::numeric_limits<double>::max());
 			now_max = now_min * (-1);
 			for (auto v : corner) {
-				if (CAMERA_MODE)
+				if (ESTIMATE_CAMERA)
 					v.x += 0.5, v.y += 0.5;
 				Vec homo = m.homo.trans(
 						Vec2D(v.x * m.imgptr->width(), v.y * m.imgptr->height()));
-				if (not CAMERA_MODE) {
+				if (not ESTIMATE_CAMERA) {
 					homo.x /= refw, homo.y /= refh;
 					homo.x += 0.5 * homo.z, homo.y += 0.5 * homo.z;
 				}
