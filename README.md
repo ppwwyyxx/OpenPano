@@ -24,18 +24,23 @@ $ cd src; make
 
 ### Options:
 
-Two modes are available (set/unset the option ``CYLINDER`` in ``config.cfg``):
+Three modes are available (set/unset the options in ``config.cfg``):
 + __cylinder__ mode. When the following conditions meet, this mode usually yields better results:
-	+ Images are taken with almost-pure rotation. (as common panoramas)
-	+ Images are given in the correct order. (I might fix this in the future)
-	+ Images are taken with the same camera, and a good FOCAL_LENGTH is set.
+	+ Images are taken with almost-pure single-direction rotation. (as common panoramas)
+	+ Images are given in the left-to-right order. (I might fix this in the future)
+	+ Images are taken with the same camera, and a good ``FOCAL_LENGTH`` is set.
 
-+ __general__ mode. This mode has no assumptions on input images. So it'll be slower.
++ __camera estimation mode__. No translation is the only requirement on cameras.
+  It can usually work well as long as you don't have too few images.
+  But it's slower because it needs to perform pairwise matches.
+
++ __translation mode__. Simply stitch images together by affine transformation.
+  It works when camera performs pure translation.  It also requires ordered input.
 
 Some options you may care:
 + __FOCAL_LENGTH__: focal length of your camera in [35mm equivalent](https://en.wikipedia.org/wiki/35_mm_equivalent_focal_length). Only used in cylinder mode.
-+ __STRAIGHTEN__: Only used in general mode. Whether to try straighten the result. Good to set when dealing with panorama.
-+ __CROP__: whether to crop the final image to avoid black border.
++ __STRAIGHTEN__: Only used in camera estimation mode. When dealing with panorama, set this to have a more straightened result.
++ __CROP__: whether to crop the final image to avoid meaningless border.
 
 Other parameters are quality-related.
 The default values are generally good for images with more than 0.7 megapixels.
@@ -52,7 +57,7 @@ The output file is ``out.png``.
 
 Before dealing with very large images (4 megapixels or more), it's better to resize them. (I might add this feature in the future)
 
-In cylinder mode, the input file names need to have the correct order.
+In cylinder/translation mode, the input file names need to have the correct order.
 
 ## Examples:
 
@@ -70,10 +75,11 @@ Carnegie Mellon University
 ![apple](https://github.com/ppwwyyxx/panorama/raw/master/results/apple.jpg)
 
 
-
 For more examples, see [results](https://github.com/ppwwyyxx/panorama/tree/master/results).
 
 ## Algorithms
-I use [SIFT](http://en.wikipedia.org/wiki/Scale-invariant_feature_transform) for feature detection and [RANSAC](http://en.wikipedia.org/wiki/RANSAC) to estimate transformation.
++ Features: [SIFT](http://en.wikipedia.org/wiki/Scale-invariant_feature_transform), BRIEF
++ Transformation: use [RANSAC](http://en.wikipedia.org/wiki/RANSAC) to estimate a homography or affine transformation.
++ Optimization: focal estimation, [bundle adjustment](https://en.wikipedia.org/wiki/Bundle_adjustment), and some straightening tricks.
 
-For more details, please see [readme.pdf](https://github.com/ppwwyyxx/panorama/raw/master/readme.pdf).
+For details, please see [readme.pdf](https://github.com/ppwwyyxx/panorama/raw/master/readme.pdf).
