@@ -14,7 +14,7 @@ Then I get something like this:
 \begin{figure}[H]
   \centering
   \includegraphics[width=1\textwidth]{res/CMU1-noestimate.jpg}
-  \caption{CMU campus, directly stitched and then warped}
+  \caption{CMU campus, directly stitched and then warped to cylinder}
 \end{figure}
 
 This is likely caused by our weak assumption on homography matrix.
@@ -38,9 +38,9 @@ can be roughly estimated from pairwise homographies. This is implemented in \ver
 I used it to produce initial estimation of
 focal length and assign it to each camera.
 
-By assuming a rotation matrix for certain pivot image to be identical,
-the other rotation matrices
-can estimated one by one using pairwise homography:
+By assuming a rotation matrix for certain pivot image being identical,
+other rotation matrices
+can be estimated one by one using pairwise homography:
 \[ R_1 = K_1^{-1}H_{1,2}K_2R_2\]
 
 To reduce accumulated error,
@@ -81,6 +81,13 @@ After the optimization, the above panorama looks much better:
   \includegraphics[width=\textwidth]{res/after-ba.jpg}
   \caption{After Bundle Adjustment}
 \end{figure}
+
+I noticed that in some hard cases, bundle adjustment cannot converge to a good result.
+This is usually due to false matches or low-quality matches between images.
+\cite{panoramic-sift} suggests incrementally adding images to the bundle adjuster,
+which sounds reasonable but I don't have time to implement that for now.
+Also, I think it'll also help to reject some matches if it is inconsistent with
+the current bundle.
 
 \subsubsection{Straightening}
 As suggested by \cite{panoramic-sift}, the result of bundle adjustment
