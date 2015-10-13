@@ -3,9 +3,12 @@
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "config.hh"
+#include "utils.hh"
 using namespace std;
 
 ConfigParser::ConfigParser(const char* fname) {
+	if (not exists_file(fname))
+		error_exit("Cannot find config file!");
 	ifstream fin(fname);
 	string s;s.resize(1000);
 	double val;

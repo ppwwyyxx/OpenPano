@@ -9,21 +9,31 @@
 #define cimg_use_jpeg
 #include "CImg.h"
 
+#include "lib/utils.hh"
+
 using namespace cimg_library;
 using namespace std;
 
-Mat32f read_rgb(const char* fname) {
+Mat32f read_img(const char* fname) {
+	if (not exists_file(fname))
+		error_exit(ssprintf("File %s not exists!", fname));
 	CImg<float> img(fname);
-	// TODO handle grey img
-	m_assert(img.spectrum() == 3);
+	m_assert(img.spectrum() == 3 || img.spectrum() == 1);
 	img = img / 255.0;
 	Mat32f mat(img.height(), img.width(), 3);
-	REP(i, mat.rows())
-		REP(j, mat.cols()) {
-			mat.at(i, j, 0) = img(j, i, 0);
-			mat.at(i, j, 1) = img(j, i, 1);
-			mat.at(i, j, 2) = img(j, i, 2);
-		}
+	if (img.spectrum() == 3) {
+		REP(i, mat.rows())
+			REP(j, mat.cols()) {
+				mat.at(i, j, 0) = img(j, i, 0);
+				mat.at(i, j, 1) = img(j, i, 1);
+				mat.at(i, j, 2) = img(j, i, 2);
+			}
+	} else {
+		REP(i, mat.rows())
+			REP(j, mat.cols()) {
+				mat.at(i, j, 0) = mat.at(i, j, 1) = mat.at(i, j, 2) = img(j, i);
+			}
+	}
 	return mat;
 }
 

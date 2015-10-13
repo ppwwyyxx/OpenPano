@@ -62,11 +62,13 @@ Zijing Apartment in Tsinghua University:
 Myselves:
 ![myself](https://github.com/ppwwyyxx/panorama/raw/master/results/small/myself.jpg)
 
-Carnegie Mellon University
-![cmu0](https://github.com/ppwwyyxx/panorama/raw/master/results/small/CMU0-cyl.jpg)
-
 Zijing Playground in Tsinghua University:
 ![planet](https://github.com/ppwwyyxx/panorama/raw/master/results/small/planet.jpg)
+
+Carnegie Mellon University
+![cmu0](https://github.com/ppwwyyxx/panorama/raw/master/results/small/CMU0-all.jpg)
+![apple](https://github.com/ppwwyyxx/panorama/raw/master/results/apple.jpg)
+
 
 
 For more examples, see [results](https://github.com/ppwwyyxx/panorama/tree/master/results).

@@ -11,6 +11,7 @@
 #include <sstream>
 #include <memory>
 #include <sys/time.h>
+#include <sys/stat.h>
 using namespace std;
 
 string TERM_COLOR(int k);
@@ -37,4 +38,10 @@ std::shared_ptr<T> create_auto_buf(size_t len, bool init_zero = false) {
 	if (init_zero)
 		memset(ret.get(), 0, sizeof(T) * len);
 	return ret;
+}
+
+
+inline bool exists_file(const char* name) {
+	struct stat buffer;
+	return stat(name, &buffer) == 0;
 }

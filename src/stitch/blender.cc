@@ -26,7 +26,7 @@ void LinearBlender::add_image(const Coor &top_left,
 				if (!is_edge_color(img, r, c)){
 					WeightedPixel* t = mat_row + j;
 					t->v = interpolate(img, r, c);
-					// t.w = (0.5 - fabs(p.x - 0.5)) * (0.5 - fabs(p.y - 0.5));
+					// t.w = (0.5 - fabs(p.x / img.width() - 0.5)) * (0.5 - fabs(p.y / img.height() - 0.5));
 					// x-axis linear interpolation
 					t->w = 0.5 - fabs(p.x / img.width() - 0.5);
 				}

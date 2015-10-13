@@ -23,7 +23,7 @@ bool TEMPDEBUG = false;
 const int LABEL_LEN = 7;
 
 void test_extrema(const char* fname, int mode) {
-	auto mat = read_rgb(fname);
+	auto mat = read_img(fname);
 
 	ScaleSpace ss(mat, NUM_OCTAVE, NUM_SCALE);
 	DOGSpace dog(ss);
@@ -44,7 +44,7 @@ void test_extrema(const char* fname, int mode) {
 }
 
 void test_orientation(const char* fname) {
-	auto mat = read_rgb(fname);
+	auto mat = read_img(fname);
 	ScaleSpace ss(mat, NUM_OCTAVE, NUM_SCALE);
 	DOGSpace dog(ss);
 	ExtremaDetector ex(dog);
@@ -64,8 +64,8 @@ void test_orientation(const char* fname) {
 // draw feature and their match
 void match(const char* f1, const char* f2) {
 	list<Mat32f> imagelist;
-	Mat32f pic1 = read_rgb(f1);
-	Mat32f pic2 = read_rgb(f2);
+	Mat32f pic1 = read_img(f1);
+	Mat32f pic2 = read_img(f2);
 	imagelist.push_back(pic1);
 	imagelist.push_back(pic2);
 
@@ -100,8 +100,8 @@ void match(const char* f1, const char* f2) {
 // draw inliers of the estimated homography
 void inlier(const char* f1, const char* f2) {
 	list<Mat32f> imagelist;
-	Mat32f pic1 = read_rgb(f1);
-	Mat32f pic2 = read_rgb(f2);
+	Mat32f pic1 = read_img(f1);
+	Mat32f pic2 = read_img(f2);
 	imagelist.push_back(pic1);
 	imagelist.push_back(pic2);
 
@@ -141,7 +141,7 @@ void inlier(const char* f1, const char* f2) {
 void test_warp(int argc, char* argv[]) {
 	CylinderWarper warp(1);
 	REPL(i, 2, argc) {
-		Mat32f mat = read_rgb(argv[i]);
+		Mat32f mat = read_img(argv[i]);
 		warp.warp(mat);
 		write_rgb(("warp" + to_string(i) + ".png").c_str(), mat);
 	}
@@ -151,7 +151,7 @@ void test_warp(int argc, char* argv[]) {
 void work(int argc, char* argv[]) {
 	vector<Mat32f> imgs;
 	REPL(i, 1, argc)
-		imgs.emplace_back(read_rgb(argv[i]));
+		imgs.emplace_back(read_img(argv[i]));
 	Stitcher p(move(imgs));
 	Mat32f res = p.build();
 	if (res.width() * res.height() > 30000000) {
@@ -166,8 +166,8 @@ void work(int argc, char* argv[]) {
 }
 
 void init_config() {
-	// TODO check config exists..
-	ConfigParser Config("config.cfg");
+	const char* config_file = "config.cfg";
+	ConfigParser Config(config_file);
 	CYLINDER = Config.get("CYLINDER");
 	if (CYLINDER)
 		print_debug("Run with cylinder mode.\n");
@@ -204,7 +204,7 @@ void init_config() {
 }
 
 void planet(const char* fname) {
-	Mat32f test = read_rgb(fname);
+	Mat32f test = read_img(fname);
 	int w = test.width(), h = test.height();
 	const int OUTSIZE = 1000, center = OUTSIZE / 2;
 	Mat32f ret(OUTSIZE, OUTSIZE, 3);
@@ -214,7 +214,7 @@ void planet(const char* fname) {
 		real_t dist = hypot(center - i, center - j);
 		if (dist >= center || dist == 0) continue;
 		dist = dist / center;
-		dist = sqr(dist) * dist;
+		//dist = sqr(dist);	// TODO you can change this to see different effect
 		dist = h - dist * h;
 
 		real_t theta;
@@ -260,7 +260,8 @@ int main(int argc, char* argv[]) {
 		inlier(argv[2], argv[3]);
 	else if (command == "warp")
 		test_warp(argc, argv);
-	//planet(argv[1]);
+	else if (command == "planet")
+		planet(argv[2]);
 	else
 		work(argc, argv);
 }
