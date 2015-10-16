@@ -41,7 +41,7 @@ bool TransformEstimation::get_transform(MatchInfo* info) {
 	// use Affine in cylinder mode, and Homography in normal mode
 	int nr_match_used = (transform_type == Affine ? 6: 8) + 1 / 2;
 	int nr_match = match.size();
-	if (nr_match < ESTIMATE_MIN_NR_MATCH)
+	if (nr_match < nr_match_used)
 		return false;
 
 	vector<int> inliers;
