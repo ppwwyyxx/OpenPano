@@ -119,6 +119,7 @@ void TransformEstimation::fill_inliers_to_matchinfo(
 				f2[match.data[idx].second].coor
 				);
 	}
+	// From D. Lowe 2008 Automatic Panoramic Image Stitching
 	info->confidence = inliers.size() / (8 + 0.3 * match.size());
 
 	// overlap too much. not helpful. but still keep it for connectivity

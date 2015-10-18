@@ -81,6 +81,8 @@ std::vector<float> OrientationAssign::calc_dir(
 		if (hist[i] > thres && hist[i] > max(prev, next)) {
 			// parabola interpolation
 			real_t newbin = (float)i - 0.5 + (hist[i] - prev) / (prev + next - 2 * hist[i]);
+			// I saw this elsewhere... although by derivation the above one should be correct
+			//real_t newbin = (float)i - 0.5 + (next - prev) / (prev + next - 2 * hist[i]);
 			if (newbin < 0)
 				newbin += ORI_HIST_BIN_NUM;
 			else if (newbin >= ORI_HIST_BIN_NUM)
