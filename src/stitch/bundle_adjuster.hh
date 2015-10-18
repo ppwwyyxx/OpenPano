@@ -27,17 +27,3 @@ class BundleAdjuster {
 		double calcError(const std::vector<double>& params, std::vector<double>& err);
 		void calcJacobian(Eigen::MatrixXd& J);
 };
-
-class HomoEstimator {
-	public:
-		HomoEstimator(const MatchInfo& match_info);
-		bool estimate(Homography& homo);
-
-	protected:
-		const MatchInfo& match;
-		int nr_match;
-		std::vector<double> params;
-		double calcError(std::vector<double>& err);
-		void calcJacobian(Eigen::MatrixXd& J);
-
-};
