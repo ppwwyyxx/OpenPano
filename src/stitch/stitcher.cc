@@ -71,7 +71,12 @@ void Stitcher::pairwise_match() {
 	GuardedTimer tm("pairwise_match()");
 	size_t n = imgs.size();
 
-	REP(i, n) REPL(j, i + 1, n) {
+	vector<pair<int, int>> tasks;
+	REP(i, n) REPL(j, i + 1, n) tasks.emplace_back(i, j);
+
+// #pragma omp parallel for schedule(dynamic)
+	REP(k, tasks.size()) {
+		int i = tasks[k].first, j = tasks[k].second;
 		FeatureMatcher matcher(feats[i], feats[j]);
 		auto match = matcher.match();
 		TransformEstimation transf(match, feats[i], feats[j]);
@@ -84,7 +89,7 @@ void Stitcher::pairwise_match() {
 		auto inv = info.homo.inverse(&succ);
 		if (not succ) continue;	// cannot inverse. mal-formed homography
 		print_debug(
-				"Connection between image %lu and %lu, ninliers=%lu, conf=%f\n",
+				"Connection between image %d and %d, ninliers=%lu, conf=%f\n",
 				i, j, info.match.size(), info.confidence);
 		//cout << "Estimated H" << info.homo << endl;
 		// fill in pairwise matches
@@ -167,7 +172,7 @@ void Stitcher::estimate_camera() {
 	}
 
 	BundleAdjuster ba(imgs, pairwise_matches);
- 	ba.estimate(cameras);
+	ba.estimate(cameras);
 	if (STRAIGHTEN)
 		Camera::straighten(cameras);
 	// TODO rotate to identity
@@ -310,7 +315,7 @@ float Stitcher::update_h_factor(float nowfactor,
 Mat32f Stitcher::perspective_correction(const Mat32f& img) {
 	int w = img.width(), h = img.height();
 	int refw = imgs[bundle.identity_idx].width(),
-			refh = imgs[bundle.identity_idx].height();
+		refh = imgs[bundle.identity_idx].height();
 	auto homo2proj = bundle.get_homo2proj();
 	Vec2D proj_min = bundle.proj_range.min;
 
@@ -357,7 +362,7 @@ Mat32f Stitcher::blend() {
 	GuardedTimer tm("blend()");
 	// it's hard to do coordinates.......
 	int refw = imgs[bundle.identity_idx].width(),
-			refh = imgs[bundle.identity_idx].height();
+		refh = imgs[bundle.identity_idx].height();
 	auto homo2proj = bundle.get_homo2proj();
 	auto proj2homo = bundle.get_proj2homo();
 
@@ -367,11 +372,11 @@ Mat32f Stitcher::blend() {
 
 	Vec2D proj_min = bundle.proj_range.min;
 	double x_len = bundle.proj_range.max.x - proj_min.x,
-				 y_len = bundle.proj_range.max.y - proj_min.y,
-				 x_per_pixel = id_img_range.x / (ESTIMATE_CAMERA ? refh : refw),	// huh?
-				 y_per_pixel = id_img_range.y / refh,
-				 target_width = x_len / x_per_pixel,
-				 target_height = y_len / y_per_pixel;
+		   y_len = bundle.proj_range.max.y - proj_min.y,
+		   x_per_pixel = id_img_range.x / (ESTIMATE_CAMERA ? refh : refw),	// huh?
+		   y_per_pixel = id_img_range.y / refh,
+		   target_width = x_len / x_per_pixel,
+		   target_height = y_len / y_per_pixel;
 
 	Coor size(target_width, target_height);
 	print_debug("Final Image Size: (%d, %d)\n", size.x, size.y);
