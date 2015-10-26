@@ -11,6 +11,7 @@
 #include "debugutils.hh"
 #include "common.hh"
 #include "matrix.hh"
+#include "timer.hh"
 
 using namespace std;
 
