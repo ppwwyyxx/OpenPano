@@ -5,6 +5,7 @@
 #include "dist.hh"
 #include "lib/debugutils.hh"
 #include "lib/common.hh"
+#include "lib/timer.hh"
 
 #include <limits>
 
@@ -17,6 +18,10 @@ namespace feature {
 float euclidean_sqr(
 		const float* x, const float* y,
 		int n, float now_thres) {
+	/*
+	 *static long long cnt = 0;
+	 *cnt ++; if (cnt % 1 == 0) PP(cnt);
+	 */
 	float ans = 0;
 	__m128 vsum = _mm_set1_ps(0.0f);
 	m_assert(n % 4 == 0);
