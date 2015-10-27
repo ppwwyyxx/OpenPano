@@ -35,7 +35,7 @@ class FeatureDetector {
 
 class SIFTDetector : public FeatureDetector {
 	public:
-		std::vector<Descriptor> do_detect_feature(const Mat32f& img) const;
+		std::vector<Descriptor> do_detect_feature(const Mat32f& img) const override;
 };
 
 
@@ -44,7 +44,7 @@ class BRIEFDetector : public FeatureDetector {
 	public:
 		BRIEFDetector();
 		virtual ~BRIEFDetector();
-		std::vector<Descriptor> do_detect_feature(const Mat32f& img) const;
+		std::vector<Descriptor> do_detect_feature(const Mat32f& img) const override;
 
 	protected:
 		std::unique_ptr<BriefPattern> pattern;

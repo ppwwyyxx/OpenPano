@@ -33,7 +33,6 @@ bool TRANS;
 bool CROP = true;
 float FOCAL_LENGTH;
 bool ESTIMATE_CAMERA;
-bool USE_SIFT;
 bool STRAIGHTEN;
 
 int NUM_OCTAVE;

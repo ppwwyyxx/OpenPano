@@ -6,11 +6,11 @@
 #include <vector>
 #include <memory>
 #include "feature/feature.hh"
+#include "lib/kdtree.hh"
 
 
 namespace feature {
 
-// TODO. keep actual coordinate in two images
 class MatchData {
 	public:
 		// each pair contains two idx of each match
@@ -32,8 +32,22 @@ class FeatureMatcher {
 			feat1(f1), feat2(f2) { }
 
 		MatchData match() const;
+};
 
+class PairWiseEuclideanMatcher {
+	public:
+		PairWiseEuclideanMatcher(
+				const std::vector<std::vector<Descriptor>>& feats)
+			: feats(feats) { build(); }
 
+		// <idx in i, idx in j>
+		MatchData match(int i, int j) const;
+
+	protected:
+		const std::vector<std::vector<Descriptor>> &feats;
+		std::vector<KDTree> trees;
+
+		void build();
 };
 
 }

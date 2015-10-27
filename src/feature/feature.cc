@@ -83,7 +83,7 @@ float Descriptor::euclidean_sqr(const Descriptor& r, float now_thres) const {
 			rst = _mm_hadd_ps(rst, rst);
 			_mm_store_ss(&ans, rst);
 			if (ans > now_thres)
-				return -1;
+				return numeric_limits<float>::max();
 		}
 
 		x += 4;
@@ -104,7 +104,7 @@ float Descriptor::euclidean_sqr(const Descriptor& r, float now_thres) const {
 	REP(i, descriptor.size()) {
 		ans += sqr(descriptor[i] - r.descriptor[i]);
 		if (ans > now_thres)
-			return -1;
+			return numeric_limits<float>::max();
 	}
 	return ans;
 }
