@@ -74,7 +74,7 @@ KDTree::Node* KDTree::build(
 	Node* ret = new Node();
 
 	// TODO parameter
-	bool STOP = (sp.range < 5 || points.size() < 3 || depth > 20);
+	bool STOP = (sp.range < 10 || points.size() < 20 || depth > 5);
 	if (STOP) {
 		ret->child[0] = ret->child[1] = nullptr;
 		new (&ret->pts) vector<int>;
@@ -137,7 +137,7 @@ KDTree::NNResult KDTree::nn_in_node(const Point& p, Node* n, float thres) const 
 	float split = n->split,
 				dist = p[n->axis] - split;
 	int left = dist <= 0;
-	dist = dist * dist;	// dist to plane
+	dist = dist * dist; // + (D-1) * 100;	// dist to plane
 
 	// if left, then 0 first
 	NNResult ret = nn_in_node(p, n->child[1-left], thres);
