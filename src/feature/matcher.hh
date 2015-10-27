@@ -4,7 +4,7 @@
 
 #pragma once
 #include <vector>
-#include "lib/kdtree.hh"
+#include <flann/flann.hpp>
 
 namespace feature {
 
@@ -42,9 +42,14 @@ class PairWiseEuclideanMatcher {
 		// <idx in i, idx in j>
 		MatchData match(int i, int j) const;
 
+		~PairWiseEuclideanMatcher() {
+			for (auto& p: bufs) delete[] p;
+		}
+
 	protected:
 		const std::vector<std::vector<Descriptor>> &feats;
-		std::vector<KDTree> trees;
+		std::vector<flann::Index<flann::L2<float>>> trees;
+		std::vector<float*> bufs;
 
 		void build();
 };

@@ -8,6 +8,7 @@
 #include <limits>
 #include <string>
 #include <cmath>
+#include <queue>
 
 #include "feature/matcher.hh"
 #include "lib/imgproc.hh"
@@ -61,6 +62,8 @@ void Stitcher::calc_feature() {
 #pragma omp parallel for schedule(dynamic)
 	REP(k, n) {
 		feats[k] = feature_det->detect_feature(imgs[k]);
+		if (feats[k].size() == 0)	// TODO delete the image
+			error_exit("Cannot find feature in this image!");
 		print_debug("Image %d has %lu features\n", k, feats[k].size());
 	}
 }
@@ -68,18 +71,20 @@ void Stitcher::calc_feature() {
 void Stitcher::pairwise_match() {
 	GuardedTimer tm("pairwise_match() with transform");
 
-	//PairWiseEuclideanMatcher pwmatcher(feats);
+	PairWiseEuclideanMatcher pwmatcher(feats);
 	size_t n = imgs.size();
 
 	vector<pair<int, int>> tasks;
 	REP(i, n) REPL(j, i + 1, n) tasks.emplace_back(i, j);
 
-//#pragma omp parallel for schedule(dynamic)
+#pragma omp parallel for schedule(dynamic)
 	REP(k, tasks.size()) {
 		int i = tasks[k].first, j = tasks[k].second;
-		FeatureMatcher matcher(feats[i], feats[j]);
-		auto match = matcher.match();
-		//auto match = pwmatcher.match(i, j);
+		/*
+		 *FeatureMatcher matcher(feats[i], feats[j]);
+		 *auto match = matcher.match();
+		 */
+		auto match = pwmatcher.match(i, j);
 		//PP(match.size()); PP(match2.size()); m_assert(match.size() == match2.size());
 		TransformEstimation transf(match, feats[i], feats[j]);
 		MatchInfo info;

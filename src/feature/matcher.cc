@@ -3,6 +3,7 @@
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include <limits>
+#include <flann/flann.hpp>
 #include "matcher.hh"
 #include "lib/timer.hh"
 #include "feature.hh"
@@ -48,11 +49,11 @@ MatchData FeatureMatcher::match() const {
 		}
 		if (min > REJECT_RATIO_SQR * next_min)
 			continue;
-		print_debug("Min: %lf, %lf\n", min, next_min);
 
 		m_assert(min_idx != -1);
 #pragma omp critical
 		ret.data.emplace_back(k, min_idx);
+		//print_debug("Min: %lf, %lf\n", min, next_min);
 	}
 	if (rev)
 		ret.reverse();
@@ -60,25 +61,19 @@ MatchData FeatureMatcher::match() const {
 }
 
 void PairWiseEuclideanMatcher::build() {
-	TotalTimer tm("BuildTrees");
+	GuardedTimer tm("BuildTrees");
 	for (auto& feat: feats)	{
-		vector<const vector<float>*> pts;
-		pts.reserve(feat.size());
-		for (auto& desc: feat)
-			pts.emplace_back(&desc.descriptor);
-		trees.emplace_back(pts);
+		int D = feat[0].descriptor.size();
+		float* buf = new float[feat.size() * D];
+		bufs.emplace_back(buf);
+		REP(i, feat.size()) {
+			float* row = buf + D * i;
+			memcpy(row, feat[i].descriptor.data(), D * sizeof(float));
+		}
+		flann::Matrix<float> points(buf, feat.size(), D);
+		trees.emplace_back(points, flann::KDTreeIndexParams(4));
+		trees.back().buildIndex();
 	}
-	/*
-	 *match(0, 1);
-	 *exit(0);
-	 *trees[0].two_nearest_neighbor(feats[0][0].descriptor);
-	 */
-	/*
-	 *for (auto& s : feats[0])
-	 *  for (auto& p : feats[1])
-	 *    s.euclidean_sqr(p, 1);
-	 *exit(0);
-	 */
 }
 
 MatchData PairWiseEuclideanMatcher::match(int i, int j) const {
@@ -87,38 +82,29 @@ MatchData PairWiseEuclideanMatcher::match(int i, int j) const {
 	MatchData ret;
 	auto source = feats[i],
 			 target = feats[j];
-	auto t = trees[j];
-#pragma omp parallel for schedule(dynamic)
+	auto& t = trees[j];
+
+	int D = source[0].descriptor.size();
+	float* buf = new float[source.size() * D];
 	REP(i, source.size()) {
-		auto& s = source[i];
-		auto res = t.two_nearest_neighbor(s.descriptor);
-
-		// check kdtree impl correctness
-		/*
-		 *float mind = numeric_limits<float>::max(), mind2 = mind;
-		 *int mini = -1;
-		 *REP(k, target.size()) {
-		 *  float d = s.euclidean_sqr(target[k], mind2);
-		 *  if (d < mind) {
-		 *    mind2 = mind;
-		 *    mind = d;
-		 *    mini = k;
-		 *  } else
-		 *    update_min(mind2, d);
-		 *}
-		 *PP(mind2); PP(res.sqrdist2);
-		 *PP(mind); PP(res.sqrdist);
-		 *PP(mini); PP(res.idx);
-		 *m_assert(mind2 == res.sqrdist2);
-		 *m_assert(mind == res.sqrdist);
-		 *m_assert(mini == res.idx);
-		 */
-
-		if (res.sqrdist > REJECT_RATIO_SQR * res.sqrdist2)
-			continue;
-#pragma omp critical
-		ret.data.emplace_back(i, res.idx);
+		float* row = buf + D * i;
+		memcpy(row, source[i].descriptor.data(), D * sizeof(float));
 	}
+	flann::Matrix<float> query(buf, source.size(), D);
+
+	flann::Matrix<int> indices(new int[source.size() * 2], source.size(), 2);
+	flann::Matrix<float> dists(new float[source.size() * 2], source.size(), 2);
+	t.knnSearch(query, indices, dists, 2, flann::SearchParams(10));
+	REP(i, source.size()) {
+		int mini = indices[i][0];
+		float mind = dists[i][0], mind2 = dists[i][1];
+		if (mind > REJECT_RATIO_SQR * mind2)
+			continue;
+		ret.data.emplace_back(i, mini);
+	}
+	delete[] indices.ptr();
+	delete[] dists.ptr();
+	delete[] buf;
 	return ret;
 }
 
