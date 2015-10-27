@@ -20,7 +20,7 @@ float euclidean_sqr(
 		int n, float now_thres) {
 	/*
 	 *static long long cnt = 0;
-	 *cnt ++; if (cnt % 1 == 0) PP(cnt);
+	 *cnt ++; if (cnt % 10000000 == 0) PP(cnt);
 	 */
 	float ans = 0;
 	__m128 vsum = _mm_set1_ps(0.0f);

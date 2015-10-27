@@ -27,7 +27,7 @@ MatchData FeatureMatcher::match() const {
 
 	MatchData ret;
 
-//#pragma omp parallel for schedule(dynamic)
+#pragma omp parallel for schedule(dynamic)
 	REP(k, l1) {
 		const Descriptor& i = (*pf1)[k];
 		int min_idx = -1;
@@ -47,6 +47,7 @@ MatchData FeatureMatcher::match() const {
 		}
 		if (min > REJECT_RATIO_SQR * next_min)
 			continue;
+		print_debug("Min: %lf, %lf\n", min, next_min);
 
 		m_assert(min_idx != -1);
 #pragma omp critical
