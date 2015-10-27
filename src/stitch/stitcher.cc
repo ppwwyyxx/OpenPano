@@ -81,6 +81,7 @@ void Stitcher::pairwise_match() {
 		int i = tasks[k].first, j = tasks[k].second;
 		FeatureMatcher matcher(feats[i], feats[j]);
 		auto match = matcher.match();
+		//auto match = pwmatcher.match(i, j);
 		TransformEstimation transf(match, feats[i], feats[j]);
 		MatchInfo info;
 		bool succ = transf.get_transform(&info);
