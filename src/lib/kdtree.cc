@@ -6,6 +6,7 @@
 #include <limits>
 #include <algorithm>
 
+#include "feature/dist.hh"
 #include "lib/common.hh"
 #include "lib/debugutils.hh"
 using namespace std;
@@ -18,14 +19,14 @@ struct KDTree::Node {
 			float split;
 			int axis;
 		};
-		vector<int> pts; // leaf. holding original indices
+		vector<PointInBuild> pts; // leaf. holding original indices
 	};
 
 	Node() {}
 
 	~Node() {
 		delete child[0]; delete child[1];
-		if (leaf()) pts.~vector<int>();
+		if (leaf()) pts.~vector<PointInBuild>();
 	}
 
 	bool leaf() const
@@ -68,16 +69,16 @@ KDTree::Node* KDTree::build(
 		DimStats& stat, int depth) {
 	Split sp = stat.top(); stat.pop();
 	int split_axis = sp.axis;
+	//split_axis = random() % D;
 	//print_debug("Depth %d, Split at %d, mid = %f, pts=%lu\n", depth, split_axis, sp.min + sp.range * 0.5, points.size());
 	Node* ret = new Node();
 
 	// TODO parameter
-	bool STOP = (sp.range < 10 || points.size() < 6);
+	bool STOP = (sp.range < 5 || points.size() < 3 || depth > 20);
 	if (STOP) {
 		ret->child[0] = ret->child[1] = nullptr;
 		new (&ret->pts) vector<int>;
-		for (auto& p : points)
-			ret->pts.emplace_back(p.first);
+		ret->pts = move(points);
 		return ret;
 	}
 
@@ -85,10 +86,13 @@ KDTree::Node* KDTree::build(
 	ret->axis = split_axis;
 
 	// find median to split
-	vector<float> vals;
-	for (auto& p : points) vals.emplace_back((*p.second)[split_axis]);
-	nth_element(vals.begin(), vals.begin() + vals.size() / 2, vals.end());
-	float split_val = vals[vals.size() / 2];
+	/*
+	 *vector<float> vals;
+	 *for (auto& p : points) vals.emplace_back((*p.second)[split_axis]);
+	 *nth_element(vals.begin(), vals.begin() + vals.size() / 2, vals.end());
+	 *float split_val = vals[vals.size() / 2];
+	 */
+	float split_val = sp.min + sp.range * 0.5;
 	ret->split = split_val;
 
 	vector<PointInBuild> right;
@@ -112,7 +116,6 @@ KDTree::Node* KDTree::build(
 	DimStats lstat = move(stat);
 	lstat.emplace(split_axis, minl, maxl - minl);
 
-	// TODO parallel?
 	ret->child[0] = build(left, lstat, depth + 1);
 	ret->child[1] = build(right, rstat, depth + 1);
 	return ret;
@@ -122,9 +125,11 @@ KDTree::NNResult KDTree::nn_in_node(const Point& p, Node* n, float thres) const 
 	if (n->leaf()) {
 		float min_d = thres;
 		int min_i = -1;
-		for (int idx: n->pts) {
-			if (update_min(min_d, dist_func(idx, min_d)))
-				min_i = idx;
+		for (auto& lp: n->pts) {
+			float v = feature::euclidean_sqr(
+					lp.second->data(), p.data(), D, min_d);
+			if (update_min(min_d, v))
+				min_i = lp.first;
 		}
 		return NNResult{min_i, min_d};
 	}
@@ -156,10 +161,11 @@ KDTree::TwoNNResult KDTree::two_nn_in_node(const Point& p, Node* n, float thres)
 	if (n->leaf()) {
 		float min_d = thres, min_d2 = thres;
 		int min_i = -1;
-		for (int idx: n->pts) {
-			float v = dist_func(idx, min_d2);
+		for (auto& lp: n->pts) {		// leaf point
+			float v = feature::euclidean_sqr(
+					lp.second->data(), p.data(), D, min_d2);
 			if (v < min_d)
-				min_d2 = min_d, min_d = v, min_i = idx;
+				min_d2 = min_d, min_d = v, min_i = lp.first;
 			else
 				update_min(min_d2, v);
 		}
@@ -168,25 +174,25 @@ KDTree::TwoNNResult KDTree::two_nn_in_node(const Point& p, Node* n, float thres)
 
 	float split = n->split,
 				dist = p[n->axis] - split;
-	int left = dist <= 0;
+	int first = dist > 0;
 	dist = dist * dist;	// dist to plane
 
 	// if left, then 0 first
-	auto ret = two_nn_in_node(p, n->child[1-left], thres);
+	auto ret = two_nn_in_node(p, n->child[first], thres);
 	if (ret.idx == -1) {
-		return two_nn_in_node(p, n->child[left], thres);
+		return two_nn_in_node(p, n->child[1-first], thres);
 	} else {
 		m_assert(ret.sqrdist < thres);
 		if (ret.sqrdist2 < dist)		// must be this one!
 			return ret;
 		if (ret.sqrdist < dist) {		// second largest might be in another part
-			auto ret2 = nn_in_node(p, n->child[left], ret.sqrdist2);
+			auto ret2 = nn_in_node(p, n->child[1-first], ret.sqrdist2);
 			update_min(ret.sqrdist2, ret2.sqrdist);
 			return ret;
 		}
 
 		// both could be in another part
-		auto ret2 = two_nn_in_node(p, n->child[left], ret.sqrdist2);
+		auto ret2 = two_nn_in_node(p, n->child[1-first], ret.sqrdist2);
 
 		if (ret2.idx == -1)
 			return ret;

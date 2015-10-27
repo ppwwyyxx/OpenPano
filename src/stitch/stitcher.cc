@@ -76,12 +76,13 @@ void Stitcher::pairwise_match() {
 	vector<pair<int, int>> tasks;
 	REP(i, n) REPL(j, i + 1, n) tasks.emplace_back(i, j);
 
-// #pragma omp parallel for schedule(dynamic)
+//#pragma omp parallel for schedule(dynamic)
 	REP(k, tasks.size()) {
 		int i = tasks[k].first, j = tasks[k].second;
 		FeatureMatcher matcher(feats[i], feats[j]);
 		auto match = matcher.match();
 		//auto match = pwmatcher.match(i, j);
+		//PP(match.size()); PP(match2.size()); m_assert(match.size() == match2.size());
 		TransformEstimation transf(match, feats[i], feats[j]);
 		MatchInfo info;
 		bool succ = transf.get_transform(&info);

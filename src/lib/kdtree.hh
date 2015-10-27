@@ -25,20 +25,12 @@ class KDTree {
 		KDTree(const std::vector<const Point*> & points);
 
 		NNResult nearest_neighbor(const Point& p) const {
-			m_assert(dist_func != nullptr);
 			return nn_in_node(p, root, std::numeric_limits<float>::max());
 		}
 
 		TwoNNResult two_nearest_neighbor(const Point& p) const {
-			m_assert(dist_func != nullptr);
 			return two_nn_in_node(p, root, std::numeric_limits<float>::max());
 		}
-
-		// dist_func: take an index of a point in points and a current minimum,
-		// return square-euclidean distance from query point to that point,
-		// or -1 if just impossible be smaller
-		void set_dist_func(std::function<float(int, float)> f)
-		{ dist_func = f; };
 
 	private:
 		// internal structures:
@@ -62,7 +54,6 @@ class KDTree {
 		// members:
 		Node* root;
 		int D;		// dimension
-		std::function<float(int, float)> dist_func;
 
 		// helper functions:
 		Node* build(

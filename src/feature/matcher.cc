@@ -27,7 +27,7 @@ MatchData FeatureMatcher::match() const {
 
 	MatchData ret;
 
-#pragma omp parallel for schedule(dynamic)
+//#pragma omp parallel for schedule(dynamic)
 	REP(k, l1) {
 		const Descriptor& i = (*pf1)[k];
 		int min_idx = -1;
@@ -66,36 +66,16 @@ void PairWiseEuclideanMatcher::build() {
 			pts.emplace_back(&desc.descriptor);
 		trees.emplace_back(pts);
 	}
-
-	// test:
 	/*
-	 *  auto source = feats[0];
-	 *  auto target = feats[1];
-	 *
-	 *  for (auto& s : source) {
-	 *    trees[1].set_dist_func([&](int k, float th) {
-	 *        return s.euclidean_sqr(target[k], th);
-	 *        });
-	 *    auto res = trees[1].two_nearest_neighbor(s.descriptor);
-	 *    PP(res.idx); PP(res.sqrdist); PP(res.sqrdist2);
-	 *
-	 *    float mind = 1e9, mind2 = 1e9; int mini = -1;
-	 *    REP(k, target.size()) {
-	 *      float d = s.euclidean_sqr(target[k], mind2);
-	 *      if (d < mind) {
-	 *        mind2 = mind;
-	 *        mind = d;
-	 *        mini = k;
-	 *      } else
-	 *        update_min(mind2, d);
-	 *    }
-	 *    PP(mini); PP(mind); PP(mind2);
-	 *    m_assert(mind2 == res.sqrdist2);
-	 *
-	 *    m_assert(mind == res.sqrdist);
-	 *    m_assert(mini == res.idx);
-	 *  }
-	 *  exit(0);
+	 *match(0, 1);
+	 *exit(0);
+	 *trees[0].two_nearest_neighbor(feats[0][0].descriptor);
+	 */
+	/*
+	 *for (auto& s : feats[0])
+	 *  for (auto& p : feats[1])
+	 *    s.euclidean_sqr(p, 1);
+	 *exit(0);
 	 */
 }
 
@@ -106,14 +86,35 @@ MatchData PairWiseEuclideanMatcher::match(int i, int j) const {
 	auto source = feats[i],
 			 target = feats[j];
 	auto t = trees[j];
+#pragma omp parallel for schedule(dynamic)
 	REP(i, source.size()) {
 		auto& s = source[i];
-		t.set_dist_func([&](int k, float th) {
-				return s.euclidean_sqr(target[k], th);
-				});
 		auto res = t.two_nearest_neighbor(s.descriptor);
+
+		// check kdtree impl correctness
+		/*
+		 *float mind = numeric_limits<float>::max(), mind2 = mind;
+		 *int mini = -1;
+		 *REP(k, target.size()) {
+		 *  float d = s.euclidean_sqr(target[k], mind2);
+		 *  if (d < mind) {
+		 *    mind2 = mind;
+		 *    mind = d;
+		 *    mini = k;
+		 *  } else
+		 *    update_min(mind2, d);
+		 *}
+		 *PP(mind2); PP(res.sqrdist2);
+		 *PP(mind); PP(res.sqrdist);
+		 *PP(mini); PP(res.idx);
+		 *m_assert(mind2 == res.sqrdist2);
+		 *m_assert(mind == res.sqrdist);
+		 *m_assert(mini == res.idx);
+		 */
+
 		if (res.sqrdist > REJECT_RATIO_SQR * res.sqrdist2)
 			continue;
+#pragma omp critical
 		ret.data.emplace_back(i, res.idx);
 	}
 	return ret;
