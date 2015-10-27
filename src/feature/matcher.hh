@@ -4,12 +4,11 @@
 
 #pragma once
 #include <vector>
-#include <memory>
-#include "feature/feature.hh"
 #include "lib/kdtree.hh"
 
-
 namespace feature {
+
+struct Descriptor;
 
 class MatchData {
 	public:

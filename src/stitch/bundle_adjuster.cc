@@ -2,9 +2,14 @@
 //Author: Yuxin Wu <ppwwyyxx@gmail.com>
 
 #include "bundle_adjuster.hh"
-#include "lib/timer.hh"
-#include <cmath>
+
 #include <Eigen/Dense>
+#include <cmath>
+#include <memory>
+
+#include "camera.hh"
+#include "lib/timer.hh"
+#include "match_info.hh"
 using namespace std;
 
 // TODO incremental bundle adjustment, add in the order of confidence

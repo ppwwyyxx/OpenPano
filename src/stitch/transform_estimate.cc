@@ -5,14 +5,13 @@
 #include "transform_estimate.hh"
 
 #include <set>
-#include <Eigen/Dense>
 
 #include "match_info.hh"
-#include "lib/config.hh"
-#include "lib/timer.hh"
-#include "lib/imgproc.hh"
-#include "feature/feature.hh"
 #include "feature/matcher.hh"
+#include "lib/config.hh"
+#include "feature/feature.hh"
+#include "lib/imgproc.hh"
+#include "lib/timer.hh"
 using namespace std;
 using namespace feature;
 

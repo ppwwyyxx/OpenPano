@@ -5,19 +5,17 @@
 
 #include "stitcher.hh"
 
-#include <fstream>
-#include <algorithm>
-#include <queue>
+#include <limits>
+#include <string>
+#include <cmath>
 
 #include "feature/matcher.hh"
 #include "lib/imgproc.hh"
 #include "lib/planedrawer.hh"
 #include "lib/timer.hh"
-
 #include "blender.hh"
 #include "bundle_adjuster.hh"
 #include "match_info.hh"
-#include "projection.hh"
 #include "transform_estimate.hh"
 #include "warp.hh"
 using namespace std;

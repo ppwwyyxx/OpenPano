@@ -3,10 +3,10 @@
 
 #pragma once
 #include "feature.hh"
-#include "dog.hh"
-
 
 namespace feature {
+
+class ScaleSpace;
 
 // sift algorithm implementation
 class SIFT {

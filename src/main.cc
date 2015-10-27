@@ -2,16 +2,18 @@
 // Date: Wed Jun 17 20:29:58 2015 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
-#include "lib/config.hh"
-#include "lib/planedrawer.hh"
-#include "lib/imgproc.hh"
-#include "lib/timer.hh"
 #include "feature/extrema.hh"
-#include "feature/orientation.hh"
 #include "feature/matcher.hh"
+#include "feature/orientation.hh"
+#include "lib/config.hh"
+#include "lib/geometry.hh"
+#include "lib/imgproc.hh"
+#include "lib/planedrawer.hh"
+#include "lib/timer.hh"
+#include "stitch/match_info.hh"
 #include "stitch/stitcher.hh"
-#include "stitch/warp.hh"
 #include "stitch/transform_estimate.hh"
+#include "stitch/warp.hh"
 #include <ctime>
 #include <cassert>
 

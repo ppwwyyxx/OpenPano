@@ -2,6 +2,7 @@
 //Author: Yuxin Wu <ppwwyyxx@gmail.com>
 
 #pragma once
+#include <vector>
 #include "projection.hh"
 #include "transform.hh"
 

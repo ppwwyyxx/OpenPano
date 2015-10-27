@@ -3,8 +3,9 @@
 
 #pragma once
 #include <vector>
-#include "lib/matrix.hh"
-#include "match_info.hh"
+#include "transform.hh"
+
+struct MatchInfo;
 
 // TODO might not need aspect any more
 class Camera {

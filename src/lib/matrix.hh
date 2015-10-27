@@ -3,11 +3,8 @@
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
-#include <cstring>
-#include <memory>
+#include <ostream>
 #include "mat.h"
-#include "debugutils.hh"
-#include "common.hh"
 
 class Matrix : public Mat<double> {
 	public:

@@ -3,6 +3,8 @@
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include <Eigen/Dense>
+#include <algorithm>
+#include <memory>
 #include "matrix.hh"
 #include "geometry.hh"
 #include "timer.hh"

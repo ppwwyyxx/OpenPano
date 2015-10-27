@@ -5,6 +5,7 @@
 #include <limits>
 #include "matcher.hh"
 #include "lib/timer.hh"
+#include "feature.hh"
 using namespace std;
 
 

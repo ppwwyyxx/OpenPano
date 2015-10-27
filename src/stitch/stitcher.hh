@@ -6,17 +6,18 @@
 #include <memory>
 #include <utility>
 #include <vector>
+#include <type_traits>
 #include "lib/mat.h"
-#include "lib/matrix.hh"
 #include "lib/utils.hh"
-#include "lib/geometry.hh"
-#include "transform.hh"
-#include "match_info.hh"
+#include "lib/common.hh"
+#include "lib/debugutils.hh"
 #include "feature/feature.hh"
 #include "stitcher_image.hh"
 #include "camera.hh"
 
 // forward declaration
+struct MatchInfo;
+class Homography;
 namespace feature { class MatchData; }
 
 class Stitcher {

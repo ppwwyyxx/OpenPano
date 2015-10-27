@@ -3,7 +3,8 @@
 //Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "orientation.hh"
-#include "lib/timer.hh"
+#include "lib/config.hh"
+#include "feature.hh"
 using namespace std;
 
 
