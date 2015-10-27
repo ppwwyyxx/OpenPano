@@ -2,8 +2,9 @@
 // Date: Thu Jul 04 11:05:14 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
-#include "lib/config.hh"
 #include "filter.hh"
+#include <cmath>
+#include "lib/config.hh"
 #include "lib/utils.hh"
 #include "lib/timer.hh"
 using namespace std;

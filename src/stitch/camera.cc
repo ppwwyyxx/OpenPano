@@ -2,10 +2,14 @@
 //Author: Yuxin Wu <ppwwyyxx@gmail.com>
 
 #include "camera.hh"
-#include "transform.hh"
-#include "lib/timer.hh"
-#include <algorithm>
+
 #include <Eigen/Dense>
+#include <algorithm>
+#include <string>
+
+#include "lib/timer.hh"
+#include "match_info.hh"
+#include "transform.hh"
 using namespace std;
 // Implement stuffs about camera K,R matrices
 // Mostly copy from OpenCV for stability

@@ -4,9 +4,9 @@
 
 #include "lib/config.hh"
 #include "dog.hh"
-#include "lib/utils.hh"
 #include "lib/imgproc.hh"
 #include "lib/timer.hh"
+#include "lib/common.hh"
 #include "filter.hh"
 using namespace std;
 

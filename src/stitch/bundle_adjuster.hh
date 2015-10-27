@@ -2,12 +2,12 @@
 //Author: Yuxin Wu <ppwwyyxx@gmail.com>
 
 #pragma once
-#include "match_info.hh"
 #include "lib/mat.h"
-#include "camera.hh"
 #include <vector>
 #include <Eigen/Dense>
 
+class Camera;
+struct MatchInfo;
 
 class BundleAdjuster {
 	public:

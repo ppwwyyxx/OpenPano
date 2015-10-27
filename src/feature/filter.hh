@@ -5,10 +5,7 @@
 #pragma once
 #include <memory>
 #include <vector>
-#include <cstring>
 #include "lib/mat.h"
-#include "lib/color.hh"
-
 
 namespace feature {
 

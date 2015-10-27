@@ -2,7 +2,9 @@
 //Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "sift.hh"
+#include <algorithm>
 #include "lib/timer.hh"
+#include "dog.hh"
 using namespace std;
 
 namespace {

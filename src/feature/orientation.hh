@@ -3,11 +3,11 @@
 //Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
+#include <vector>
 #include "dog.hh"
-#include "feature.hh"
-
 
 namespace feature {
+struct SSPoint;
 
 class OrientationAssign {
 	public:

@@ -3,9 +3,9 @@
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
-#include <memory>
 #include <vector>
 #include "lib/mat.h"
+#include "lib/debugutils.hh"
 #include "lib/config.hh"
 
 namespace feature {
