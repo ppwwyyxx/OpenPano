@@ -23,7 +23,6 @@ extern bool TRANS;
 extern bool CROP;
 extern float FOCAL_LENGTH;
 extern bool ESTIMATE_CAMERA;
-extern bool USE_SIFT;
 extern bool STRAIGHTEN;
 
 extern int NUM_OCTAVE;

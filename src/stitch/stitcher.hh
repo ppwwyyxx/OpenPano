@@ -88,10 +88,7 @@ class Stitcher {
 				if (imgs.size() <= 1)
 					error_exit(ssprintf("Cannot stitch with only %lu images.", imgs.size()));
 
-				if (USE_SIFT)
-					feature_det.reset(new feature::SIFTDetector);
-				else
-					feature_det.reset(new feature::BRIEFDetector);
+				feature_det.reset(new feature::SIFTDetector);
 
 				// initialize members
 				pairwise_matches.resize(imgs.size());

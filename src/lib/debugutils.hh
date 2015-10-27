@@ -5,12 +5,16 @@
 
 #pragma once
 #include <string>
+#include <iterator>
 
-/*
- *#define P(a) std::cout << (a) << std::endl
- *#define PP(s, a) std::cout << s << " " << (a) << std::endl
- */
-
+#define P(a) std::cout << (a) << std::endl
+#define PP(a) std::cout << #a << ": " << (a) << std::endl
+#define PA(arr) \
+	do { \
+		std::cout << #arr << ": "; \
+		std::copy(begin(arr), end(arr), std::ostream_iterator<std::remove_reference<decltype(arr)>::type::value_type>(std::cout, " ")); \
+		std::cout << std::endl;  \
+	} while (0)
 
 void __m_assert_check__(bool val, const char *expr,
 		const char *file, const char *func, int line);

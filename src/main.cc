@@ -70,10 +70,7 @@ void match(const char* f1, const char* f2) {
 	imagelist.push_back(pic2);
 
 	unique_ptr<FeatureDetector> detector;
-	if (USE_SIFT)
-		detector.reset(new SIFTDetector);
-	else
-		detector.reset(new BRIEFDetector);
+	detector.reset(new SIFTDetector);
 	vector<Descriptor> feat1 = detector->detect_feature(pic1),
 										 feat2 = detector->detect_feature(pic2);
 	print_debug("Feature: %lu, %lu\n", feat1.size(), feat2.size());
@@ -106,10 +103,7 @@ void inlier(const char* f1, const char* f2) {
 	imagelist.push_back(pic2);
 
 	unique_ptr<FeatureDetector> detector;
-	if (USE_SIFT)
-		detector.reset(new SIFTDetector);
-	else
-		detector.reset(new BRIEFDetector);
+	detector.reset(new SIFTDetector);
 	vector<Descriptor> feat1 = detector->detect_feature(pic1),
 										 feat2 = detector->detect_feature(pic2);
 	print_debug("Feature: %lu, %lu\n", feat1.size(), feat2.size());
@@ -185,7 +179,6 @@ void init_config() {
 	CROP = Config.get("CROP");
 	STRAIGHTEN = Config.get("STRAIGHTEN");
 	FOCAL_LENGTH = Config.get("FOCAL_LENGTH");
-	USE_SIFT = Config.get("USE_SIFT");
 
 	NUM_OCTAVE = Config.get("NUM_OCTAVE");
 	NUM_SCALE = Config.get("NUM_SCALE");

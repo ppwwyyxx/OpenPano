@@ -27,47 +27,95 @@ MatchData FeatureMatcher::match() const {
 
 	MatchData ret;
 
-#define update_min_and_second_min \
-		if (dist < min) { \
-			next_min = min; \
-			min = dist; \
-			min_idx = kk; \
-		} else { \
-			update_min(next_min, dist); \
-		}
-
 #pragma omp parallel for schedule(dynamic)
 	REP(k, l1) {
 		const Descriptor& i = (*pf1)[k];
 		int min_idx = -1;
-		// TODO use knn for sift
-		if (USE_SIFT) {
-			float min = numeric_limits<float>::max(),
-						next_min = min;
-			REP(kk, l2) {
-				float dist = i.euclidean_sqr((*pf2)[kk], next_min);
-				if (dist < 0) continue;
-				update_min_and_second_min;
-			}
-			if (min > REJECT_RATIO_SQR * next_min)
-				continue;
-		} else {
-			// match brief descriptor with hamming
-			int min = std::numeric_limits<int>::max(), next_min = min;
-			REP(kk, l2) {
-				int dist = i.hamming((*pf2)[kk]);
-				update_min_and_second_min;
-			}
-			if (min > MATCH_REJECT_NEXT_RATIO * next_min)
-				continue;
-		}
 
+		// TODO use knn for sift
+		float min = numeric_limits<float>::max(),
+					next_min = min;
+		REP(kk, l2) {
+			float dist = i.euclidean_sqr((*pf2)[kk], next_min);
+			if (dist < min) {
+				next_min = min;
+				min = dist;
+				min_idx = kk;
+			} else {
+				update_min(next_min, dist);
+			}
+		}
+		if (min > REJECT_RATIO_SQR * next_min)
+			continue;
+
+		m_assert(min_idx != -1);
 #pragma omp critical
-		if (min_idx != -1)
-			ret.data.emplace_back(k, min_idx);
+		ret.data.emplace_back(k, min_idx);
 	}
 	if (rev)
 		ret.reverse();
+	return ret;
+}
+
+void PairWiseEuclideanMatcher::build() {
+	TotalTimer tm("BuildTrees");
+	for (auto& feat: feats)	{
+		vector<const vector<float>*> pts;
+		pts.reserve(feat.size());
+		for (auto& desc: feat)
+			pts.emplace_back(&desc.descriptor);
+		trees.emplace_back(pts);
+	}
+
+	// test:
+	/*
+	 *  auto source = feats[0];
+	 *  auto target = feats[1];
+	 *
+	 *  for (auto& s : source) {
+	 *    trees[1].set_dist_func([&](int k, float th) {
+	 *        return s.euclidean_sqr(target[k], th);
+	 *        });
+	 *    auto res = trees[1].two_nearest_neighbor(s.descriptor);
+	 *    PP(res.idx); PP(res.sqrdist); PP(res.sqrdist2);
+	 *
+	 *    float mind = 1e9, mind2 = 1e9; int mini = -1;
+	 *    REP(k, target.size()) {
+	 *      float d = s.euclidean_sqr(target[k], mind2);
+	 *      if (d < mind) {
+	 *        mind2 = mind;
+	 *        mind = d;
+	 *        mini = k;
+	 *      } else
+	 *        update_min(mind2, d);
+	 *    }
+	 *    PP(mini); PP(mind); PP(mind2);
+	 *    m_assert(mind2 == res.sqrdist2);
+	 *
+	 *    m_assert(mind == res.sqrdist);
+	 *    m_assert(mini == res.idx);
+	 *  }
+	 *  exit(0);
+	 */
+}
+
+MatchData PairWiseEuclideanMatcher::match(int i, int j) const {
+	TotalTimer tm("pairwise match match");
+	static const float REJECT_RATIO_SQR = MATCH_REJECT_NEXT_RATIO * MATCH_REJECT_NEXT_RATIO;
+	MatchData ret;
+	auto source = feats[i],
+			 target = feats[j];
+	auto t = trees[j];
+	REP(i, source.size()) {
+		auto& s = source[i];
+		t.set_dist_func([&](int k, float th) {
+				return s.euclidean_sqr(target[k], th);
+				});
+		auto res = t.two_nearest_neighbor(s.descriptor);
+		if (res.sqrdist > REJECT_RATIO_SQR * res.sqrdist2)
+			continue;
+		ret.data.emplace_back(i, res.idx);
+	}
 	return ret;
 }
 

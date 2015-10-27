@@ -68,7 +68,9 @@ void Stitcher::calc_feature() {
 }
 
 void Stitcher::pairwise_match() {
-	GuardedTimer tm("pairwise_match()");
+	GuardedTimer tm("pairwise_match() with transform");
+
+	PairWiseEuclideanMatcher pwmatcher(feats);
 	size_t n = imgs.size();
 
 	vector<pair<int, int>> tasks;

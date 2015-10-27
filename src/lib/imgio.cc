@@ -1,14 +1,13 @@
 //File: imgio.cc
 //Author: Yuxin Wu <ppwwyyxx@gmail.com>
 
-#include "imgproc.hh"
 #include <cstdlib>
-
 #define cimg_display 0
 #define cimg_use_png
 #define cimg_use_jpeg
 #include "third-party/CImg.h"
 
+#include "imgproc.hh"
 #include "lib/utils.hh"
 
 using namespace cimg_library;
