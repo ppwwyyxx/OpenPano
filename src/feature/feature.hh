@@ -7,6 +7,7 @@
 #include "lib/config.hh"
 #include "lib/mat.h"
 #include "lib/geometry.hh"
+#include "feature/dist.hh"
 #include <cstring>
 
 namespace feature {
@@ -18,9 +19,13 @@ struct Descriptor {
 	std::vector<float> descriptor;
 
 	// square of euclidean. use now_thres to early-stop
-	float euclidean_sqr(const Descriptor& r, float now_thres) const;
+	float euclidean_sqr(const Descriptor& r, float now_thres) const {
+		return feature::euclidean_sqr(descriptor.data(), r.descriptor.data(), (int)descriptor.size(), now_thres);
+	}
 
-	int hamming(const Descriptor& r) const;
+	int hamming(const Descriptor& r) const {
+		return feature::hamming(descriptor.data(), r.descriptor.data(), (int)descriptor.size());
+	}
 };
 
 class FeatureDetector {
