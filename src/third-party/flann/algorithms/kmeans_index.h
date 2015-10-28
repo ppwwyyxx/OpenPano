@@ -118,7 +118,7 @@ public:
 
         initCenterChooser();
         chooseCenters_->setDataset(inputData);
-        
+
         setDataset(inputData);
     }
 
@@ -220,7 +220,7 @@ public:
         size_t old_size = size_;
 
         extendDataset(points);
-        
+
         if (rebuild_threshold>1 && size_at_build_*rebuild_threshold<size_) {
             buildIndex();
         }
@@ -228,7 +228,7 @@ public:
             for (size_t i=0;i<points.rows;++i) {
                 DistanceType dist = distance_(root_->pivot, points[i], veclen_);
                 addPointToTree(root_, old_size + i, dist);
-            }            
+            }
         }
     }
 
@@ -510,7 +510,7 @@ private:
         for (size_t j=0; j<veclen_; ++j) {
             mean[j] *= div_factor;
         }
-        
+
         DistanceType radius = 0;
         DistanceType variance = 0;
         for (size_t i=0; i<size; ++i) {
@@ -519,7 +519,7 @@ private:
                 radius = dist;
             }
             variance += dist;
-        }        
+        }
         variance /= size;
 
         node->variance = variance;
@@ -568,11 +568,11 @@ private:
         }
 
 
-        Matrix<double> dcenters(new double[branching*veclen_],branching,veclen_);
+        Matrix<float> dcenters(new float[branching*veclen_],branching,veclen_);
         for (int i=0; i<centers_length; ++i) {
             ElementType* vec = points_[centers_idx[i]];
             for (size_t k=0; k<veclen_; ++k) {
-                dcenters[i][k] = double(vec[k]);
+                dcenters[i][k] = float(vec[k]);
             }
         }
 
@@ -606,19 +606,19 @@ private:
 
             // compute the new cluster centers
             for (int i=0; i<branching; ++i) {
-                memset(dcenters[i],0,sizeof(double)*veclen_);
+                memset(dcenters[i],0,sizeof(float)*veclen_);
                 radiuses[i] = 0;
             }
             for (int i=0; i<indices_length; ++i) {
                 ElementType* vec = points_[indices[i]];
-                double* center = dcenters[belongs_to[i]];
+                float* center = dcenters[belongs_to[i]];
                 for (size_t k=0; k<veclen_; ++k) {
                     center[k] += vec[k];
                 }
             }
             for (int i=0; i<branching; ++i) {
                 int cnt = count[i];
-                double div_factor = 1.0/cnt;
+                float div_factor = 1.0/cnt;
                 for (size_t k=0; k<veclen_; ++k) {
                     dcenters[i][k] *= div_factor;
                 }
@@ -965,7 +965,7 @@ private:
         varianceValue = meanVariance/root->size;
         return clusterCount;
     }
-    
+
     void addPointToTree(NodePtr node, size_t index, DistanceType dist_to_pivot)
     {
         ElementType* point = points_[index];
@@ -975,7 +975,7 @@ private:
         // if radius changed above, the variance will be an approximation
         node->variance = (node->size*node->variance+dist_to_pivot)/(node->size+1);
         node->size++;
-        
+
         if (node->childs.empty()) { // leaf node
         	PointInfo point_info;
         	point_info.index = index;
@@ -991,7 +991,7 @@ private:
                 computeClustering(node, &indices[0], indices.size(), branching_);
             }
         }
-        else {            
+        else {
             // find the closest child
             int closest = 0;
             DistanceType dist = distance_(node->childs[closest]->pivot, point, veclen_);
@@ -1003,7 +1003,7 @@ private:
                 }
             }
             addPointToTree(node->childs[closest], index, dist);
-        }                
+        }
     }
 
 
@@ -1037,7 +1037,7 @@ private:
      * of the cluster.
      */
     float cb_index_;
-    
+
     /**
      * The root node in the tree.
      */

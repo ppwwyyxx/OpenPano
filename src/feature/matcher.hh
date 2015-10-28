@@ -5,10 +5,10 @@
 #pragma once
 #include <vector>
 #include <flann/flann.hpp>
+#include "feature.hh"
+#include "dist.hh"
 
 namespace feature {
-
-struct Descriptor;
 
 class MatchData {
 	public:
@@ -37,9 +37,10 @@ class PairWiseEuclideanMatcher {
 	public:
 		PairWiseEuclideanMatcher(
 				const std::vector<std::vector<Descriptor>>& feats)
-			: feats(feats) { build(); }
+			: D(feats[0][0].descriptor.size()), feats(feats)
+		{ build(); }
 
-		// <idx in i, idx in j>
+		// return pair of <idx in i, idx in j>
 		MatchData match(int i, int j) const;
 
 		~PairWiseEuclideanMatcher() {
@@ -47,9 +48,11 @@ class PairWiseEuclideanMatcher {
 		}
 
 	protected:
+		const int D; // feature dimension
 		const std::vector<std::vector<Descriptor>> &feats;
-		std::vector<flann::Index<flann::L2<float>>> trees;
-		std::vector<float*> bufs;
+
+		std::vector<flann::Index<feature::L2SSE>> trees;
+		std::vector<float*> bufs;	// index buffer is managed manually
 
 		void build();
 };
