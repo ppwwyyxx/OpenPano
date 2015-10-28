@@ -34,7 +34,6 @@ MatchData FeatureMatcher::match() const {
 		const Descriptor& i = (*pf1)[k];
 		int min_idx = -1;
 
-		// TODO use knn for sift
 		float min = numeric_limits<float>::max(),
 					next_min = min;
 		REP(kk, l2) {
@@ -53,14 +52,13 @@ MatchData FeatureMatcher::match() const {
 		m_assert(min_idx != -1);
 #pragma omp critical
 		ret.data.emplace_back(k, min_idx);
-		//print_debug("Min: %lf, %lf\n", min, next_min);
 	}
 	if (rev)
 		ret.reverse();
 	return ret;
 }
 
-void PairWiseEuclideanMatcher::build() {
+void PairWiseMatcher::build() {
 	GuardedTimer tm("BuildTrees");
 	for (auto& feat: feats)	{
 		float* buf = new float[feat.size() * D];
@@ -77,7 +75,7 @@ void PairWiseEuclideanMatcher::build() {
 		trees[i].buildIndex();
 }
 
-MatchData PairWiseEuclideanMatcher::match(int i, int j) const {
+MatchData PairWiseMatcher::match(int i, int j) const {
 	static const float REJECT_RATIO_SQR = MATCH_REJECT_NEXT_RATIO * MATCH_REJECT_NEXT_RATIO;
 	MatchData ret;
 	auto source = feats[i],
