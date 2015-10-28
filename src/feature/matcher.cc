@@ -63,7 +63,6 @@ MatchData FeatureMatcher::match() const {
 void PairWiseEuclideanMatcher::build() {
 	GuardedTimer tm("BuildTrees");
 	for (auto& feat: feats)	{
-		int D = feat[0].descriptor.size();
 		float* buf = new float[feat.size() * D];
 		bufs.emplace_back(buf);
 		REP(i, feat.size()) {
@@ -71,20 +70,20 @@ void PairWiseEuclideanMatcher::build() {
 			memcpy(row, feat[i].descriptor.data(), D * sizeof(float));
 		}
 		flann::Matrix<float> points(buf, feat.size(), D);
-		trees.emplace_back(points, flann::KDTreeIndexParams(4));
-		trees.back().buildIndex();
+		trees.emplace_back(points, flann::KDTreeIndexParams(FLANN_NR_KDTREE));
 	}
+#pragma omp parallel for schedule(dynamic)
+	REP(i, trees.size())
+		trees[i].buildIndex();
 }
 
 MatchData PairWiseEuclideanMatcher::match(int i, int j) const {
-	TotalTimer tm("pairwise match match");
 	static const float REJECT_RATIO_SQR = MATCH_REJECT_NEXT_RATIO * MATCH_REJECT_NEXT_RATIO;
 	MatchData ret;
 	auto source = feats[i],
 			 target = feats[j];
 	auto& t = trees[j];
 
-	int D = source[0].descriptor.size();
 	float* buf = new float[source.size() * D];
 	REP(i, source.size()) {
 		float* row = buf + D * i;
@@ -94,7 +93,7 @@ MatchData PairWiseEuclideanMatcher::match(int i, int j) const {
 
 	flann::Matrix<int> indices(new int[source.size() * 2], source.size(), 2);
 	flann::Matrix<float> dists(new float[source.size() * 2], source.size(), 2);
-	t.knnSearch(query, indices, dists, 2, flann::SearchParams(100));
+	t.knnSearch(query, indices, dists, 2, flann::SearchParams(50));	// TODO param
 	REP(i, source.size()) {
 		int mini = indices[i][0];
 		float mind = dists[i][0], mind2 = dists[i][1];
