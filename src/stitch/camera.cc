@@ -152,7 +152,6 @@ void Camera::angle_to_rotation(double rx, double ry, double rz, Homography& r) {
 }
 
 void Camera::straighten(std::vector<Camera>& cameras) {
-	GuardedTimer tm("straighten");
 	using namespace Eigen;
 	Matrix3d cov = Matrix3d::Zero();
 	for (auto& c : cameras) {
@@ -175,9 +174,6 @@ void Camera::straighten(std::vector<Camera>& cameras) {
 	Vector3d normX = normY.cross(vz);
 	normX.normalize();
 	Vector3d normZ = normX.cross(normY);
-	cout << "normX" << normX << endl;
-	cout << "normY" << normY << endl;
-	cout << "normZ" << normZ << endl;
 
 	double s = 0;
 	for (auto& c : cameras) {

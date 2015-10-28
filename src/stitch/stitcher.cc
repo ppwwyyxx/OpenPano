@@ -40,10 +40,11 @@ Mat32f Stitcher::build() {
 		if (DEBUG_OUT)
 			debug_matchinfo();
 		assign_center();
+
 		if (ESTIMATE_CAMERA)
 			estimate_camera();
 		else
-			build_bundle_linear_simple();
+			build_bundle_linear_simple();		// naive mode
 		// TODO determine projection method
 		if (ESTIMATE_CAMERA)
 			bundle.proj_method = ConnectedImages::ProjectionMethod::cylindrical;
@@ -71,7 +72,7 @@ void Stitcher::calc_feature() {
 void Stitcher::pairwise_match() {
 	GuardedTimer tm("pairwise_match() with transform");
 
-	PairWiseEuclideanMatcher pwmatcher(feats);
+	PairWiseMatcher pwmatcher(feats);
 	size_t n = imgs.size();
 
 	vector<pair<int, int>> tasks;
@@ -80,10 +81,7 @@ void Stitcher::pairwise_match() {
 #pragma omp parallel for schedule(dynamic)
 	REP(k, tasks.size()) {
 		int i = tasks[k].first, j = tasks[k].second;
-		/*
-		 *FeatureMatcher matcher(feats[i], feats[j]);
-		 *auto match = matcher.match();
-		 */
+		//auto match = matcher(feats[i], feats[j]).match();	// slow
 		auto match = pwmatcher.match(i, j);
 		TransformEstimation transf(match, feats[i], feats[j]);
 		MatchInfo info;
@@ -97,7 +95,6 @@ void Stitcher::pairwise_match() {
 		print_debug(
 				"Connection between image %d and %d, ninliers=%lu, conf=%f\n",
 				i, j, info.match.size(), info.confidence);
-		//cout << "Estimated H" << info.homo << endl;
 		// fill in pairwise matches
 		pairwise_matches[i][j] = info;
 		info.homo = inv;
@@ -109,10 +106,11 @@ void Stitcher::pairwise_match() {
 void Stitcher::assume_linear_pairwise() {
 	GuardedTimer tm("assume_linear_pairwise()");
 	int n = imgs.size();
+	PairWiseMatcher pwmatcher(feats);
+#pragma omp parallel for schedule(dynamic)
 	REP(i, n-1) {
 		int next = (i + 1) % n;
-		FeatureMatcher matcher(feats[i], feats[next]);
-		auto match = matcher.match();
+		auto match = pwmatcher.match(i, next);
 		TransformEstimation transf(match, feats[i], feats[next]);
 		MatchInfo info;
 		bool succ = transf.get_transform(&info);
@@ -221,11 +219,11 @@ void Stitcher::build_bundle_warp() {;
 
 	Timer timer;
 	vector<MatchData> matches;		// matches[k]: k,k+1
+	PairWiseMatcher pwmatcher(feats);
 	matches.resize(n-1);
-	REP(k, n - 1) {
-		FeatureMatcher matcher(feats[k], feats[(k + 1) % n]);
-		matches[k] = matcher.match();
-	}
+#pragma omp parallel for schedule(dynamic)
+	REP(k, n - 1)
+		matches[k] = pwmatcher.match(k, (k + 1) % n);
 	print_debug("match time: %lf secs\n", timer.duration());
 
 	vector<Homography> bestmat;
@@ -430,7 +428,6 @@ Mat32f Stitcher::blend() {
 	return ret;
 }
 
-
 void Stitcher::debug_matchinfo() {
 	int n = imgs.size();
 	REP(i, n) REPL(j, i+1, n) {
@@ -501,10 +498,8 @@ bool Stitcher::max_spanning_tree(vector<vector<int>>& graph) {
 			// no edge to add
 			break;
 	}
-	if (edge_cnt != n - 1) {
-		print_debug("Found a tree of size %d!=%d, images not connected!",
-				edge_cnt, n - 1);
-		abort();
-	}
+	if (edge_cnt != n - 1)
+		error_exit(ssprintf("Found a tree of size %d!=%d, images not connected!",
+				edge_cnt, n - 1));
 	return true;
 }

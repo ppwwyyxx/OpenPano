@@ -33,9 +33,9 @@ class FeatureMatcher {
 		MatchData match() const;
 };
 
-class PairWiseEuclideanMatcher {
+class PairWiseMatcher {
 	public:
-		PairWiseEuclideanMatcher(
+		PairWiseMatcher(
 				const std::vector<std::vector<Descriptor>>& feats)
 			: D(feats[0][0].descriptor.size()), feats(feats)
 		{ build(); }
@@ -43,7 +43,7 @@ class PairWiseEuclideanMatcher {
 		// return pair of <idx in i, idx in j>
 		MatchData match(int i, int j) const;
 
-		~PairWiseEuclideanMatcher() {
+		~PairWiseMatcher() {
 			for (auto& p: bufs) delete[] p;
 		}
 
