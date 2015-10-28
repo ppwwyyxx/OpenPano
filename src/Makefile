@@ -6,7 +6,7 @@ TARGET = image-stitching
 CXX ?= g++
 
 EIGEN_PATH ?= /usr/include/eigen3
-INCLUDE_DIR = -I. -isystem $(EIGEN_PATH)
+INCLUDE_DIR = -I. -isystem $(EIGEN_PATH) -isystem third-party
 DEFINES = -DDEBUG
 
 OPTFLAGS ?= -O3 -msse3 #-march=native

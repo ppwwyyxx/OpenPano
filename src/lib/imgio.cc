@@ -5,7 +5,7 @@
 #define cimg_display 0
 #define cimg_use_png
 #define cimg_use_jpeg
-#include "third-party/CImg.h"
+#include "CImg.h"
 
 #include "imgproc.hh"
 #include "lib/utils.hh"

@@ -11,9 +11,10 @@ This is an image stitching program written in C++11.
 * gcc >= 4.7	(it seeems MTL doesn't work with ICC)
 * [Eigen](http://eigen.tuxfamily.org/index.php?title=Main_Page)
 * [CImg](http://cimg.eu/) (already included in the repository)
+* [FLANN](http://www.cs.ubc.ca/research/flann/) (already included in the repository)
 * libjpeg, libpng (you can choose what you need by commenting the macro in lib/imgio.cc)
 
-Both Eigen and CImg are header-only, to ease the compilation on different platforms.
+Eigen, CImg and FLANN are header-only, to ease the compilation on different platforms.
 CImg, libjpeg and libpng are only used to read and write images, so you can easily get rid of them.
 You can also choose only one of libjpeg or libpng by commenting the macro in ``lib/imgio.cc``.
 

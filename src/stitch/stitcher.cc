@@ -85,7 +85,6 @@ void Stitcher::pairwise_match() {
 		 *auto match = matcher.match();
 		 */
 		auto match = pwmatcher.match(i, j);
-		//PP(match.size()); PP(match2.size()); m_assert(match.size() == match2.size());
 		TransformEstimation transf(match, feats[i], feats[j]);
 		MatchInfo info;
 		bool succ = transf.get_transform(&info);
