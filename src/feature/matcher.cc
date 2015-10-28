@@ -94,7 +94,7 @@ MatchData PairWiseEuclideanMatcher::match(int i, int j) const {
 
 	flann::Matrix<int> indices(new int[source.size() * 2], source.size(), 2);
 	flann::Matrix<float> dists(new float[source.size() * 2], source.size(), 2);
-	t.knnSearch(query, indices, dists, 2, flann::SearchParams(10));
+	t.knnSearch(query, indices, dists, 2, flann::SearchParams(100));
 	REP(i, source.size()) {
 		int mini = indices[i][0];
 		float mind = dists[i][0], mind2 = dists[i][1];
