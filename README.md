@@ -78,6 +78,10 @@ Carnegie Mellon University
 
 For more examples, see [results](https://github.com/ppwwyyxx/panorama/tree/master/results).
 
+## Speed:
+It took 10 seconds to process 17 images of size 1000x660 on 2 x i5-2430M (pretty old cpu).
+I know there are room for speed up.
+
 ## Algorithms
 + Features: [SIFT](http://en.wikipedia.org/wiki/Scale-invariant_feature_transform), BRIEF
 + Transformation: use [RANSAC](http://en.wikipedia.org/wiki/RANSAC) to estimate a homography or affine transformation.
