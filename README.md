@@ -71,7 +71,7 @@ Myselves:
 Zijing Playground in Tsinghua University:
 ![planet](https://github.com/ppwwyyxx/panorama/raw/master/results/small/planet.jpg)
 
-Carnegie Mellon University
+Carnegie Mellon University from 38 images
 ![cmu0](https://github.com/ppwwyyxx/panorama/raw/master/results/small/CMU0-all.jpg)
 ![apple](https://github.com/ppwwyyxx/panorama/raw/master/results/apple.jpg)
 
@@ -83,7 +83,7 @@ It took 10 seconds to process 17 images of size 1000x660 on 2 x i5-2430M (pretty
 I know there are room for speed up.
 
 ## Algorithms
-+ Features: [SIFT](http://en.wikipedia.org/wiki/Scale-invariant_feature_transform), BRIEF
++ Features: [SIFT](http://en.wikipedia.org/wiki/Scale-invariant_feature_transform)
 + Transformation: use [RANSAC](http://en.wikipedia.org/wiki/RANSAC) to estimate a homography or affine transformation.
 + Optimization: focal estimation, [bundle adjustment](https://en.wikipedia.org/wiki/Bundle_adjustment), and some straightening tricks.
 
