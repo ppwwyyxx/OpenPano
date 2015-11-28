@@ -29,8 +29,8 @@ struct Shape2D {
 	int w, h;
 	Shape2D(int w, int h): w(w), h(h) {}
 
-	inline int halfw() const { return w / 2; }
-	inline int halfh() const { return h / 2; }
+	inline double halfw() const { return w * 0.5; }
+	inline double halfh() const { return h * 0.5; }
 };
 
 }
