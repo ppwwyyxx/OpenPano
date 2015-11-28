@@ -10,6 +10,7 @@
 #include "lib/config.hh"
 #include "camera.hh"
 #include "bundle_adjuster.hh"
+#include "incremental_bundle_adjuster.hh"
 
 using namespace std;
 
@@ -35,10 +36,12 @@ vector<Camera> CameraEstimator::estimate() {
 	IncrementalBundleAdjuster iba(shapes, cameras);
 	REP(i, n) REPL(j, i+1, n) {
 		auto& m = matches[j][i];
-		if (m.match.size())
+		if (m.match.size()) {
 			iba.add_match(i, j, m);
+			iba.optimize();
+		}
 	}
-	iba.optimize();
+	//iba.optimize();
 
 	/*
 	 *BundleAdjuster ba(shapes, matches);
