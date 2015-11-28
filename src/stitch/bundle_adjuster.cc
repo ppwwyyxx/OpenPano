@@ -49,9 +49,9 @@ namespace {
 	}
 }
 
-BundleAdjuster::BundleAdjuster(const vector<Mat32f>& imgs,
+BundleAdjuster::BundleAdjuster(const vector<Shape2D>& shapes,
 		const vector<vector<MatchInfo>>& pairwise_matches):
-	imgs(imgs), pairwise_matches(pairwise_matches),
+	shapes(shapes), pairwise_matches(pairwise_matches),
 	nr_img(pairwise_matches.size()),
 	nr_match(0),
 	params(pairwise_matches.size() * NR_PARAM_PER_IMAGE)
@@ -118,9 +118,9 @@ double BundleAdjuster::calcError(
 		Homography Hto_to_from = (c_from.K() * c_from.R.transpose()) * (c_to.R * c_to.K().inverse());
 		for (auto& p : m.match)	{
 			Vec2D to = p.first, from = p.second;
-			Vec2D transformed = Hto_to_from.trans2d(to + Vec2D(imgs[i].width() / 2, imgs[i].height() / 2));
-			err[idx] = from.x - transformed.x + imgs[i].width() / 2;
-			err[idx+1] = from.y - transformed.y + imgs[i].height() / 2;
+			Vec2D transformed = Hto_to_from.trans2d(to + Vec2D(shapes[i].halfw(), shapes[i].halfh()));
+			err[idx] = from.x - transformed.x + shapes[i].halfw();
+			err[idx+1] = from.y - transformed.y + shapes[i].halfh();
 			idx += 2;
 		}
 	}

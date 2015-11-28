@@ -8,16 +8,17 @@
 
 class Camera;
 struct MatchInfo;
+struct Shape2D;
 
 class BundleAdjuster {
 	public:
-		BundleAdjuster(const std::vector<Mat32f>& imgs,
+		BundleAdjuster(const std::vector<Shape2D>& shapes,
 				const std::vector<std::vector<MatchInfo>>& pairwise_matches);
 
 		bool estimate(std::vector<Camera>& cameras);
 
 	protected:
-		const std::vector<Mat32f>& imgs;
+		const std::vector<Shape2D>& shapes;
 		const std::vector<std::vector<MatchInfo>>& pairwise_matches;
 		const int nr_img;
 		int nr_match;

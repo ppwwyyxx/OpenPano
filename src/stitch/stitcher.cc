@@ -18,9 +18,11 @@
 #include "bundle_adjuster.hh"
 #include "match_info.hh"
 #include "transform_estimate.hh"
+#include "camera_estimator.hh"
 #include "warp.hh"
 using namespace std;
 using namespace feature;
+using namespace stitch;
 
 // use in development
 const bool DEBUG_OUT = false;
@@ -137,52 +139,13 @@ void Stitcher::assign_center() {
 }
 
 void Stitcher::estimate_camera() {
-	int n = imgs.size();
-	{ // assign an initial focal length
-		double focal = Camera::estimate_focal(pairwise_matches);
-		if (focal > 0) {
-			for (auto& c : cameras)
-				c.focal = focal;
-			print_debug("Estimated focal: %lf\n", focal);
-		} else
-			REP(i, n) // hack focal
-				cameras[i].focal = (imgs[i].width() / imgs[i].height()) * 0.5;
-	}
-	vector<vector<int>> graph;
-	max_spanning_tree(graph);
+	vector<Shape2D> shapes;
+	for (auto& m: imgs)
+		shapes.emplace_back(m.cols(), m.rows());
+	CameraEstimator ce(pairwise_matches, shapes);
+	auto cameras = ce.estimate();
 
-	int start = bundle.identity_idx;
-	queue<int> q; q.push(start);
-	vector<bool> vst(graph.size(), false);		// in queue
-	vst[start] = true;
-	while (q.size()) {
-		int now = q.front(); q.pop();
-		for (int next: graph[now]) {
-			if (vst[next]) continue;
-			vst[next] = true;
-			// from now to next
-			auto Kfrom = cameras[now].K();
-			auto Kto = cameras[next].K();
-			auto Hinv = pairwise_matches[now][next].homo;
-			auto Mat = Kfrom.inverse() * Hinv * Kto;
-			cameras[next].R = cameras[now].R * Mat;
-			// XXX this R is actually R.inv. and also in the final construction in H
-			// but it goes like this in opencv
-			// this is the R going from this image to identity
-			q.push(next);
-		}
-	}
-	REP(i, n) {
-		cameras[i].ppx = imgs[i].width() / 2;
-		cameras[i].ppy = imgs[i].height() / 2;
-	}
-
-	BundleAdjuster ba(imgs, pairwise_matches);
-	ba.estimate(cameras);
-	if (STRAIGHTEN)
-		Camera::straighten(cameras);
-	// TODO rotate to identity
-	REP(i, n) {
+	REP(i, imgs.size()) {
 		bundle.component[i].homo_inv = cameras[i].K() * cameras[i].R.transpose();
 		bundle.component[i].homo = cameras[i].R * cameras[i].K().inverse();
 	}
