@@ -22,7 +22,7 @@
 using namespace std;
 using namespace feature;
 
-// in development. estimate camera parameters
+// use in development
 const bool DEBUG_OUT = false;
 
 Mat32f Stitcher::build() {
@@ -91,6 +91,8 @@ void Stitcher::pairwise_match() {
 			continue;
 		}
 		auto inv = info.homo.inverse(&succ);
+		double last_inv = 1.0 / inv.at(2,2);
+		inv.mult(last_inv);
 		if (not succ) continue;	// cannot inverse. mal-formed homography
 		print_debug(
 				"Connection between image %d and %d, ninliers=%lu, conf=%f\n",
