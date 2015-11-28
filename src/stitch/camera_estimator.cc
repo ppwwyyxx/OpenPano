@@ -32,8 +32,18 @@ vector<Camera> CameraEstimator::estimate() {
 	auto graph = max_spanning_tree();
 	propagate_rotation(graph);
 
-	BundleAdjuster ba(shapes, matches);
-	ba.estimate(cameras);
+	IncrementalBundleAdjuster iba(shapes, cameras);
+	REP(i, n) REPL(j, i+1, n) {
+		auto& m = matches[j][i];
+		if (m.match.size())
+			iba.add_match(i, j, m);
+	}
+	iba.optimize();
+
+	/*
+	 *BundleAdjuster ba(shapes, matches);
+	 *ba.estimate(cameras);
+	 */
 
 	if (STRAIGHTEN)
 		Camera::straighten(cameras);

@@ -30,5 +30,10 @@ class Camera {
 		static void angle_to_rotation(double rx, double ry, double rz, Homography& r);
 
 		static void straighten(std::vector<Camera>&);
+
+		friend std::ostream& operator << (std::ostream& os, const Camera& c) {
+			os << "focal=" << c.focal << " ,ppx=" << c.ppx << " ,ppy=" << c.ppy << "R=" << c.R;
+			return os;
+		}
 };
 }

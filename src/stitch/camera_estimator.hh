@@ -27,7 +27,7 @@ class CameraEstimator {
 	protected:
 		typedef std::vector<std::vector<int>> Graph;
 
-		int n;
+		int n;	// nr_img
 		const std::vector<std::vector<MatchInfo>>& matches;
 		const std::vector<Shape2D>& shapes;
 
