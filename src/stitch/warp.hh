@@ -1,4 +1,4 @@
-// File: cylinder.hh
+// File: warp.hh
 // Date: Tue Apr 30 23:49:42 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
@@ -6,6 +6,8 @@
 #include "lib/geometry.hh"
 #include "lib/mat.h"
 #include "feature/feature.hh"
+
+namespace projector {
 
 class CylinderProject {
 	public:
@@ -46,3 +48,5 @@ class CylinderWarper {
 			warp(mat, ff);
 		}
 };
+
+}

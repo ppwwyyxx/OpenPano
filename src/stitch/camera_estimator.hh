@@ -6,9 +6,9 @@
 #include <vector>
 #include "match_info.hh"
 
-class Camera;
 
 namespace stitch {
+class Camera;
 
 class CameraEstimator {
 	public:

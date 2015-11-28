@@ -5,6 +5,7 @@
 #include <vector>
 #include "transform.hh"
 
+namespace stitch {
 struct MatchInfo;
 
 // TODO might not need aspect any more
@@ -30,3 +31,4 @@ class Camera {
 
 		static void straighten(std::vector<Camera>&);
 };
+}

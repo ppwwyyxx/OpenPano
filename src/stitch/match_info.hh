@@ -1,12 +1,13 @@
 //File: match_info.hh
 //Author: Yuxin Wu <ppwwyyxx@gmail.com>
-
 #pragma once
 #include <utility>
 #include <vector>
 
 #include "lib/geometry.hh"
 #include "transform.hh"
+
+namespace stitch {
 
 struct MatchInfo {
 	// coordinate is half-shifted
@@ -31,3 +32,5 @@ struct Shape2D {
 	inline int halfw() const { return w / 2; }
 	inline int halfh() const { return h / 2; }
 };
+
+}

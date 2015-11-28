@@ -11,6 +11,8 @@ namespace feature {
 	class MatchData;
 	struct Descriptor;
 }
+
+namespace stitch {
 class MatchInfo;
 
 // find transformation matrix between two set of matched feature
@@ -47,3 +49,4 @@ class TransformEstimation {
 		static const int ESTIMATE_MIN_NR_MATCH = 6;
 
 };
+}
