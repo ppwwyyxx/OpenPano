@@ -16,9 +16,12 @@
 #include "camera.hh"
 
 // forward declaration
-struct MatchInfo;
 class Homography;
 namespace feature { class MatchData; }
+
+namespace stitch {
+
+struct MatchInfo;
 
 class Stitcher {
 	private:
@@ -103,3 +106,5 @@ class Stitcher {
 
 		Mat32f build();
 };
+
+}

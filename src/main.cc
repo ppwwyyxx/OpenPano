@@ -19,6 +19,8 @@
 
 using namespace std;
 using namespace feature;
+using namespace stitch;
+using namespace projector;
 
 bool TEMPDEBUG = false;
 

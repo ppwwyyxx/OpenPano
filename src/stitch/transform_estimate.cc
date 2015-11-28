@@ -15,6 +15,8 @@
 using namespace std;
 using namespace feature;
 
+namespace stitch {
+
 TransformEstimation::TransformEstimation(const feature::MatchData& m_match,
 		const std::vector<feature::Descriptor>& m_f1,
 		const std::vector<feature::Descriptor>& m_f2):
@@ -128,3 +130,4 @@ void TransformEstimation::fill_inliers_to_matchinfo(
 	}
 }
 
+}

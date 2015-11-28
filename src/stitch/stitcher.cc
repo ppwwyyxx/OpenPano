@@ -22,7 +22,9 @@
 #include "warp.hh"
 using namespace std;
 using namespace feature;
-using namespace stitch;
+using namespace projector;
+
+namespace stitch {
 
 // use in development
 const bool DEBUG_OUT = false;
@@ -468,3 +470,5 @@ bool Stitcher::max_spanning_tree(vector<vector<int>>& graph) {
 				edge_cnt, n - 1));
 	return true;
 }
+
+}	// namepsace stitch

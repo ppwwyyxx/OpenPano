@@ -12,6 +12,8 @@
 #include "match_info.hh"
 using namespace std;
 
+namespace stitch {
+
 // TODO incremental bundle adjustment, add in the order of confidence
 // TODO reject some connections if it breaks the bundle
 
@@ -150,4 +152,6 @@ void BundleAdjuster::calcJacobian(Eigen::MatrixXd& J) {
 				J(k, param_idx) = (err2[k] - err1[k]) / (2 * step);
 		}
 	}
+}
+
 }

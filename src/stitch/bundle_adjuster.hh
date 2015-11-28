@@ -6,6 +6,8 @@
 #include <vector>
 #include <Eigen/Dense>
 
+
+namespace stitch {
 class Camera;
 struct MatchInfo;
 struct Shape2D;
@@ -28,3 +30,5 @@ class BundleAdjuster {
 		double calcError(const std::vector<double>& params, std::vector<double>& err);
 		void calcJacobian(Eigen::MatrixXd& J);
 };
+
+}

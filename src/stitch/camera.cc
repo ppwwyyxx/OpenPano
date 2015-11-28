@@ -56,6 +56,8 @@ double get_focal_from_matrix(const Matrix& m) {
 
 }
 
+namespace stitch {
+
 Camera::Camera() : R(Homography::I()) { }
 
 Homography Camera::K() const {
@@ -188,4 +190,6 @@ void Camera::straighten(std::vector<Camera>& cameras) {
 	REP(i, 3) r.ptr(2)[i] = normZ(i);
 	for (auto& c : cameras)
 		c.R = r * c.R;
+}
+
 }
