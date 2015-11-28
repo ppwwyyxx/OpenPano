@@ -23,3 +23,11 @@ struct MatchInfo {
 		}
 	}
 };
+
+struct Shape2D {
+	int w, h;
+	Shape2D(int w, int h): w(w), h(h) {}
+
+	inline int halfw() const { return w / 2; }
+	inline int halfh() const { return h / 2; }
+};
