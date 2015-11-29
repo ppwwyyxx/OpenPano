@@ -22,7 +22,7 @@ class IncrementalBundleAdjuster {
 		IncrementalBundleAdjuster(
 				const std::vector<Shape2D>& shapes,
 				std::vector<Camera>& cameras):
-			shapes(shapes), cameras(cameras), index_map(shapes.size())
+			shapes(shapes), result_cameras(cameras), index_map(shapes.size())
 		{ m_assert(shapes.size() == cameras.size()); }
 
 		void add_match(int i, int j, const MatchInfo& m);
@@ -31,7 +31,7 @@ class IncrementalBundleAdjuster {
 
 	protected:
 		const std::vector<Shape2D>& shapes;
-		std::vector<Camera>& cameras;
+		std::vector<Camera>& result_cameras;
 
 		struct Term {
 			int from, to;

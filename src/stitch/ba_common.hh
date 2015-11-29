@@ -4,6 +4,7 @@
 
 #pragma once
 #include "camera.hh"
+#include "lib/timer.hh"
 
 namespace {
 	const static int NR_PARAM_PER_CAMERA = 6;
@@ -30,21 +31,23 @@ namespace {
 		return Homography{(const double[]){0.0, -z, y, z, 0, -x, -y, x, 0}};
 	}
 
+	// See: http://arxiv.org/pdf/1312.0788.pdf
 	// A compact formula for the derivative of a 3-D rotation in exponential coordinates
-	Matrix dRdvi(const Matrix& R, int i) {
+	Homography dRdvi(const Homography& R, int i) {
+		TotalTimer tm("dRdvi");
 		double v[3];
 		stitch::Camera::rotation_to_angle(R, v[0], v[1], v[2]);
 		Vec vvec{v[0], v[1], v[2]};
 		double vsqr = vvec.sqr();
 		if (vsqr < 1e-5)
 			return cross_product_matrix(i==0, i==1, i==2);
-		Matrix ret = cross_product_matrix(v[0], v[1], v[2]);
+		Homography ret = cross_product_matrix(v[0], v[1], v[2]);
 		ret.mult(v[i]);
-		Vec I_R_e{(double)(i==0) - R.at(0,i),
-							(double)(i==1) - R.at(1,i),
-							(double)(i==2) - R.at(2,i)};
+		Vec I_R_e{(double)(i==0) - R.data[i],
+							(double)(i==1) - R.data[3+i],
+							(double)(i==2) - R.data[6+i]};
 		I_R_e = vvec.cross(I_R_e);
-		ret = ret + cross_product_matrix(I_R_e.x, I_R_e.y, I_R_e.z);
+		ret += cross_product_matrix(I_R_e.x, I_R_e.y, I_R_e.z);
 		ret.mult(1.0 / vsqr);
 		ret = ret * R;
 		return ret;
