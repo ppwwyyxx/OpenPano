@@ -6,6 +6,7 @@
 #include <queue>
 
 #include "lib/debugutils.hh"
+#include "lib/timer.hh"
 #include "lib/utils.hh"
 #include "lib/config.hh"
 #include "camera.hh"
@@ -33,15 +34,18 @@ vector<Camera> CameraEstimator::estimate() {
 	auto graph = max_spanning_tree();
 	propagate_rotation(graph);
 
-	IncrementalBundleAdjuster iba(shapes, cameras);
-	REP(i, n) REPL(j, i+1, n) {
-		auto& m = matches[j][i];
-		if (m.match.size()) {
-			iba.add_match(i, j, m);
+	{
+		GuardedTimer tm("IncrementalBundleAdjuster");
+		IncrementalBundleAdjuster iba(shapes, cameras);
+		REP(i, n) {
+			REPL(j, i+1, n) {
+				auto& m = matches[j][i];
+				if (m.match.size())
+					iba.add_match(i, j, m);
+			}
 			iba.optimize();
 		}
 	}
-	//iba.optimize();
 
 	/*
 	 *BundleAdjuster ba(shapes, matches);

@@ -41,7 +41,9 @@ class IncrementalBundleAdjuster {
 		};
 
 		int nr_pointwise_match = 0;
+		int inlier_threshold = std::numeric_limits<int>::max();
 		std::vector<Term> terms;
+
 		std::set<int> idx_added;
 		// map from original image index to idx added
 		std::vector<int> index_map;
@@ -53,18 +55,27 @@ class IncrementalBundleAdjuster {
 		}
 
 		struct ErrorStats {
-			std::vector<double> term_err;
-			double max, sum;
-			ErrorStats(int size): term_err(size) {}
+			std::vector<double> residuals;
+			double max, avg, cost;
+			ErrorStats(int size): residuals(size) {}
 
-			void update_stats() {
-				sum = max = 0;
-				for (auto& e : term_err) {
-					sum += sqr(e);
+			int num_terms() const { return residuals.size(); }
+
+			void update_stats(int inlier_threshold) {
+				auto error_func = [&](double diff) -> double {
+					diff = fabs(diff);
+					if (diff < inlier_threshold)
+						return sqr(diff);
+					return 2.0 * inlier_threshold * diff - sqr(inlier_threshold);
+				};
+
+				avg = max = 0;
+				for (auto& e : residuals) {
+					avg += error_func(e);
 					update_max(max, fabs(e));
 				}
-				sum /= term_err.size();
-				sum = sqrt(sum);
+				avg /= residuals.size();
+				avg = sqrt(avg);
 			}
 		};
 
@@ -73,11 +84,14 @@ class IncrementalBundleAdjuster {
 			std::vector<double> params;
 
 			std::vector<Camera>& get_cameras();
+			void ensure_params();
+
 			inline std::vector<double>& get_params() {
 				ensure_params();
 				return params;
 			}
-			void ensure_params();
+
+			void mutate_param(int param_idx, double new_val);
 		};
 
 		ErrorStats calcError(ParamState& state);
