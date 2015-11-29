@@ -103,15 +103,15 @@ void Camera::rotation_to_angle(const Homography& r, double& rx, double& ry, doub
 	ry = Rnew(0,2) - Rnew(2,0);
 	rz = Rnew(1,0) - Rnew(0,1);
 
-	// 1 + 2 * cos(theta) = trace(R)
-	double cos = (Rnew(0,0) + Rnew(1,1) + Rnew(2,2) - 1) * 0.5;
-	cos = cos > 1. ? 1. : cos < -1. ? -1. : cos;		// clip
-	double theta = acos(cos);
-
 	double s = sqrt(rx*rx + ry*ry + rz*rz);
 	if (s < 1e-6) {
 		rx = ry = rz = 0;
 	} else {
+		// 1 + 2 * cos(theta) = trace(R)
+		double cos = (Rnew(0,0) + Rnew(1,1) + Rnew(2,2) - 1) * 0.5;
+		cos = cos > 1. ? 1. : cos < -1. ? -1. : cos;		// clip
+		double theta = acos(cos);
+
 		double mul = 1.0 / s * theta;
 		rx *= mul; ry *= mul; rz *= mul;
 	}

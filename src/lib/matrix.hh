@@ -24,6 +24,8 @@ class Matrix : public Mat<double> {
 
 		Matrix prod(const Matrix & r) const;
 
+		Matrix elem_prod(const Matrix& r) const;
+
 		inline Matrix operator * (const Matrix& r) const
 		{ return prod(r); }
 

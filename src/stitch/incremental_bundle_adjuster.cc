@@ -111,7 +111,7 @@ namespace stitch {
 	void IncrementalBundleAdjuster::calcJacobian(
 			Eigen::MatrixXd& J, ParamState& state) {
 		TotalTimer tm("calcJacobian");
-		const double step = 1e-5;
+		const double step = 1e-6;
 		state.ensure_params();
 		REP(i, idx_added.size()) {
 			REP(p, NR_PARAM_PER_CAMERA) {
@@ -135,13 +135,14 @@ namespace stitch {
  *      auto& cameras = state.get_cameras();
  *
  *      int param_idx = 9;
- *      auto oldc = cameras[1].Rinv();
+ *      auto oldc = cameras[1].R;
  *      double val = state.params[param_idx];
  *      state.mutate_param(param_idx, val + step);
- *      auto c1 = state.get_cameras()[1].Rinv();
+ *      auto c1 = state.get_cameras()[1].R;
  *      state.mutate_param(param_idx, val - step);
- *      auto c2 = state.get_cameras()[1].Rinv();
- *      PP(oldc * dRdt1);
+ *      auto c2 = state.get_cameras()[1].R;
+ *      PP(oldc.prod(dRdt1));
+ *      PP(dRdt1 * oldc);
  *      auto diff = c1 - c2;
  *      diff.mult(0.5 / step);
  *      PP(diff);
@@ -262,8 +263,9 @@ namespace stitch {
  *          idx += 2;
  *
  *          cout << "---------------------" << endl;
+ *          break;
  *        }
- *        //break;
+ *        break;
  *      }
  *    };
  *    test_jacobian();
