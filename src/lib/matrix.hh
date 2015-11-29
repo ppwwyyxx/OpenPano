@@ -37,6 +37,7 @@ class Matrix : public Mat<double> {
 		}
 
 		Matrix operator - (const Matrix& r) const;
+		Matrix operator + (const Matrix& r) const;
 
 		bool SVD(Matrix & u, Matrix & s, Matrix & v) const;
 
