@@ -126,9 +126,9 @@ void CameraEstimator::propagate_rotation(const Graph& graph) {
 			// from now to next
 			auto Kfrom = cameras[now].K();
 			auto Kto = cameras[next].K();
-			auto Hinv = matches[now][next].homo;
+			auto Hinv = matches[now][next].homo;	// from next to now
 			auto Mat = Kfrom.inverse() * Hinv * Kto;
-			cameras[next].R = cameras[now].R * Mat;
+			cameras[next].R = (cameras[now].Rinv() * Mat).transpose();
 			// XXX this R is actually R.inv. and also in the final construction in H
 			// but it goes like this in opencv
 			// this is the R going from this image to identity
