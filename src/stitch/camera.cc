@@ -12,8 +12,6 @@
 #include "transform.hh"
 using namespace std;
 // Implement stuffs about camera K,R matrices
-// Mostly copy from OpenCV for stability
-
 namespace {
 
 // From Creating Full View Panoramic Image Mosaics - Szeliski
@@ -90,67 +88,59 @@ double Camera::estimate_focal(
 }
 
 
+//https://en.wikipedia.org/wiki/Rotation_matrix?oldformat=true#Determining_the_axis
 void Camera::rotation_to_angle(const Homography& r, double& rx, double& ry, double& rz) {
 	using namespace Eigen;
 	auto R_eigen = Map<const Eigen::Matrix<double, 3, 3, RowMajor>>(r.ptr());
+
 	JacobiSVD<MatrixXd> svd(R_eigen, ComputeFullU | ComputeFullV);
 	Matrix3d Rnew = svd.matrixU() * (svd.matrixV().transpose());
 	if (Rnew.determinant() < 0)
 		Rnew *= -1;
 
-	// copy from opencv
+	// r is eigenvector of R with eigenvalue=1
 	rx = Rnew(2,1) - Rnew(1,2);
 	ry = Rnew(0,2) - Rnew(2,0);
 	rz = Rnew(1,0) - Rnew(0,1);
-	double c = (Rnew(0,0) + Rnew(1,1) + Rnew(2,2) - 1)*0.5;
-	c = c > 1. ? 1. : c < -1. ? -1. : c;
-	double theta = acos(c);
-	double s = sqrt((rx*rx + ry*ry + rz*rz)*0.25);
-	if (s < 1e-5) {
-		double t;
-		if( c > 0 )
-			rx = ry = rz = 0;
-		else {
-			t = (Rnew(0,0) + 1)*0.5; rx = sqrt(max(t,0.));
-			t = (Rnew(1,1) + 1)*0.5; ry = sqrt(max(t,0.))*(Rnew(0,1) < 0 ? -1. : 1.);
-			t = (Rnew(2,2) + 1)*0.5; rz = sqrt(max(t,0.))*(Rnew(0,2) < 0 ? -1. : 1.);
-			if(fabs(rx) < fabs(ry) && fabs(rx) < fabs(rz) && (Rnew(1,2) > 0) != (ry*rz > 0) )
-				rz = -rz;
-			theta /= sqrt(rx*rx + ry*ry + rz*rz);
-			rx *= theta;
-			ry *= theta;
-			rz *= theta;
-		}
+
+	// 1 + 2 * cos(theta) = trace(R)
+	double cos = (Rnew(0,0) + Rnew(1,1) + Rnew(2,2) - 1) * 0.5;
+	cos = cos > 1. ? 1. : cos < -1. ? -1. : cos;		// clip
+	double theta = acos(cos);
+
+	double s = sqrt(rx*rx + ry*ry + rz*rz);
+	if (s < 1e-6) {
+		rx = ry = rz = 0;
 	} else {
-		double vth = 1/(2*s);
-		vth *= theta;
-		rx *= vth; ry *= vth; rz *= vth;
+		double mul = 1.0 / s * theta;
+		rx *= mul; ry *= mul; rz *= mul;
 	}
 }
 
+//https://en.wikipedia.org/wiki/Rotation_matrix#Rotation_matrix_from_axis_and_angle
 void Camera::angle_to_rotation(double rx, double ry, double rz, Homography& r) {
-	// copy from opencv
 	double theta = sqrt(rx*rx + ry*ry + rz*rz);
 	if (theta < 1e-10) {
 		r = Homography::I();
 		return;
 	}
-
-	double c = cos(theta);
-	double s = sin(theta);
-	double c1 = 1. - c;
 	double itheta = theta ? 1./theta : 0.;
 	rx *= itheta; ry *= itheta; rz *= itheta;
 
-	double rrt[] = { rx*rx, rx*ry, rx*rz, rx*ry, ry*ry, ry*rz, rx*rz, ry*rz, rz*rz };
-	double _r_x_[] = { 0, -rz, ry, rz, 0, -rx, -ry, rx, 0 };
+	// outer product with itself
+	double u_outp[] = {rx*rx, rx*ry, rx*rz, rx*ry, ry*ry, ry*rz, rx*rz, ry*rz, rz*rz };
+	// cross product matrix
+	double u_crossp[] = {0, -rz, ry, rz, 0, -rx, -ry, rx, 0 };
+
 	r = Homography::I();
 	double* R = r.ptr();
 
-	// R = cos(theta)*I + (1 - cos(theta))*r*rT + sin(theta)*[r_x]
-	// where [r_x] is [0 -rz ry; rz 0 -rx; -ry rx 0]
+	double c = cos(theta),
+				 s = sin(theta),
+				 c1 = 1 - c;
+	r.mult(c);
 	REP(k, 9)
-		R[k] = c*R[k] + c1*rrt[k] + s*_r_x_[k];
+		R[k] += c1 * u_outp[k] + s * u_crossp[k];
 }
 
 void Camera::straighten(std::vector<Camera>& cameras) {
