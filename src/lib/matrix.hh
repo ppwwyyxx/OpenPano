@@ -23,6 +23,7 @@ class Matrix : public Mat<double> {
 		Matrix transpose() const;
 
 		Matrix prod(const Matrix & r) const;
+
 		inline Matrix operator * (const Matrix& r) const
 		{ return prod(r); }
 
@@ -32,6 +33,8 @@ class Matrix : public Mat<double> {
 			for (int i = 0; i < n; i ++)
 				*p *= m, p++;
 		}
+
+		Matrix operator - (const Matrix& r) const;
 
 		bool SVD(Matrix & u, Matrix & s, Matrix & v) const;
 

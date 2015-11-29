@@ -63,6 +63,7 @@ class IncrementalBundleAdjuster {
 
 			void update_stats(int inlier_threshold) {
 				auto error_func = [&](double diff) -> double {
+					return sqr(diff);
 					diff = fabs(diff);
 					if (diff < inlier_threshold)
 						return sqr(diff);

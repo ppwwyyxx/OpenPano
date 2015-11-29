@@ -16,6 +16,10 @@ class Camera {
 		// return the intrinsic matrix
 		Homography K() const;
 
+		Homography Kinv() const { return K().inverse(); }
+
+		Homography Rinv() const { return R.transpose(); }
+
 		double focal = 1; // Focal length
 		double aspect = 1; // Aspect ratio
 		double ppx = 0; // Principal point X
