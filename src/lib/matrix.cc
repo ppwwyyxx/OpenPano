@@ -55,6 +55,14 @@ Matrix Matrix::operator - (const Matrix& r) const {
 	REP(i, pixels()) res[i] = rl[i] - rr[i];
 	return ret;
 }
+Matrix Matrix::operator + (const Matrix& r) const {
+	m_assert(rows() == r.rows() && cols() == r.cols());
+	Matrix ret(rows(), cols());
+	double* res = ret.ptr();
+	const double *rl = ptr(), *rr = r.ptr();
+	REP(i, pixels()) res[i] = rl[i] + rr[i];
+	return ret;
+}
 
 bool Matrix::inverse(Matrix &ret) const {
 	m_assert(m_rows == m_cols);

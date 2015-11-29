@@ -6,13 +6,14 @@
 #include "lib/geometry.hh"
 
 // TODO write operator *, remove type-conversion
+// TODO don't inherit from Matrix
 
 class Homography : public Matrix {
 	public:
 		Homography():
 			Matrix(3, 3) {}
 
-		Homography(double arr[]):
+		Homography(const double (&arr)[9]):
 			Matrix(3, 3) {
 			double* p = ptr();
 			REP(i, 9) p[i] = arr[i];

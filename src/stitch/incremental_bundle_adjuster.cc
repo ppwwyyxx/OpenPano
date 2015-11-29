@@ -111,6 +111,7 @@ namespace stitch {
 	void IncrementalBundleAdjuster::calcJacobian(
 			Eigen::MatrixXd& J, ParamState& state) {
 		TotalTimer tm("calcJacobian");
+#if 0
 		const double step = 1e-6;
 		state.ensure_params();
 		REP(i, idx_added.size()) {
@@ -128,148 +129,155 @@ namespace stitch {
 					J(k, param_idx) = (err1.residuals[k] - err2.residuals[k]) / (2 * step);
 			}
 		}
+#else
+		J.setZero();
 
+		auto& cameras = state.get_cameras();
+		/*
+		 *
+		 *      int param_idx = 9;
+		 *      auto oldc = cameras[1].R;
+		 *      double val = state.params[param_idx];
+		 *      state.mutate_param(param_idx, val + step);
+		 *      auto c1 = state.get_cameras()[1].Rinv();
+		 *      state.mutate_param(param_idx, val - step);
+		 *      auto c2 = state.get_cameras()[1].Rinv();
+		 *      auto diff = c1 - c2;
+		 *      diff.mult(0.5 / step);
+		 *      PP(diff);
+		 *      PP(dRdvi(oldc, 0).transpose());
+		 *      return;
+		 */
 
-/*
- *    auto test_jacobian = [&]() {
- *      auto& cameras = state.get_cameras();
- *
- *      int param_idx = 9;
- *      auto oldc = cameras[1].R;
- *      double val = state.params[param_idx];
- *      state.mutate_param(param_idx, val + step);
- *      auto c1 = state.get_cameras()[1].R;
- *      state.mutate_param(param_idx, val - step);
- *      auto c2 = state.get_cameras()[1].R;
- *      PP(oldc.prod(dRdt1));
- *      PP(dRdt1 * oldc);
- *      auto diff = c1 - c2;
- *      diff.mult(0.5 / step);
- *      PP(diff);
- *      return;
- *
- *      int idx = 0;
- *      for (auto& term: terms)	{
- *        int from = index_map[term.from],
- *            to = index_map[term.to];
- *        int param_idx_from = from * NR_PARAM_PER_CAMERA,
- *            param_idx_to = to * NR_PARAM_PER_CAMERA;
- *        auto& c_from = cameras[from],
- *          & c_to = cameras[to];
- *        auto toKinv = c_to.K().inverse();
- *        Homography Hto_to_from = (c_from.K() * c_from.R.transpose()) * (c_to.R * toKinv);
- *
- *        Vec2D mid_vec_to{shapes[term.to].halfw(), shapes[term.to].halfh()};
- *
- *        auto dpdhomo = [](Vec homo, Vec d) {
- *          double hz_sqr = sqr(homo.z);
- *          return Vec2D(d.x / homo.z - d.z * homo.x / hz_sqr,
- *              d.y / homo.z - d.z * homo.y / hz_sqr);
- *        };
- *
- *        for (auto& p : term.m.match) {
- *          PP(J.row(idx));
- *          PP(J.row(idx+1));
- *          Vec2D to = p.first + mid_vec_to;
- *          Vec homo = Hto_to_from.trans(to);
- *
- *          // from:
- *          Homography m = c_from.R.transpose() * c_to.R * toKinv;
- *          Vec dot_u2 = m.trans(to);
- *          // focal
- *          Vec dhdfocal = dKdfocal.trans(dot_u2);
- *          Vec2D drv = dpdhomo(homo, dhdfocal) * (-1);
- *          J(idx, param_idx_from) = drv.x;
- *          J(idx+1, param_idx_from) = drv.y;
- *          PP(drv);
- *          // ppx
- *          Vec dhdppx = dKdppx.trans(dot_u2);
- *          drv = dpdhomo(homo, dhdppx) * (-1);
- *          J(idx, param_idx_from+1) = drv.x;
- *          J(idx+1, param_idx_from+1) = drv.y;
- *          PP(drv);
- *          // ppy
- *          Vec dhdppy = dKdppy.trans(dot_u2);
- *          drv = dpdhomo(homo, dhdppy) * (-1);
- *          J(idx, param_idx_from+2) = drv.x;
- *          J(idx+1, param_idx_from+2) = drv.y;
- *          PP(drv);
- *
- *          m = c_from.K() * c_from.R.transpose();
- *          dot_u2 = Homography{c_to.R * toKinv}.trans(to);
- *          // t1
- *          Vec dhdt1 = Homography{m * dRdt1}.trans(dot_u2);
- *          drv = dpdhomo(homo, dhdt1);
- *          J(idx, param_idx_from+3) = drv.x;
- *          J(idx+1, param_idx_from+3) = drv.y;
- *          PP(drv);
- *          // t2
- *          Vec dhdt2 = Homography{m * dRdt2}.trans(dot_u2);
- *          drv = dpdhomo(homo, dhdt2);
- *          J(idx, param_idx_from+4) = drv.x;
- *          J(idx+1, param_idx_from+4) = drv.y;
- *          PP(drv);
- *          // t3
- *          Vec dhdt3 = Homography{m * dRdt3}.trans(dot_u2);
- *          drv = dpdhomo(homo, dhdt3);
- *          J(idx, param_idx_from+5) = drv.x;
- *          J(idx+1, param_idx_from+5) = drv.y;
- *          PP(drv);
- *
- *          // to:
- *          m = c_from.K() * c_from.R.transpose() * c_to.R * toKinv;
- *          dot_u2 = toKinv.trans(to);
- *          // focal
- *          dhdfocal = Homography{m * dKdfocal}.trans(dot_u2);
- *          drv = dpdhomo(homo, dhdfocal);
- *          J(idx, param_idx_to) = drv.x;
- *          J(idx+1, param_idx_to) = drv.y;
- *          PP(drv);
- *          // ppx
- *          dhdppx = Homography{m * dKdppx}.trans(dot_u2);
- *          drv = dpdhomo(homo, dhdppx);
- *          J(idx, param_idx_to+1) = drv.x;
- *          J(idx+1, param_idx_to+1) = drv.y;
- *          PP(drv);
- *          // ppy
- *          dhdppy = Homography{m * dKdppy}.trans(dot_u2);
- *          drv = dpdhomo(homo, dhdppy);
- *          J(idx, param_idx_to+2) = drv.x;
- *          J(idx+1, param_idx_to+2) = drv.y;
- *          PP(drv);
- *
- *          // XXX wrong?
- *          m = c_from.K() * (c_from.R.transpose());
- *          dot_u2 = Homography{c_to.R * toKinv}.trans(to);
- *          // t1
- *          dhdt1 = Homography{m * (dRdt1.transpose())}.trans(dot_u2);
- *          drv = dpdhomo(homo, dhdt1);
- *          J(idx, param_idx_to+3) = drv.x;
- *          J(idx+1, param_idx_to+3) = drv.y;
- *          PP(drv);
- *          // t2
- *          dhdt2 = Homography{m * (dRdt2.transpose())}.trans(dot_u2);
- *          drv = dpdhomo(homo, dhdt2);
- *          J(idx, param_idx_to+4) = drv.x;
- *          J(idx+1, param_idx_to+4) = drv.y;
- *          PP(drv);
- *          // t3
- *          dhdt3 = Homography{m * (dRdt3.transpose())}.trans(dot_u2);
- *          drv = dpdhomo(homo, dhdt3);
- *          J(idx, param_idx_to+5) = drv.x;
- *          J(idx+1, param_idx_to+5) = drv.y;
- *          PP(drv);
- *
- *          idx += 2;
- *
- *          cout << "---------------------" << endl;
- *          break;
- *        }
- *        break;
- *      }
- *    };
- *    test_jacobian();
- */
+		int idx = 0;
+		for (auto& term: terms)	{
+			int from = index_map[term.from],
+					to = index_map[term.to];
+			int param_idx_from = from * NR_PARAM_PER_CAMERA,
+					param_idx_to = to * NR_PARAM_PER_CAMERA;
+			auto& c_from = cameras[from],
+				& c_to = cameras[to];
+			auto toKinv = c_to.Kinv();
+			auto toRinv = c_to.Rinv();
+			Homography Hto_to_from = (c_from.K() * c_from.R) * (toRinv * toKinv);
+
+			Vec2D mid_vec_to{shapes[term.to].halfw(), shapes[term.to].halfh()};
+
+			auto dpdhomo = [](Vec homo, Vec d) {
+				double hz_sqr = sqr(homo.z);
+				return Vec2D(d.x / homo.z - d.z * homo.x / hz_sqr,
+						d.y / homo.z - d.z * homo.y / hz_sqr);
+			};
+
+			auto assert_equal = [](double& x, double y) {
+				if (fabs(x-y) >= 1e-3) {
+					PP(x);
+					PP(y);
+					PP(fabs(x-y));
+					m_assert(false);
+				}
+			};
+
+			for (auto& p : term.m.match) {
+				//PP(J.row(idx));
+				//PP(J.row(idx+1));
+				Vec2D to = p.first + mid_vec_to;
+				Vec homo = Hto_to_from.trans(to);
+
+				// from:
+				Homography m = c_from.R * toRinv * toKinv;
+				Vec dot_u2 = m.trans(to);
+				// focal
+				Vec dhdfocal = dKdfocal.trans(dot_u2);
+				Vec2D drv = dpdhomo(homo, dhdfocal) * (-1);
+				//PP(drv);
+				J(idx, param_idx_from) = drv.x;
+				J(idx+1, param_idx_from) = drv.y;
+				// ppx
+				Vec dhdppx = dKdppx.trans(dot_u2);
+				drv = dpdhomo(homo, dhdppx) * (-1);
+				//PP(drv);
+				J(idx, param_idx_from+1) = drv.x;
+				J(idx+1, param_idx_from+1) = drv.y;
+				// ppy
+				Vec dhdppy = dKdppy.trans(dot_u2);
+				drv = dpdhomo(homo, dhdppy) * (-1);
+				//PP(drv);
+				J(idx, param_idx_from+2) = drv.x;
+				J(idx+1, param_idx_from+2) = drv.y;
+
+				m = c_from.K();
+				dot_u2 = Homography{toRinv * toKinv}.trans(to);
+				// t1
+				Vec dhdt1 = Homography{m * dRdvi(c_from.R, 0)}.trans(dot_u2);
+				drv = dpdhomo(homo, dhdt1) * (-1);
+				//PP(drv);
+				J(idx, param_idx_from+3) = drv.x;
+				J(idx+1, param_idx_from+3) = drv.y;
+				// t2
+				Vec dhdt2 = Homography{m * dRdvi(c_from.R, 1)}.trans(dot_u2);
+				drv = dpdhomo(homo, dhdt2) * (-1);
+				//PP(drv);
+				J(idx, param_idx_from+4) = drv.x;
+				J(idx+1, param_idx_from+4) = drv.y;
+				// t3
+				Vec dhdt3 = Homography{m * dRdvi(c_from.R, 2)}.trans(dot_u2);
+				drv = dpdhomo(homo, dhdt3) * (-1);
+				//PP(drv);
+				J(idx, param_idx_from+5) = drv.x;
+				J(idx+1, param_idx_from+5) = drv.y;
+
+				// to:	// TODO, comment
+				m = c_from.K() * c_from.R * toRinv * toKinv;
+				dot_u2 = toKinv.trans(to);
+				// focal
+				dhdfocal = Homography{m * dKdfocal}.trans(dot_u2);
+				drv = dpdhomo(homo, dhdfocal);
+				//PP(drv);
+				J(idx, param_idx_to) = drv.x;
+				J(idx+1, param_idx_to) = drv.y;
+				// ppx
+				dhdppx = Homography{m * dKdppx}.trans(dot_u2);
+				drv = dpdhomo(homo, dhdppx);
+				//PP(drv);
+				J(idx, param_idx_to+1) = drv.x;
+				J(idx+1, param_idx_to+1) = drv.y;
+				// ppy
+				dhdppy = Homography{m * dKdppy}.trans(dot_u2);
+				drv = dpdhomo(homo, dhdppy);
+				//PP(drv);
+				J(idx, param_idx_to+2) = drv.x;
+				J(idx+1, param_idx_to+2) = drv.y;
+
+				m = c_from.K() * c_from.R;
+				dot_u2 = toKinv.trans(to);
+				// t1
+				dhdt1 = Homography{m * dRdvi(c_to.R, 0).transpose()}.trans(dot_u2);
+				drv = dpdhomo(homo, dhdt1) * (-1);
+				//PP(drv);
+				J(idx, param_idx_to+3) = drv.x;
+				J(idx+1, param_idx_to+3) = drv.y;
+				// t2
+				dhdt2 = Homography{m * dRdvi(c_to.R, 1).transpose()}.trans(dot_u2);
+				drv = dpdhomo(homo, dhdt2) * (-1);
+				//PP(drv);
+				J(idx, param_idx_to+4) = drv.x;
+				J(idx+1, param_idx_to+4) = drv.y;
+				// t3
+				dhdt3 = Homography{m * dRdvi(c_to.R, 2).transpose()}.trans(dot_u2);
+				drv = dpdhomo(homo, dhdt3) * (-1);
+				//PP(drv);
+				J(idx, param_idx_to+5) = drv.x;
+				J(idx+1, param_idx_to+5) = drv.y;
+
+				idx += 2;
+
+				//cout << "---------------------" << endl;
+				//break;
+			}
+			//break;
+		}
+#endif
 	}
 
 	vector<Camera>& IncrementalBundleAdjuster::ParamState::get_cameras() {
