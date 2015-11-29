@@ -25,4 +25,32 @@ namespace {
 		c.aspect = 1;	// keep it 1
 		stitch::Camera::angle_to_rotation(ptr[3], ptr[4], ptr[5], c.R);
 	}
+
+	// dK/dfocal = dKdfocal
+	static const Homography dKdfocal((double[]){
+			1.0, 0.0, 0.0,
+			0.0, 1.0, 0.0,
+			0.0, 0.0, 0.0});
+	static const Homography dKdppx((double[]){
+			0.0, 0.0, 1.0,
+			0.0, 0.0, 0.0,
+			0.0, 0.0, 0.0});
+	static const Homography dKdppy((double[]){
+			0.0, 0.0, 0.0,
+			0.0, 0.0, 1.0,
+			0.0, 0.0, 0.0});
+
+	// dR/dt1 = R * dRdt1
+	static const Homography dRdt1((double[]){
+			0.0, 0.0, 0.0,
+			0.0, 0.0, -1.0,
+			0.0, 1.0, 0.0});
+	static const Homography dRdt2((double[]){
+			0.0, 0.0, 1.0,
+			0.0, 0.0, 0.0,
+			-1.0, 0.0, 0.0});
+	static const Homography dRdt3((double[]){
+			0.0, -1.0, 0.0,
+			1.0, 0.0, 0.0,
+			0.0, 0.0, 0.0});
 }

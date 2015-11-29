@@ -5,10 +5,18 @@
 #include "lib/matrix.hh"
 #include "lib/geometry.hh"
 
+// TODO write operator *, remove type-conversion
+
 class Homography : public Matrix {
 	public:
 		Homography():
 			Matrix(3, 3) {}
+
+		Homography(double arr[]):
+			Matrix(3, 3) {
+			double* p = ptr();
+			REP(i, 9) p[i] = arr[i];
+		}
 
 		Homography(const Matrix& r): Matrix(r) {}
 
