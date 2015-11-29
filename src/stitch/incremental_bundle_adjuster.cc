@@ -41,8 +41,10 @@ namespace stitch {
 		int nr_img = idx_added.size();
 		inlier_threshold = std::numeric_limits<int>::max();
 		while (itr++ < LM_MAX_ITER) {
-			if (itr > 3)
+			if (itr > 2 && inlier_threshold != 2) {
 				inlier_threshold = 2;
+				best_err = 1e9;
+			}
 			Eigen::MatrixXd J(
 					NR_TERM_PER_MATCH * nr_pointwise_match, NR_PARAM_PER_CAMERA * nr_img);
 			calcJacobian(J, state);
@@ -60,7 +62,7 @@ namespace stitch {
 			err_stat = calcError(new_state);
 			print_debug("BA: average err: %lf, max: %lf\n", err_stat.avg, err_stat.max);
 
-			if (err_stat.avg >= best_err - EPS)
+			if (err_stat.avg >= best_err - 1e-4)
 				nr_non_decrease ++;
 			else {
 				nr_non_decrease = 0;
