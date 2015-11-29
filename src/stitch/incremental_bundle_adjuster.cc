@@ -92,7 +92,7 @@ namespace stitch {
 					to = index_map[term.to];
 			auto& c_from = cameras[from],
 				& c_to = cameras[to];
-			Homography Hto_to_from = (c_from.K() * c_from.R.transpose()) * (c_to.R * c_to.K().inverse());
+			Homography Hto_to_from = (c_from.K() * c_from.R) * (c_to.Rinv() * c_to.K().inverse());
 
 			Vec2D mid_vec_from{shapes[term.from].halfw(), shapes[term.from].halfh()};
 			Vec2D mid_vec_to{shapes[term.to].halfw(), shapes[term.to].halfh()};

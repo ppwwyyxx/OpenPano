@@ -90,7 +90,7 @@ namespace stitch {
 		REP(i, nr_img) REPL(j, i+1, nr_img) {
 			auto& m = pairwise_matches[j][i];
 			auto& c_from = now_camera[i], &c_to = now_camera[j];
-			Homography Hto_to_from = (c_from.K() * c_from.R.transpose()) * (c_to.R * c_to.K().inverse());
+			Homography Hto_to_from = (c_from.K() * c_from.R) * (c_to.Rinv() * c_to.K().inverse());
 			for (auto& p : m.match)	{
 				Vec2D to = p.first, from = p.second;
 				Vec2D transformed = Hto_to_from.trans2d(to + Vec2D(shapes[i].halfw(), shapes[i].halfh()));

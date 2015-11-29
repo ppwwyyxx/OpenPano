@@ -87,7 +87,7 @@ void Stitcher::pairwise_match() {
 		int i = tasks[k].first, j = tasks[k].second;
 		//auto match = matcher(feats[i], feats[j]).match();	// slow
 		auto match = pwmatcher.match(i, j);
-		TransformEstimation transf(match, feats[i], feats[j]);
+		TransformEstimation transf(match, feats[i], feats[j]);	// from j to i
 		MatchInfo info;
 		bool succ = transf.get_transform(&info);
 		if (not succ) {
@@ -148,8 +148,8 @@ void Stitcher::estimate_camera() {
 	auto cameras = ce.estimate();
 
 	REP(i, imgs.size()) {
-		bundle.component[i].homo_inv = cameras[i].K() * cameras[i].R.transpose();
-		bundle.component[i].homo = cameras[i].R * cameras[i].K().inverse();
+		bundle.component[i].homo_inv = cameras[i].K() * cameras[i].R;
+		bundle.component[i].homo = cameras[i].Rinv() * cameras[i].K().inverse();
 	}
 }
 

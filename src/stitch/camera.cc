@@ -147,10 +147,11 @@ void Camera::straighten(std::vector<Camera>& cameras) {
 	using namespace Eigen;
 	Matrix3d cov = Matrix3d::Zero();
 	for (auto& c : cameras) {
-		// R is from current image to reference image
-		// the first column is X vector (R * [1 0 0]^T)
+		// R is from reference image to current image
+		// the first row is X vector ([1,0,0] * R)
 		const double* ptr = c.R.ptr();
-		Vector3d v; v << ptr[0], ptr[3], ptr[6];
+		Vector3d v;
+		v << ptr[0], ptr[1], ptr[2];
 		cov += v * v.transpose();
 	}
 	// want to solve Cov * u == 0
@@ -159,8 +160,8 @@ void Camera::straighten(std::vector<Camera>& cameras) {
 
 	Vector3d vz = Vector3d::Zero();
 	for (auto& c : cameras) {
-		vz(0) += c.R.ptr()[2];
-		vz(1) += c.R.ptr()[5];
+		vz(0) += c.R.ptr()[6];
+		vz(1) += c.R.ptr()[7];
 		vz(2) += c.R.ptr()[8];
 	}
 	Vector3d normX = normY.cross(vz);
@@ -169,17 +170,17 @@ void Camera::straighten(std::vector<Camera>& cameras) {
 
 	double s = 0;
 	for (auto& c : cameras) {
-		Vector3d v; v << c.R.ptr()[0], c.R.ptr()[3], c.R.ptr()[6];
+		Vector3d v; v << c.R.ptr()[0], c.R.ptr()[1], c.R.ptr()[2];
 		s += normX.dot(v);
 	}
 	if (s < 0) normX *= -1, normY *= -1;	// ?
 
 	Homography r;
-	REP(i, 3) r.ptr(0)[i] = normX(i);
-	REP(i, 3) r.ptr(1)[i] = normY(i);
-	REP(i, 3) r.ptr(2)[i] = normZ(i);
+	REP(i, 3) r.ptr()[i * 3] = normX(i);
+	REP(i, 3) r.ptr()[i * 3 + 1] = normY(i);
+	REP(i, 3) r.ptr()[i * 3 + 2] = normZ(i);
 	for (auto& c : cameras)
-		c.R = r * c.R;
+		c.R = c.R * r;
 }
 
 }
