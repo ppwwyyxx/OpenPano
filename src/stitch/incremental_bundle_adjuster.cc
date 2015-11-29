@@ -126,6 +126,21 @@ namespace stitch {
 					J(k, param_idx) = (err2.residuals[k] - err1.residuals[k]) / (2 * step);
 			}
 		}
+
+/*
+ *    auto test_jacobian = [&](int param_idx) {
+ *      for (auto& term: terms)	{
+ *        int from = index_map[term.from],
+ *            to = index_map[term.to];
+ *        auto& c_from = cameras[from],
+ *            & c_to = cameras[to];
+ *        for (auto& p: term.m.match) {
+ *
+ *        }
+ *
+ *      }
+ *    };
+ */
 	}
 
 	vector<Camera>& IncrementalBundleAdjuster::ParamState::get_cameras() {
