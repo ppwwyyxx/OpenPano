@@ -15,9 +15,7 @@ using namespace std;
 namespace {
 
 // From Creating Full View Panoramic Image Mosaics - Szeliski
-double get_focal_from_matrix(const Matrix& m) {
-	const double* h = m.ptr();
-
+double get_focal_from_matrix(const Homography& h) {
 	double d1, d2; // Denominators
 	double v1, v2; // Focal squares value candidates
 	double f1, f0;
@@ -59,11 +57,11 @@ namespace stitch {
 Camera::Camera() : R(Homography::I()) { }
 
 Homography Camera::K() const {
-	Homography ret(Homography::I());
-	ret.at(0,0) = focal;
-	ret.at(0,2) = ppx;
-	ret.at(1,1) = focal * aspect;
-	ret.at(1,2) = ppy;
+	Homography ret{Homography::I()};
+	ret[0] = focal;
+	ret[2] = ppx;
+	ret[4] = focal * aspect;
+	ret[5] = ppy;
 	return ret;
 }
 
@@ -91,7 +89,7 @@ double Camera::estimate_focal(
 //https://en.wikipedia.org/wiki/Rotation_matrix?oldformat=true#Determining_the_axis
 void Camera::rotation_to_angle(const Homography& r, double& rx, double& ry, double& rz) {
 	using namespace Eigen;
-	auto R_eigen = Map<const Eigen::Matrix<double, 3, 3, RowMajor>>(r.ptr());
+	auto R_eigen = Map<const Eigen::Matrix<double, 3, 3, RowMajor>>(r.data);
 
 	JacobiSVD<MatrixXd> svd(R_eigen, ComputeFullU | ComputeFullV);
 	Matrix3d Rnew = svd.matrixU() * (svd.matrixV().transpose());
@@ -133,14 +131,13 @@ void Camera::angle_to_rotation(double rx, double ry, double rz, Homography& r) {
 	double u_crossp[] = {0, -rz, ry, rz, 0, -rx, -ry, rx, 0 };
 
 	r = Homography::I();
-	double* R = r.ptr();
 
 	double c = cos(theta),
 				 s = sin(theta),
 				 c1 = 1 - c;
 	r.mult(c);
 	REP(k, 9)
-		R[k] += c1 * u_outp[k] + s * u_crossp[k];
+		r[k] += c1 * u_outp[k] + s * u_crossp[k];
 }
 
 void Camera::straighten(std::vector<Camera>& cameras) {
@@ -149,9 +146,8 @@ void Camera::straighten(std::vector<Camera>& cameras) {
 	for (auto& c : cameras) {
 		// R is from reference image to current image
 		// the first row is X vector ([1,0,0] * R)
-		const double* ptr = c.R.ptr();
 		Vector3d v;
-		v << ptr[0], ptr[1], ptr[2];
+		v << c.R[0], c.R[1], c.R[2];
 		cov += v * v.transpose();
 	}
 	// want to solve Cov * u == 0
@@ -160,9 +156,9 @@ void Camera::straighten(std::vector<Camera>& cameras) {
 
 	Vector3d vz = Vector3d::Zero();
 	for (auto& c : cameras) {
-		vz(0) += c.R.ptr()[6];
-		vz(1) += c.R.ptr()[7];
-		vz(2) += c.R.ptr()[8];
+		vz(0) += c.R[6];
+		vz(1) += c.R[7];
+		vz(2) += c.R[8];
 	}
 	Vector3d normX = normY.cross(vz);
 	normX.normalize();
@@ -170,15 +166,15 @@ void Camera::straighten(std::vector<Camera>& cameras) {
 
 	double s = 0;
 	for (auto& c : cameras) {
-		Vector3d v; v << c.R.ptr()[0], c.R.ptr()[1], c.R.ptr()[2];
+		Vector3d v; v << c.R[0], c.R[1], c.R[2];
 		s += normX.dot(v);
 	}
 	if (s < 0) normX *= -1, normY *= -1;	// ?
 
 	Homography r;
-	REP(i, 3) r.ptr()[i * 3] = normX(i);
-	REP(i, 3) r.ptr()[i * 3 + 1] = normY(i);
-	REP(i, 3) r.ptr()[i * 3 + 2] = normZ(i);
+	REP(i, 3) r[i * 3] = normX(i);
+	REP(i, 3) r[i * 3 + 1] = normY(i);
+	REP(i, 3) r[i * 3 + 2] = normZ(i);
 	for (auto& c : cameras)
 		c.R = c.R * r;
 }

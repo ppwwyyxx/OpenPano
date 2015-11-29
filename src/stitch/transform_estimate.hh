@@ -37,14 +37,14 @@ class TransformEstimation {
 		Matrix f2_homo_coor;	// 3xn
 
 		// calculate best transform from given samples
-		Homography calc_transform(const std::vector<int>&) const;
+		Matrix calc_transform(const std::vector<int>&) const;
 
 		// fillin result to MatchInfo object
 		void fill_inliers_to_matchinfo(
 				const std::vector<int>&, MatchInfo*) const;
 
 		// get inliers of a transform
-		std::vector<int> get_inliers(const Homography &) const;
+		std::vector<int> get_inliers(const Matrix &) const;
 
 		static const int ESTIMATE_MIN_NR_MATCH = 6;
 

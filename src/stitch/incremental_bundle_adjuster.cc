@@ -29,7 +29,7 @@ namespace stitch {
 		update_index_map();
 		ParamState state;
 		for (auto& idx : idx_added)
-			state.cameras.emplace_back(cameras[idx]);
+			state.cameras.emplace_back(result_cameras[idx]);
 		state.ensure_params();
 		state.cameras.clear();
 		auto err_stat = calcError(state);
@@ -41,10 +41,12 @@ namespace stitch {
 		int nr_img = idx_added.size();
 		inlier_threshold = std::numeric_limits<int>::max();
 		while (itr++ < LM_MAX_ITER) {
-			if (itr > 2 && inlier_threshold != 2) {
-				inlier_threshold = 2;
-				best_err = 1e9;
-			}
+			/*
+			 *if (itr > 2 && inlier_threshold != 2) {
+			 *  inlier_threshold = 2;
+			 *  best_err = 1e9;
+			 *}
+			 */
 			Eigen::MatrixXd J(
 					NR_TERM_PER_MATCH * nr_pointwise_match, NR_PARAM_PER_CAMERA * nr_img);
 			calcJacobian(J, state);
@@ -77,7 +79,7 @@ namespace stitch {
 		auto results = state.get_cameras();
 		int now = 0;
 		for (auto& i : idx_added)
-			cameras[i] = results[now++];
+			result_cameras[i] = results[now++];
 	}
 
 	IncrementalBundleAdjuster::ErrorStats IncrementalBundleAdjuster::calcError(
@@ -111,7 +113,7 @@ namespace stitch {
 	void IncrementalBundleAdjuster::calcJacobian(
 			Eigen::MatrixXd& J, ParamState& state) {
 		TotalTimer tm("calcJacobian");
-#if 0
+#if 1
 		const double step = 1e-6;
 		state.ensure_params();
 		REP(i, idx_added.size()) {
@@ -133,22 +135,6 @@ namespace stitch {
 		J.setZero();
 
 		auto& cameras = state.get_cameras();
-		/*
-		 *
-		 *      int param_idx = 9;
-		 *      auto oldc = cameras[1].R;
-		 *      double val = state.params[param_idx];
-		 *      state.mutate_param(param_idx, val + step);
-		 *      auto c1 = state.get_cameras()[1].Rinv();
-		 *      state.mutate_param(param_idx, val - step);
-		 *      auto c2 = state.get_cameras()[1].Rinv();
-		 *      auto diff = c1 - c2;
-		 *      diff.mult(0.5 / step);
-		 *      PP(diff);
-		 *      PP(dRdvi(oldc, 0).transpose());
-		 *      return;
-		 */
-
 		int idx = 0;
 		for (auto& term: terms)	{
 			int from = index_map[term.from],
@@ -169,18 +155,7 @@ namespace stitch {
 						d.y / homo.z - d.z * homo.y / hz_sqr);
 			};
 
-			auto assert_equal = [](double& x, double y) {
-				if (fabs(x-y) >= 1e-3) {
-					PP(x);
-					PP(y);
-					PP(fabs(x-y));
-					m_assert(false);
-				}
-			};
-
 			for (auto& p : term.m.match) {
-				//PP(J.row(idx));
-				//PP(J.row(idx+1));
 				Vec2D to = p.first + mid_vec_to;
 				Vec homo = Hto_to_from.trans(to);
 
@@ -190,19 +165,16 @@ namespace stitch {
 				// focal
 				Vec dhdfocal = dKdfocal.trans(dot_u2);
 				Vec2D drv = dpdhomo(homo, dhdfocal) * (-1);
-				//PP(drv);
 				J(idx, param_idx_from) = drv.x;
 				J(idx+1, param_idx_from) = drv.y;
 				// ppx
 				Vec dhdppx = dKdppx.trans(dot_u2);
 				drv = dpdhomo(homo, dhdppx) * (-1);
-				//PP(drv);
 				J(idx, param_idx_from+1) = drv.x;
 				J(idx+1, param_idx_from+1) = drv.y;
 				// ppy
 				Vec dhdppy = dKdppy.trans(dot_u2);
 				drv = dpdhomo(homo, dhdppy) * (-1);
-				//PP(drv);
 				J(idx, param_idx_from+2) = drv.x;
 				J(idx+1, param_idx_from+2) = drv.y;
 

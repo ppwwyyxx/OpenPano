@@ -95,8 +95,7 @@ void Stitcher::pairwise_match() {
 			continue;
 		}
 		auto inv = info.homo.inverse(&succ);
-		double last_inv = 1.0 / inv.at(2,2);
-		inv.mult(last_inv);
+		inv.mult(1.0 / inv[8]);	// more stable?
 		if (not succ) continue;	// cannot inverse. mal-formed homography
 		print_debug(
 				"Connection between image %d and %d, ninliers=%lu, conf=%f\n",
@@ -165,14 +164,12 @@ void Stitcher::build_bundle_linear_simple() {
 	if (mid + 1 < n) {
 		comp[mid+1].homo = pairwise_matches[mid][mid+1].homo;
 		REPL(k, mid + 2, n)
-			comp[k].homo = Homography(
-					comp[k - 1].homo.prod(pairwise_matches[k-1][k].homo));
+			comp[k].homo = comp[k - 1].homo * pairwise_matches[k-1][k].homo;
 	}
 	if (mid - 1 >= 0) {
 		comp[mid-1].homo = pairwise_matches[mid][mid-1].homo;
 		REPD(k, mid - 2, 0)
-			comp[k].homo = Homography(
-					comp[k + 1].homo.prod(pairwise_matches[k+1][k].homo));
+			comp[k].homo = comp[k + 1].homo * pairwise_matches[k+1][k].homo;
 	}
 	// then, comp[k]: from k to identity
 	bundle.calc_inverse_homo();
@@ -229,8 +226,7 @@ void Stitcher::build_bundle_warp() {;
 		bundle.component[i].homo = info.homo;
 	}
 	REPD(i, mid - 2, 0)
-		bundle.component[i].homo = Homography(
-				bundle.component[i + 1].homo.prod(bundle.component[i].homo));
+		bundle.component[i].homo = bundle.component[i + 1].homo * bundle.component[i].homo;
 	bundle.calc_inverse_homo();
 }
 
@@ -270,7 +266,7 @@ float Stitcher::update_h_factor(float nowfactor,
 	if (failed) return 0;
 
 	REPL(k, 1, len - 1)
-		nowmat[k] = nowmat[k - 1].prod(nowmat[k]);	// transform to nowimgs[0] == imgs[mid]
+		nowmat[k] = nowmat[k - 1] * nowmat[k];	// transform to nowimgs[0] == imgs[mid]
 
 	// check the slope of the result image
 	Vec2D center2 = nowmat.back().trans2d(0, 0);
