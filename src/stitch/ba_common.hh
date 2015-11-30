@@ -41,7 +41,7 @@ namespace {
 		stitch::Camera::rotation_to_angle(R, v[0], v[1], v[2]);
 		Vec vvec{v[0], v[1], v[2]};
 		double vsqr = vvec.sqr();
-		if (vsqr < 1e-10)
+		if (vsqr < 1e-12)
 			return std::array<Homography, 3>{
 				  cross_product_matrix(1,0,0),
 					cross_product_matrix(0,1,0),

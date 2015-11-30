@@ -150,94 +150,59 @@ namespace stitch {
 			auto toKinv = c_to.Kinv();
 			auto toRinv = c_to.Rinv();
 			auto& dRfromdvi = all_camera_dRdvi[from];
-			auto& dRtodvi = all_camera_dRdvi[to];
+			auto dRtodviT = all_camera_dRdvi[to];	// no copy here. will modify!
+			for (auto& m: dRtodviT) m = m.transpose();
 			Homography Hto_to_from = (c_from.K() * c_from.R) * (toRinv * toKinv);
 
 			Vec2D mid_vec_to{shapes[term.to].halfw(), shapes[term.to].halfh()};
 
-			auto dpdhomo = [](Vec homo, Vec d /* d(homo) / d(variable) */) {		// d(2d point) / d(homo coordiante point)
-				double hz_sqr = sqr(homo.z);
-				return Vec2D(d.x / homo.z - d.z * homo.x / hz_sqr,
-						d.y / homo.z - d.z * homo.y / hz_sqr);
-			};
 
 			for (auto& p : term.m.match) {
 				Vec2D to = p.first + mid_vec_to;
 				Vec homo = Hto_to_from.trans(to);
-				Vec2D drv; Vec dhdv;
 
-				auto set_J = [&](int param_idx) {
-					drv = dpdhomo(homo, dhdv);
-					/*
-					 *if (fabs(J(idx, param_idx) + drv.x) > 0.1 || fabs(J(idx+1, param_idx) + drv.y) > 0.1) {
-					 *  int diff = param_idx - param_idx_to;
-					 *  bool is_to = (diff >= 0 && diff <= 5);
-					 *    PP(param_idx);
-					 *    PP(drv);
-					 *    PP(J(idx, param_idx));
-					 *    PP(J(idx+1, param_idx));
-					 *  if (is_to) {
-					 *    PP(c_to.R);
-					 *    PP(dRtodvi[1]);
-					 *  } else {
-					 *    PP(c_from.R);
-					 *    PP(dRfromdvi[1]);
-					 *  }
-					 *}
-					 */
-					J(idx, param_idx) = -drv.x;
-					J(idx+1, param_idx) = -drv.y;
+				auto dpdhomo = [](Vec homo, Vec d /* d(homo) / d(variable) */) {		// d(2d point) / d(homo coordiante point)
+					double hz_sqr = sqr(homo.z);
+					return Vec2D(d.x / homo.z - d.z * homo.x / hz_sqr,
+							d.y / homo.z - d.z * homo.y / hz_sqr);
+				};
+				auto set_J = [&](int param_idx, Vec dhdv /* d(homo) / d(variable) */) {
+					Vec2D dpdv = dpdhomo(homo, dhdv);	// d(point 2d coor) / d(variable)
+					J(idx, param_idx) = -dpdv.x;	// d(residual) / d(variable) = -d(point) / d(variable)
+					J(idx+1, param_idx) = -dpdv.y;
 				};
 
 				// from:
 				Homography m = c_from.R * toRinv * toKinv;
 				Vec dot_u2 = m.trans(to);
 				// focal
-				dhdv = dKdfocal.trans(dot_u2);	// d(homo) / d(variable)
-				set_J(param_idx_from);
+				set_J(param_idx_from, dKdfocal.trans(dot_u2));
 				// ppx
-				dhdv = dKdppx.trans(dot_u2);
-				set_J(param_idx_from+1);
+				set_J(param_idx_from+1, dKdppx.trans(dot_u2));
 				// ppy
-				dhdv = dKdppy.trans(dot_u2);
-				set_J(param_idx_from+2);
-
+				set_J(param_idx_from+2, dKdppy.trans(dot_u2));
+				// rot
 				m = c_from.K();
-				dot_u2 = Homography{toRinv * toKinv}.trans(to);
-				// t1
-				dhdv = Homography{m * dRfromdvi[0]}.trans(dot_u2);
-				set_J(param_idx_from+3);
-				// t2
-				dhdv = Homography{m * dRfromdvi[1]}.trans(dot_u2);
-				set_J(param_idx_from+4);
-				// t3
-				dhdv = Homography{m * dRfromdvi[2]}.trans(dot_u2);
-				set_J(param_idx_from+5);
+				dot_u2 = (toRinv * toKinv).trans(to);
+				set_J(param_idx_from+3, (m * dRfromdvi[0]).trans(dot_u2));
+				set_J(param_idx_from+4, (m * dRfromdvi[1]).trans(dot_u2));
+				set_J(param_idx_from+5, (m * dRfromdvi[2]).trans(dot_u2));
 
 				// to: d(Kinv) / dv = -Kinv * d(K)/dv * Kinv
 				m = c_from.K() * c_from.R * toRinv * toKinv;
 				dot_u2 = toKinv.trans(to) * (-1);
 				// focal
-				dhdv = Homography{m * dKdfocal}.trans(dot_u2);
-				set_J(param_idx_to);
+				set_J(param_idx_to, (m * dKdfocal).trans(dot_u2));
 				// ppx
-				dhdv = Homography{m * dKdppx}.trans(dot_u2);
-				set_J(param_idx_to+1);
+				set_J(param_idx_to+1, (m * dKdppx).trans(dot_u2));
 				// ppy
-				dhdv = Homography{m * dKdppy}.trans(dot_u2);
-				set_J(param_idx_to+2);
-
+				set_J(param_idx_to+2, (m * dKdppy).trans(dot_u2));
+				// rot
 				m = c_from.K() * c_from.R;
 				dot_u2 = toKinv.trans(to);
-				// t1
-				dhdv = Homography{m * dRtodvi[0].transpose()}.trans(dot_u2);
-				set_J(param_idx_to+3);
-				// t2
-				dhdv = Homography{m * dRtodvi[1].transpose()}.trans(dot_u2);
-				set_J(param_idx_to+4);
-				// t3
-				dhdv = Homography{m * dRtodvi[2].transpose()}.trans(dot_u2);
-				set_J(param_idx_to+5);
+				set_J(param_idx_to+3, (m * dRtodviT[0]).trans(dot_u2));
+				set_J(param_idx_to+4, (m * dRtodviT[1]).trans(dot_u2));
+				set_J(param_idx_to+5, (m * dRtodviT[2]).trans(dot_u2));
 
 				idx += 2;
 			}
