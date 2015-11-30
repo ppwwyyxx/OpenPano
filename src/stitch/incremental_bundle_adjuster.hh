@@ -45,10 +45,11 @@ class IncrementalBundleAdjuster {
 		std::vector<Term> terms;
 
 		std::set<int> idx_added;
+
 		// map from original image index to idx added
 		std::vector<int> index_map;
 
-		void update_index_map() {
+		inline void update_index_map() {
 			int cnt = 0;
 			for (auto& i : idx_added)
 				index_map[i] = cnt++;
@@ -63,7 +64,7 @@ class IncrementalBundleAdjuster {
 
 			void update_stats(int inlier_threshold) {
 				auto error_func = [&](double diff) -> double {
-					return sqr(diff);
+					return sqr(diff);	// square error is good
 					diff = fabs(diff);
 					if (diff < inlier_threshold)
 						return sqr(diff);

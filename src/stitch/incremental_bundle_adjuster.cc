@@ -15,6 +15,62 @@
 using namespace std;
 using namespace stitch;
 
+namespace {
+inline Homography cross_product_matrix(double x, double y, double z) {
+	return {(const double[]){0.0, -z, y, z, 0, -x, -y, x, 0}};
+}
+
+// See: http://arxiv.org/pdf/1312.0788.pdf
+// A compact formula for the derivative of a 3-D rotation in exponential coordinates
+// return 3 matrix, each is dR / dvi,
+// where vi is the component of the euler-vector of this R
+std::array<Homography, 3> dRdvi(const Homography& R) {
+	double v[3];
+	stitch::Camera::rotation_to_angle(R, v[0], v[1], v[2]);
+	Vec vvec{v[0], v[1], v[2]};
+	double vsqr = vvec.sqr();
+	if (vsqr < 1e-12)
+		return std::array<Homography, 3>{
+				cross_product_matrix(1,0,0),
+				cross_product_matrix(0,1,0),
+				cross_product_matrix(0,0,1)};
+	Homography r = cross_product_matrix(v[0], v[1], v[2]);
+	std::array<Homography, 3> ret{r, r, r};
+	REP(i, 3) ret[i].mult(v[i]);
+
+	Vec I_R_e{1-R.data[0], -R.data[3], -R.data[6]};
+	I_R_e = vvec.cross(I_R_e);
+	ret[0] += cross_product_matrix(I_R_e.x, I_R_e.y, I_R_e.z);
+	I_R_e = Vec{-R.data[1], 1-R.data[4], -R.data[7]};
+	I_R_e = vvec.cross(I_R_e);
+	ret[1] += cross_product_matrix(I_R_e.x, I_R_e.y, I_R_e.z);
+	I_R_e = Vec{-R.data[2], -R.data[5], 1-R.data[8]};
+	I_R_e = vvec.cross(I_R_e);
+	ret[2] += cross_product_matrix(I_R_e.x, I_R_e.y, I_R_e.z);
+
+	REP(i, 3) {
+		ret[i].mult(1.0 / vsqr);
+		ret[i] = ret[i] * R;
+	}
+	return ret;
+}
+
+// dK/dfocal = dKdfocal
+static const Homography dKdfocal((const double[]){
+		1.0, 0.0, 0.0,
+		0.0, 1.0, 0.0,
+		0.0, 0.0, 0.0});
+static const Homography dKdppx((const double[]){
+		0.0, 0.0, 1.0,
+		0.0, 0.0, 0.0,
+		0.0, 0.0, 0.0});
+static const Homography dKdppy((const double[]){
+		0.0, 0.0, 0.0,
+		0.0, 0.0, 1.0,
+		0.0, 0.0, 0.0});
+
+}	// namespace
+
 namespace stitch {
 	void IncrementalBundleAdjuster::add_match(
 			int i, int j, const MatchInfo& match) {
@@ -41,12 +97,6 @@ namespace stitch {
 		int nr_img = idx_added.size();
 		inlier_threshold = std::numeric_limits<int>::max();
 		while (itr++ < LM_MAX_ITER) {
-			/*
-			 *if (itr > 2 && inlier_threshold != 2) {
-			 *  inlier_threshold = 2;
-			 *  best_err = 1e9;
-			 *}
-			 */
 			Eigen::MatrixXd J(
 					NR_TERM_PER_MATCH * nr_pointwise_match, NR_PARAM_PER_CAMERA * nr_img);
 			calcJacobian(J, state);
@@ -113,101 +163,102 @@ namespace stitch {
 	void IncrementalBundleAdjuster::calcJacobian(
 			Eigen::MatrixXd& J, ParamState& state) {
 		TotalTimer tm("calcJacobian");
-#if 0
-		const double step = 1e-6;
-		state.ensure_params();
-		REP(i, idx_added.size()) {
-			REP(p, NR_PARAM_PER_CAMERA) {
-				int param_idx = i * NR_PARAM_PER_CAMERA + p;
-				double val = state.params[param_idx];
-				state.mutate_param(param_idx, val + step);
-				auto err1 = calcError(state);
-				state.mutate_param(param_idx, val - step);
-				auto err2 = calcError(state);
-				state.mutate_param(param_idx, val);
+		if (not SYMBOLIC_DIFF) {
+			// Numerical Differentiation of Residual w.r.t all parameters
+			const double step = 1e-6;
+			state.ensure_params();
+			REP(i, idx_added.size()) {
+				REP(p, NR_PARAM_PER_CAMERA) {
+					int param_idx = i * NR_PARAM_PER_CAMERA + p;
+					double val = state.params[param_idx];
+					state.mutate_param(param_idx, val + step);
+					auto err1 = calcError(state);
+					state.mutate_param(param_idx, val - step);
+					auto err2 = calcError(state);
+					state.mutate_param(param_idx, val);
 
-				// calc deriv
-				REP(k, err1.residuals.size())
-					J(k, param_idx) = (err1.residuals[k] - err2.residuals[k]) / (2 * step);
+					// calc deriv
+					REP(k, err1.residuals.size())
+						J(k, param_idx) = (err1.residuals[k] - err2.residuals[k]) / (2 * step);
+				}
 			}
-		}
-#else
-		J.setZero();
+		} else {
+			// Symbolic Differentiation of Residual w.r.t all parameters
+			// See Section 4 of: Automatic Panoramic Image Stitching using Invariant Features - David Lowe,IJCV07.pdf
+			J.setZero();
+			auto& cameras = state.get_cameras();
+			// pre-calculate all derivatives of R
+			vector<array<Homography, 3>> all_dRdvi;
+			for (auto& c : cameras)
+				all_dRdvi.emplace_back(dRdvi(c.R));
 
-		auto& cameras = state.get_cameras();
-		vector<array<Homography, 3>> all_camera_dRdvi;
-		for (auto& c : cameras)
-			all_camera_dRdvi.emplace_back(dRdvi(c.R));
+			int idx = 0;
+			for (const auto& term: terms) {
+				int from = index_map[term.from],
+						to = index_map[term.to];
+				int param_idx_from = from * NR_PARAM_PER_CAMERA,
+						param_idx_to = to * NR_PARAM_PER_CAMERA;
+				auto &c_from = cameras[from],
+						 &c_to = cameras[to];
+				auto toKinv = c_to.Kinv();
+				auto toRinv = c_to.Rinv();
+				const auto& dRfromdvi = all_dRdvi[from];
+				auto dRtodviT = all_dRdvi[to];	// no copy here. will modify!
+				for (auto& m: dRtodviT) m = m.transpose();
 
-		int idx = 0;
-		for (auto& term: terms)	{
-			int from = index_map[term.from],
-					to = index_map[term.to];
-			int param_idx_from = from * NR_PARAM_PER_CAMERA,
-					param_idx_to = to * NR_PARAM_PER_CAMERA;
-			auto& c_from = cameras[from],
-				& c_to = cameras[to];
-			auto toKinv = c_to.Kinv();
-			auto toRinv = c_to.Rinv();
-			auto& dRfromdvi = all_camera_dRdvi[from];
-			auto dRtodviT = all_camera_dRdvi[to];	// no copy here. will modify!
-			for (auto& m: dRtodviT) m = m.transpose();
-			Homography Hto_to_from = (c_from.K() * c_from.R) * (toRinv * toKinv);
+				Homography Hto_to_from = (c_from.K() * c_from.R) * (toRinv * toKinv);
+				Vec2D mid_vec_to{shapes[term.to].halfw(), shapes[term.to].halfh()};
 
-			Vec2D mid_vec_to{shapes[term.to].halfw(), shapes[term.to].halfh()};
-
-
-			for (auto& p : term.m.match) {
-				Vec2D to = p.first + mid_vec_to;
-				Vec homo = Hto_to_from.trans(to);
-
-				auto dpdhomo = [](Vec homo, Vec d /* d(homo) / d(variable) */) {		// d(2d point) / d(homo coordiante point)
+				for (const auto& p : term.m.match) {
+					Vec2D to = p.first + mid_vec_to;
+					Vec homo = Hto_to_from.trans(to);
 					double hz_sqr = sqr(homo.z);
-					return Vec2D(d.x / homo.z - d.z * homo.x / hz_sqr,
-							d.y / homo.z - d.z * homo.y / hz_sqr);
-				};
-				auto set_J = [&](int param_idx, Vec dhdv /* d(homo) / d(variable) */) {
-					Vec2D dpdv = dpdhomo(homo, dhdv);	// d(point 2d coor) / d(variable)
-					J(idx, param_idx) = -dpdv.x;	// d(residual) / d(variable) = -d(point) / d(variable)
-					J(idx+1, param_idx) = -dpdv.y;
-				};
+					double hz_inv = 1.0 / homo.z;
 
-				// from:
-				Homography m = c_from.R * toRinv * toKinv;
-				Vec dot_u2 = m.trans(to);
-				// focal
-				set_J(param_idx_from, dKdfocal.trans(dot_u2));
-				// ppx
-				set_J(param_idx_from+1, dKdppx.trans(dot_u2));
-				// ppy
-				set_J(param_idx_from+2, dKdppy.trans(dot_u2));
-				// rot
-				m = c_from.K();
-				dot_u2 = (toRinv * toKinv).trans(to);
-				set_J(param_idx_from+3, (m * dRfromdvi[0]).trans(dot_u2));
-				set_J(param_idx_from+4, (m * dRfromdvi[1]).trans(dot_u2));
-				set_J(param_idx_from+5, (m * dRfromdvi[2]).trans(dot_u2));
+					auto set_J = [&](int param_idx, Vec dhdv /* d(homo) / d(variable) */) {
+						// d(point 2d coor) / d(variable) = d(p)/d(homo) * d(homo)/d(variable)
+						Vec2D dpdv{dhdv.x * hz_inv - dhdv.z * homo.x / hz_sqr,
+							dhdv.y * hz_inv - dhdv.z * homo.y / hz_sqr};
+						J(idx, param_idx) = -dpdv.x;	// d(residual) / d(variable) = -d(point) / d(variable)
+						J(idx + 1, param_idx) = -dpdv.y;
+					};
 
-				// to: d(Kinv) / dv = -Kinv * d(K)/dv * Kinv
-				m = c_from.K() * c_from.R * toRinv * toKinv;
-				dot_u2 = toKinv.trans(to) * (-1);
-				// focal
-				set_J(param_idx_to, (m * dKdfocal).trans(dot_u2));
-				// ppx
-				set_J(param_idx_to+1, (m * dKdppx).trans(dot_u2));
-				// ppy
-				set_J(param_idx_to+2, (m * dKdppy).trans(dot_u2));
-				// rot
-				m = c_from.K() * c_from.R;
-				dot_u2 = toKinv.trans(to);
-				set_J(param_idx_to+3, (m * dRtodviT[0]).trans(dot_u2));
-				set_J(param_idx_to+4, (m * dRtodviT[1]).trans(dot_u2));
-				set_J(param_idx_to+5, (m * dRtodviT[2]).trans(dot_u2));
+					// from:
+					Homography m = c_from.R * toRinv * toKinv;
+					Vec dot_u2 = m.trans(to);
+					// focal
+					set_J(param_idx_from, dKdfocal.trans(dot_u2));
+					// ppx
+					set_J(param_idx_from+1, dKdppx.trans(dot_u2));
+					// ppy
+					set_J(param_idx_from+2, dKdppy.trans(dot_u2));
+					// rot
+					m = c_from.K();
+					dot_u2 = (toRinv * toKinv).trans(to);
+					set_J(param_idx_from+3, (m * dRfromdvi[0]).trans(dot_u2));
+					set_J(param_idx_from+4, (m * dRfromdvi[1]).trans(dot_u2));
+					set_J(param_idx_from+5, (m * dRfromdvi[2]).trans(dot_u2));
 
-				idx += 2;
+					// to: d(Kinv) / dv = -Kinv * d(K)/dv * Kinv
+					m = c_from.K() * c_from.R * toRinv * toKinv;
+					dot_u2 = toKinv.trans(to) * (-1);
+					// focal
+					set_J(param_idx_to, (m * dKdfocal).trans(dot_u2));
+					// ppx
+					set_J(param_idx_to+1, (m * dKdppx).trans(dot_u2));
+					// ppy
+					set_J(param_idx_to+2, (m * dKdppy).trans(dot_u2));
+					// rot
+					m = c_from.K() * c_from.R;
+					dot_u2 = toKinv.trans(to);
+					set_J(param_idx_to+3, (m * dRtodviT[0]).trans(dot_u2));
+					set_J(param_idx_to+4, (m * dRtodviT[1]).trans(dot_u2));
+					set_J(param_idx_to+5, (m * dRtodviT[2]).trans(dot_u2));
+
+					idx += 2;
+				}
 			}
 		}
-#endif
 	}
 
 	vector<Camera>& IncrementalBundleAdjuster::ParamState::get_cameras() {
