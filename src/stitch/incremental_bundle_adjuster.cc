@@ -113,7 +113,7 @@ namespace stitch {
 	void IncrementalBundleAdjuster::calcJacobian(
 			Eigen::MatrixXd& J, ParamState& state) {
 		TotalTimer tm("calcJacobian");
-#if 1
+#if 0
 		const double step = 1e-6;
 		state.ensure_params();
 		REP(i, idx_added.size()) {
@@ -135,6 +135,10 @@ namespace stitch {
 		J.setZero();
 
 		auto& cameras = state.get_cameras();
+		vector<array<Homography, 3>> all_camera_dRdvi;
+		for (auto& c : cameras)
+			all_camera_dRdvi.emplace_back(dRdvi(c.R));
+
 		int idx = 0;
 		for (auto& term: terms)	{
 			int from = index_map[term.from],
@@ -145,6 +149,8 @@ namespace stitch {
 				& c_to = cameras[to];
 			auto toKinv = c_to.Kinv();
 			auto toRinv = c_to.Rinv();
+			auto& dRfromdvi = all_camera_dRdvi[from];
+			auto& dRtodvi = all_camera_dRdvi[to];
 			Homography Hto_to_from = (c_from.K() * c_from.R) * (toRinv * toKinv);
 
 			Vec2D mid_vec_to{shapes[term.to].halfw(), shapes[term.to].halfh()};
@@ -181,19 +187,19 @@ namespace stitch {
 				m = c_from.K();
 				dot_u2 = Homography{toRinv * toKinv}.trans(to);
 				// t1
-				Vec dhdt1 = Homography{m * dRdvi(c_from.R, 0)}.trans(dot_u2);
+				Vec dhdt1 = Homography{m * dRfromdvi[0]}.trans(dot_u2);
 				drv = dpdhomo(homo, dhdt1) * (-1);
 				//PP(drv);
 				J(idx, param_idx_from+3) = drv.x;
 				J(idx+1, param_idx_from+3) = drv.y;
 				// t2
-				Vec dhdt2 = Homography{m * dRdvi(c_from.R, 1)}.trans(dot_u2);
+				Vec dhdt2 = Homography{m * dRfromdvi[1]}.trans(dot_u2);
 				drv = dpdhomo(homo, dhdt2) * (-1);
 				//PP(drv);
 				J(idx, param_idx_from+4) = drv.x;
 				J(idx+1, param_idx_from+4) = drv.y;
 				// t3
-				Vec dhdt3 = Homography{m * dRdvi(c_from.R, 2)}.trans(dot_u2);
+				Vec dhdt3 = Homography{m * dRfromdvi[2]}.trans(dot_u2);
 				drv = dpdhomo(homo, dhdt3) * (-1);
 				//PP(drv);
 				J(idx, param_idx_from+5) = drv.x;
@@ -224,19 +230,19 @@ namespace stitch {
 				m = c_from.K() * c_from.R;
 				dot_u2 = toKinv.trans(to);
 				// t1
-				dhdt1 = Homography{m * dRdvi(c_to.R, 0).transpose()}.trans(dot_u2);
+				dhdt1 = Homography{m * dRtodvi[0].transpose()}.trans(dot_u2);
 				drv = dpdhomo(homo, dhdt1) * (-1);
 				//PP(drv);
 				J(idx, param_idx_to+3) = drv.x;
 				J(idx+1, param_idx_to+3) = drv.y;
 				// t2
-				dhdt2 = Homography{m * dRdvi(c_to.R, 1).transpose()}.trans(dot_u2);
+				dhdt2 = Homography{m * dRtodvi[1].transpose()}.trans(dot_u2);
 				drv = dpdhomo(homo, dhdt2) * (-1);
 				//PP(drv);
 				J(idx, param_idx_to+4) = drv.x;
 				J(idx+1, param_idx_to+4) = drv.y;
 				// t3
-				dhdt3 = Homography{m * dRdvi(c_to.R, 2).transpose()}.trans(dot_u2);
+				dhdt3 = Homography{m * dRtodvi[2].transpose()}.trans(dot_u2);
 				drv = dpdhomo(homo, dhdt3) * (-1);
 				//PP(drv);
 				J(idx, param_idx_to+5) = drv.x;
