@@ -3,6 +3,7 @@
 //Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
+#include <array>
 #include "camera.hh"
 #include "lib/timer.hh"
 
@@ -33,23 +34,34 @@ namespace {
 
 	// See: http://arxiv.org/pdf/1312.0788.pdf
 	// A compact formula for the derivative of a 3-D rotation in exponential coordinates
-	Homography dRdvi(const Homography& R, int i) {
+	// return 3 matrix, each is dR / dvi,
+	// where vi is the component of the euler-vector of this R
+	std::array<Homography, 3> dRdvi(const Homography& R) {
 		TotalTimer tm("dRdvi");
 		double v[3];
 		stitch::Camera::rotation_to_angle(R, v[0], v[1], v[2]);
 		Vec vvec{v[0], v[1], v[2]};
 		double vsqr = vvec.sqr();
 		if (vsqr < 1e-5)
-			return cross_product_matrix(i==0, i==1, i==2);
-		Homography ret = cross_product_matrix(v[0], v[1], v[2]);
-		ret.mult(v[i]);
-		Vec I_R_e{(double)(i==0) - R.data[i],
-							(double)(i==1) - R.data[3+i],
-							(double)(i==2) - R.data[6+i]};
+			return std::array<Homography, 3>{cross_product_matrix(1, 0, 0), cross_product_matrix(0,1,0), cross_product_matrix(0,0,1)};
+		Homography r = cross_product_matrix(v[0], v[1], v[2]);
+		std::array<Homography, 3> ret{r, r, r};
+		REP(i, 3) ret[i].mult(v[i]);
+
+		Vec I_R_e{1-R.data[0], -R.data[3], -R.data[6]};
 		I_R_e = vvec.cross(I_R_e);
-		ret += cross_product_matrix(I_R_e.x, I_R_e.y, I_R_e.z);
-		ret.mult(1.0 / vsqr);
-		ret = ret * R;
+		ret[0] += cross_product_matrix(I_R_e.x, I_R_e.y, I_R_e.z);
+		I_R_e = Vec{-R.data[1], 1-R.data[4], -R.data[7]};
+		I_R_e = vvec.cross(I_R_e);
+		ret[1] += cross_product_matrix(I_R_e.x, I_R_e.y, I_R_e.z);
+		I_R_e = Vec{-R.data[2], -R.data[5], 1-R.data[8]};
+		I_R_e = vvec.cross(I_R_e);
+		ret[2] += cross_product_matrix(I_R_e.x, I_R_e.y, I_R_e.z);
+
+		REP(i, 3) {
+			ret[i].mult(1.0 / vsqr);
+			ret[i] = ret[i] * R;
+		}
 		return ret;
 	}
 
