@@ -123,7 +123,8 @@ class Homography {
 		friend std::ostream& operator << (std::ostream& os, const Homography& r) {
 			os << "[" << r.data[0] << " " << r.data[1] << " " << r.data[2]
 				 << "; " << r.data[3] << " " << r.data[4] << " " << r.data[5]
-				 << "; " << r.data[6] << " " << r.data[7] << " " << r.data[8];
+				 << "; " << r.data[6] << " " << r.data[7] << " " << r.data[8]
+				 << "]";
 			return os;
 		}
 };
