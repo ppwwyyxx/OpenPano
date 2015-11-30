@@ -113,7 +113,7 @@ namespace stitch {
 	void IncrementalBundleAdjuster::calcJacobian(
 			Eigen::MatrixXd& J, ParamState& state) {
 		TotalTimer tm("calcJacobian");
-#if 1
+#if 0
 		const double step = 1e-6;
 		state.ensure_params();
 		REP(i, idx_added.size()) {
@@ -164,20 +164,19 @@ namespace stitch {
 			for (auto& p : term.m.match) {
 				Vec2D to = p.first + mid_vec_to;
 				Vec homo = Hto_to_from.trans(to);
-				Vec2D drv;
+				Vec2D drv; Vec dhdv;
 
-#define set_J(param_idx) \
-				do { \
-					drv = dpdhomo(homo, dhdv); \
-					J(idx, (param_idx)) = -drv.x; \
-					J(idx+1, (param_idx)) = -drv.y; \
-				} while (0)
+				auto set_J = [&](int param_idx) {
+					drv = dpdhomo(homo, dhdv);
+					J(idx, param_idx) = -drv.x;
+					J(idx+1, param_idx) = -drv.y;
+				};
 
 				// from:
 				Homography m = c_from.R * toRinv * toKinv;
 				Vec dot_u2 = m.trans(to);
 				// focal
-				Vec dhdv = dKdfocal.trans(dot_u2);	// d(homo) / d(variable)
+				dhdv = dKdfocal.trans(dot_u2);	// d(homo) / d(variable)
 				set_J(param_idx_from);
 				// ppx
 				dhdv = dKdppx.trans(dot_u2);
