@@ -168,6 +168,23 @@ namespace stitch {
 
 				auto set_J = [&](int param_idx) {
 					drv = dpdhomo(homo, dhdv);
+					/*
+					 *if (fabs(J(idx, param_idx) + drv.x) > 0.1 || fabs(J(idx+1, param_idx) + drv.y) > 0.1) {
+					 *  int diff = param_idx - param_idx_to;
+					 *  bool is_to = (diff >= 0 && diff <= 5);
+					 *    PP(param_idx);
+					 *    PP(drv);
+					 *    PP(J(idx, param_idx));
+					 *    PP(J(idx+1, param_idx));
+					 *  if (is_to) {
+					 *    PP(c_to.R);
+					 *    PP(dRtodvi[1]);
+					 *  } else {
+					 *    PP(c_from.R);
+					 *    PP(dRfromdvi[1]);
+					 *  }
+					 *}
+					 */
 					J(idx, param_idx) = -drv.x;
 					J(idx+1, param_idx) = -drv.y;
 				};
