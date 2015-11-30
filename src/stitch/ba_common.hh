@@ -37,7 +37,6 @@ namespace {
 	// return 3 matrix, each is dR / dvi,
 	// where vi is the component of the euler-vector of this R
 	std::array<Homography, 3> dRdvi(const Homography& R) {
-		TotalTimer tm("dRdvi");
 		double v[3];
 		stitch::Camera::rotation_to_angle(R, v[0], v[1], v[2]);
 		Vec vvec{v[0], v[1], v[2]};
