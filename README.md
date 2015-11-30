@@ -2,19 +2,21 @@
 
 ## Introduction
 
-This is an image stitching program written in C++11.
+This is an panorama stitching program written in C++ from scratch. It mainly follows the routine
+described in the paper [Automatic Panoramic Image Stitching using Invariant Features](http://matthewalunbrown.com/papers/ijcv2007.pdf),
+which is also the one used by [AutoStitch](http://matthewalunbrown.com/autostitch/autostitch.html).
 
-(Recently I'm working on refactoring & improvements, so there will be lots of changes)
+(Recently I'm working on refactoring & improvements, changes are expected)
 
 ### Compile Dependencies:
 
-* gcc >= 4.7	(it seeems MTL doesn't work with ICC)
+* gcc >= 4.7
 * [Eigen](http://eigen.tuxfamily.org/index.php?title=Main_Page)
-* [CImg](http://cimg.eu/) (already included in the repository)
 * [FLANN](http://www.cs.ubc.ca/research/flann/) (already included in the repository, slightly modified)
-* libjpeg, libpng (you can choose what you need by commenting the macro in lib/imgio.cc)
+* [CImg](http://cimg.eu/) (already included in the repository)
+* libjpeg, libpng (optional, you can choose what you need by commenting the macro in lib/imgio.cc)
 
-Eigen, CImg and FLANN are header-only, to ease the compilation on different platforms.
+Eigen, CImg and FLANN are header-only, to simplify the compilation on different platforms.
 CImg, libjpeg and libpng are only used to read and write images, so you can easily get rid of them.
 You can also choose only one of libjpeg or libpng by commenting the macro in ``lib/imgio.cc``.
 
