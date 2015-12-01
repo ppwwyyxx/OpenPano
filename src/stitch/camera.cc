@@ -102,7 +102,7 @@ void Camera::rotation_to_angle(const Homography& r, double& rx, double& ry, doub
 	rz = Rnew(1,0) - Rnew(0,1);
 
 	double s = sqrt(rx*rx + ry*ry + rz*rz);
-	if (s < 1e-6) {
+	if (s < GEO_EPS) {
 		rx = ry = rz = 0;
 	} else {
 		// 1 + 2 * cos(theta) = trace(R)
@@ -118,7 +118,7 @@ void Camera::rotation_to_angle(const Homography& r, double& rx, double& ry, doub
 //https://en.wikipedia.org/wiki/Rotation_matrix#Rotation_matrix_from_axis_and_angle
 void Camera::angle_to_rotation(double rx, double ry, double rz, Homography& r) {
 	double theta = rx*rx + ry*ry + rz*rz;
-	if (theta < 1e-10) {	// theta ^2 TODO ceres use much smaller eps
+	if (theta < GEO_EPS_SQR) {	// theta ^2
 		// first order Taylor. see code of ceres-solver
 		r = Homography{(const double[]){1, -rz, ry, rz, 1, -rx, -ry, rx, 1}};
 		return;
