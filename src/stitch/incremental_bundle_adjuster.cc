@@ -29,7 +29,7 @@ std::array<Homography, 3> dRdvi(const Homography& R) {
 	stitch::Camera::rotation_to_angle(R, v[0], v[1], v[2]);
 	Vec vvec{v[0], v[1], v[2]};
 	double vsqr = vvec.sqr();
-	if (vsqr < 1e-12)	// TODO use smaller EPS?
+	if (vsqr < GEO_EPS_SQR)
 		return std::array<Homography, 3>{
 				cross_product_matrix(1,0,0),
 				cross_product_matrix(0,1,0),

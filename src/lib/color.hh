@@ -5,6 +5,7 @@
 #pragma once
 
 #include "geometry.hh"
+#include <limits>
 
 class Color: public Vector<float> {
 	public:
@@ -24,9 +25,9 @@ class Color: public Vector<float> {
 		void check() const {
 			// if (!between(x, 0, 2) || !between(y, 0, 2) || !between(z, 0, 2))
 			// 	std::cout << *this << std::endl;
-			m_assert(x >= 0 && x <= 1 + SEPS);
-			m_assert(y >= 0 && y <= 1 + SEPS);
-			m_assert(z >= 0 && z <= 1 + SEPS);
+			m_assert(x >= 0 && x <= 1 + std::numeric_limits<double>::epsilon());
+			m_assert(y >= 0 && y <= 1 + std::numeric_limits<double>::epsilon());
+			m_assert(z >= 0 && z <= 1 + std::numeric_limits<double>::epsilon());
 		}
 
 		void normalize();
