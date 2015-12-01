@@ -37,6 +37,7 @@ void test_extrema(const char* fname, int mode) {
 	PlaneDrawer pld(mat);
 	if (mode == 0) {
 		auto extrema = ex.get_raw_extrema();
+		PP(extrema.size());
 		for (auto &i : extrema)
 			pld.cross(i, LABEL_LEN / 2);
 	} else if (mode == 1) {
@@ -161,7 +162,10 @@ void work(int argc, char* argv[]) {
 	}
 
 	if (CROP) res = crop(res);
-	write_rgb("out.png", res);
+	{
+		GuardedTimer tm("Writing image");
+		write_rgb("out.png", res);
+	}
 }
 
 void init_config() {

@@ -58,7 +58,8 @@ flags = [
 'c++',
 '-I.',
 '-march=native',
-'-I/usr/include/eigen3'
+'-I/usr/include/eigen3',
+'-Ithird-party'
 ]
 
 # Set this to the absolute path to the folder (NOT the file!) containing the

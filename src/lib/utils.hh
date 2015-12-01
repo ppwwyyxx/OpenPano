@@ -8,6 +8,7 @@
 #include <cstdarg>
 #include <cstdlib>
 #include <string>
+#include <cstring>
 #include <sstream>
 #include <memory>
 #include <sys/stat.h>
@@ -43,4 +44,11 @@ std::shared_ptr<T> create_auto_buf(size_t len, bool init_zero = false) {
 inline bool exists_file(const char* name) {
 	struct stat buffer;
 	return stat(name, &buffer) == 0;
+}
+
+inline bool endswith(const char* str, const char* suffix) {
+	if (!str || !suffix) return false;
+	auto l1 = strlen(str), l2 = strlen(suffix);
+	if (l2 > l1) return false;
+	return strncmp(str + l1 - l2, suffix, l2) == 0;
 }
