@@ -6,19 +6,23 @@
 #include "utils.hh"
 using namespace std;
 
+namespace config {
+
 ConfigParser::ConfigParser(const char* fname) {
 	if (not exists_file(fname))
 		error_exit("Cannot find config file!");
+	const static size_t BUFSIZE = 4096;
 	ifstream fin(fname);
-	string s;s.resize(1000);
+	string s; s.resize(BUFSIZE);
 	double val;
 	while (fin >> s) {
 		if (s[0] == '#') {
-			fin.getline(&s[0], 4096, '\n');
+			fin.getline(&s[0], BUFSIZE, '\n');
 			continue;
 		}
 		fin >> val;
 		data[s] = val;
+		fin.getline(&s[0], BUFSIZE, '\n');
 	}
 }
 
@@ -34,6 +38,7 @@ bool CROP = true;
 float FOCAL_LENGTH;
 bool ESTIMATE_CAMERA;
 bool STRAIGHTEN;
+bool MULTIPASS_BA;
 
 int NUM_OCTAVE;
 int NUM_SCALE;
@@ -66,4 +71,4 @@ double RANSAC_INLIER_THRES;
 
 float SLOPE_PLAIN;
 
-float OUTPUT_SIZE_FACTOR;
+}

@@ -7,6 +7,7 @@
 #include <cassert>
 
 using namespace std;
+using namespace config;
 
 void ConnectedImages::calc_inverse_homo() {
 	for (auto& m : component)
@@ -47,7 +48,7 @@ void ConnectedImages::update_proj_range() {
 			now_max.update_max(t_corner);
 		}
 		// assume no image has FOV > 180
-		// XXX ugly
+		// XXX TODO ugly
 		if (now_max.x - now_min.x > M_PI) {
 			// head and tail
 			now_min = Vec2D(numeric_limits<double>::max(), std::numeric_limits<double>::max());

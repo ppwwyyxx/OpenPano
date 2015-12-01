@@ -23,6 +23,7 @@
 using namespace std;
 using namespace feature;
 using namespace projector;
+using namespace config;
 
 namespace stitch {
 

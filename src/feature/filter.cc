@@ -8,6 +8,7 @@
 #include "lib/utils.hh"
 #include "lib/timer.hh"
 using namespace std;
+using namespace config;
 
 
 namespace feature {

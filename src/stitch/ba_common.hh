@@ -7,21 +7,21 @@
 #include "camera.hh"
 #include "lib/timer.hh"
 
-namespace {
-	const int NR_PARAM_PER_CAMERA = 6;
-	const int NR_TERM_PER_MATCH = 2;
-	const bool SYMBOLIC_DIFF = true;
-	const double LM_lambda = 0.05;
-	const int LM_MAX_ITER = 100;
+namespace stitch {
+	const static int NR_PARAM_PER_CAMERA = 6;
+	const static int NR_TERM_PER_MATCH = 2;
+	const static bool SYMBOLIC_DIFF = true;
+	const static double LM_lambda = 0.05;
+	const static int LM_MAX_ITER = 100;
 
-	void camera_to_params(const stitch::Camera& c, double* ptr) {
+	inline void camera_to_params(const stitch::Camera& c, double* ptr) {
 		ptr[0] = c.focal;
 		ptr[1] = c.ppx;
 		ptr[2] = c.ppy;
 		stitch::Camera::rotation_to_angle(c.R, ptr[3], ptr[4], ptr[5]);
 	}
 
-	void params_to_camera(const double* ptr, stitch::Camera& c) {
+	inline void params_to_camera(const double* ptr, stitch::Camera& c) {
 		c.focal = ptr[0];
 		c.ppx = ptr[1];
 		c.ppy = ptr[2];

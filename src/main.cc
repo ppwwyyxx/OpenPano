@@ -21,6 +21,7 @@ using namespace std;
 using namespace feature;
 using namespace stitch;
 using namespace projector;
+using namespace config;
 
 bool TEMPDEBUG = false;
 
@@ -183,6 +184,7 @@ void init_config() {
 	CROP = Config.get("CROP");
 	STRAIGHTEN = Config.get("STRAIGHTEN");
 	FOCAL_LENGTH = Config.get("FOCAL_LENGTH");
+	MULTIPASS_BA = Config.get("MULTIPASS_BA");
 
 	NUM_OCTAVE = Config.get("NUM_OCTAVE");
 	NUM_SCALE = Config.get("NUM_SCALE");
@@ -205,7 +207,6 @@ void init_config() {
 	RANSAC_ITERATIONS = Config.get("RANSAC_ITERATIONS");
 	RANSAC_INLIER_THRES = Config.get("RANSAC_INLIER_THRES");
 	SLOPE_PLAIN = Config.get("SLOPE_PLAIN");
-	OUTPUT_SIZE_FACTOR = Config.get("OUTPUT_SIZE_FACTOR");
 }
 
 void planet(const char* fname) {
