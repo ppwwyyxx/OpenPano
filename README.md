@@ -13,12 +13,11 @@ which is also the one used by [AutoStitch](http://matthewalunbrown.com/autostitc
 * gcc >= 4.7
 * [Eigen](http://eigen.tuxfamily.org/index.php?title=Main_Page)
 * [FLANN](http://www.cs.ubc.ca/research/flann/) (already included in the repository, slightly modified)
-* [CImg](http://cimg.eu/) (already included in the repository)
-* libjpeg, libpng (optional, you can choose what you need by commenting the macro in lib/imgio.cc)
+* [CImg](http://cimg.eu/) (optional. already included in the repository)
+* libjpeg (optional. If you only need png, you can commenting the jpeg macro in lib/imgio.cc)
 
 Eigen, CImg and FLANN are header-only, to simplify the compilation on different platforms.
-CImg, libjpeg and libpng are only used to read and write images, so you can easily get rid of them.
-You can also choose only one of libjpeg or libpng by commenting the macro in ``lib/imgio.cc``.
+CImg and libjpeg are only used to read and write images, so you can easily get rid of them.
 
 ### Compile:
 ```
