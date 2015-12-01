@@ -117,11 +117,13 @@ void Camera::rotation_to_angle(const Homography& r, double& rx, double& ry, doub
 
 //https://en.wikipedia.org/wiki/Rotation_matrix#Rotation_matrix_from_axis_and_angle
 void Camera::angle_to_rotation(double rx, double ry, double rz, Homography& r) {
-	double theta = sqrt(rx*rx + ry*ry + rz*rz);
-	if (theta < 1e-10) {
-		r = Homography::I();
+	double theta = rx*rx + ry*ry + rz*rz;
+	if (theta < 1e-10) {	// theta ^2 TODO ceres use much smaller eps
+		// first order Taylor. see code of ceres-solver
+		r = Homography{(const double[]){1, -rz, ry, rz, 1, -rx, -ry, rx, 1}};
 		return;
 	}
+	theta = sqrt(theta);
 	double itheta = theta ? 1./theta : 0.;
 	rx *= itheta; ry *= itheta; rz *= itheta;
 
