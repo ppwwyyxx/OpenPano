@@ -14,6 +14,7 @@
 #include "incremental_bundle_adjuster.hh"
 
 using namespace std;
+using namespace config;
 
 namespace stitch {
 
@@ -43,18 +44,19 @@ vector<Camera> CameraEstimator::estimate() {
 				if (m.match.size())
 					iba.add_match(i, j, m);
 			}
-			iba.optimize();
+			if (MULTIPASS_BA)	// optimize after adding every image
+				iba.optimize();
 		}
+		if (not MULTIPASS_BA)
+			iba.optimize();
 	}
 
 	/*
-	 *BundleAdjuster ba(shapes, matches);
+	 *BundleAdjuster ba(shapes, matches);	// old BA
 	 *ba.estimate(cameras);
 	 */
 
-	if (STRAIGHTEN)
-		Camera::straighten(cameras);
-
+	if (STRAIGHTEN) Camera::straighten(cameras);
 	return cameras;
 }
 
@@ -138,7 +140,4 @@ void CameraEstimator::propagate_rotation(const Graph& graph) {
 		cameras[i].ppy = shapes[i].halfh();
 	}
 }
-
-
-
 }

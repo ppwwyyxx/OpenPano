@@ -14,6 +14,7 @@
 #include "lib/timer.hh"
 using namespace std;
 using namespace feature;
+using namespace config;
 
 namespace stitch {
 

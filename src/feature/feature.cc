@@ -11,6 +11,7 @@
 #include "brief.hh"
 #include "lib/imgproc.hh"
 using namespace std;
+using namespace config;
 
 
 namespace feature {

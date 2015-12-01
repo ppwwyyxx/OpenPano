@@ -58,9 +58,9 @@ Mat32f CylinderProject::project(const Mat32f& img, vector<Descriptor>& ft) const
 }
 
 void CylinderWarper::warp(Mat32f& mat, std::vector<Descriptor>& ft) const {
-	int r = mat.width() * (FOCAL_LENGTH / 36.0);
+	int r = mat.width() * (config::FOCAL_LENGTH / 36.0);
 	Vec cen(mat.width() / 2, mat.height() / 2 * h_factor, r);
-	CylinderProject cyl(r, cen, r * OUTPUT_SIZE_FACTOR);
+	CylinderProject cyl(r, cen, r);
 	mat = cyl.project(mat, ft);
 }
 

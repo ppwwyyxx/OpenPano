@@ -9,6 +9,7 @@
 #include "lib/common.hh"
 #include "filter.hh"
 using namespace std;
+using namespace config;
 
 namespace {
 // fast approximation to atan2.
