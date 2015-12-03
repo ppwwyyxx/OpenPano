@@ -40,6 +40,7 @@ flags = [
 '-Werror',
 '-Wno-long-long',
 '-Wno-variadic-macros',
+'-Wno-missing-braces',
 '-fexceptions',
 '-DDEBUG',
 '-DUSE_CLANG_COMPLETER',
