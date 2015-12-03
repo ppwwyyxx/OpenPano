@@ -100,7 +100,12 @@ namespace stitch {
 			Eigen::MatrixXd J(
 					NR_TERM_PER_MATCH * nr_pointwise_match, NR_PARAM_PER_CAMERA * nr_img);
 			calcJacobian(J, state);
-			Eigen::MatrixXd JtJ = J.transpose() * J;
+
+			Eigen::MatrixXd JtJ(
+					NR_PARAM_PER_CAMERA * nr_img, NR_PARAM_PER_CAMERA * nr_img);
+			calcJtJ(JtJ, state);
+			//auto JtJ = (J.transpose() * J).eval();
+
 			REP(i, nr_img * NR_PARAM_PER_CAMERA)
 				JtJ(i, i) += LM_lambda;	// TODO use different lambda for different param?
 			Eigen::Map<VectorXd> err_vec(err_stat.residuals.data(), NR_TERM_PER_MATCH * nr_pointwise_match);
@@ -259,6 +264,104 @@ namespace stitch {
 				}
 			}
 		}
+	}
+
+	// XXX duplicate code should not happen!
+	void IncrementalBundleAdjuster::calcJtJ(
+			Eigen::MatrixXd& JtJ, ParamState& state) {
+		TotalTimer tm("calcJtJ");
+		JtJ.setZero();	// n_params * n_params
+		auto& cameras = state.get_cameras();
+		// pre-calculate all derivatives of R
+		vector<array<Homography, 3>> all_dRdvi;
+		for (auto& c : cameras)
+			all_dRdvi.emplace_back(dRdvi(c.R));
+		int idx = 0;
+		for (const auto& term: terms) {
+			int from = index_map[term.from],
+					to = index_map[term.to];
+			int param_idx_from = from * NR_PARAM_PER_CAMERA,
+					param_idx_to = to * NR_PARAM_PER_CAMERA;
+			auto &c_from = cameras[from],
+					 &c_to = cameras[to];
+			auto toKinv = c_to.Kinv();
+			auto toRinv = c_to.Rinv();
+			const auto& dRfromdvi = all_dRdvi[from];
+			auto dRtodviT = all_dRdvi[to];	// no copy here. will modify!
+			for (auto& m: dRtodviT) m = m.transpose();
+
+			Homography Hto_to_from = (c_from.K() * c_from.R) * (toRinv * toKinv);
+			Vec2D mid_vec_to{shapes[term.to].halfw(), shapes[term.to].halfh()};
+
+			for (const auto& p : term.m.match) {
+				Vec2D to = p.first + mid_vec_to;
+				Vec homo = Hto_to_from.trans(to);
+				double hz_sqr = sqr(homo.z);
+				double hz_inv = 1.0 / homo.z;
+
+				auto drdv = [&](Vec dhdv /* d(homo) / d(variable) */) {
+					// d(point 2d coor) / d(variable) = d(p)/d(homo) * d(homo)/d(variable)
+					Vec2D dpdv{dhdv.x * hz_inv - dhdv.z * homo.x / hz_sqr,
+						dhdv.y * hz_inv - dhdv.z * homo.y / hz_sqr};
+					return dpdv * (-1);
+				};
+				array<Vec2D, NR_PARAM_PER_CAMERA> dfrom, dto;
+
+				// from:
+				Homography m = c_from.R * toRinv * toKinv;
+				Vec dot_u2 = m.trans(to);
+				// focal
+				dfrom[0] = drdv(dKdfocal.trans(dot_u2));
+				// ppx
+				dfrom[1] = drdv(dKdppx.trans(dot_u2));
+				// ppy
+				dfrom[2] = drdv(dKdppy.trans(dot_u2));
+				// rot
+				m = c_from.K();
+				dot_u2 = (toRinv * toKinv).trans(to);
+				dfrom[3] = drdv((m * dRfromdvi[0]).trans(dot_u2));
+				dfrom[4] = drdv((m * dRfromdvi[1]).trans(dot_u2));
+				dfrom[5] = drdv((m * dRfromdvi[2]).trans(dot_u2));
+
+				// to: d(Kinv) / dv = -Kinv * d(K)/dv * Kinv
+				m = c_from.K() * c_from.R * toRinv * toKinv;
+				dot_u2 = toKinv.trans(to) * (-1);
+				// focal
+				dto[0] = drdv((m * dKdfocal).trans(dot_u2));
+				// ppx
+				dto[1] = drdv((m * dKdppx).trans(dot_u2));
+				// ppy
+				dto[2] = drdv((m * dKdppy).trans(dot_u2));
+				// rot
+				m = c_from.K() * c_from.R;
+				dot_u2 = toKinv.trans(to);
+				dto[3] = drdv((m * dRtodviT[0]).trans(dot_u2));
+				dto[4] = drdv((m * dRtodviT[1]).trans(dot_u2));
+				dto[5] = drdv((m * dRtodviT[2]).trans(dot_u2));
+				// TODO duplicate!
+				REP(i, 6) REP(j, 6) {
+					int i1 = param_idx_from + i,
+							i2 = param_idx_from + j;
+					JtJ(i1, i2) += dfrom[i].dot(dfrom[j]);
+					JtJ(i2, i1) += dfrom[i].dot(dfrom[j]);
+					i1 = param_idx_to + i, i2 = param_idx_to + j;
+					JtJ(i1, i2) += dto[i].dot(dto[j]);
+					JtJ(i2, i1) += dto[i].dot(dto[j]);
+					i1 = param_idx_from + i;
+					i2 = param_idx_to + j;
+					JtJ(i1, i2) += dfrom[i].dot(dto[j]);
+					JtJ(i2, i1) += dfrom[i].dot(dto[j]);
+					i1 = param_idx_to + i;
+					i2 = param_idx_from + j;
+					JtJ(i1, i2) += dto[i].dot(dfrom[j]);
+					JtJ(i2, i1) += dto[i].dot(dfrom[j]);
+				}
+
+				idx += 2;
+			}
+		}
+
+		JtJ *= 0.5;
 	}
 
 	vector<Camera>& IncrementalBundleAdjuster::ParamState::get_cameras() {

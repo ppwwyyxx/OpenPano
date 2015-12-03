@@ -99,6 +99,8 @@ class IncrementalBundleAdjuster {
 		ErrorStats calcError(ParamState& state);
 		void calcJacobian(Eigen::MatrixXd& J, ParamState& state);
 
+		void calcJtJ(Eigen::MatrixXd& JtJ, ParamState& state);
+
 };
 
 }
