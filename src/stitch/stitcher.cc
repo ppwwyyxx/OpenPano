@@ -411,7 +411,7 @@ void Stitcher::debug_matchinfo() {
 			pld.circle(icoor2 + Coor(0, imgs[i].height()), 7);
 			pld.line(icoor1, icoor2 + Coor(0, imgs[i].height()));
 		}
-		write_rgb(ssprintf("/t/match%d-%d.png", i, j).c_str(), conc);
+		write_rgb(ssprintf("log/match%d-%d.png", i, j).c_str(), conc);
 	}
 }
 
