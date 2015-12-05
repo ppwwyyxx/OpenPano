@@ -4,7 +4,8 @@
 
 set -um
 
-which ts >/dev/null 2>&1 || { echo "Error: Command 'ts' not found, please install moreutils."; exit 1; }
+TS=ts
+which ts >/dev/null 2>&1 || { echo "Command 'ts' not found, please install moreutils to have better output."; TS=cat; }
 
 # check input
 [ $# -gt 0 ] || { sed -n '2,/^#$/ s/^# //p' <"$0"; exit 1; }
@@ -38,10 +39,17 @@ do
     sample=$((${@/#/+}))
 		echo $sample
     sleep 0.1
-done | ts > $LOGFILE
-peak=`sort -k 4 -t ' ' -n $LOGFILE | tail -n1`
+done | $TS > $LOGFILE
+if [[ "$TS" = "ts" ]]; then
+	peak=`sort -k 4 -t ' ' -n $LOGFILE | tail -n1`
+else
+	peak=`sort -n $LOGFILE | tail -n1`
+fi
 echo "Peak Memory: $peak K" | tee -a $LOGFILE
-cat $LOGFILE | awk '{print $4}' | head -n-1 | ./plot-point.py --show --ylabel 'KB' --annotate-maximum
+echo "See Logfile: $LOGFILE"
+if [[ -n "$DISPLAY" ]]; then
+	cat $LOGFILE | awk '{print $4}' | head -n-1 | ./plot-point.py --show --ylabel 'KB' --annotate-maximum
+fi
 ) &
 monpid=$!
 
