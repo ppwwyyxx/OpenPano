@@ -74,7 +74,8 @@ static const Homography dKdppy((const double[]){
 namespace stitch {
 	void IncrementalBundleAdjuster::add_match(
 			int i, int j, const MatchInfo& match) {
-		terms.emplace_back(i, j, match);
+		match_pairs.emplace_back(i, j, match);
+		match_cnt_prefix_sum.emplace_back(nr_pointwise_match);
 		nr_pointwise_match += match.match.size();
 		idx_added.insert(i);
 		idx_added.insert(j);
@@ -130,16 +131,16 @@ namespace stitch {
 		auto cameras = state.get_cameras();
 
 		int idx = 0;
-		for (auto& term: terms) {
-			int from = index_map[term.from],
-					to = index_map[term.to];
+		for (auto& pair: match_pairs) {
+			int from = index_map[pair.from],
+					to = index_map[pair.to];
 			auto& c_from = cameras[from],
 				& c_to = cameras[to];
 			Homography Hto_to_from = (c_from.K() * c_from.R) * (c_to.Rinv() * c_to.K().inverse());
 
-			Vec2D mid_vec_from{shapes[term.from].halfw(), shapes[term.from].halfh()};
-			Vec2D mid_vec_to{shapes[term.to].halfw(), shapes[term.to].halfh()};
-			for (auto& p: term.m.match) {
+			Vec2D mid_vec_from{shapes[pair.from].halfw(), shapes[pair.from].halfh()};
+			Vec2D mid_vec_to{shapes[pair.to].halfw(), shapes[pair.to].halfh()};
+			for (auto& p: pair.m.match) {
 				Vec2D to = p.first + mid_vec_to, from = p.second + mid_vec_from;
 				Vec2D transformed = Hto_to_from.trans2d(to);
 				ret.residuals[idx] = from.x - transformed.x;
@@ -211,24 +212,27 @@ namespace stitch {
 		for (auto& c : cameras)
 			all_dRdvi.emplace_back(dRdvi(c.R));
 
-		int idx = 0;
-		for (const auto& term: terms) {
-			int from = index_map[term.from],
-					to = index_map[term.to];
+#pragma omp parallel for schedule(dynamic)
+		REP(pair_idx, match_pairs.size()) {
+			const auto& pair = match_pairs[pair_idx];
+			int idx = match_cnt_prefix_sum[pair_idx] * 2;
+			int from = index_map[pair.from],
+					to = index_map[pair.to];
 			int param_idx_from = from * NR_PARAM_PER_CAMERA,
 					param_idx_to = to * NR_PARAM_PER_CAMERA;
-			auto &c_from = cameras[from],
-					 &c_to = cameras[to];
+			print_debug("idx=%d, pif=%d, pit=%d\n", idx, param_idx_from, param_idx_to);
+			const auto &c_from = cameras[from],
+								 &c_to = cameras[to];
 			auto toKinv = c_to.Kinv();
 			auto toRinv = c_to.Rinv();
 			const auto& dRfromdvi = all_dRdvi[from];
 			auto dRtodviT = all_dRdvi[to];	// copying. will modify!
 			for (auto& m: dRtodviT) m = m.transpose();
 
-			Homography Hto_to_from = (c_from.K() * c_from.R) * (toRinv * toKinv);
-			Vec2D mid_vec_to{shapes[term.to].halfw(), shapes[term.to].halfh()};
+			const Homography Hto_to_from = (c_from.K() * c_from.R) * (toRinv * toKinv);
+			Vec2D mid_vec_to{shapes[pair.to].halfw(), shapes[pair.to].halfh()};
 
-			for (const auto& p : term.m.match) {
+			for (const auto& p : pair.m.match) {
 				Vec2D to = p.first + mid_vec_to;
 				Vec homo = Hto_to_from.trans(to);
 				double hz_sqr = sqr(homo.z);
@@ -285,25 +289,27 @@ namespace stitch {
 				}
 
 				// fill JtJ
-				REP(i, 6) REPL(j, i, 6) {
-					int i1 = param_idx_from + i,
-							i2 = param_idx_from + j;
-					auto val = dfrom[i].dot(dfrom[j]);
-					JtJ(i1, i2) += val;
-					if (i != j) JtJ(i2, i1) += val;
-
-					i1 = param_idx_to + i, i2 = param_idx_to + j;
-					val = dto[i].dot(dto[j]);
-					JtJ(i1, i2) += val;
-					if (i != j) JtJ(i2, i1) += val;
-				}
 				REP(i, 6) REP(j, 6) {
 					int i1 = param_idx_from + i,
 							i2 = param_idx_to + j;
 					auto val = dfrom[i].dot(dto[j]);
 					JtJ(i1, i2) += val, JtJ(i2, i1) += val;
 				}
+#pragma omp critical	// this part is critical
+				{
+					REP(i, 6) REPL(j, i, 6) {
+						int i1 = param_idx_from + i,
+								i2 = param_idx_from + j;
+						auto val = dfrom[i].dot(dfrom[j]);
+						JtJ(i1, i2) += val;
+						if (i != j) JtJ(i2, i1) += val;
 
+						i1 = param_idx_to + i, i2 = param_idx_to + j;
+						val = dto[i].dot(dto[j]);
+						JtJ(i1, i2) += val;
+						if (i != j) JtJ(i2, i1) += val;
+					}
+				}
 				idx += 2;
 			}
 		}
