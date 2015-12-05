@@ -79,9 +79,12 @@ Carnegie Mellon University from 38 images
 
 For more examples, see [results](https://github.com/ppwwyyxx/panorama/tree/master/results).
 
-## Speed:
+## Speed & Memory:
 It took 10 seconds to process 17 images of size 1000x660 on 2 x i5-2430M (pretty old cpu).
 I know there are room for speed up.
+
+Memory consumption is known to be huge with default libc allocator.
+Simply use a modern allocator (e.g. tcmalloc, hoard) can help a lot.
 
 ## Algorithms
 + Features: [SIFT](http://en.wikipedia.org/wiki/Scale-invariant_feature_transform)
