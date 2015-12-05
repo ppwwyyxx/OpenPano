@@ -33,21 +33,23 @@ class IncrementalBundleAdjuster {
 		const std::vector<Shape2D>& shapes;
 		std::vector<Camera>& result_cameras;
 
-		struct Term {
+		struct MatchPair {
 			int from, to;
 			const MatchInfo& m;
-			Term(int i, int j, const MatchInfo& m):
+			MatchPair(int i, int j, const MatchInfo& m):
 				from(i), to(j), m(m){}
 		};
 
 		int nr_pointwise_match = 0;
 		int inlier_threshold = std::numeric_limits<int>::max();
-		std::vector<Term> terms;
+		std::vector<MatchPair> match_pairs;
 
 		std::set<int> idx_added;
 
 		// map from original image index to idx added
 		std::vector<int> index_map;
+		// given a match pair idx, return the error term index
+		std::vector<int> match_cnt_prefix_sum;
 
 		inline void update_index_map() {
 			int cnt = 0;
