@@ -153,6 +153,7 @@ namespace stitch {
 
 	Eigen::VectorXd IncrementalBundleAdjuster::get_param_update(
 			ParamState& state, const vector<double>& residual) {
+		TotalTimer tm("get_param_update");
 		using namespace Eigen;
 		int nr_img = idx_added.size();
 		MatrixXd J(NR_TERM_PER_MATCH * nr_pointwise_match, NR_PARAM_PER_CAMERA * nr_img);
@@ -162,12 +163,14 @@ namespace stitch {
 			JtJ = (J.transpose() * J).eval();
 		} else {
 			calcJacobianSymbolic(J, JtJ, state);
+			// check correctness
+			// PP((JtJ - J.transpose() * J).eval().maxCoeff());
 		}
+		Map<const VectorXd> err_vec(residual.data(), NR_TERM_PER_MATCH * nr_pointwise_match);
+		auto b = J.transpose() * err_vec;
 
 		REP(i, nr_img * NR_PARAM_PER_CAMERA)
 			JtJ(i, i) += LM_lambda;	// TODO use different lambda for different param?
-		Map<const VectorXd> err_vec(residual.data(), NR_TERM_PER_MATCH * nr_pointwise_match);
-		auto b = J.transpose() * err_vec;
 		return JtJ.jacobiSvd(ComputeThinU | ComputeThinV).solve(b);
 
 	}
@@ -273,6 +276,7 @@ namespace stitch {
 				dto[4] = drdv((m * dRtodviT[1]).trans(dot_u2));
 				dto[5] = drdv((m * dRtodviT[2]).trans(dot_u2));
 
+				// fill J
 				REP(i, 6) {
 					J(idx, param_idx_from+i) = dfrom[i].x;
 					J(idx+1, param_idx_from+i) = dfrom[i].y;
@@ -280,29 +284,29 @@ namespace stitch {
 					J(idx+1, param_idx_to+i) = dto[i].y;
 				}
 
-				// TODO duplicate!
-				REP(i, 6) REP(j, 6) {
+				// fill JtJ
+				REP(i, 6) REPL(j, i, 6) {
 					int i1 = param_idx_from + i,
 							i2 = param_idx_from + j;
-					JtJ(i1, i2) += dfrom[i].dot(dfrom[j]);
-					JtJ(i2, i1) += dfrom[i].dot(dfrom[j]);
+					auto val = dfrom[i].dot(dfrom[j]);
+					JtJ(i1, i2) += val;
+					if (i != j) JtJ(i2, i1) += val;
+
 					i1 = param_idx_to + i, i2 = param_idx_to + j;
-					JtJ(i1, i2) += dto[i].dot(dto[j]);
-					JtJ(i2, i1) += dto[i].dot(dto[j]);
-					i1 = param_idx_from + i;
-					i2 = param_idx_to + j;
-					JtJ(i1, i2) += dfrom[i].dot(dto[j]);
-					JtJ(i2, i1) += dfrom[i].dot(dto[j]);
-					i1 = param_idx_to + i;
-					i2 = param_idx_from + j;
-					JtJ(i1, i2) += dto[i].dot(dfrom[j]);
-					JtJ(i2, i1) += dto[i].dot(dfrom[j]);
+					val = dto[i].dot(dto[j]);
+					JtJ(i1, i2) += val;
+					if (i != j) JtJ(i2, i1) += val;
+				}
+				REP(i, 6) REP(j, 6) {
+					int i1 = param_idx_from + i,
+							i2 = param_idx_to + j;
+					auto val = dfrom[i].dot(dto[j]);
+					JtJ(i1, i2) += val, JtJ(i2, i1) += val;
 				}
 
 				idx += 2;
 			}
 		}
-		JtJ *= 0.5;
 	}
 
 	vector<Camera>& IncrementalBundleAdjuster::ParamState::get_cameras() {
