@@ -161,8 +161,7 @@ namespace stitch {
 			calcJacobianNumerical(J, state);
 			JtJ = (J.transpose() * J).eval();
 		} else {
-			calcJacobianSymbolic(J, state);
-			calcJtJ(JtJ, state);
+			calcJacobianSymbolic(J, JtJ, state);
 		}
 
 		REP(i, nr_img * NR_PARAM_PER_CAMERA)
@@ -175,7 +174,7 @@ namespace stitch {
 
 	void IncrementalBundleAdjuster::calcJacobianNumerical(
 			Eigen::MatrixXd& J, ParamState& state) {
-		TotalTimer tm("calcJacobian");
+		TotalTimer tm("calcJacobianNumerical");
 		// Numerical Differentiation of Residual w.r.t all parameters
 		const double step = 1e-6;
 		state.ensure_params();
@@ -197,94 +196,18 @@ namespace stitch {
 	}
 
 	void IncrementalBundleAdjuster::calcJacobianSymbolic(
-			Eigen::MatrixXd& J, ParamState& state) {
+			Eigen::MatrixXd& J, Eigen::MatrixXd& JtJ, ParamState& state) {
 		// Symbolic Differentiation of Residual w.r.t all parameters
 		// See Section 4 of: Automatic Panoramic Image Stitching using Invariant Features - David Lowe,IJCV07.pdf
+		TotalTimer tm("calcJacobianSymbolic");
 		J.setZero();
-		auto& cameras = state.get_cameras();
-		// pre-calculate all derivatives of R
-		vector<array<Homography, 3>> all_dRdvi;
-		for (auto& c : cameras)
-			all_dRdvi.emplace_back(dRdvi(c.R));
-
-		int idx = 0;
-		for (const auto& term: terms) {
-			int from = index_map[term.from],
-					to = index_map[term.to];
-			int param_idx_from = from * NR_PARAM_PER_CAMERA,
-					param_idx_to = to * NR_PARAM_PER_CAMERA;
-			auto &c_from = cameras[from],
-					 &c_to = cameras[to];
-			auto toKinv = c_to.Kinv();
-			auto toRinv = c_to.Rinv();
-			const auto& dRfromdvi = all_dRdvi[from];
-			auto dRtodviT = all_dRdvi[to];	// no copy here. will modify!
-			for (auto& m: dRtodviT) m = m.transpose();
-
-			Homography Hto_to_from = (c_from.K() * c_from.R) * (toRinv * toKinv);
-			Vec2D mid_vec_to{shapes[term.to].halfw(), shapes[term.to].halfh()};
-
-			for (const auto& p : term.m.match) {
-				Vec2D to = p.first + mid_vec_to;
-				Vec homo = Hto_to_from.trans(to);
-				double hz_sqr = sqr(homo.z);
-				double hz_inv = 1.0 / homo.z;
-
-				auto set_J = [&](int param_idx, Vec dhdv /* d(homo) / d(variable) */) {
-					// d(point 2d coor) / d(variable) = d(p)/d(homo) * d(homo)/d(variable)
-					Vec2D dpdv{dhdv.x * hz_inv - dhdv.z * homo.x / hz_sqr,
-						dhdv.y * hz_inv - dhdv.z * homo.y / hz_sqr};
-					J(idx, param_idx) = -dpdv.x;	// d(residual) / d(variable) = -d(point) / d(variable)
-					J(idx + 1, param_idx) = -dpdv.y;
-				};
-
-				// from:
-				Homography m = c_from.R * toRinv * toKinv;
-				Vec dot_u2 = m.trans(to);
-				// focal
-				set_J(param_idx_from, dKdfocal.trans(dot_u2));
-				// ppx
-				set_J(param_idx_from+1, dKdppx.trans(dot_u2));
-				// ppy
-				set_J(param_idx_from+2, dKdppy.trans(dot_u2));
-				// rot
-				m = c_from.K();
-				dot_u2 = (toRinv * toKinv).trans(to);
-				set_J(param_idx_from+3, (m * dRfromdvi[0]).trans(dot_u2));
-				set_J(param_idx_from+4, (m * dRfromdvi[1]).trans(dot_u2));
-				set_J(param_idx_from+5, (m * dRfromdvi[2]).trans(dot_u2));
-
-				// to: d(Kinv) / dv = -Kinv * d(K)/dv * Kinv
-				m = c_from.K() * c_from.R * toRinv * toKinv;
-				dot_u2 = toKinv.trans(to) * (-1);
-				// focal
-				set_J(param_idx_to, (m * dKdfocal).trans(dot_u2));
-				// ppx
-				set_J(param_idx_to+1, (m * dKdppx).trans(dot_u2));
-				// ppy
-				set_J(param_idx_to+2, (m * dKdppy).trans(dot_u2));
-				// rot
-				m = c_from.K() * c_from.R;
-				dot_u2 = toKinv.trans(to);
-				set_J(param_idx_to+3, (m * dRtodviT[0]).trans(dot_u2));
-				set_J(param_idx_to+4, (m * dRtodviT[1]).trans(dot_u2));
-				set_J(param_idx_to+5, (m * dRtodviT[2]).trans(dot_u2));
-
-				idx += 2;
-			}
-		}
-	}
-
-	// XXX duplicate code should not happen!
-	void IncrementalBundleAdjuster::calcJtJ(
-			Eigen::MatrixXd& JtJ, ParamState& state) {
-		TotalTimer tm("calcJtJ");
 		JtJ.setZero();	// n_params * n_params
 		auto& cameras = state.get_cameras();
 		// pre-calculate all derivatives of R
 		vector<array<Homography, 3>> all_dRdvi;
 		for (auto& c : cameras)
 			all_dRdvi.emplace_back(dRdvi(c.R));
+
 		int idx = 0;
 		for (const auto& term: terms) {
 			int from = index_map[term.from],
@@ -296,7 +219,7 @@ namespace stitch {
 			auto toKinv = c_to.Kinv();
 			auto toRinv = c_to.Rinv();
 			const auto& dRfromdvi = all_dRdvi[from];
-			auto dRtodviT = all_dRdvi[to];	// no copy here. will modify!
+			auto dRtodviT = all_dRdvi[to];	// copying. will modify!
 			for (auto& m: dRtodviT) m = m.transpose();
 
 			Homography Hto_to_from = (c_from.K() * c_from.R) * (toRinv * toKinv);
@@ -308,9 +231,11 @@ namespace stitch {
 				double hz_sqr = sqr(homo.z);
 				double hz_inv = 1.0 / homo.z;
 
+				// calculate d(residual) / d(variable)
 				auto drdv = [&](Vec dhdv /* d(homo) / d(variable) */) {
 					// d(point 2d coor) / d(variable) = d(p)/d(homo) * d(homo)/d(variable)
-					Vec2D dpdv{dhdv.x * hz_inv - dhdv.z * homo.x / hz_sqr,
+					Vec2D dpdv{
+						dhdv.x * hz_inv - dhdv.z * homo.x / hz_sqr,
 						dhdv.y * hz_inv - dhdv.z * homo.y / hz_sqr};
 					return dpdv * (-1);
 				};
@@ -347,6 +272,14 @@ namespace stitch {
 				dto[3] = drdv((m * dRtodviT[0]).trans(dot_u2));
 				dto[4] = drdv((m * dRtodviT[1]).trans(dot_u2));
 				dto[5] = drdv((m * dRtodviT[2]).trans(dot_u2));
+
+				REP(i, 6) {
+					J(idx, param_idx_from+i) = dfrom[i].x;
+					J(idx+1, param_idx_from+i) = dfrom[i].y;
+					J(idx, param_idx_to+i) = dto[i].x;
+					J(idx+1, param_idx_to+i) = dto[i].y;
+				}
+
 				// TODO duplicate!
 				REP(i, 6) REP(j, 6) {
 					int i1 = param_idx_from + i,
@@ -369,7 +302,6 @@ namespace stitch {
 				idx += 2;
 			}
 		}
-
 		JtJ *= 0.5;
 	}
 

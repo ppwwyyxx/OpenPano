@@ -101,10 +101,12 @@ class IncrementalBundleAdjuster {
 		Eigen::VectorXd get_param_update(
 				ParamState& state, const std::vector<double>& residual);
 
-		void calcJacobianSymbolic(Eigen::MatrixXd& J, ParamState& state);
 		void calcJacobianNumerical(Eigen::MatrixXd& J, ParamState& state);
 
-		void calcJtJ(Eigen::MatrixXd& JtJ, ParamState& state);
+		// calculate J & JtJ together
+		void calcJacobianSymbolic(
+				Eigen::MatrixXd& J,
+				Eigen::MatrixXd& JtJ, ParamState& state);
 
 };
 
