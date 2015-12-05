@@ -1,0 +1,49 @@
+#!/bin/bash
+# Measure memory usage of processes
+# Usage: memusg COMMAND [ARGS]...
+
+set -um
+
+which ts >/dev/null 2>&1 || { echo "Error: Command 'ts' not found, please install moreutils."; exit 1; }
+
+# check input
+[ $# -gt 0 ] || { sed -n '2,/^#$/ s/^# //p' <"$0"; exit 1; }
+
+pgid=`ps -o pgid= $$`
+# make sure we're in a separate process group
+if [ $pgid = $(ps -o pgid= $(ps -o ppid= $$)) ]; then
+    cmd=
+    set -- "$0" "$@"
+    for a; do cmd+="'${a//"'"/"'\\''"}' "; done
+    exec bash -i -c "$cmd"
+fi
+
+# detect operating system and prepare measurement
+case `uname` in
+    Darwin|*BSD) sizes() { /bin/ps -o rss= -g $1; } ;;
+    Linux) sizes() { /bin/ps -o rss= -$1; } ;;
+    *) echo "`uname`: unsupported operating system" >&2; exit 2 ;;
+esac
+
+mkdir -p log
+TIME=`date "+%m%d-%H:%M:%S"`
+LOGFILE=log/mem-"$TIME".txt
+
+# monitor the memory usage in the background.
+(
+peak=0
+while sizes=`sizes $pgid`
+do
+    set -- $sizes
+    sample=$((${@/#/+}))
+		echo $sample
+    sleep 0.1
+done | ts > $LOGFILE
+peak=`sort -k 4 -t ' ' -n $LOGFILE | tail -n1`
+echo "Peak Memory: $peak K" | tee -a $LOGFILE
+cat $LOGFILE | awk '{print $4}' | head -n-1 | ./plot-point.py --show --ylabel 'KB' --annotate-maximum
+) &
+monpid=$!
+
+# run the given command
+exec "$@"

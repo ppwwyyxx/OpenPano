@@ -44,6 +44,7 @@ vector<Camera> CameraEstimator::estimate() {
 				if (m.match.size())
 					iba.add_match(i, j, m);
 			}
+			// TODO optimize after every k images
 			if (MULTIPASS_BA)	// optimize after adding every image
 				iba.optimize();
 		}
