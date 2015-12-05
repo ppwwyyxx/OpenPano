@@ -47,7 +47,7 @@ else
 fi
 echo "Peak Memory: $peak K" | tee -a $LOGFILE
 echo "See Logfile: $LOGFILE"
-if [[ -n "$DISPLAY" ]]; then
+if [ -n "${DISPLAY+x}" ]; then
 	cat $LOGFILE | awk '{print $4}' | head -n-1 | ./plot-point.py --show --ylabel 'KB' --annotate-maximum
 fi
 ) &
