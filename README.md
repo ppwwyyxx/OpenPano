@@ -27,7 +27,7 @@ $ cd src; make
 ### Options:
 
 Three modes are available (set/unset the options in ``config.cfg``):
-+ __cylinder__ mode. When the following conditions meet, this mode usually yields better results:
++ __cylinder__ mode. When the following conditions satisfied, this mode usually yields better results:
 	+ Images are taken with almost-pure single-direction rotation. (as common panoramas)
 	+ Images are given in the left-to-right order. (I might fix this in the future)
 	+ Images are taken with the same camera, and a good ``FOCAL_LENGTH`` is set.
@@ -80,7 +80,7 @@ Carnegie Mellon University from 38 images
 For more examples, see [results](https://github.com/ppwwyyxx/panorama/tree/master/results).
 
 ## Speed & Memory:
-It took 10 seconds to process 17 images of size 1000x660 on 2 x i5-2430M (pretty old cpu).
+In cylinder mode, it took 10 seconds to process 17 images of size 1000x660 on 2 x i5-2430M (pretty old cpu).
 I know there are room for speed up.
 
 Memory consumption is known to be huge with default libc allocator.
