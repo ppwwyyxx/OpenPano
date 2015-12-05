@@ -212,7 +212,6 @@ namespace stitch {
 		for (auto& c : cameras)
 			all_dRdvi.emplace_back(dRdvi(c.R));
 
-#pragma omp parallel for schedule(dynamic)
 		REP(pair_idx, match_pairs.size()) {
 			const auto& pair = match_pairs[pair_idx];
 			int idx = match_cnt_prefix_sum[pair_idx] * 2;
@@ -220,7 +219,6 @@ namespace stitch {
 					to = index_map[pair.to];
 			int param_idx_from = from * NR_PARAM_PER_CAMERA,
 					param_idx_to = to * NR_PARAM_PER_CAMERA;
-			print_debug("idx=%d, pif=%d, pit=%d\n", idx, param_idx_from, param_idx_to);
 			const auto &c_from = cameras[from],
 								 &c_to = cameras[to];
 			auto toKinv = c_to.Kinv();
@@ -295,20 +293,17 @@ namespace stitch {
 					auto val = dfrom[i].dot(dto[j]);
 					JtJ(i1, i2) += val, JtJ(i2, i1) += val;
 				}
-#pragma omp critical	// this part is critical
-				{
-					REP(i, 6) REPL(j, i, 6) {
-						int i1 = param_idx_from + i,
-								i2 = param_idx_from + j;
-						auto val = dfrom[i].dot(dfrom[j]);
-						JtJ(i1, i2) += val;
-						if (i != j) JtJ(i2, i1) += val;
+				REP(i, 6) REPL(j, i, 6) {
+					int i1 = param_idx_from + i,
+							i2 = param_idx_from + j;
+					auto val = dfrom[i].dot(dfrom[j]);
+					JtJ(i1, i2) += val;
+					if (i != j) JtJ(i2, i1) += val;
 
-						i1 = param_idx_to + i, i2 = param_idx_to + j;
-						val = dto[i].dot(dto[j]);
-						JtJ(i1, i2) += val;
-						if (i != j) JtJ(i2, i1) += val;
-					}
+					i1 = param_idx_to + i, i2 = param_idx_to + j;
+					val = dto[i].dot(dto[j]);
+					JtJ(i1, i2) += val;
+					if (i != j) JtJ(i2, i1) += val;
 				}
 				idx += 2;
 			}
