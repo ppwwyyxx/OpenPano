@@ -42,5 +42,5 @@ void __print_debug__(const char *file, const char *func, int line, const char *f
 
 void error_exit(const char *msg) {
 	c_fprintf(COLOR_RED, stderr, "error: %s\n", msg);
-	abort();
+	exit(1);
 }

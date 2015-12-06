@@ -83,7 +83,9 @@ class Stitcher {
 			>::type;
 
 		// for debug
-		void debug_matchinfo();
+		void draw_matchinfo();
+		void dump_matchinfo(const char*);
+		void load_matchinfo(const char*);
 	public:
 		// universal reference constructor to initialize imgs
 		template<typename U, typename X =

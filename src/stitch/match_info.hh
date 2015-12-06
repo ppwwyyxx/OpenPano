@@ -3,6 +3,7 @@
 #pragma once
 #include <utility>
 #include <vector>
+#include <iostream>
 
 #include "lib/geometry.hh"
 #include "transform.hh"
@@ -22,6 +23,32 @@ struct MatchInfo {
 			c.first = c.second;
 			c.second = p;
 		}
+	}
+
+	void serialize(std::ostream& os) const {
+		os << confidence << " ";
+		homo.serialize(os);
+		os << " " << match.size();
+		for (auto& p : match) {
+			os << " " << p.first.x << " "
+				<< p.first.y << " " << p.second.x << " "
+				<< p.second.y;
+		}
+	}
+
+	static MatchInfo deserialize(std::istream& is) {
+		MatchInfo ret;
+		is >> ret.confidence;
+		ret.homo = Homography::deserialize(is);
+		int match_size;
+		is >> match_size;
+
+		ret.match.resize(match_size);
+		REP(i, match_size) {
+			PCC& p = ret.match[i];
+			is >> p.first.x >> p.first.y >> p.second.x >> p.second.y;
+		}
+		return ret;
 	}
 };
 
