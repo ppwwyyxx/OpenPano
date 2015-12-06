@@ -41,8 +41,8 @@ Mat32f Stitcher::build() {
 			assume_linear_pairwise();
 		else
 			pairwise_match();
-		feats.clear(); feats.shrink_to_fit();	// feature are no longer needed in this mode
-		//dump_matchinfo(MATCHINFO_DUMP);
+		feats.clear(); feats.shrink_to_fit();	// free memory for feature
+		//load_matchinfo(MATCHINFO_DUMP);
 		if (DEBUG_OUT) {
 			draw_matchinfo();
 			dump_matchinfo(MATCHINFO_DUMP);
@@ -67,6 +67,7 @@ Mat32f Stitcher::build() {
 void Stitcher::calc_feature() {
 	GuardedTimer tm("calc_feature()");
 	int n = imgs.size();
+	feats.resize(n);
 	// detect feature
 #pragma omp parallel for schedule(dynamic)
 	REP(k, n) {
@@ -82,6 +83,8 @@ void Stitcher::pairwise_match() {
 
 	PairWiseMatcher pwmatcher(feats);
 	size_t n = imgs.size();
+	pairwise_matches.resize(n);
+	for (auto& k : pairwise_matches) k.resize(n);
 
 	vector<pair<int, int>> tasks;
 	REP(i, n) REPL(j, i + 1, n) tasks.emplace_back(i, j);
@@ -318,10 +321,7 @@ Mat32f Stitcher::perspective_correction(const Mat32f& img) {
 
 	LinearBlender blender;
 	blender.add_image(Coor(0,0), Coor(w,h), img, [=](Coor c) -> Vec2D {
-		Vec2D p = inv.trans2d(Vec2D(c.x, c.y));
-		if (!p.isNaN() && (p.x < 0 || p.x >= w || p.y < 0 || p.y >= h))
-			p = Vec2D::NaN();
-		return p;
+		return inv.trans2d(Vec2D(c.x, c.y));
 	});
 	auto ret = Mat32f(h, w, 3);
 	fill(ret, Color::NO);
@@ -383,9 +383,6 @@ Mat32f Stitcher::blend() {
 			Vec2D orig = cur.homo_inv.trans_normalize(homo);
 			if (not ESTIMATE_CAMERA)
 				orig = orig + Vec2D(imgw/2, imgh/2);
-			if (!orig.isNaN() && (orig.x < 0 || orig.x >= imgw
-						|| orig.y < 0 || orig.y >= imgh))
-				orig = Vec2D::NaN();
 			return orig;
 		});
 	}
