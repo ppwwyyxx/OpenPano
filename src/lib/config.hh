@@ -26,7 +26,9 @@ extern bool CROP;
 extern float FOCAL_LENGTH;
 extern bool ESTIMATE_CAMERA;
 extern bool STRAIGHTEN;
+
 extern bool MULTIPASS_BA;
+extern float LM_LAMBDA;
 
 extern int SIFT_WORKING_SIZE;
 extern int NUM_OCTAVE;

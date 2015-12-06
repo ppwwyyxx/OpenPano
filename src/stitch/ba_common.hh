@@ -11,7 +11,6 @@ namespace stitch {
 	const static int NR_PARAM_PER_CAMERA = 6;
 	const static int NR_TERM_PER_MATCH = 2;
 	const static bool SYMBOLIC_DIFF = true;
-	const static double LM_lambda = 0.05;
 	const static int LM_MAX_ITER = 100;
 
 	inline void camera_to_params(const stitch::Camera& c, double* ptr) {
