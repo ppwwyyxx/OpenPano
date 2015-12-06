@@ -13,7 +13,7 @@ struct MatchInfo {
 	// coordinate is half-shifted
 	typedef std::pair<Vec2D, Vec2D> PCC;			// to, from
 	std::vector<PCC> match;
-	float confidence = 0;
+	float confidence = 0;		// negative value indicates number of inlier, for debug
 	Homography homo;
 
 	void reverse() {

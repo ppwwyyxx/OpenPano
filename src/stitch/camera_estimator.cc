@@ -81,6 +81,7 @@ vector<vector<int>> CameraEstimator::max_spanning_tree() {
 		if (m.confidence <= 0) continue;
 		edges.emplace_back(i, j, m.confidence);
 	}
+	if (edges.empty()) error_exit("No connected images are found!");
 	sort(edges.begin(), edges.end());		// large weight to small weight
 	vector<bool> in_tree(n, false);
 	int edge_cnt = 0;
