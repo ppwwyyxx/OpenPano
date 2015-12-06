@@ -127,4 +127,16 @@ class Homography {
 				 << "]";
 			return os;
 		}
+
+		void serialize(std::ostream& os) const {
+			REP(i, 8) os << data[i] << " ";
+			os << data[8];
+		}
+
+		static Homography deserialize(std::istream& is) {
+			Homography ret;
+			REP(i, 9) is >> ret[i];
+			return ret;
+		}
+
 };

@@ -12,7 +12,6 @@
 
 #include "feature/matcher.hh"
 #include "lib/imgproc.hh"
-#include "lib/planedrawer.hh"
 #include "lib/timer.hh"
 #include "blender.hh"
 #include "bundle_adjuster.hh"
@@ -29,6 +28,7 @@ namespace stitch {
 
 // use in development
 const bool DEBUG_OUT = false;
+const char* MATCHINFO_DUMP = "log/matchinfo.txt";
 
 Mat32f Stitcher::build() {
 	calc_feature();
@@ -42,8 +42,12 @@ Mat32f Stitcher::build() {
 			assume_linear_pairwise();
 		else
 			pairwise_match();
-		if (DEBUG_OUT)
-			debug_matchinfo();
+		feats.clear(); feats.shrink_to_fit();	// feature are no longer needed in this mode
+		//dump_matchinfo(MATCHINFO_DUMP);
+		if (DEBUG_OUT) {
+			draw_matchinfo();
+			dump_matchinfo(MATCHINFO_DUMP);
+		}
 		assign_center();
 
 		if (ESTIMATE_CAMERA)
@@ -370,7 +374,8 @@ Mat32f Stitcher::blend() {
 		Mat<Vec2D> orig_pos(h, w, 1);
 
 		REP(i, h) REP(j, w) {
-			Vec2D c((j + top_left.x) * x_per_pixel + proj_min.x, (i + top_left.y) * y_per_pixel + proj_min.y);
+			Vec2D c((j + top_left.x) * x_per_pixel + proj_min.x,
+						  (i + top_left.y) * y_per_pixel + proj_min.y);
 			Vec homo = proj2homo(Vec2D(c.x / refw, c.y / refh));
 			if (not ESTIMATE_CAMERA)  {	// scale and offset is in camera intrinsic
 				homo.x -= 0.5 * homo.z, homo.y -= 0.5 * homo.z;	// shift center for homography
@@ -394,80 +399,5 @@ Mat32f Stitcher::blend() {
 	return ret;
 }
 
-void Stitcher::debug_matchinfo() {
-	int n = imgs.size();
-	REP(i, n) REPL(j, i+1, n) {
-		auto& m = pairwise_matches[j][i];
-		if (m.confidence <= 0) continue;
-		print_debug("Dump matchinfo of %d->%d\n", i, j);
-		list<Mat32f> imagelist{imgs[i], imgs[j]};
-		Mat32f conc = vconcat(imagelist);
-		PlaneDrawer pld(conc);
-		for (auto& p : m.match) {
-			pld.set_rand_color();
-			Coor icoor1 = Coor(p.second.x + imgs[i].width()/2,
-					p.second.y + imgs[i].height()/2);
-			Coor icoor2 = Coor(p.first.x + imgs[j].width()/2,
-					p.first.y + imgs[j].height()/2);
-			pld.circle(icoor1, 7);
-			pld.circle(icoor2 + Coor(0, imgs[i].height()), 7);
-			pld.line(icoor1, icoor2 + Coor(0, imgs[i].height()));
-		}
-		write_rgb(ssprintf("log/match%d-%d.jpg", i, j).c_str(), conc);
-	}
-}
-
-bool Stitcher::max_spanning_tree(vector<vector<int>>& graph) {
-	struct Edge {
-		int v1, v2;
-		float weight;
-		bool have(int v) { return v1 == v || v2 == v; }
-		Edge(int a, int b, float v):v1(a), v2(b), weight(v) {}
-		bool operator < (const Edge& r) const
-		{ return weight > r.weight;	}
-	};
-
-	int n = imgs.size();
-	graph.clear(); graph.resize(n);
-	vector<Edge> edges;
-	REP(i, n) REPL(j, i+1, n) {
-		auto& m = pairwise_matches[i][j];
-		if (m.confidence <= 0) continue;
-		edges.emplace_back(i, j, m.confidence);
-	}
-	sort(edges.begin(), edges.end());		// large weight to small weight
-	vector<bool> in_tree(n, false);
-	int edge_cnt = 0;
-	in_tree[edges.front().v1] = true;
-	while (true) {
-		int old_edge_cnt = edge_cnt;
-		auto itr = begin(edges);
-		for (; itr != edges.end(); ++itr) {
-			Edge& e = *itr;
-			if (in_tree[e.v1] && in_tree[e.v2]) {
-				edges.erase(itr);
-				break;
-			}
-			if (not in_tree[e.v1] && not in_tree[e.v2])
-				continue;
-			in_tree[e.v1] = in_tree[e.v2] = true;
-			graph[e.v1].push_back(e.v2);
-			graph[e.v2].push_back(e.v1);
-			print_debug("MST: Best edge from %d to %d\n", e.v1, e.v2);
-			edges.erase(itr);
-			edge_cnt ++;
-			break;
-		}
-		if (edge_cnt == n - 1) // tree is full
-			break;
-		if (edge_cnt == old_edge_cnt && itr == edges.end())
-			// no edge to add
-			break;
-	}
-	if (edge_cnt != n - 1)
-		error_exit(ssprintf("Found a tree of size %d!=%d, images not connected!",
-				edge_cnt, n - 1));
-	return true;
-}
 
 }	// namepsace stitch
