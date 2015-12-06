@@ -11,19 +11,19 @@ class BlenderBase {
 	public:
 		virtual ~BlenderBase() {}
 
-		// upper_left: position of upper left corner of this image on target
-		// orig_pos: maps each pixel on the target image to scaled
-		//  	coordinate on original image,
-		//  	or NaN if not on target image
-		// img: the original image
-		virtual void add_image(const Coor &upper_left,
-				const Mat<Vec2D> &orig_pos, const Mat32f &img) = 0;
+		// upper_left/bottom_right: position of the two corners of img on result image
+		// coor_func: the function maps from target coordinate to original image coordinate,
+		// or NaN if not inside original image
+		virtual void add_image(
+				const Coor& upper_left,
+				const Coor& bottom_right,
+				const Mat32f &img,
+				std::function<Vec2D(Coor)> coor_func) = 0;
 
 		virtual void run(Mat32f &target) = 0;
 };
 
 class LinearBlender : public BlenderBase {
-	struct WeightedPixel { Color v; float w = 0; };
 	struct Range {
 		Coor min, max;
 		bool contain(int r, int c) const {
@@ -31,20 +31,21 @@ class LinearBlender : public BlenderBase {
 		}
 	};
 
-	struct WeightedImage {
-		Mat<WeightedPixel> mat;
+	struct ImageToBlend {
 		Range range;
-		// We must have: range.max-min == mat.w,h
-		WeightedImage(const Mat<WeightedPixel>& m, const Range& r):
-			mat(m), range(r) {}
+		const Mat32f& img;
+		std::function<Vec2D(Coor)> coor_func;
 	};
-	std::vector<WeightedImage> imgs;
+	std::vector<ImageToBlend> images;
 
 	public:
-		void add_image(const Coor &top_left,
-				const Mat<Vec2D> &orig_pos, const Mat32f &img);
+		void add_image(
+				const Coor& upper_left,
+				const Coor& bottom_right,
+				const Mat32f &img,
+				std::function<Vec2D(Coor)>) override;
 
-		void run(Mat32f &target);
+		void run(Mat32f &target) override;
 
 		// render each component, for debug
 		void debug_run(int w, int h);

@@ -42,7 +42,7 @@ Mat32f Stitcher::build() {
 		else
 			pairwise_match();
 		feats.clear(); feats.shrink_to_fit();	// feature are no longer needed in this mode
-		//load_matchinfo(MATCHINFO_DUMP);
+		//dump_matchinfo(MATCHINFO_DUMP);
 		if (DEBUG_OUT) {
 			draw_matchinfo();
 			dump_matchinfo(MATCHINFO_DUMP);
@@ -287,7 +287,7 @@ float Stitcher::update_h_factor(float nowfactor,
 Mat32f Stitcher::perspective_correction(const Mat32f& img) {
 	int w = img.width(), h = img.height();
 	int refw = imgs[bundle.identity_idx].width(),
-		refh = imgs[bundle.identity_idx].height();
+			refh = imgs[bundle.identity_idx].height();
 	auto homo2proj = bundle.get_homo2proj();
 	Vec2D proj_min = bundle.proj_range.min;
 
@@ -317,13 +317,12 @@ Mat32f Stitcher::perspective_correction(const Mat32f& img) {
 	Homography inv(m);
 
 	LinearBlender blender;
-	Mat<Vec2D> orig_pos(h, w, 1);
-	REP(i, h) REP(j, w) {
-		Vec2D& p = (orig_pos.at(i, j) = inv.trans2d(Vec2D(j, i)));
+	blender.add_image(Coor(0,0), Coor(w,h), img, [=](Coor c) -> Vec2D {
+		Vec2D p = inv.trans2d(Vec2D(c.x, c.y));
 		if (!p.isNaN() && (p.x < 0 || p.x >= w || p.y < 0 || p.y >= h))
 			p = Vec2D::NaN();
-	}
-	blender.add_image(Coor(0, 0), orig_pos, img);
+		return p;
+	});
 	auto ret = Mat32f(h, w, 3);
 	fill(ret, Color::NO);
 	blender.run(ret);
@@ -369,13 +368,13 @@ Mat32f Stitcher::blend() {
 		auto& cur = bundle.component[comp_idx];
 		Coor top_left = scale_coor_to_img_coor(cur.range.min);
 		Coor bottom_right = scale_coor_to_img_coor(cur.range.max);
-		Coor diff = bottom_right - top_left;
-		int w = diff.x, h = diff.y;
-		Mat<Vec2D> orig_pos(h, w, 1);
 
-		REP(i, h) REP(j, w) {
-			Vec2D c((j + top_left.x) * x_per_pixel + proj_min.x,
-						  (i + top_left.y) * y_per_pixel + proj_min.y);
+		int imgw = cur.imgptr->width(),
+				imgh = cur.imgptr->height();
+
+		blender.add_image(top_left, bottom_right, *cur.imgptr, [=,&cur](Coor t) -> Vec2D {
+			Vec2D c(t.x * x_per_pixel + proj_min.x,
+							t.y * y_per_pixel + proj_min.y);
 			Vec homo = proj2homo(Vec2D(c.x / refw, c.y / refh));
 			if (not ESTIMATE_CAMERA)  {	// scale and offset is in camera intrinsic
 				homo.x -= 0.5 * homo.z, homo.y -= 0.5 * homo.z;	// shift center for homography
@@ -383,14 +382,12 @@ Mat32f Stitcher::blend() {
 			}
 			Vec2D orig = cur.homo_inv.trans_normalize(homo);
 			if (not ESTIMATE_CAMERA)
-				orig = orig + Vec2D(cur.imgptr->width()/2, cur.imgptr->height()/2);
-			Vec2D& p = (orig_pos.at(i, j) = orig);
-			if (!p.isNaN() && (p.x < 0 || p.x >= cur.imgptr->width()
-						|| p.y < 0 || p.y >= cur.imgptr->height()))
-				p = Vec2D::NaN();
-		}
-		print_debug("Blending image %zu\n", comp_idx);
-		blender.add_image(top_left, orig_pos, *cur.imgptr);
+				orig = orig + Vec2D(imgw/2, imgh/2);
+			if (!orig.isNaN() && (orig.x < 0 || orig.x >= imgw
+						|| orig.y < 0 || orig.y >= imgh))
+				orig = Vec2D::NaN();
+			return orig;
+		});
 	}
 	//if (DEBUG_OUT) blender.debug_run(size.x, size.y);
 	blender.run(ret);

@@ -12,25 +12,24 @@
 #include "lib/planedrawer.hh"
 
 void LinearBlender::debug_run(int w, int h) {
-	REP(k, imgs.size()) {
+	REP(k, images.size()) {
+		auto& img = images[k];
 		Mat32f target(h, w, 3);
 		fill(target, Color::NO);
 		for (int i = 0; i < target.height(); i ++) {
 			float *row = target.ptr(i);
 			for (int j = 0; j < target.width(); j ++) {
 				Color isum = Color::BLACK;
-				float wsum = 0;
-				auto& img = imgs[k];
 				if (img.range.contain(i, j)) {
-					auto &w = img.mat.at(i - img.range.min.y,
-							j - img.range.min.x);
-					if (w.w > 0) {
-						isum += w.v * w.w;
-						wsum += w.w;
+					Vec2D img_coor = img.coor_func(Coor(j, i));
+					if (!img_coor.isNaN()) {
+						float r = img_coor.y, c = img_coor.x;
+						if (!is_edge_color(img.img, r, c)){
+							isum = interpolate(img.img, r, c);
+						}
 					}
 				}
-				if (wsum)	// keep original Color::NO
-					(isum / wsum).write_to(row + j * 3);
+				isum.write_to(row + j * 3);
 			}
 		}
 		print_debug("Debug rendering %02lu image\n", k);

@@ -34,7 +34,7 @@ class IncrementalBundleAdjuster {
 		std::vector<Camera>& result_cameras;
 
 		struct MatchPair {
-			int from, to;
+			int from, to;		// the original index
 			const MatchInfo& m;
 			MatchPair(int i, int j, const MatchInfo& m):
 				from(i), to(j), m(m){}
@@ -44,11 +44,12 @@ class IncrementalBundleAdjuster {
 		int inlier_threshold = std::numeric_limits<int>::max();
 		std::vector<MatchPair> match_pairs;
 
+		// original indices that have appeared so far
 		std::set<int> idx_added;
 
-		// map from original image index to idx added
+		// map from original image index to index added
 		std::vector<int> index_map;
-		// given a match pair idx, return the error term index
+		// map from index of matched pair to the index of its first error term
 		std::vector<int> match_cnt_prefix_sum;
 
 		inline void update_index_map() {
@@ -57,12 +58,13 @@ class IncrementalBundleAdjuster {
 				index_map[i] = cnt++;
 		}
 
+		// statistics of error
 		struct ErrorStats {
 			std::vector<double> residuals;
-			double max, avg, cost;
+			double max, avg;
 			ErrorStats(int size): residuals(size) {}
 
-			int num_terms() const { return residuals.size(); }
+			inline int num_terms() const { return residuals.size(); }
 
 			void update_stats(int inlier_threshold) {
 				auto error_func = [&](double diff) -> double {
@@ -83,6 +85,8 @@ class IncrementalBundleAdjuster {
 			}
 		};
 
+		// state of all parameters estimated so far
+		// could be in the form of either cameras or params
 		struct ParamState {
 			std::vector<Camera> cameras;
 			std::vector<double> params;
@@ -95,9 +99,12 @@ class IncrementalBundleAdjuster {
 				return params;
 			}
 
+			// change a param, and its corresponding camera
 			void mutate_param(int param_idx, double new_val);
 		};
 
+
+		/// Optimization routines:
 		ErrorStats calcError(ParamState& state);
 
 		Eigen::VectorXd get_param_update(
