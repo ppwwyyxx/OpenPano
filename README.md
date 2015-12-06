@@ -55,7 +55,7 @@ it might be better to resize your images rather than tune the parameters.
 $ ./image-stitching <file1> <file2> ...
 ```
 
-The output file is ``out.png``.
+The default output file is ``out.jpg``.
 
 Before dealing with very large images (4 megapixels or more), it's better to resize them. (I might add this feature in the future)
 

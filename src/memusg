@@ -4,6 +4,8 @@
 
 set -um
 
+. ./env.sh
+
 TS=ts
 which ts >/dev/null 2>&1 || { echo "Command 'ts' not found, please install moreutils to have better output."; TS=cat; }
 

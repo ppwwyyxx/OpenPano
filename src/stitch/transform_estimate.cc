@@ -20,7 +20,8 @@ namespace stitch {
 
 TransformEstimation::TransformEstimation(const feature::MatchData& m_match,
 		const std::vector<feature::Descriptor>& m_f1,
-		const std::vector<feature::Descriptor>& m_f2):
+		const std::vector<feature::Descriptor>& m_f2,
+		const Shape2D& shape1):
 	match(m_match), f1(m_f1), f2(m_f2),
 	f2_homo_coor(3, match.size())
 {
@@ -36,6 +37,7 @@ TransformEstimation::TransformEstimation(const feature::MatchData& m_match,
 		f2_homo_coor.at(1, i) = old.y;
 		f2_homo_coor.at(2, i) = 1;
 	}
+	ransac_inlier_thres = (shape1.w + shape1.h) * 0.5 / 800 * RANSAC_INLIER_THRES;
 }
 
 bool TransformEstimation::get_transform(MatchInfo* info) {
@@ -95,7 +97,7 @@ Matrix TransformEstimation::calc_transform(const vector<int>& matches) const {
 }
 
 vector<int> TransformEstimation::get_inliers(const Matrix& trans) const {
-	static double INLIER_DIST = RANSAC_INLIER_THRES * RANSAC_INLIER_THRES;
+	float INLIER_DIST = sqr(ransac_inlier_thres);
 	TotalTimer tm("get_inlier");
 	vector<int> ret;
 	int n = match.size();
