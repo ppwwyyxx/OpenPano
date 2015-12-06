@@ -190,6 +190,7 @@ void init_config() {
 	FOCAL_LENGTH = Config.get("FOCAL_LENGTH");
 	MULTIPASS_BA = Config.get("MULTIPASS_BA");
 
+	SIFT_WORKING_SIZE = Config.get("SIFT_WORKING_SIZE");
 	NUM_OCTAVE = Config.get("NUM_OCTAVE");
 	NUM_SCALE = Config.get("NUM_SCALE");
 	SCALE_FACTOR = Config.get("SCALE_FACTOR");

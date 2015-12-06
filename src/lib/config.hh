@@ -28,6 +28,7 @@ extern bool ESTIMATE_CAMERA;
 extern bool STRAIGHTEN;
 extern bool MULTIPASS_BA;
 
+extern int SIFT_WORKING_SIZE;
 extern int NUM_OCTAVE;
 extern int NUM_SCALE;
 extern float SCALE_FACTOR;
