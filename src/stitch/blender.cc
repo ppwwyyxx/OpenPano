@@ -8,32 +8,12 @@
 #include "lib/timer.hh"
 using namespace std;
 
-void LinearBlender::add_image(const Coor &top_left,
-		const Mat<Vec2D> &orig_pos, const Mat32f &img) {
-	TotalTimer tm("blender_add");
-	int w = orig_pos.width(), h = orig_pos.height();
-	Mat<WeightedPixel> mat(h, w, 1);
-	REP(i, h) {
-		const Vec2D* orig_row = orig_pos.ptr(i);
-		WeightedPixel* mat_row = mat.ptr(i);
-		REP(j, w) {
-			const Vec2D& p = *(orig_row + j);	// coordinate on original image
-			if (!p.isNaN()) {
-				float r = p.y, c = p.x;
-				// since p < 1, r and c should be valid coor
-				// TODO speedup. edge & interpolate are redundant
-				if (!is_edge_color(img, r, c)){
-					WeightedPixel* t = mat_row + j;
-					t->v = interpolate(img, r, c);
-					// t.w = (0.5 - fabs(p.x / img.width() - 0.5)) * (0.5 - fabs(p.y / img.height() - 0.5));
-					// x-axis linear interpolation
-					t->w = 0.5 - fabs(p.x / img.width() - 0.5);
-				}
-			}
-		}
-	}
-	imgs.emplace_back(mat,
-			Range{top_left, top_left + Coor(w, h)});
+void LinearBlender::add_image(
+			const Coor& upper_left,
+			const Coor& bottom_right,
+			const Mat32f &img,
+			std::function<Vec2D(Coor)> coor_func) {
+	images.emplace_back(ImageToBlend{Range{upper_left, bottom_right}, img, coor_func});
 }
 
 void LinearBlender::run(Mat32f &target) {
@@ -43,13 +23,20 @@ void LinearBlender::run(Mat32f &target) {
 		for (int j = 0; j < target.width(); j ++) {
 			Color isum = Color::BLACK;
 			float wsum = 0;
-			for (auto &img: imgs)
+			for (auto& img : images)
 				if (img.range.contain(i, j)) {
-					auto &w = img.mat.at(i - img.range.min.y,
-							j - img.range.min.x);
-					if (w.w > 0) {
-						isum += w.v * w.w;
-						wsum += w.w;
+					Vec2D img_coor = img.coor_func(Coor(j, i));
+					if (!img_coor.isNaN()) {
+						float r = img_coor.y, c = img_coor.x;
+						// TODO speedup. edge & interpolate are redundant
+						if (!is_edge_color(img.img, r, c)){
+							auto color = interpolate(img.img, r, c);
+							// t.w = (0.5 - fabs(p.x / img.width() - 0.5)) * (0.5 - fabs(p.y / img.height() - 0.5));
+							// x-axis linear interpolation
+							float w = 0.5 - fabs(c / img.img.width() - 0.5);
+							isum += color * w;
+							wsum += w;
+						}
 					}
 				}
 			if (wsum)	// keep original Color::NO

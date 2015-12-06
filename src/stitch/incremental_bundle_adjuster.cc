@@ -1,9 +1,7 @@
 //File: incremental_bundle_adjuster.cc
-//Date:
 //Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "incremental_bundle_adjuster.hh"
-#include "ba_common.hh"
 
 #include <Eigen/Dense>
 #include <cmath>
@@ -18,58 +16,80 @@ using namespace stitch;
 using namespace config;
 
 namespace {
-inline Homography cross_product_matrix(double x, double y, double z) {
-	return {(const double[]){0.0, -z, y, z, 0, -x, -y, x, 0}};
-}
+	const static int NR_PARAM_PER_CAMERA = 6;
+	const static int NR_TERM_PER_MATCH = 2;
+	const static bool SYMBOLIC_DIFF = true;
+	const static int LM_MAX_ITER = 100;
 
-// See: http://arxiv.org/pdf/1312.0788.pdf
-// A compact formula for the derivative of a 3-D rotation in exponential coordinates
-// return 3 matrix, each is dR / dvi,
-// where vi is the component of the euler-vector of this R
-std::array<Homography, 3> dRdvi(const Homography& R) {
-	double v[3];
-	stitch::Camera::rotation_to_angle(R, v[0], v[1], v[2]);
-	Vec vvec{v[0], v[1], v[2]};
-	double vsqr = vvec.sqr();
-	if (vsqr < GEO_EPS_SQR)
-		return std::array<Homography, 3>{
-				cross_product_matrix(1,0,0),
-				cross_product_matrix(0,1,0),
-				cross_product_matrix(0,0,1)};
-	Homography r = cross_product_matrix(v[0], v[1], v[2]);
-	std::array<Homography, 3> ret{r, r, r};
-	REP(i, 3) ret[i].mult(v[i]);
-
-	Vec I_R_e{1-R.data[0], -R.data[3], -R.data[6]};
-	I_R_e = vvec.cross(I_R_e);
-	ret[0] += cross_product_matrix(I_R_e.x, I_R_e.y, I_R_e.z);
-	I_R_e = Vec{-R.data[1], 1-R.data[4], -R.data[7]};
-	I_R_e = vvec.cross(I_R_e);
-	ret[1] += cross_product_matrix(I_R_e.x, I_R_e.y, I_R_e.z);
-	I_R_e = Vec{-R.data[2], -R.data[5], 1-R.data[8]};
-	I_R_e = vvec.cross(I_R_e);
-	ret[2] += cross_product_matrix(I_R_e.x, I_R_e.y, I_R_e.z);
-
-	REP(i, 3) {
-		ret[i].mult(1.0 / vsqr);
-		ret[i] = ret[i] * R;
+	inline void camera_to_params(const Camera& c, double* ptr) {
+		ptr[0] = c.focal;
+		ptr[1] = c.ppx;
+		ptr[2] = c.ppy;
+		Camera::rotation_to_angle(c.R, ptr[3], ptr[4], ptr[5]);
 	}
-	return ret;
-}
 
-// dK/dfocal = dKdfocal
-static const Homography dKdfocal((const double[]){
-		1.0, 0.0, 0.0,
-		0.0, 1.0, 0.0,
-		0.0, 0.0, 0.0});
-static const Homography dKdppx((const double[]){
-		0.0, 0.0, 1.0,
-		0.0, 0.0, 0.0,
-		0.0, 0.0, 0.0});
-static const Homography dKdppy((const double[]){
-		0.0, 0.0, 0.0,
-		0.0, 0.0, 1.0,
-		0.0, 0.0, 0.0});
+	inline void params_to_camera(const double* ptr, Camera& c) {
+		c.focal = ptr[0];
+		c.ppx = ptr[1];
+		c.ppy = ptr[2];
+		c.aspect = 1;	// keep it 1
+		Camera::angle_to_rotation(ptr[3], ptr[4], ptr[5], c.R);
+	}
+
+	inline Homography cross_product_matrix(double x, double y, double z) {
+		return {(const double[]){ 0 , -z, y,
+															z , 0 , -x,
+															-y, x , 0}};
+	}
+
+	// See: http://arxiv.org/pdf/1312.0788.pdf
+	// A compact formula for the derivative of a 3-D rotation in exponential coordinates
+	// return 3 matrix, each is dR / dvi,
+	// where vi is the component of the euler-vector of this R
+	std::array<Homography, 3> dRdvi(const Homography& R) {
+		double v[3];
+		Camera::rotation_to_angle(R, v[0], v[1], v[2]);
+		Vec vvec{v[0], v[1], v[2]};
+		double vsqr = vvec.sqr();
+		if (vsqr < GEO_EPS_SQR)
+			return std::array<Homography, 3>{
+					cross_product_matrix(1,0,0),
+					cross_product_matrix(0,1,0),
+					cross_product_matrix(0,0,1)};
+		Homography r = cross_product_matrix(v[0], v[1], v[2]);
+		std::array<Homography, 3> ret{r, r, r};
+		REP(i, 3) ret[i].mult(v[i]);
+
+		Vec I_R_e{1-R.data[0], -R.data[3], -R.data[6]};
+		I_R_e = vvec.cross(I_R_e);
+		ret[0] += cross_product_matrix(I_R_e.x, I_R_e.y, I_R_e.z);
+		I_R_e = Vec{-R.data[1], 1-R.data[4], -R.data[7]};
+		I_R_e = vvec.cross(I_R_e);
+		ret[1] += cross_product_matrix(I_R_e.x, I_R_e.y, I_R_e.z);
+		I_R_e = Vec{-R.data[2], -R.data[5], 1-R.data[8]};
+		I_R_e = vvec.cross(I_R_e);
+		ret[2] += cross_product_matrix(I_R_e.x, I_R_e.y, I_R_e.z);
+
+		REP(i, 3) {
+			ret[i].mult(1.0 / vsqr);
+			ret[i] = ret[i] * R;
+		}
+		return ret;
+	}
+
+	// dK/dfocal = dKdfocal
+	static const Homography dKdfocal((const double[]){
+			1.0, 0.0, 0.0,
+			0.0, 1.0, 0.0,
+			0.0, 0.0, 0.0});
+	static const Homography dKdppx((const double[]){
+			0.0, 0.0, 1.0,
+			0.0, 0.0, 0.0,
+			0.0, 0.0, 0.0});
+	static const Homography dKdppy((const double[]){
+			0.0, 0.0, 0.0,
+			0.0, 0.0, 1.0,
+			0.0, 0.0, 0.0});
 
 }	// namespace
 
@@ -202,7 +222,7 @@ namespace stitch {
 				state.mutate_param(param_idx, val);
 
 				// calc deriv
-				REP(k, err1.residuals.size())
+				REP(k, err1.num_terms())
 					J(k, param_idx) = (err1.residuals[k] - err2.residuals[k]) / (2 * step);
 			}
 		}
@@ -229,7 +249,7 @@ namespace stitch {
 			int param_idx_from = from * NR_PARAM_PER_CAMERA,
 					param_idx_to = to * NR_PARAM_PER_CAMERA;
 			const auto &c_from = cameras[from],
-								 &c_to = cameras[to];
+						&c_to = cameras[to];
 			auto toKinv = c_to.Kinv();
 			auto toRinv = c_to.Rinv();
 			const auto& dRfromdvi = all_dRdvi[from];
@@ -250,7 +270,7 @@ namespace stitch {
 					// d(point 2d coor) / d(variable) = d(p)/d(homo) * d(homo)/d(variable)
 					Vec2D dpdv{
 						dhdv.x * hz_inv - dhdv.z * homo.x / hz_sqr,
-						dhdv.y * hz_inv - dhdv.z * homo.y / hz_sqr};
+							dhdv.y * hz_inv - dhdv.z * homo.y / hz_sqr};
 					return dpdv * (-1);
 				};
 				array<Vec2D, NR_PARAM_PER_CAMERA> dfrom, dto;
