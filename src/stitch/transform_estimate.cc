@@ -54,13 +54,16 @@ bool TransformEstimation::get_transform(MatchInfo* info) {
 	int maxinlierscnt = -1;
 	Matrix best_transform(3, 3);
 
+	random_device rd;
+	mt19937 rng(rd());
+
 	for (int K = RANSAC_ITERATIONS; K --;) {
 		inliers.clear();
 		selected.clear();
 		REP(_, nr_match_used) {
 			int random;
 			do {
-				random = rand() % nr_match;
+				random = rng() % nr_match;
 			} while (selected.find(random) != selected.end());
 			selected.insert(random);
 			inliers.push_back(random);
@@ -74,7 +77,7 @@ bool TransformEstimation::get_transform(MatchInfo* info) {
 	}
 	inliers = get_inliers(best_transform);
 	if (inliers.size() <= 8) {
-		//info->confidence = inliers.size();	// debug
+		info->confidence = -(float)inliers.size();	// debug
 		return false;
 	}
 	best_transform = calc_transform(inliers);

@@ -51,8 +51,6 @@ extern int DESC_HIST_SCALE_FACTOR;
 extern int DESC_INT_FACTOR;
 
 extern float MATCH_REJECT_NEXT_RATIO;
-extern int MATCH_MIN_SIZE;
-extern float CONNECTED_THRES;
 
 extern int RANSAC_ITERATIONS;
 extern double RANSAC_INLIER_THRES;

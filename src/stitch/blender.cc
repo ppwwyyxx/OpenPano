@@ -82,6 +82,6 @@ void LinearBlender::debug_run(int w, int h) {
 			}
 		}
 		print_debug("Debug rendering %02lu image\n", k);
-		write_rgb(ssprintf("log/blend-%02lu.png", k).c_str(), target);
+		write_rgb(ssprintf("log/blend-%02lu.jpg", k).c_str(), target);
 	}
 }

@@ -50,7 +50,7 @@ Mat32f Stitcher::build() {
 			estimate_camera();
 		else
 			build_bundle_linear_simple();		// naive mode
-		// TODO determine projection method
+		// TODO automatically determine projection method
 		if (ESTIMATE_CAMERA)
 			bundle.proj_method = ConnectedImages::ProjectionMethod::cylindrical;
 		else
@@ -92,7 +92,7 @@ void Stitcher::pairwise_match() {
 		MatchInfo info;
 		bool succ = transf.get_transform(&info);
 		if (not succ) {
-			//print_debug("Only %f match from %lu to %lu\n", info.confidence, i, j);
+			//print_debug("Only %d inlier from %d to %d\n", -(int)info.confidence, i, j);
 			continue;
 		}
 		auto inv = info.homo.inverse(&succ);
@@ -155,6 +155,7 @@ void Stitcher::estimate_camera() {
 
 
 void Stitcher::build_bundle_linear_simple() {
+	// TODO bfs over pairwise to build bundle
 	// assume pano pairwise
 	int n = imgs.size(), mid = bundle.identity_idx;
 	bundle.component[mid].homo = Homography::I();
@@ -386,10 +387,9 @@ Mat32f Stitcher::blend() {
 		print_debug("Blending image %zu\n", comp_idx);
 		blender.add_image(top_left, orig_pos, *cur.imgptr);
 	}
-	if (DEBUG_OUT)
-		blender.debug_run(size.x, size.y);
+	//if (DEBUG_OUT) blender.debug_run(size.x, size.y);
 	blender.run(ret);
-	if (CYLINDER or TRANS)
+	if (CYLINDER)
 		return perspective_correction(ret);
 	return ret;
 }
@@ -413,7 +413,7 @@ void Stitcher::debug_matchinfo() {
 			pld.circle(icoor2 + Coor(0, imgs[i].height()), 7);
 			pld.line(icoor1, icoor2 + Coor(0, imgs[i].height()));
 		}
-		write_rgb(ssprintf("log/match%d-%d.png", i, j).c_str(), conc);
+		write_rgb(ssprintf("log/match%d-%d.jpg", i, j).c_str(), conc);
 	}
 }
 

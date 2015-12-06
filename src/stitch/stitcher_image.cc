@@ -15,10 +15,6 @@ void ConnectedImages::calc_inverse_homo() {
 }
 
 void ConnectedImages::update_proj_range() {
-	/*
-	 *static Vec2D corner[4] = {
-	 *  Vec2D(-0.5, -0.5), Vec2D(-0.5, 0.5), Vec2D(0.5, -0.5), Vec2D(0.5, 0.5)};
-	 */
 	vector<Vec2D> corner;
 	REP(i, 1000)
 		REP(j, 1000)
