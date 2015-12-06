@@ -18,7 +18,7 @@ void __m_assert_check__(bool val, const char *expr, const char *file, const char
 		return;
 	c_fprintf(COLOR_RED, stderr, "assertion \"%s\" failed, in %s, (%s:%d)\n",
 			expr, func, file, line);
-	abort();
+	exit(1);
 }
 
 

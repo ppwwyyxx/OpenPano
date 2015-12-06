@@ -45,8 +45,10 @@ vector<Camera> CameraEstimator::estimate() {
 					iba.add_match(i, j, m);
 			}
 			// TODO optimize after every k images
-			if (MULTIPASS_BA)	// optimize after adding every image
+			if (MULTIPASS_BA)	{ // optimize after adding every image
+				print_debug("Adding image %d to BA\n", i);
 				iba.optimize();
+			}
 		}
 		if (not MULTIPASS_BA)
 			iba.optimize();

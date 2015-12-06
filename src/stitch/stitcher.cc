@@ -360,7 +360,8 @@ Mat32f Stitcher::blend() {
 	fill(ret, Color::NO);
 
 	LinearBlender blender;
-	for (auto& cur : bundle.component) {
+	REP(comp_idx, bundle.component.size()) {
+		auto& cur = bundle.component[comp_idx];
 		Coor top_left = scale_coor_to_img_coor(cur.range.min);
 		Coor bottom_right = scale_coor_to_img_coor(cur.range.max);
 		Coor diff = bottom_right - top_left;
@@ -382,6 +383,7 @@ Mat32f Stitcher::blend() {
 						|| p.y < 0 || p.y >= cur.imgptr->height()))
 				p = Vec2D::NaN();
 		}
+		print_debug("Blending image %zu\n", comp_idx);
 		blender.add_image(top_left, orig_pos, *cur.imgptr);
 	}
 	if (DEBUG_OUT)
