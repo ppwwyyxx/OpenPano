@@ -10,10 +10,12 @@
 #include <memory>
 
 #include "camera.hh"
-#include "lib/timer.hh"
 #include "match_info.hh"
+#include "lib/config.hh"
+#include "lib/timer.hh"
 using namespace std;
 using namespace stitch;
+using namespace config;
 
 namespace {
 inline Homography cross_product_matrix(double x, double y, double z) {
@@ -96,8 +98,9 @@ namespace stitch {
 		int itr = 0;
 		int nr_non_decrease = 0;// number of non-decreasing iteration
 		inlier_threshold = std::numeric_limits<int>::max();
+		float lambda = LM_LAMBDA;
 		while (itr++ < LM_MAX_ITER) {
-			auto update = get_param_update(state, err_stat.residuals);
+			auto update = get_param_update(state, err_stat.residuals, lambda);
 
 			ParamState new_state;
 			new_state.params = state.get_params();
@@ -106,14 +109,14 @@ namespace stitch {
 			err_stat = calcError(new_state);
 			print_debug("BA: average err: %lf, max: %lf\n", err_stat.avg, err_stat.max);
 
-			if (err_stat.avg >= best_err - 1e-4)
+			if (err_stat.avg >= best_err - 1e-3)
 				nr_non_decrease ++;
 			else {
 				nr_non_decrease = 0;
 				best_err = err_stat.avg;
 				state = move(new_state);
 			}
-			if (nr_non_decrease > 3)
+			if (nr_non_decrease > 5)
 				break;
 		}
 		print_debug("BA: Error %lf after %d iterations\n", best_err, itr);
@@ -153,7 +156,7 @@ namespace stitch {
 	}
 
 	Eigen::VectorXd IncrementalBundleAdjuster::get_param_update(
-			ParamState& state, const vector<double>& residual) {
+			ParamState& state, const vector<double>& residual, float lambda) {
 		TotalTimer tm("get_param_update");
 		using namespace Eigen;
 		int nr_img = idx_added.size();
@@ -170,8 +173,14 @@ namespace stitch {
 		Map<const VectorXd> err_vec(residual.data(), NR_TERM_PER_MATCH * nr_pointwise_match);
 		auto b = J.transpose() * err_vec;
 
-		REP(i, nr_img * NR_PARAM_PER_CAMERA)
-			JtJ(i, i) += LM_lambda;	// TODO use different lambda for different param?
+		REP(i, nr_img * NR_PARAM_PER_CAMERA) {
+			// use different lambda for different param? from Lowe.
+			if (i % NR_PARAM_PER_CAMERA >= 3) {
+				JtJ(i, i) += lambda;
+			} else {
+				JtJ(i, i) += lambda / 10;
+			}
+		}
 		return JtJ.jacobiSvd(ComputeThinU | ComputeThinV).solve(b);
 
 	}

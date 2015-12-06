@@ -101,7 +101,7 @@ class IncrementalBundleAdjuster {
 		ErrorStats calcError(ParamState& state);
 
 		Eigen::VectorXd get_param_update(
-				ParamState& state, const std::vector<double>& residual);
+				ParamState& state, const std::vector<double>& residual, float);
 
 		void calcJacobianNumerical(Eigen::MatrixXd& J, ParamState& state);
 

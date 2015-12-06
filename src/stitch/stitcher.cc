@@ -14,7 +14,6 @@
 #include "lib/imgproc.hh"
 #include "lib/timer.hh"
 #include "blender.hh"
-#include "bundle_adjuster.hh"
 #include "match_info.hh"
 #include "transform_estimate.hh"
 #include "camera_estimator.hh"
@@ -27,8 +26,8 @@ using namespace config;
 namespace stitch {
 
 // use in development
-const bool DEBUG_OUT = false;
-const char* MATCHINFO_DUMP = "log/matchinfo.txt";
+const static bool DEBUG_OUT = false;
+const static char* MATCHINFO_DUMP = "log/matchinfo.txt";
 
 Mat32f Stitcher::build() {
 	calc_feature();
@@ -43,7 +42,7 @@ Mat32f Stitcher::build() {
 		else
 			pairwise_match();
 		feats.clear(); feats.shrink_to_fit();	// feature are no longer needed in this mode
-		//dump_matchinfo(MATCHINFO_DUMP);
+		//load_matchinfo(MATCHINFO_DUMP);
 		if (DEBUG_OUT) {
 			draw_matchinfo();
 			dump_matchinfo(MATCHINFO_DUMP);
@@ -346,7 +345,8 @@ Mat32f Stitcher::blend() {
 	Vec2D proj_min = bundle.proj_range.min;
 	double x_len = bundle.proj_range.max.x - proj_min.x,
 		   y_len = bundle.proj_range.max.y - proj_min.y,
-		   x_per_pixel = id_img_range.x / (ESTIMATE_CAMERA ? refh : refw),	// huh?
+			 // TODO this gives better aspect ratio. why?
+		   x_per_pixel = id_img_range.x / (bundle.proj_method == ConnectedImages::ProjectionMethod::flat ? refw : refh),
 		   y_per_pixel = id_img_range.y / refh,
 		   target_width = x_len / x_per_pixel,
 		   target_height = y_len / y_per_pixel;

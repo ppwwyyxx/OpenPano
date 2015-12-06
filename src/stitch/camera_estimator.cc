@@ -10,7 +10,6 @@
 #include "lib/utils.hh"
 #include "lib/config.hh"
 #include "camera.hh"
-#include "bundle_adjuster.hh"
 #include "incremental_bundle_adjuster.hh"
 
 using namespace std;
@@ -38,6 +37,7 @@ vector<Camera> CameraEstimator::estimate() {
 	{
 		GuardedTimer tm("IncrementalBundleAdjuster");
 		IncrementalBundleAdjuster iba(shapes, cameras);
+		// TODO add by certain order
 		REP(i, n) {
 			REPL(j, i+1, n) {
 				auto& m = matches[j][i];
@@ -53,11 +53,6 @@ vector<Camera> CameraEstimator::estimate() {
 		if (not MULTIPASS_BA)
 			iba.optimize();
 	}
-
-	/*
-	 *BundleAdjuster ba(shapes, matches);	// old BA
-	 *ba.estimate(cameras);
-	 */
 
 	if (STRAIGHTEN) Camera::straighten(cameras);
 	return cameras;

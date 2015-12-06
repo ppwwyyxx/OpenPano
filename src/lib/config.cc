@@ -38,7 +38,9 @@ bool CROP = true;
 float FOCAL_LENGTH;
 bool ESTIMATE_CAMERA;
 bool STRAIGHTEN;
+
 bool MULTIPASS_BA;
+float LM_LAMBDA;
 
 int SIFT_WORKING_SIZE;
 int NUM_OCTAVE;

@@ -190,6 +190,7 @@ void init_config() {
 	STRAIGHTEN = Config.get("STRAIGHTEN");
 	FOCAL_LENGTH = Config.get("FOCAL_LENGTH");
 	MULTIPASS_BA = Config.get("MULTIPASS_BA");
+	LM_LAMBDA = Config.get("LM_LAMBDA");
 
 	SIFT_WORKING_SIZE = Config.get("SIFT_WORKING_SIZE");
 	NUM_OCTAVE = Config.get("NUM_OCTAVE");
