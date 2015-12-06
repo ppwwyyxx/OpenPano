@@ -120,7 +120,7 @@ void inlier(const char* f1, const char* f2) {
 	auto ret = match.match();
 	print_debug("Match size: %d\n", ret.size());
 
-	TransformEstimation est(ret, feat1, feat2);
+	TransformEstimation est(ret, feat1, feat2, {pic1.width(), pic1.height()});
 	MatchInfo info;
 	est.get_transform(&info);
 	print_debug("Inlier size: %lu, conf=%lf\n", info.match.size(), info.confidence);
@@ -156,7 +156,8 @@ void work(int argc, char* argv[]) {
 	Mat32f res = p.build();
 	if (res.width() * res.height() > 12000000) {
 		print_debug("result too large, resizing for faster output...\n");
-		Mat32f dst(res.height() * 0.5, res.width() * 0.5, 3);
+		float ratio = max(res.width(), res.height()) * 1.0f / 8000;
+		Mat32f dst(res.height() * 1.0f / ratio, res.width() * 1.0f / ratio, 3);
 		resize(res, dst);
 		res = dst;
 	}
@@ -164,7 +165,7 @@ void work(int argc, char* argv[]) {
 	if (CROP) res = crop(res);
 	{
 		GuardedTimer tm("Writing image");
-		write_rgb("out.png", res);
+		write_rgb("out.jpg", res);
 	}
 }
 
