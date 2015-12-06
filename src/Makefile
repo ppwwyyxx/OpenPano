@@ -18,7 +18,7 @@ OPTFLAGS ?= -O3 -msse3 #-march=native
 CXXFLAGS = $(INCLUDE_DIR) -fopenmp -Wall -Wextra
 CXXFLAGS += $(DEFINES) -std=c++1y $(OPTFLAGS)
 
-LDFLAGS = -fopenmp $(OPTFLAGS)
+LDFLAGS += -fopenmp $(OPTFLAGS)
 #LDFLAGS += $(shell pkg-config $(LIBS) --libs)
 LDFLAGS += -ljpeg
 

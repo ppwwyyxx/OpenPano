@@ -68,7 +68,7 @@ void test_orientation(const char* fname) {
 }
 
 // draw feature and their match
-void match(const char* f1, const char* f2) {
+void test_match(const char* f1, const char* f2) {
 	list<Mat32f> imagelist;
 	Mat32f pic1 = read_img(f1);
 	Mat32f pic2 = read_img(f2);
@@ -101,7 +101,7 @@ void match(const char* f1, const char* f2) {
 }
 
 // draw inliers of the estimated homography
-void inlier(const char* f1, const char* f2) {
+void test_inlier(const char* f1, const char* f2) {
 	list<Mat32f> imagelist;
 	Mat32f pic1 = read_img(f1);
 	Mat32f pic2 = read_img(f2);
@@ -267,13 +267,14 @@ int main(int argc, char* argv[]) {
 	else if (command == "orientation")
 		test_orientation(argv[2]);
 	else if (command == "match")
-		match(argv[2], argv[3]);
+		test_match(argv[2], argv[3]);
 	else if (command == "inlier")
-		inlier(argv[2], argv[3]);
+		test_inlier(argv[2], argv[3]);
 	else if (command == "warp")
 		test_warp(argc, argv);
 	else if (command == "planet")
 		planet(argv[2]);
 	else
+		// the real routine
 		work(argc, argv);
 }
