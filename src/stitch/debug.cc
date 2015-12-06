@@ -12,6 +12,7 @@
 #include "lib/planedrawer.hh"
 
 void LinearBlender::debug_run(int w, int h) {
+#pragma omp parallel for schedule(dynamic)
 	REP(k, images.size()) {
 		auto& img = images[k];
 		Mat32f target(h, w, 3);
@@ -21,12 +22,11 @@ void LinearBlender::debug_run(int w, int h) {
 			for (int j = 0; j < target.width(); j ++) {
 				Color isum = Color::BLACK;
 				if (img.range.contain(i, j)) {
-					Vec2D img_coor = img.coor_func(Coor(j, i));
+					Vec2D img_coor = img.map_coor(i, j);
 					if (!img_coor.isNaN()) {
 						float r = img_coor.y, c = img_coor.x;
-						if (!is_edge_color(img.img, r, c)){
+						if (!is_edge_color(img.img, r, c))
 							isum = interpolate(img.img, r, c);
-						}
 					}
 				}
 				isum.write_to(row + j * 3);

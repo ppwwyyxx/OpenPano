@@ -12,8 +12,7 @@ class BlenderBase {
 		virtual ~BlenderBase() {}
 
 		// upper_left/bottom_right: position of the two corners of img on result image
-		// coor_func: the function maps from target coordinate to original image coordinate,
-		// or NaN if not inside original image
+		// coor_func: the function maps from target coordinate to original image coordinate.
 		virtual void add_image(
 				const Coor& upper_left,
 				const Coor& bottom_right,
@@ -35,6 +34,13 @@ class LinearBlender : public BlenderBase {
 		Range range;
 		const Mat32f& img;
 		std::function<Vec2D(Coor)> coor_func;
+
+		Vec2D map_coor(int r, int c) const {
+			auto ret = coor_func(Coor(c, r));
+			if (ret.x < 0 || ret.x >= img.width() || ret.y < 0 || ret.y >= img.height())
+				ret = Vec2D::NaN();
+			return ret;
+		}
 	};
 	std::vector<ImageToBlend> images;
 
