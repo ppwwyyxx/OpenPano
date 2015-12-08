@@ -6,6 +6,7 @@
 #include "lib/timer.hh"
 #include "dog.hh"
 using namespace std;
+using namespace config;
 
 namespace {
 	const int featlen = DESC_HIST_WIDTH * DESC_HIST_WIDTH * DESC_HIST_BIN_NUM;

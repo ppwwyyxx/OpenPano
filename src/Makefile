@@ -12,14 +12,14 @@ DEFINES = -DDEBUG
 OPTFLAGS ?= -O3 -msse3 #-march=native
 #OPTFLAGS = -g -O0
 
-LIBS = libpng
-INCLUDE_DIR += $(shell pkg-config --cflags $(LIBS))
+#LIBS =
+#INCLUDE_DIR += $(shell pkg-config --cflags $(LIBS))
 
 CXXFLAGS = $(INCLUDE_DIR) -fopenmp -Wall -Wextra
-CXXFLAGS += $(DEFINES) -std=c++11 $(OPTFLAGS)
+CXXFLAGS += $(DEFINES) -std=c++1y $(OPTFLAGS)
 
-LDFLAGS = -fopenmp $(OPTFLAGS)
-LDFLAGS += $(shell pkg-config $(LIBS) --libs)
+LDFLAGS += -fopenmp $(OPTFLAGS)
+#LDFLAGS += $(shell pkg-config $(LIBS) --libs)
 LDFLAGS += -ljpeg
 
 SHELL = bash
@@ -53,7 +53,4 @@ $(TARGET): $(OBJS)
 
 clean:
 	@rm -rvf $(OBJ_DIR)
-
-run: $(TARGET)
-	./$(TARGET) lenna.png lenna_r.png
 

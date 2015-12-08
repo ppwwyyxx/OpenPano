@@ -11,7 +11,8 @@
 
 typedef double real_t;
 const real_t EPS = 1e-6;
-const real_t SEPS = std::numeric_limits<real_t>::epsilon();
+const real_t GEO_EPS_SQR = 1e-14;
+const real_t GEO_EPS = 1e-7;
 inline float sqr(float x) { return x * x; }
 
 #define between(a, b, c) ((a >= b) && (a <= c - 1))

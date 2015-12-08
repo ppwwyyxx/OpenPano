@@ -40,6 +40,7 @@ flags = [
 '-Werror',
 '-Wno-long-long',
 '-Wno-variadic-macros',
+'-Wno-missing-braces',
 '-fexceptions',
 '-DDEBUG',
 '-DUSE_CLANG_COMPLETER',
@@ -58,7 +59,8 @@ flags = [
 'c++',
 '-I.',
 '-march=native',
-'-I/usr/include/eigen3'
+'-I/usr/include/eigen3',
+'-Ithird-party'
 ]
 
 # Set this to the absolute path to the folder (NOT the file!) containing the

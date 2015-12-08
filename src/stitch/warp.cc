@@ -8,6 +8,8 @@
 using namespace std;
 using namespace feature;
 
+namespace projector {
+
 Vec2D CylinderProject::proj(const Vec& p) const {
 	real_t x = atan((p.x - center.x) / r);
 	real_t y = (p.y - center.y) / (hypot(p.x - center.x, r));
@@ -56,8 +58,11 @@ Mat32f CylinderProject::project(const Mat32f& img, vector<Descriptor>& ft) const
 }
 
 void CylinderWarper::warp(Mat32f& mat, std::vector<Descriptor>& ft) const {
-	int r = mat.width() * (FOCAL_LENGTH / 36.0);
+	// 43.266 = hypot(36, 24)
+	int r = hypot(mat.width(), mat.height()) * (config::FOCAL_LENGTH / 43.266);
 	Vec cen(mat.width() / 2, mat.height() / 2 * h_factor, r);
-	CylinderProject cyl(r, cen, r * OUTPUT_SIZE_FACTOR);
+	CylinderProject cyl(r, cen, r);
 	mat = cyl.project(mat, ft);
+}
+
 }

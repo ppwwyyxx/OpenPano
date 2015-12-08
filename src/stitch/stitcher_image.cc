@@ -7,6 +7,7 @@
 #include <cassert>
 
 using namespace std;
+using namespace config;
 
 void ConnectedImages::calc_inverse_homo() {
 	for (auto& m : component)
@@ -14,14 +15,10 @@ void ConnectedImages::calc_inverse_homo() {
 }
 
 void ConnectedImages::update_proj_range() {
-	/*
-	 *static Vec2D corner[4] = {
-	 *  Vec2D(-0.5, -0.5), Vec2D(-0.5, 0.5), Vec2D(0.5, -0.5), Vec2D(0.5, 0.5)};
-	 */
 	vector<Vec2D> corner;
-	REP(i, 1000)
-		REP(j, 1000)
-			corner.emplace_back((double)i / 1000 - 0.5, (double)j / 1000 - 0.5);
+	const static int CORNER_SAMPLE = 100;
+	REP(i, CORNER_SAMPLE) REP(j, CORNER_SAMPLE)
+		corner.emplace_back((double)i / CORNER_SAMPLE - 0.5, (double)j / CORNER_SAMPLE - 0.5);
 
 	int refw = component[identity_idx].imgptr->width(),
 			refh = component[identity_idx].imgptr->height();
@@ -47,8 +44,9 @@ void ConnectedImages::update_proj_range() {
 			now_max.update_max(t_corner);
 		}
 		// assume no image has FOV > 180
-		// XXX ugly
-		if (now_max.x - now_min.x > M_PI) {
+		// XXX TODO ugly
+		if (proj_method != ProjectionMethod::flat &&
+				now_max.x - now_min.x > M_PI) {
 			// head and tail
 			now_min = Vec2D(numeric_limits<double>::max(), std::numeric_limits<double>::max());
 			now_max = now_min * (-1);

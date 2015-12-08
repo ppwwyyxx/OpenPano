@@ -16,9 +16,12 @@
 #include "camera.hh"
 
 // forward declaration
-struct MatchInfo;
 class Homography;
 namespace feature { class MatchData; }
+
+namespace stitch {
+
+struct MatchInfo;
 
 class Stitcher {
 	private:
@@ -30,8 +33,6 @@ class Stitcher {
 		// 2d array of all matches
 		// pairwise_matches[i][j].homo transform j to i
 		std::vector<std::vector<MatchInfo>> pairwise_matches;
-		// camera intrinsic params for all images
-		std::vector<Camera> cameras;
 		// feature detector
 		std::unique_ptr<feature::FeatureDetector> feature_det;
 
@@ -80,7 +81,9 @@ class Stitcher {
 			>::type;
 
 		// for debug
-		void debug_matchinfo();
+		void draw_matchinfo();
+		void dump_matchinfo(const char*);
+		void load_matchinfo(const char*);
 	public:
 		// universal reference constructor to initialize imgs
 		template<typename U, typename X =
@@ -91,11 +94,7 @@ class Stitcher {
 
 				feature_det.reset(new feature::SIFTDetector);
 
-				// initialize members
-				pairwise_matches.resize(imgs.size());
-				for (auto& k : pairwise_matches) k.resize(imgs.size());
-				feats.resize(imgs.size());
-				cameras.resize(imgs.size());
+				// initialize bundle
 				bundle.component.resize(imgs.size());
 				REP(i, imgs.size())
 					bundle.component[i].imgptr = &imgs[i];
@@ -103,3 +102,5 @@ class Stitcher {
 
 		Mat32f build();
 };
+
+}

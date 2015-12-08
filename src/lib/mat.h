@@ -10,22 +10,8 @@ class Mat {
 				Mat(){}
 				Mat(int rows, int cols, int channels):
 					m_rows(rows), m_cols(cols), m_channels(channels),
-					m_data(new T[rows * cols * channels], [](T *d) { delete[] d; })
-				{
-					//memset(m_data.get(), 0, sizeof(T) * rows * cols * channels);
-				}
-
-				Mat(const Mat<T> &rhs):
-					m_rows(rhs.m_rows), m_cols(rhs.m_cols), m_channels(rhs.m_channels),
-					m_data(rhs.m_data) { }
-
-				Mat<T> &operator=(const Mat<T> &rhs) {
-					this->m_rows = rhs.m_rows;
-					this->m_cols = rhs.m_cols;
-					this->m_channels = rhs.m_channels;
-					this->m_data = rhs.m_data;
-					return *this;
-				}
+					m_data{new T[rows * cols * channels], std::default_delete<T[]>() }
+				{ }
 
 				virtual ~Mat(){}
 

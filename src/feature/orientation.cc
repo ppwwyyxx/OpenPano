@@ -6,6 +6,7 @@
 #include "lib/config.hh"
 #include "feature.hh"
 using namespace std;
+using namespace config;
 
 
 namespace feature {

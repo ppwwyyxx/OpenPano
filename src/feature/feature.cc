@@ -11,10 +11,12 @@
 #include "brief.hh"
 #include "lib/imgproc.hh"
 using namespace std;
+using namespace config;
 
 
 namespace feature {
 
+// return half-shifted image coordinate
 vector<Descriptor> FeatureDetector::detect_feature(const Mat32f& img) const {
 	auto ret = do_detect_feature(img);
 	// convert scale-coordinate to half-offset image coordinate
@@ -25,8 +27,14 @@ vector<Descriptor> FeatureDetector::detect_feature(const Mat32f& img) const {
 	return ret;
 }
 
+// return [0, 1] coordinate
 vector<Descriptor> SIFTDetector::do_detect_feature(const Mat32f& mat) const {
-	ScaleSpace ss(mat, NUM_OCTAVE, NUM_SCALE);
+	// perform sift at this resolution
+	float ratio = SIFT_WORKING_SIZE * 2.0f / (mat.width() + mat.height());
+	Mat32f resized(mat.rows() * ratio, mat.cols() * ratio, 3);
+	resize(mat, resized);
+
+	ScaleSpace ss(resized, NUM_OCTAVE, NUM_SCALE);
 	DOGSpace sp(ss);
 
 	ExtremaDetector ex(sp);
@@ -34,8 +42,8 @@ vector<Descriptor> SIFTDetector::do_detect_feature(const Mat32f& mat) const {
 	OrientationAssign ort(sp, ss, keyp);
 	keyp = ort.work();
 	SIFT sift(ss, keyp);
-	auto ret = sift.get_descriptor();
-	return ret;
+	auto descp = sift.get_descriptor();
+	return descp;
 }
 
 BRIEFDetector::BRIEFDetector() {
