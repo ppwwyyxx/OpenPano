@@ -5,6 +5,7 @@
 #include <vector>
 #include "transform.hh"
 
+namespace stitch {
 struct MatchInfo;
 
 // TODO might not need aspect any more
@@ -14,6 +15,10 @@ class Camera {
 
 		// return the intrinsic matrix
 		Homography K() const;
+
+		Homography Kinv() const { return K().inverse(); }
+
+		Homography Rinv() const { return R.transpose(); }
 
 		double focal = 1; // Focal length
 		double aspect = 1; // Aspect ratio
@@ -29,4 +34,10 @@ class Camera {
 		static void angle_to_rotation(double rx, double ry, double rz, Homography& r);
 
 		static void straighten(std::vector<Camera>&);
+
+		friend std::ostream& operator << (std::ostream& os, const Camera& c) {
+			os << "focal=" << c.focal << " ,ppx=" << c.ppx << " ,ppy=" << c.ppy << "R=" << c.R;
+			return os;
+		}
 };
+}

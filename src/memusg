@@ -1,0 +1,59 @@
+#!/bin/bash
+# Measure memory usage of processes
+# Usage: memusg COMMAND [ARGS]...
+
+set -um
+
+. ./env.sh
+
+TS=ts
+which ts >/dev/null 2>&1 || { echo "Command 'ts' not found, please install moreutils to have better output."; TS=cat; }
+
+# check input
+[ $# -gt 0 ] || { sed -n '2,/^#$/ s/^# //p' <"$0"; exit 1; }
+
+pgid=`ps -o pgid= $$`
+# make sure we're in a separate process group
+if [ $pgid = $(ps -o pgid= $(ps -o ppid= $$)) ]; then
+    cmd=
+    set -- "$0" "$@"
+    for a; do cmd+="'${a//"'"/"'\\''"}' "; done
+    exec bash -i -c "$cmd"
+fi
+
+# detect operating system and prepare measurement
+case `uname` in
+    Darwin|*BSD) sizes() { /bin/ps -o rss= -g $1; } ;;
+    Linux) sizes() { /bin/ps -o rss= -$1; } ;;
+    *) echo "`uname`: unsupported operating system" >&2; exit 2 ;;
+esac
+
+mkdir -p log
+TIME=`date "+%m%d-%H:%M:%S"`
+LOGFILE=log/mem-"$TIME".txt
+
+# monitor the memory usage in the background.
+(
+peak=0
+while sizes=`sizes $pgid`
+do
+    set -- $sizes
+    sample=$((${@/#/+}))
+		echo $sample
+    sleep 0.1
+done | $TS > $LOGFILE
+if [[ "$TS" = "ts" ]]; then
+	peak=`sort -k 4 -t ' ' -n $LOGFILE | tail -n1`
+else
+	peak=`sort -n $LOGFILE | tail -n1`
+fi
+echo "Peak Memory: $peak K" | tee -a $LOGFILE
+echo "See Logfile: $LOGFILE"
+if [ -n "${DISPLAY+x}" ]; then
+	cat $LOGFILE | awk '{print $4}' | head -n-1 | ./plot-point.py --show --ylabel 'KB' --annotate-maximum
+fi
+) &
+monpid=$!
+
+# run the given command
+exec "$@"

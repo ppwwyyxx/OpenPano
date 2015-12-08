@@ -10,6 +10,7 @@
 #include "feature.hh"
 #include <vector>
 using namespace std;
+using namespace config;
 
 namespace feature {
 

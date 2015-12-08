@@ -12,18 +12,22 @@
 
 #include "feature/matcher.hh"
 #include "lib/imgproc.hh"
-#include "lib/planedrawer.hh"
 #include "lib/timer.hh"
 #include "blender.hh"
-#include "bundle_adjuster.hh"
 #include "match_info.hh"
 #include "transform_estimate.hh"
+#include "camera_estimator.hh"
 #include "warp.hh"
 using namespace std;
 using namespace feature;
+using namespace projector;
+using namespace config;
 
-// in development. estimate camera parameters
-const bool DEBUG_OUT = false;
+namespace stitch {
+
+// use in development
+const static bool DEBUG_OUT = false;
+const static char* MATCHINFO_DUMP = "log/matchinfo.txt";
 
 Mat32f Stitcher::build() {
 	calc_feature();
@@ -37,15 +41,19 @@ Mat32f Stitcher::build() {
 			assume_linear_pairwise();
 		else
 			pairwise_match();
-		if (DEBUG_OUT)
-			debug_matchinfo();
+		feats.clear(); feats.shrink_to_fit();	// free memory for feature
+		//load_matchinfo(MATCHINFO_DUMP);
+		if (DEBUG_OUT) {
+			draw_matchinfo();
+			dump_matchinfo(MATCHINFO_DUMP);
+		}
 		assign_center();
 
 		if (ESTIMATE_CAMERA)
 			estimate_camera();
 		else
 			build_bundle_linear_simple();		// naive mode
-		// TODO determine projection method
+		// TODO automatically determine projection method
 		if (ESTIMATE_CAMERA)
 			bundle.proj_method = ConnectedImages::ProjectionMethod::cylindrical;
 		else
@@ -59,6 +67,7 @@ Mat32f Stitcher::build() {
 void Stitcher::calc_feature() {
 	GuardedTimer tm("calc_feature()");
 	int n = imgs.size();
+	feats.resize(n);
 	// detect feature
 #pragma omp parallel for schedule(dynamic)
 	REP(k, n) {
@@ -74,6 +83,8 @@ void Stitcher::pairwise_match() {
 
 	PairWiseMatcher pwmatcher(feats);
 	size_t n = imgs.size();
+	pairwise_matches.resize(n);
+	for (auto& k : pairwise_matches) k.resize(n);
 
 	vector<pair<int, int>> tasks;
 	REP(i, n) REPL(j, i + 1, n) tasks.emplace_back(i, j);
@@ -83,14 +94,15 @@ void Stitcher::pairwise_match() {
 		int i = tasks[k].first, j = tasks[k].second;
 		//auto match = matcher(feats[i], feats[j]).match();	// slow
 		auto match = pwmatcher.match(i, j);
-		TransformEstimation transf(match, feats[i], feats[j]);
+		TransformEstimation transf(match, feats[i], feats[j], {imgs[i].width(), imgs[i].height()});	// from j to i
 		MatchInfo info;
 		bool succ = transf.get_transform(&info);
 		if (not succ) {
-			//print_debug("Only %f match from %lu to %lu\n", info.confidence, i, j);
+			//print_debug("Only %d inlier from %d to %d\n", -(int)info.confidence, i, j);
 			continue;
 		}
 		auto inv = info.homo.inverse(&succ);
+		inv.mult(1.0 / inv[8]);	// more stable?
 		if (not succ) continue;	// cannot inverse. mal-formed homography
 		print_debug(
 				"Connection between image %d and %d, ninliers=%lu, conf=%f\n",
@@ -111,7 +123,7 @@ void Stitcher::assume_linear_pairwise() {
 	REP(i, n-1) {
 		int next = (i + 1) % n;
 		auto match = pwmatcher.match(i, next);
-		TransformEstimation transf(match, feats[i], feats[next]);
+		TransformEstimation transf(match, feats[i], feats[next], {imgs[i].width(), imgs[i].height()});
 		MatchInfo info;
 		bool succ = transf.get_transform(&info);
 		if (not succ)
@@ -135,59 +147,21 @@ void Stitcher::assign_center() {
 }
 
 void Stitcher::estimate_camera() {
-	int n = imgs.size();
-	{ // assign an initial focal length
-		double focal = Camera::estimate_focal(pairwise_matches);
-		if (focal > 0) {
-			for (auto& c : cameras)
-				c.focal = focal;
-			print_debug("Estimated focal: %lf\n", focal);
-		} else
-			REP(i, n) // hack focal
-				cameras[i].focal = (imgs[i].width() / imgs[i].height()) * 0.5;
-	}
-	vector<vector<int>> graph;
-	max_spanning_tree(graph);
+	vector<Shape2D> shapes;
+	for (auto& m: imgs)
+		shapes.emplace_back(m.cols(), m.rows());
+	CameraEstimator ce(pairwise_matches, shapes);
+	auto cameras = ce.estimate();
 
-	int start = bundle.identity_idx;
-	queue<int> q; q.push(start);
-	vector<bool> vst(graph.size(), false);		// in queue
-	vst[start] = true;
-	while (q.size()) {
-		int now = q.front(); q.pop();
-		for (int next: graph[now]) {
-			if (vst[next]) continue;
-			vst[next] = true;
-			// from now to next
-			auto Kfrom = cameras[now].K();
-			auto Kto = cameras[next].K();
-			auto Hinv = pairwise_matches[now][next].homo;
-			auto Mat = Kfrom.inverse() * Hinv * Kto;
-			cameras[next].R = cameras[now].R * Mat;
-			// XXX this R is actually R.inv. and also in the final construction in H
-			// but it goes like this in opencv
-			// this is the R going from this image to identity
-			q.push(next);
-		}
-	}
-	REP(i, n) {
-		cameras[i].ppx = imgs[i].width() / 2;
-		cameras[i].ppy = imgs[i].height() / 2;
-	}
-
-	BundleAdjuster ba(imgs, pairwise_matches);
-	ba.estimate(cameras);
-	if (STRAIGHTEN)
-		Camera::straighten(cameras);
-	// TODO rotate to identity
-	REP(i, n) {
-		bundle.component[i].homo_inv = cameras[i].K() * cameras[i].R.transpose();
-		bundle.component[i].homo = cameras[i].R * cameras[i].K().inverse();
+	REP(i, imgs.size()) {
+		bundle.component[i].homo_inv = cameras[i].K() * cameras[i].R;
+		bundle.component[i].homo = cameras[i].Rinv() * cameras[i].K().inverse();
 	}
 }
 
 
 void Stitcher::build_bundle_linear_simple() {
+	// TODO bfs over pairwise to build bundle
 	// assume pano pairwise
 	int n = imgs.size(), mid = bundle.identity_idx;
 	bundle.component[mid].homo = Homography::I();
@@ -198,14 +172,12 @@ void Stitcher::build_bundle_linear_simple() {
 	if (mid + 1 < n) {
 		comp[mid+1].homo = pairwise_matches[mid][mid+1].homo;
 		REPL(k, mid + 2, n)
-			comp[k].homo = Homography(
-					comp[k - 1].homo.prod(pairwise_matches[k-1][k].homo));
+			comp[k].homo = comp[k - 1].homo * pairwise_matches[k-1][k].homo;
 	}
 	if (mid - 1 >= 0) {
 		comp[mid-1].homo = pairwise_matches[mid][mid-1].homo;
 		REPD(k, mid - 2, 0)
-			comp[k].homo = Homography(
-					comp[k + 1].homo.prod(pairwise_matches[k+1][k].homo));
+			comp[k].homo = comp[k + 1].homo * pairwise_matches[k+1][k].homo;
 	}
 	// then, comp[k]: from k to identity
 	bundle.calc_inverse_homo();
@@ -256,14 +228,13 @@ void Stitcher::build_bundle_warp() {;
 		matches[i].reverse();
 		MatchInfo info;
 		bool succ = TransformEstimation(
-				matches[i], feats[i + 1], feats[i]).get_transform(&info);
+				matches[i], feats[i + 1], feats[i], {imgs[i+1].width(), imgs[i+1].height()}).get_transform(&info);
 		if (not succ)
 			error_exit(ssprintf("Image %d and %d doesn't match. Failed", i, i+1));
 		bundle.component[i].homo = info.homo;
 	}
 	REPD(i, mid - 2, 0)
-		bundle.component[i].homo = Homography(
-				bundle.component[i + 1].homo.prod(bundle.component[i].homo));
+		bundle.component[i].homo = bundle.component[i + 1].homo * bundle.component[i].homo;
 	bundle.calc_inverse_homo();
 }
 
@@ -294,7 +265,7 @@ float Stitcher::update_h_factor(float nowfactor,
 	REPL(k, 1, len) {
 		MatchInfo info;
 		bool succ = TransformEstimation(matches[k - 1 + mid], nowfeats[k - 1],
-				nowfeats[k]).get_transform(&info);
+				nowfeats[k], {nowimgs[k-1].width(), nowimgs[k-1].height()}).get_transform(&info);
 		if (not succ)
 			failed = true;
 		//error_exit("The two image doesn't match. Failed");
@@ -303,7 +274,7 @@ float Stitcher::update_h_factor(float nowfactor,
 	if (failed) return 0;
 
 	REPL(k, 1, len - 1)
-		nowmat[k] = nowmat[k - 1].prod(nowmat[k]);	// transform to nowimgs[0] == imgs[mid]
+		nowmat[k] = nowmat[k - 1] * nowmat[k];	// transform to nowimgs[0] == imgs[mid]
 
 	// check the slope of the result image
 	Vec2D center2 = nowmat.back().trans2d(0, 0);
@@ -319,7 +290,7 @@ float Stitcher::update_h_factor(float nowfactor,
 Mat32f Stitcher::perspective_correction(const Mat32f& img) {
 	int w = img.width(), h = img.height();
 	int refw = imgs[bundle.identity_idx].width(),
-		refh = imgs[bundle.identity_idx].height();
+			refh = imgs[bundle.identity_idx].height();
 	auto homo2proj = bundle.get_homo2proj();
 	Vec2D proj_min = bundle.proj_range.min;
 
@@ -349,13 +320,9 @@ Mat32f Stitcher::perspective_correction(const Mat32f& img) {
 	Homography inv(m);
 
 	LinearBlender blender;
-	Mat<Vec2D> orig_pos(h, w, 1);
-	REP(i, h) REP(j, w) {
-		Vec2D& p = (orig_pos.at(i, j) = inv.trans2d(Vec2D(j, i)));
-		if (!p.isNaN() && (p.x < 0 || p.x >= w || p.y < 0 || p.y >= h))
-			p = Vec2D::NaN();
-	}
-	blender.add_image(Coor(0, 0), orig_pos, img);
+	blender.add_image(Coor(0,0), Coor(w,h), img, [=](Coor c) -> Vec2D {
+		return inv.trans2d(Vec2D(c.x, c.y));
+	});
 	auto ret = Mat32f(h, w, 3);
 	fill(ret, Color::NO);
 	blender.run(ret);
@@ -377,7 +344,8 @@ Mat32f Stitcher::blend() {
 	Vec2D proj_min = bundle.proj_range.min;
 	double x_len = bundle.proj_range.max.x - proj_min.x,
 		   y_len = bundle.proj_range.max.y - proj_min.y,
-		   x_per_pixel = id_img_range.x / (ESTIMATE_CAMERA ? refh : refw),	// huh?
+			 // TODO this gives better aspect ratio. why?
+		   x_per_pixel = id_img_range.x / (bundle.proj_method == ConnectedImages::ProjectionMethod::flat ? refw : refh),
 		   y_per_pixel = id_img_range.y / refh,
 		   target_width = x_len / x_per_pixel,
 		   target_height = y_len / y_per_pixel;
@@ -396,15 +364,17 @@ Mat32f Stitcher::blend() {
 	fill(ret, Color::NO);
 
 	LinearBlender blender;
-	for (auto& cur : bundle.component) {
+	REP(comp_idx, bundle.component.size()) {
+		auto& cur = bundle.component[comp_idx];
 		Coor top_left = scale_coor_to_img_coor(cur.range.min);
 		Coor bottom_right = scale_coor_to_img_coor(cur.range.max);
-		Coor diff = bottom_right - top_left;
-		int w = diff.x, h = diff.y;
-		Mat<Vec2D> orig_pos(h, w, 1);
 
-		REP(i, h) REP(j, w) {
-			Vec2D c((j + top_left.x) * x_per_pixel + proj_min.x, (i + top_left.y) * y_per_pixel + proj_min.y);
+		int imgw = cur.imgptr->width(),
+				imgh = cur.imgptr->height();
+
+		blender.add_image(top_left, bottom_right, *cur.imgptr, [=,&cur](Coor t) -> Vec2D {
+			Vec2D c(t.x * x_per_pixel + proj_min.x,
+							t.y * y_per_pixel + proj_min.y);
 			Vec homo = proj2homo(Vec2D(c.x / refw, c.y / refh));
 			if (not ESTIMATE_CAMERA)  {	// scale and offset is in camera intrinsic
 				homo.x -= 0.5 * homo.z, homo.y -= 0.5 * homo.z;	// shift center for homography
@@ -412,94 +382,16 @@ Mat32f Stitcher::blend() {
 			}
 			Vec2D orig = cur.homo_inv.trans_normalize(homo);
 			if (not ESTIMATE_CAMERA)
-				orig = orig + Vec2D(cur.imgptr->width()/2, cur.imgptr->height()/2);
-			Vec2D& p = (orig_pos.at(i, j) = orig);
-			if (!p.isNaN() && (p.x < 0 || p.x >= cur.imgptr->width()
-						|| p.y < 0 || p.y >= cur.imgptr->height()))
-				p = Vec2D::NaN();
-		}
-		blender.add_image(top_left, orig_pos, *cur.imgptr);
+				orig = orig + Vec2D(imgw/2, imgh/2);
+			return orig;
+		});
 	}
-	if (DEBUG_OUT)
-		blender.debug_run(size.x, size.y);
+	//if (DEBUG_OUT) blender.debug_run(size.x, size.y);
 	blender.run(ret);
-	if (CYLINDER or TRANS)
+	if (CYLINDER)
 		return perspective_correction(ret);
 	return ret;
 }
 
-void Stitcher::debug_matchinfo() {
-	int n = imgs.size();
-	REP(i, n) REPL(j, i+1, n) {
-		auto& m = pairwise_matches[j][i];
-		if (m.confidence <= 0) continue;
-		print_debug("Dump matchinfo of %d->%d\n", i, j);
-		list<Mat32f> imagelist{imgs[i], imgs[j]};
-		Mat32f conc = vconcat(imagelist);
-		PlaneDrawer pld(conc);
-		for (auto& p : m.match) {
-			pld.set_rand_color();
-			Coor icoor1 = Coor(p.second.x + imgs[i].width()/2,
-					p.second.y + imgs[i].height()/2);
-			Coor icoor2 = Coor(p.first.x + imgs[j].width()/2,
-					p.first.y + imgs[j].height()/2);
-			pld.circle(icoor1, 7);
-			pld.circle(icoor2 + Coor(0, imgs[i].height()), 7);
-			pld.line(icoor1, icoor2 + Coor(0, imgs[i].height()));
-		}
-		write_rgb(ssprintf("/t/match%d-%d.png", i, j).c_str(), conc);
-	}
-}
 
-bool Stitcher::max_spanning_tree(vector<vector<int>>& graph) {
-	struct Edge {
-		int v1, v2;
-		float weight;
-		bool have(int v) { return v1 == v || v2 == v; }
-		Edge(int a, int b, float v):v1(a), v2(b), weight(v) {}
-		bool operator < (const Edge& r) const
-		{ return weight > r.weight;	}
-	};
-
-	int n = imgs.size();
-	graph.clear(); graph.resize(n);
-	vector<Edge> edges;
-	REP(i, n) REPL(j, i+1, n) {
-		auto& m = pairwise_matches[i][j];
-		if (m.confidence <= 0) continue;
-		edges.emplace_back(i, j, m.confidence);
-	}
-	sort(edges.begin(), edges.end());		// large weight to small weight
-	vector<bool> in_tree(n, false);
-	int edge_cnt = 0;
-	in_tree[edges.front().v1] = true;
-	while (true) {
-		int old_edge_cnt = edge_cnt;
-		auto itr = begin(edges);
-		for (; itr != edges.end(); ++itr) {
-			Edge& e = *itr;
-			if (in_tree[e.v1] && in_tree[e.v2]) {
-				edges.erase(itr);
-				break;
-			}
-			if (not in_tree[e.v1] && not in_tree[e.v2])
-				continue;
-			in_tree[e.v1] = in_tree[e.v2] = true;
-			graph[e.v1].push_back(e.v2);
-			graph[e.v2].push_back(e.v1);
-			print_debug("MST: Best edge from %d to %d\n", e.v1, e.v2);
-			edges.erase(itr);
-			edge_cnt ++;
-			break;
-		}
-		if (edge_cnt == n - 1) // tree is full
-			break;
-		if (edge_cnt == old_edge_cnt && itr == edges.end())
-			// no edge to add
-			break;
-	}
-	if (edge_cnt != n - 1)
-		error_exit(ssprintf("Found a tree of size %d!=%d, images not connected!",
-				edge_cnt, n - 1));
-	return true;
-}
+}	// namepsace stitch

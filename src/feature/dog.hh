@@ -25,20 +25,11 @@ class GaussianPyramid {
 
 		GaussianPyramid(const Mat32f&, int num_scale);
 
-		const Mat32f& get(int i) const {
-			m_assert(i >= 0 && i < NUM_SCALE);
-			return data[i];
-		}
+		inline const Mat32f& get(int i) const { return data[i]; }
 
-		const Mat32f& get_mag(int i) const {
-			m_assert(i >= 0 && i < NUM_SCALE);
-			return mag[i];
-		}
+		inline const Mat32f& get_mag(int i) const { return mag[i]; }
 
-		const Mat32f& get_ort(int i) const {
-			m_assert(i >= 0 && i < NUM_SCALE);
-			return ort[i];
-		}
+		inline const Mat32f& get_ort(int i) const { return ort[i]; }
 
 		int get_len() const { return nscale; }
 };

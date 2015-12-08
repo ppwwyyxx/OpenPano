@@ -14,10 +14,14 @@
 #include "lib/timer.hh"
 using namespace std;
 using namespace feature;
+using namespace config;
+
+namespace stitch {
 
 TransformEstimation::TransformEstimation(const feature::MatchData& m_match,
 		const std::vector<feature::Descriptor>& m_f1,
-		const std::vector<feature::Descriptor>& m_f2):
+		const std::vector<feature::Descriptor>& m_f2,
+		const Shape2D& shape1):
 	match(m_match), f1(m_f1), f2(m_f2),
 	f2_homo_coor(3, match.size())
 {
@@ -33,6 +37,7 @@ TransformEstimation::TransformEstimation(const feature::MatchData& m_match,
 		f2_homo_coor.at(1, i) = old.y;
 		f2_homo_coor.at(2, i) = 1;
 	}
+	ransac_inlier_thres = (shape1.w + shape1.h) * 0.5 / 800 * RANSAC_INLIER_THRES;
 }
 
 bool TransformEstimation::get_transform(MatchInfo* info) {
@@ -47,7 +52,10 @@ bool TransformEstimation::get_transform(MatchInfo* info) {
 	set<int> selected;
 
 	int maxinlierscnt = -1;
-	Homography best_transform;
+	Matrix best_transform(3, 3);
+
+	random_device rd;
+	mt19937 rng(rd());
 
 	for (int K = RANSAC_ITERATIONS; K --;) {
 		inliers.clear();
@@ -55,13 +63,13 @@ bool TransformEstimation::get_transform(MatchInfo* info) {
 		REP(_, nr_match_used) {
 			int random;
 			do {
-				random = rand() % nr_match;
+				random = rng() % nr_match;
 			} while (selected.find(random) != selected.end());
 			selected.insert(random);
 			inliers.push_back(random);
 		}
-		Homography transform(calc_transform(inliers));
-		if (not transform.health())
+		Matrix transform = calc_transform(inliers);
+		if (not Homography::health(transform.ptr()))
 			continue;
 		int n_inlier = get_inliers(transform).size();
 		if (update_max(maxinlierscnt, n_inlier))
@@ -69,7 +77,7 @@ bool TransformEstimation::get_transform(MatchInfo* info) {
 	}
 	inliers = get_inliers(best_transform);
 	if (inliers.size() <= 8) {
-		//info->confidence = inliers.size();	// debug
+		info->confidence = -(float)inliers.size();	// debug
 		return false;
 	}
 	best_transform = calc_transform(inliers);
@@ -78,7 +86,7 @@ bool TransformEstimation::get_transform(MatchInfo* info) {
 	return true;
 }
 
-Homography TransformEstimation::calc_transform(const vector<int>& matches) const {
+Matrix TransformEstimation::calc_transform(const vector<int>& matches) const {
 	int n = matches.size();
 	vector<Vec2D> p1, p2;
 	REP(i, n) {
@@ -86,13 +94,13 @@ Homography TransformEstimation::calc_transform(const vector<int>& matches) const
 		p2.emplace_back(f2[match.data[matches[i]].second].coor);
 	}
 	if (transform_type == Affine)
-		return Homography(getAffineTransform(p1, p2));
+		return getAffineTransform(p1, p2);
 	else
-		return Homography(getPerspectiveTransform(p1, p2));
+		return getPerspectiveTransform(p1, p2);
 }
 
-vector<int> TransformEstimation::get_inliers(const Homography& trans) const {
-	static double INLIER_DIST = RANSAC_INLIER_THRES * RANSAC_INLIER_THRES;
+vector<int> TransformEstimation::get_inliers(const Matrix& trans) const {
+	float INLIER_DIST = sqr(ransac_inlier_thres);
 	TotalTimer tm("get_inlier");
 	vector<int> ret;
 	int n = match.size();
@@ -128,3 +136,4 @@ void TransformEstimation::fill_inliers_to_matchinfo(
 	}
 }
 
+}

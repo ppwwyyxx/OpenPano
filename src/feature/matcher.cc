@@ -8,6 +8,7 @@
 #include "lib/timer.hh"
 #include "feature.hh"
 using namespace std;
+using namespace config;
 
 
 namespace feature {
@@ -78,8 +79,8 @@ void PairWiseMatcher::build() {
 MatchData PairWiseMatcher::match(int i, int j) const {
 	static const float REJECT_RATIO_SQR = MATCH_REJECT_NEXT_RATIO * MATCH_REJECT_NEXT_RATIO;
 	MatchData ret;
-	auto source = feats[i],
-			 target = feats[j];
+	auto source = feats.at(i),
+			 target = feats.at(j);
 	auto& t = trees[j];
 
 	float* buf = new float[source.size() * D];

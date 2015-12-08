@@ -23,8 +23,21 @@ class Matrix : public Mat<double> {
 		Matrix transpose() const;
 
 		Matrix prod(const Matrix & r) const;
+
+		Matrix elem_prod(const Matrix& r) const;
+
 		inline Matrix operator * (const Matrix& r) const
 		{ return prod(r); }
+
+		inline void mult(double m) {
+			int n = pixels();
+			double* p = ptr();
+			for (int i = 0; i < n; i ++)
+				*p *= m, p++;
+		}
+
+		Matrix operator - (const Matrix& r) const;
+		Matrix operator + (const Matrix& r) const;
 
 		bool SVD(Matrix & u, Matrix & s, Matrix & v) const;
 

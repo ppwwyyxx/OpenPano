@@ -19,6 +19,9 @@
 
 using namespace std;
 using namespace feature;
+using namespace stitch;
+using namespace projector;
+using namespace config;
 
 bool TEMPDEBUG = false;
 
@@ -34,6 +37,7 @@ void test_extrema(const char* fname, int mode) {
 	PlaneDrawer pld(mat);
 	if (mode == 0) {
 		auto extrema = ex.get_raw_extrema();
+		PP(extrema.size());
 		for (auto &i : extrema)
 			pld.cross(i, LABEL_LEN / 2);
 	} else if (mode == 1) {
@@ -42,7 +46,7 @@ void test_extrema(const char* fname, int mode) {
 		for (auto &i : extrema)
 			pld.cross(i.real_coor, LABEL_LEN / 2);
 	}
-	write_rgb("extrema.png", mat);
+	write_rgb("extrema.jpg", mat);
 }
 
 void test_orientation(const char* fname) {
@@ -60,11 +64,11 @@ void test_orientation(const char* fname) {
 	cout << "FeaturePoint size: " << oriented_keypoint.size() << endl;
 	for (auto &i : oriented_keypoint)
 		pld.arrow(Coor(i.real_coor.x * mat.width(), i.real_coor.y * mat.height()), i.dir, LABEL_LEN);
-	write_rgb("orientation.png", mat);
+	write_rgb("orientation.jpg", mat);
 }
 
 // draw feature and their match
-void match(const char* f1, const char* f2) {
+void test_match(const char* f1, const char* f2) {
 	list<Mat32f> imagelist;
 	Mat32f pic1 = read_img(f1);
 	Mat32f pic2 = read_img(f2);
@@ -93,11 +97,11 @@ void match(const char* f1, const char* f2) {
 		pld.circle(icoor2 + Coor(0, pic1.height()), LABEL_LEN);
 		pld.line(icoor1, icoor2 + Coor(0, pic1.height()));
 	}
-	write_rgb("match.png", concatenated);
+	write_rgb("match.jpg", concatenated);
 }
 
 // draw inliers of the estimated homography
-void inlier(const char* f1, const char* f2) {
+void test_inlier(const char* f1, const char* f2) {
 	list<Mat32f> imagelist;
 	Mat32f pic1 = read_img(f1);
 	Mat32f pic2 = read_img(f2);
@@ -116,7 +120,7 @@ void inlier(const char* f1, const char* f2) {
 	auto ret = match.match();
 	print_debug("Match size: %d\n", ret.size());
 
-	TransformEstimation est(ret, feat1, feat2);
+	TransformEstimation est(ret, feat1, feat2, {pic1.width(), pic1.height()});
 	MatchInfo info;
 	est.get_transform(&info);
 	print_debug("Inlier size: %lu, conf=%lf\n", info.match.size(), info.confidence);
@@ -131,7 +135,7 @@ void inlier(const char* f1, const char* f2) {
 		pld.circle(icoor2 + Coor(pic1.width(), 0), LABEL_LEN);
 		pld.line(icoor1, icoor2 + Coor(pic1.width(), 0));
 	}
-	write_rgb("inlier.png", concatenated);
+	write_rgb("inlier.jpg", concatenated);
 }
 
 void test_warp(int argc, char* argv[]) {
@@ -139,7 +143,7 @@ void test_warp(int argc, char* argv[]) {
 	REPL(i, 2, argc) {
 		Mat32f mat = read_img(argv[i]);
 		warp.warp(mat);
-		write_rgb(("warp" + to_string(i) + ".png").c_str(), mat);
+		write_rgb(("warp" + to_string(i) + ".jpg").c_str(), mat);
 	}
 }
 
@@ -150,15 +154,19 @@ void work(int argc, char* argv[]) {
 		imgs.emplace_back(read_img(argv[i]));
 	Stitcher p(move(imgs));
 	Mat32f res = p.build();
-	if (res.width() * res.height() > 30000000) {
-		print_debug("resizing...");
-		Mat32f dst(res.height() * 0.5, res.width() * 0.5, 3);
+	if (res.width() * res.height() > 12000000) {
+		print_debug("result too large, resizing for faster output...\n");
+		float ratio = max(res.width(), res.height()) * 1.0f / 8000;
+		Mat32f dst(res.height() * 1.0f / ratio, res.width() * 1.0f / ratio, 3);
 		resize(res, dst);
 		res = dst;
 	}
 
 	if (CROP) res = crop(res);
-	write_rgb("out.png", res);
+	{
+		GuardedTimer tm("Writing image");
+		write_rgb("out.jpg", res);
+	}
 }
 
 void init_config() {
@@ -181,7 +189,10 @@ void init_config() {
 	CROP = Config.get("CROP");
 	STRAIGHTEN = Config.get("STRAIGHTEN");
 	FOCAL_LENGTH = Config.get("FOCAL_LENGTH");
+	MULTIPASS_BA = Config.get("MULTIPASS_BA");
+	LM_LAMBDA = Config.get("LM_LAMBDA");
 
+	SIFT_WORKING_SIZE = Config.get("SIFT_WORKING_SIZE");
 	NUM_OCTAVE = Config.get("NUM_OCTAVE");
 	NUM_SCALE = Config.get("NUM_SCALE");
 	SCALE_FACTOR = Config.get("SCALE_FACTOR");
@@ -198,12 +209,9 @@ void init_config() {
 	DESC_HIST_SCALE_FACTOR = Config.get("DESC_HIST_SCALE_FACTOR");
 	DESC_INT_FACTOR = Config.get("DESC_INT_FACTOR");
 	MATCH_REJECT_NEXT_RATIO = Config.get("MATCH_REJECT_NEXT_RATIO");
-	MATCH_MIN_SIZE = Config.get("MATCH_MIN_SIZE");
-	CONNECTED_THRES = Config.get("CONNECTED_THRES");
 	RANSAC_ITERATIONS = Config.get("RANSAC_ITERATIONS");
 	RANSAC_INLIER_THRES = Config.get("RANSAC_INLIER_THRES");
 	SLOPE_PLAIN = Config.get("SLOPE_PLAIN");
-	OUTPUT_SIZE_FACTOR = Config.get("OUTPUT_SIZE_FACTOR");
 }
 
 void planet(const char* fname) {
@@ -242,7 +250,7 @@ void planet(const char* fname) {
 		float* p = ret.ptr(i, j);
 		c.write_to(p);
 	}
-	write_rgb("planet.png", ret);
+	write_rgb("planet.jpg", ret);
 }
 
 int main(int argc, char* argv[]) {
@@ -258,13 +266,14 @@ int main(int argc, char* argv[]) {
 	else if (command == "orientation")
 		test_orientation(argv[2]);
 	else if (command == "match")
-		match(argv[2], argv[3]);
+		test_match(argv[2], argv[3]);
 	else if (command == "inlier")
-		inlier(argv[2], argv[3]);
+		test_inlier(argv[2], argv[3]);
 	else if (command == "warp")
 		test_warp(argc, argv);
 	else if (command == "planet")
 		planet(argv[2]);
 	else
+		// the real routine
 		work(argc, argv);
 }

@@ -8,6 +8,8 @@
 #include <fstream>
 #include "common.hh"
 
+namespace config {
+
 class ConfigParser {
 	public:
 		std::map<std::string, double> data;
@@ -25,6 +27,10 @@ extern float FOCAL_LENGTH;
 extern bool ESTIMATE_CAMERA;
 extern bool STRAIGHTEN;
 
+extern bool MULTIPASS_BA;
+extern float LM_LAMBDA;
+
+extern int SIFT_WORKING_SIZE;
 extern int NUM_OCTAVE;
 extern int NUM_SCALE;
 extern float SCALE_FACTOR;
@@ -47,15 +53,11 @@ extern int DESC_HIST_SCALE_FACTOR;
 extern int DESC_INT_FACTOR;
 
 extern float MATCH_REJECT_NEXT_RATIO;
-extern int MATCH_MIN_SIZE;
-extern float CONNECTED_THRES;
 
 extern int RANSAC_ITERATIONS;
 extern double RANSAC_INLIER_THRES;
 
 extern float SLOPE_PLAIN;
-
-extern float OUTPUT_SIZE_FACTOR;
 
 
 
@@ -74,3 +76,4 @@ const int BRIEF_NR_PAIR = 256;
 
 const int FLANN_NR_KDTREE = 4;
 
+}
