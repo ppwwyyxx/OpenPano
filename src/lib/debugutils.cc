@@ -12,6 +12,7 @@
 using namespace std;
 
 #include "utils.hh"
+#include <libgen.h> // basename
 
 void __m_assert_check__(bool val, const char *expr, const char *file, const char *func, int line) {
 	if (val)
@@ -30,7 +31,7 @@ void __print_debug__(const char *file, const char *func, int line, const char *f
 		color = (color + 1) % 5;
 	}
 
-	char *fbase = basename(strdupa(file));
+	char *fbase = basename(strdup(file));
 	c_fprintf(colormap[line].c_str(), stderr, "[%s@%s:%d] ", func, fbase, line);
 
 	va_list ap;
