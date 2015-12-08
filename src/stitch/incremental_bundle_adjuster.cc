@@ -6,6 +6,7 @@
 #include <Eigen/Dense>
 #include <cmath>
 #include <memory>
+#include <array>
 
 #include "camera.hh"
 #include "match_info.hh"

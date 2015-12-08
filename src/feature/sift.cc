@@ -17,18 +17,38 @@ namespace {
 		memcpy(ret.descriptor.data(), hist, featlen * sizeof(float));
 
 		// normalize and thresholding and renormalize
-		float sum = 0;
-		for (auto &i : ret.descriptor) sum += sqr(i);
-		sum = sqrt(sum);
-		for (auto &i : ret.descriptor) {
-			i /= sum;
-			update_min(i, (float)DESC_NORM_THRESH);
-		}
-		sum = 0;
-		for (auto &i : ret.descriptor) sum += sqr(i);
-		sum = sqrt(sum);
-		sum = (float)DESC_INT_FACTOR / sum;
-		for (auto &i : ret.descriptor) i = i * sum;
+		// float sum = 0;
+		// for (auto &i : ret.descriptor) sum += sqr(i);
+		// sum = sqrt(sum);
+		// for (auto &i : ret.descriptor) {
+		// 	i /= sum;
+		// 	update_min(i, (float)DESC_NORM_THRESH);
+		// }
+		// sum = 0;
+		// for (auto &i : ret.descriptor) sum += sqr(i);
+		// sum = sqrt(sum);
+		// sum = (float)DESC_INT_FACTOR / sum;
+		// for (auto &i : ret.descriptor) i = i * sum;
+
+    // using RootSIFT: rootsift= sqrt( sift / sum(sift) );
+
+    // 1. L1 normalize descriptor
+    float sum = 0;
+    for (auto &i : ret.descriptor) sum += std::abs(i);
+    for (auto &i : ret.descriptor) {
+      i /= sum;
+      update_min(i, (float)DESC_NORM_THRESH); // thresholding
+    }
+
+    // 2. square root each element
+    for (auto &i : ret.descriptor) i = std::sqrt(i);
+
+    // 3. L2 normlize
+    sum = 0;
+    for (auto &i : ret.descriptor) sum += sqr(i);
+    sum = sqrt(sum);
+    sum = (float)DESC_INT_FACTOR / sum;
+    for (auto &i : ret.descriptor) i *= sum;
 		return ret;
 	}
 

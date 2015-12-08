@@ -13,7 +13,7 @@ namespace feature {
 }
 
 namespace stitch {
-class MatchInfo;
+struct MatchInfo;
 struct Shape2D;
 
 // find transformation matrix between two set of matched feature
