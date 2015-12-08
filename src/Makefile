@@ -3,9 +3,9 @@
 
 OBJ_DIR = obj
 TARGET = image-stitching
-CXX ?= g++
+CXX = g++-5
 
-EIGEN_PATH ?= /usr/include/eigen3
+EIGEN_PATH ?= /usr/local/Cellar/eigen/3.2.6/include/eigen3
 INCLUDE_DIR = -I. -isystem $(EIGEN_PATH) -isystem third-party
 DEFINES = -DDEBUG
 
@@ -23,7 +23,7 @@ LDFLAGS += $(shell pkg-config $(LIBS) --libs)
 LDFLAGS += -ljpeg
 
 SHELL = bash
-ccSOURCES = $(shell find -name "*.cc" | sed 's/^\.\///g')
+ccSOURCES = $(shell find . -name '*.cc' | gsed 's/^\.\///g')
 OBJS = $(addprefix $(OBJ_DIR)/,$(ccSOURCES:.cc=.o))
 DEPFILES = $(OBJS:.o=.d)
 
