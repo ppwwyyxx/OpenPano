@@ -5,6 +5,7 @@
 #include "transform_estimate.hh"
 
 #include <set>
+#include <random>
 
 #include "match_info.hh"
 #include "feature/matcher.hh"
