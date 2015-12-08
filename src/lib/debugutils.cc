@@ -9,6 +9,7 @@
 #include <iostream>
 #include <cstdarg>
 #include <map>
+#include <libgen.h>
 using namespace std;
 
 #include "utils.hh"
