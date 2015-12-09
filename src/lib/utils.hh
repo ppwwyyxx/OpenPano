@@ -14,6 +14,10 @@
 #include <sys/stat.h>
 using namespace std;
 
+#ifdef _WIN32
+#define __attribute__(x)
+#endif
+
 string TERM_COLOR(int k);
 
 #define COLOR_RED     "\x1b[31m"

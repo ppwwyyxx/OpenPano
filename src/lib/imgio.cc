@@ -4,7 +4,7 @@
 #include <cstdlib>
 #include <vector>
 #define cimg_display 0
-#define cimg_use_jpeg
+//#define cimg_use_jpeg
 #include "CImg.h"
 
 #include "imgproc.hh"
@@ -35,7 +35,7 @@ Mat32f read_png(const char* fname) {
 }
 
 Mat32f read_img(const char* fname) {
-	if (not exists_file(fname))
+	if (! exists_file(fname))
 		error_exit(ssprintf("File %s not exists!", fname));
 	if (endswith(fname, ".png"))
 		return read_png(fname);

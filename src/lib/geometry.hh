@@ -6,6 +6,7 @@
 
 #include <vector>
 #include <limits>
+#include <algorithm>
 #include <cmath>
 #include "common.hh"
 
@@ -204,18 +205,18 @@ class Vector2D {
 		T sqr() const
 		{ return x * x + y * y; }
 
-		T mod() const
+		float mod() const
 		{ return hypot(x, y); }
 
 		Vector2D<T> get_normalized() const {
-			T m = mod();
+			float m = mod();
 			m_assert(m > EPS);
 			m = 1 / m;
 			return Vector2D<T>(x * m, y * m);
 		}
 
 		virtual void normalize() {
-			T m = 1 / mod();
+			float m = 1.f / mod();
 			x *= m, y *= m;		// work?
 			m_assert(std::isnormal(m));
 		}
@@ -251,5 +252,5 @@ typedef Vector2D<int> Coor;
 typedef Vector2D<double> Vec2D;
 
 typedef std::pair<Coor, Coor> Line2D;
-typedef std::vector<Coor> Polygon;
+typedef std::vector<Coor> _Polygon;
 

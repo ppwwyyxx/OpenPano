@@ -1,6 +1,8 @@
 //File: stitcher_image.cc
 //Author: Yuxin Wu <ppwwyyxx@gmail.com>
 
+#define _USE_MATH_DEFINES
+#include <cmath>
 #include "stitcher_image.hh"
 #include "projection.hh"
 #include "lib/config.hh"
@@ -35,7 +37,7 @@ void ConnectedImages::update_proj_range() {
 				v.x += 0.5, v.y += 0.5;
 			Vec homo = m.homo.trans(
 					Vec2D(v.x * m.imgptr->width(), v.y * m.imgptr->height()));
-			if (not ESTIMATE_CAMERA) {
+			if (! ESTIMATE_CAMERA) {
 				homo.x /= refw, homo.y /= refh;
 				homo.x += 0.5 * homo.z, homo.y += 0.5 * homo.z;
 			}
@@ -55,7 +57,7 @@ void ConnectedImages::update_proj_range() {
 					v.x += 0.5, v.y += 0.5;
 				Vec homo = m.homo.trans(
 						Vec2D(v.x * m.imgptr->width(), v.y * m.imgptr->height()));
-				if (not ESTIMATE_CAMERA) {
+				if (! ESTIMATE_CAMERA) {
 					homo.x /= refw, homo.y /= refh;
 					homo.x += 0.5 * homo.z, homo.y += 0.5 * homo.z;
 				}

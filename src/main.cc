@@ -2,6 +2,9 @@
 // Date: Wed Jun 17 20:29:58 2015 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
+#define _USE_MATH_DEFINES
+#include <cmath>
+
 #include "feature/extrema.hh"
 #include "feature/matcher.hh"
 #include "feature/orientation.hh"
@@ -164,7 +167,7 @@ void work(int argc, char* argv[]) {
 
 	if (CROP) res = crop(res);
 	{
-		GuardedTimer tm("Writing image");
+		GuardedTimer tm(std::string("Writing image"));
 		write_rgb("out.jpg", res);
 	}
 }

@@ -49,10 +49,10 @@ vector<SSPoint> ExtremaDetector::get_extrema() const {
 				sp.pyr_id = i;
 				sp.scale_id = j;
 				bool succ = calc_kp_offset(&sp);
-				if (not succ) continue;
+				if (! succ) continue;
 				auto& img = dog.dogs[i][sp.scale_id];
-				succ = not is_edge_response(sp.coor, img);
-				if (not succ) continue;
+				succ = ! is_edge_response(sp.coor, img);
+				if (! succ) continue;
 
 #pragma omp critical
 				ret.emplace_back(sp);
@@ -143,7 +143,7 @@ std::pair<Vec, Vec> ExtremaDetector::calc_kp_offset_iter(
 	delta.write_to(pdpx.ptr());
 
 	Matrix inv;
-	if (not m.inverse(inv)) {	  // pseudo inverse is slow
+	if (! m.inverse(inv)) {	  // pseudo inverse is slow
 		inv = m.pseudo_inverse();
 	}
 	auto prod = inv.prod(pdpx);

@@ -2,6 +2,9 @@
 // Date: Thu Jul 04 11:51:48 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
+#define _USE_MATH_DEFINES
+#include <cmath>
+
 #include "lib/config.hh"
 #include "dog.hh"
 #include "lib/imgproc.hh"

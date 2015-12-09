@@ -10,6 +10,17 @@
 using namespace std;
 using namespace config;
 
+#ifdef _MSC_VER
+// necessary to define here since flann doesn't provide serialization for size_t as unsigned long long
+namespace flann
+{
+  namespace serialization
+  {
+
+    BASIC_TYPE_SERIALIZER(size_t);
+  }
+}
+#endif
 
 namespace feature {
 
@@ -17,7 +28,7 @@ MatchData FeatureMatcher::match() const {
 	static const float REJECT_RATIO_SQR = MATCH_REJECT_NEXT_RATIO * MATCH_REJECT_NEXT_RATIO;
 	TotalTimer tm("matcher");
 
-	size_t l1 = feat1.size(), l2 = feat2.size();
+	int l1 = feat1.size(), l2 = feat2.size();
 	// loop over the smaller one to speed up
 	bool rev = l1 > l2;
 	const vector<Descriptor> *pf1, *pf2;
@@ -60,7 +71,7 @@ MatchData FeatureMatcher::match() const {
 }
 
 void PairWiseMatcher::build() {
-	GuardedTimer tm("BuildTrees");
+	GuardedTimer tm(std::string("BuildTrees"));
 	for (auto& feat: feats)	{
 		float* buf = new float[feat.size() * D];
 		bufs.emplace_back(buf);
@@ -72,7 +83,7 @@ void PairWiseMatcher::build() {
 		trees.emplace_back(points, flann::KDTreeIndexParams(FLANN_NR_KDTREE));
 	}
 #pragma omp parallel for schedule(dynamic)
-	REP(i, trees.size())
+	REP(i, (int)trees.size())
 		trees[i].buildIndex();
 }
 

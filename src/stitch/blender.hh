@@ -3,6 +3,7 @@
 
 #pragma once
 #include <vector>
+#include <functional>
 #include "lib/mat.h"
 #include "lib/geometry.hh"
 #include "lib/color.hh"

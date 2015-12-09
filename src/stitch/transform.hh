@@ -25,9 +25,14 @@ class Homography {
 		}
 
 		Homography transpose() const {
-			return Homography{(const double[]){data[0], data[3], data[6],
+			/*return Homography{(const double[]){data[0], data[3], data[6],
 						  data[1], data[4], data[7],
-						  data[2], data[5], data[8]}};
+						  data[2], data[5], data[8]}};*/
+
+      Homography h{ { data[0], data[3], data[6],
+        data[1], data[4], data[7],
+        data[2], data[5], data[8] } };
+      return h;
 		}
 
 		double& operator [] (int idx) { return data[idx]; }

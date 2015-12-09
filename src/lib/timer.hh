@@ -4,6 +4,7 @@
 #include <functional>
 #include <map>
 #include <iostream>
+#include <string>
 
 class Timer {
 	public:
@@ -32,9 +33,9 @@ class Timer {
 
 class GuardedTimer: public Timer {
 	public:
-		GuardedTimer(std::string msg,  bool enabled=true):
+		GuardedTimer(const std::string& msg,  bool enabled=true):
 			GuardedTimer([msg](double duration){
-					std::cout << msg << ": " << duration * 1000. << " milliseconds." << std::endl;
+					std::cout << msg << ": " << std::to_string(duration * 1000.) << " milliseconds." << std::endl;
 				})
 		{ enabled_ = enabled; }
 

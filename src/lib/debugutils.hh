@@ -7,6 +7,10 @@
 #include <string>
 #include <iterator>
 
+#ifdef _WIN32
+#define __attribute__(x)
+#endif
+
 #define P(a) std::cout << (a) << std::endl
 #define PP(a) std::cout << #a << ": " << (a) << std::endl
 #define PA(arr) \
@@ -38,9 +42,7 @@ void __print_debug__(const char *file, const char *func, int line, const char *f
 #ifdef DEBUG
 
 #define m_assert(expr) \
-	__m_assert_check__((expr), # expr, __FILE__, __PRETTY_FUNCTION__, __LINE__)
-
-
+	__m_assert_check__((expr), # expr, __FILE__, __func__ , __LINE__)
 
 #else
 

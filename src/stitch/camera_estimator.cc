@@ -35,7 +35,7 @@ vector<Camera> CameraEstimator::estimate() {
 	propagate_rotation(graph);
 
 	{
-		GuardedTimer tm("IncrementalBundleAdjuster");
+		GuardedTimer tm(std::string("IncrementalBundleAdjuster"));
 		IncrementalBundleAdjuster iba(shapes, cameras);
 		// TODO add by certain order
 		REP(i, n) {
@@ -50,7 +50,7 @@ vector<Camera> CameraEstimator::estimate() {
 				iba.optimize();
 			}
 		}
-		if (not MULTIPASS_BA)
+		if (! MULTIPASS_BA)
 			iba.optimize();
 	}
 
@@ -90,7 +90,7 @@ vector<vector<int>> CameraEstimator::max_spanning_tree() {
 				edges.erase(itr);
 				break;
 			}
-			if (not in_tree[e.v1] && not in_tree[e.v2])
+			if (! in_tree[e.v1] && ! in_tree[e.v2])
 				continue;
 			in_tree[e.v1] = in_tree[e.v2] = true;
 			graph[e.v1].push_back(e.v2);
