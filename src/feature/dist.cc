@@ -11,13 +11,17 @@
 
 namespace feature {
 
-#ifdef __SSE3__
+#if defined(__SSE3__) || defined(__AVX__) || (_M_IX86_FP >= 2)
+#ifdef _MSC_VER
+#include <nmmintrin.h>
+#else
 #include <x86intrin.h>
+#endif
 
 // %35 faster
 float euclidean_sqr(
 		const float* x, const float* y,
-		int n, float now_thres) {
+		size_t n, float now_thres) {
 	/*
 	 *static long long cnt = 0;
 	 *cnt ++; if (cnt % 10000000 == 0) PP(cnt);
@@ -43,8 +47,8 @@ float euclidean_sqr(
 
 		x += 4;
 		y += 4;
-		_mm_prefetch(x, _MM_HINT_T0);
-		_mm_prefetch(y, _MM_HINT_T0);
+		_mm_prefetch((char*)x, _MM_HINT_T0);
+		_mm_prefetch((char*)y, _MM_HINT_T0);
 	}
 	__m128 rst = _mm_hadd_ps(vsum, vsum);
 	rst = _mm_hadd_ps(rst, rst);
@@ -56,7 +60,7 @@ float euclidean_sqr(
 
 float euclidean_sqr(
 		const float* x, const float* y,
-		int size, float now_thres) {
+		size_t size, float now_thres) {
 	m_assert(size % 4 == 0);
 	float ans = 0;
 	float diff0, diff1, diff2, diff3;
@@ -74,6 +78,16 @@ float euclidean_sqr(
 	return ans;
 }
 
+#endif
+
+#ifdef _MSC_VER
+#if defined(__AVX__) || (_M_IX86_FP >= 2)
+#  include <nmmintrin.h>
+#  define __builtin_popcount _mm_popcnt_u32
+#else
+#  include <intrin.h>
+#  define __builtin_popcount __popcnt
+#endif
 #endif
 
 int hamming(const float* x, const float* y, int n) {

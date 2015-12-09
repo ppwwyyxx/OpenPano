@@ -114,7 +114,7 @@ void fill(Mat32f& mat, const Color& c) {
 
 Mat32f crop(const Mat32f& mat) {
 	int w = mat.width(), h = mat.height();
-	int height[w], left[w], right[w];
+	int *height=new int[w], *left=new int[w], *right=new int[w];
 	int maxarea = 0;
 	int ll = 0, rr = 0, hh = 0, nl = 0;
 	memset(height, 0, sizeof(height));
@@ -146,6 +146,10 @@ Mat32f crop(const Mat32f& mat) {
 		const float* src = mat.ptr(i + offsety, offsetx);
 		memcpy(dst, src, 3 * ret.width() * sizeof(float));
 	}
+
+  delete[] height;
+  delete[] left;
+  delete[] right;
 	return ret;
 }
 

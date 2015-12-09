@@ -17,7 +17,7 @@ Homography Homography::inverse(bool* succ) const {
 		m_assert(lu.isInvertible());
 	} else {
 		*succ = lu.isInvertible();
-		if (not *succ) return ret;
+		if (! *succ) return ret;
 	}
 	res = lu.inverse().eval();
 	return ret;

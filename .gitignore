@@ -6,3 +6,5 @@ data/
 .tags
 output
 *.pyc
+build/
+src/out.jpg

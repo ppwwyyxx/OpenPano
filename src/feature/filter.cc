@@ -2,8 +2,9 @@
 // Date: Thu Jul 04 11:05:14 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
-#include "filter.hh"
+#include <algorithm>
 #include <cmath>
+#include "filter.hh"
 #include "lib/config.hh"
 #include "lib/utils.hh"
 #include "lib/timer.hh"
@@ -60,7 +61,7 @@ Mat32f Filter::GaussianBlur(
 	float * kernel = gauss.kernel;
 
 	auto cur_line_mem = create_auto_buf<float>(
-			center * 2 + max(w, h), true);
+			center * 2 + std::max(w, h), true);
 	float *cur_line = cur_line_mem.get() + center;
 
 	// apply to columns

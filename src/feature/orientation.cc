@@ -2,6 +2,8 @@
 //Date:
 //Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
+#define _USE_MATH_DEFINES
+#include <cmath>
 #include "orientation.hh"
 #include "lib/config.hh"
 #include "feature.hh"
