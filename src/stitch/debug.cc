@@ -11,6 +11,8 @@
 #include "lib/imgproc.hh"
 #include "lib/planedrawer.hh"
 
+namespace pano {
+
 void LinearBlender::debug_run(int w, int h) {
 #pragma omp parallel for schedule(dynamic)
 	REP(k, (int)images.size()) {
@@ -37,7 +39,6 @@ void LinearBlender::debug_run(int w, int h) {
 	}
 }
 
-namespace stitch {
 
 void Stitcher::draw_matchinfo() {
 	int n = imgs.size();

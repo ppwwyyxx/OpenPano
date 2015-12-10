@@ -14,7 +14,7 @@ using namespace std;
 using namespace config;
 
 
-namespace feature {
+namespace pano {
 
 // return half-shifted image coordinate
 vector<Descriptor> FeatureDetector::detect_feature(const Mat32f& img) const {

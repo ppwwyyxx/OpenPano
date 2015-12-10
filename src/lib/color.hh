@@ -7,6 +7,8 @@
 #include "geometry.hh"
 #include <limits>
 
+namespace pano {
+
 class Color: public Vector<float> {
 	public:
 		Color(float r = 0, float g = 0, float b = 0):
@@ -44,3 +46,5 @@ class Color: public Vector<float> {
 		{ return Color(x + v.x, y + v.y, z + v.z); }
 };
 
+
+}

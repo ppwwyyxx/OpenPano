@@ -4,7 +4,7 @@
 #pragma once
 #include "feature.hh"
 
-namespace feature {
+namespace pano {
 
 class ScaleSpace;
 

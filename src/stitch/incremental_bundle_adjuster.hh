@@ -5,14 +5,15 @@
 #pragma once
 
 #pragma once
-#include "lib/mat.h"
-#include "lib/common.hh"
 #include <vector>
 #include <set>
 #include <Eigen/Dense>
 
+#include "lib/mat.h"
+#include "lib/common.hh"
 
-namespace stitch {
+
+namespace pano {
 class Camera;
 struct MatchInfo;
 struct Shape2D;

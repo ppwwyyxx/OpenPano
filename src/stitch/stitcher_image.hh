@@ -4,8 +4,11 @@
 #pragma once
 #include <vector>
 #include "projection.hh"
-#include "transform.hh"
+#include "homography.hh"
 
+namespace pano {
+
+/// A group of connected images, and metadata for stitching
 struct ConnectedImages {
 	struct Range {
 		Vec2D min, max;
@@ -22,8 +25,8 @@ struct ConnectedImages {
 	// update range of projection of all transformations
 	void update_proj_range();
 
-	projector::homo2proj_t get_homo2proj() const;
-	projector::proj2homo_t get_proj2homo() const;
+	homo2proj_t get_homo2proj() const;
+	proj2homo_t get_proj2homo() const;
 
 	int identity_idx;
 
@@ -49,3 +52,5 @@ struct ConnectedImages {
 	void calc_inverse_homo();
 
 };
+
+}

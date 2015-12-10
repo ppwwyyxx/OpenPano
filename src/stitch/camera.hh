@@ -3,9 +3,9 @@
 
 #pragma once
 #include <vector>
-#include "transform.hh"
+#include "homography.hh"
 
-namespace stitch {
+namespace pano {
 struct MatchInfo;
 
 // TODO might not need aspect any more

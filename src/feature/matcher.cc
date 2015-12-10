@@ -22,7 +22,7 @@ namespace flann
 }
 #endif
 
-namespace feature {
+namespace pano {
 
 MatchData FeatureMatcher::match() const {
 	static const float REJECT_RATIO_SQR = MATCH_REJECT_NEXT_RATIO * MATCH_REJECT_NEXT_RATIO;

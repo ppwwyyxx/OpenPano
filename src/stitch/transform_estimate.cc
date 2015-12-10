@@ -7,21 +7,20 @@
 #include <set>
 #include <random>
 
-#include "match_info.hh"
+#include "feature/feature.hh"
 #include "feature/matcher.hh"
 #include "lib/config.hh"
-#include "feature/feature.hh"
 #include "lib/imgproc.hh"
 #include "lib/timer.hh"
+#include "match_info.hh"
 using namespace std;
-using namespace feature;
 using namespace config;
 
-namespace stitch {
+namespace pano {
 
-TransformEstimation::TransformEstimation(const feature::MatchData& m_match,
-		const std::vector<feature::Descriptor>& m_f1,
-		const std::vector<feature::Descriptor>& m_f2,
+TransformEstimation::TransformEstimation(const MatchData& m_match,
+		const std::vector<Descriptor>& m_f1,
+		const std::vector<Descriptor>& m_f2,
 		const Shape2D& shape1):
 	match(m_match), f1(m_f1), f2(m_f2),
 	f2_homo_coor(3, match.size())

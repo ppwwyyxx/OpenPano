@@ -5,7 +5,7 @@
 
 #include "lib/geometry.hh"
 
-namespace projector {
+namespace pano {
 
 	typedef Vec2D (*homo2proj_t)(const Vec&);
 	typedef Vec (*proj2homo_t)(const Vec2D&);

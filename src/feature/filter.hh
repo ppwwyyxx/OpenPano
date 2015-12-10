@@ -7,7 +7,7 @@
 #include <vector>
 #include "lib/mat.h"
 
-namespace feature {
+namespace pano {
 
 class GaussCache {
 	public:

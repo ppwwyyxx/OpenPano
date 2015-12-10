@@ -7,7 +7,7 @@
 #include "match_info.hh"
 
 
-namespace stitch {
+namespace pano {
 class Camera;
 
 class CameraEstimator {

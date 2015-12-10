@@ -6,9 +6,9 @@
 #include "warp.hh"
 #include "lib/imgproc.hh"
 using namespace std;
-using namespace feature;
+using namespace pano;
 
-namespace projector {
+namespace pano {
 
 Vec2D CylinderProject::proj(const Vec& p) const {
 	real_t x = atan((p.x - center.x) / r);

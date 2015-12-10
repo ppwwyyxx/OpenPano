@@ -10,7 +10,7 @@
 #include "feature/dist.hh"
 #include <cstring>
 
-namespace feature {
+namespace pano {
 
 struct BriefPattern;	// forward declaration
 
@@ -20,11 +20,11 @@ struct Descriptor {
 
 	// square of euclidean. use now_thres to early-stop
 	float euclidean_sqr(const Descriptor& r, float now_thres) const {
-		return feature::euclidean_sqr(descriptor.data(), r.descriptor.data(), (int)descriptor.size(), now_thres);
+		return pano::euclidean_sqr(descriptor.data(), r.descriptor.data(), (int)descriptor.size(), now_thres);
 	}
 
 	int hamming(const Descriptor& r) const {
-		return feature::hamming(descriptor.data(), r.descriptor.data(), (int)descriptor.size());
+		return pano::hamming(descriptor.data(), r.descriptor.data(), (int)descriptor.size());
 	}
 };
 

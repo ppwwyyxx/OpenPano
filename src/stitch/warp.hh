@@ -7,7 +7,7 @@
 #include "lib/mat.h"
 #include "feature/feature.hh"
 
-namespace projector {
+namespace pano {
 
 class CylinderProject {
 	public:
@@ -19,7 +19,7 @@ class CylinderProject {
 			center(m_center), r(m_r),
 			sizefactor(m_size){}
 
-		Mat32f project(const Mat32f& img, std::vector<feature::Descriptor>& ft) const;
+		Mat32f project(const Mat32f& img, std::vector<Descriptor>& ft) const;
 
 	private:
 		// return (angle with x) and (angle vertical)
@@ -39,12 +39,12 @@ class CylinderWarper {
 		CylinderWarper(real_t m_hfactor):
 			h_factor(m_hfactor) {}
 
-		void warp(Mat32f& mat, std::vector<feature::Descriptor>& ft) const;
+		void warp(Mat32f& mat, std::vector<Descriptor>& ft) const;
 
 		inline void warp(Mat32f& mat) const {
-			feature::Descriptor f;
+			Descriptor f;
 			f.coor = Vec2D(0, 0);
-			std::vector<feature::Descriptor> ff = {f};
+			std::vector<Descriptor> ff = {f};
 			warp(mat, ff);
 		}
 };

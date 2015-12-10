@@ -8,6 +8,8 @@
 #include <limits>
 #include "lib/debugutils.hh"
 
+namespace pano {
+
 class KDTree {
 	public:
 		typedef std::vector<float> Point;
@@ -66,3 +68,5 @@ class KDTree {
 		NNResult nn_in_node(const Point& p, Node*, float) const;
 		TwoNNResult two_nn_in_node(const Point& p, Node*, float) const;
 };
+
+}

@@ -8,7 +8,7 @@
 #include "feature.hh"
 #include "dist.hh"
 
-namespace feature {
+namespace pano {
 
 class MatchData {
 	public:
@@ -51,7 +51,7 @@ class PairWiseMatcher {
 		const int D; // feature dimension
 		const std::vector<std::vector<Descriptor>> &feats;
 
-		std::vector<flann::Index<feature::L2SSE>> trees;
+		std::vector<flann::Index<pano::L2SSE>> trees;
 		std::vector<float*> bufs;	// index buffer is managed manually
 
 		void build();

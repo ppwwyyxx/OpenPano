@@ -12,7 +12,7 @@ using namespace std;
 using namespace config;
 
 
-namespace feature {
+namespace pano {
 
 GaussCache::GaussCache(float sigma) {
 	// TODO decide window size ?

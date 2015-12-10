@@ -9,7 +9,7 @@
 
 #include <limits>
 
-namespace feature {
+namespace pano {
 
 #if defined(__SSE3__) || defined(__AVX__) || (_M_IX86_FP >= 2)
 #ifdef _MSC_VER

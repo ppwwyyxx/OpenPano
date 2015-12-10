@@ -2,10 +2,14 @@
 // Date: Fri May 03 04:52:58 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
-#ifndef __HEAD__PLANE_DRAWER
-#define __HEAD__PLANE_DRAWER
+#pragma once
 #include "lib/color.hh"
 #include "lib/mat.h"
+
+namespace pano {
+
+typedef std::pair<Coor, Coor> Line2D;
+typedef std::vector<Coor> Polygon;
 
 class PlaneDrawer {
 	public:
@@ -58,7 +62,7 @@ class PlaneDrawer {
 
 		void arrow(Coor o, real_t dir, int r);
 
-		void polygon(_Polygon p) {
+		void polygon(Polygon p) {
 			for (unsigned int i = 0; i < p.size() - 1; i++)
 				line(p[i], p[i + 1]);
 			line(p.back(), p.front());
@@ -74,12 +78,12 @@ class PlaneDrawer {
 		Mat32f mat;
 		Color c = Color::BLACK;
 
-		_Polygon to_renderable(std::vector<Vec2D> p) {
-			_Polygon ret;
+		Polygon to_renderable(std::vector<Vec2D> p) {
+			Polygon ret;
 			for (auto v : p)
 				ret.push_back(Coor(v.x, v.y));
 			return ret;
 		}
 };
 
-#endif //HEAD
+}

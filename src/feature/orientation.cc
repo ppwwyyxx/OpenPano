@@ -11,7 +11,7 @@ using namespace std;
 using namespace config;
 
 
-namespace feature {
+namespace pano {
 
 OrientationAssign::OrientationAssign(
 		const DOGSpace& dog, const ScaleSpace& ss,

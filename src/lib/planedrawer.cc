@@ -2,13 +2,17 @@
 // Date: Tue Apr 16 11:10:44 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
+#include "planedrawer.hh"
+
 #include <vector>
 #include <utility>
 #include <queue>
+
+#include "lib/debugutils.hh"
 using namespace std;
 
-#include "planedrawer.hh"
-#include "lib/debugutils.hh"
+namespace pano {
+
 
 std::ostream& operator << (std::ostream& os, const Line2D& l) {
 	os << l.first << "->" << l.second;
@@ -59,3 +63,4 @@ void PlaneDrawer::arrow(Coor o, real_t dir, int r) {
 	line(o, o + Coor(dx, dy));
 }
 
+}

@@ -8,6 +8,8 @@
 #include "lib/timer.hh"
 using namespace std;
 
+namespace pano {
+
 void LinearBlender::add_image(
 			const Coor& upper_left,
 			const Coor& bottom_right,
@@ -46,4 +48,6 @@ void LinearBlender::run(Mat32f &target) {
 				(isum / wsum).write_to(row + j * 3);
 		}
 	}
+}
+
 }

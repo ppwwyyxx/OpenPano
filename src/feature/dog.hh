@@ -8,7 +8,7 @@
 #include "lib/debugutils.hh"
 #include "lib/config.hh"
 
-namespace feature {
+namespace pano {
 
 // Given an image, build an octave with different blurred version
 class GaussianPyramid {

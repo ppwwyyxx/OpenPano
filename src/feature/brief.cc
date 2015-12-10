@@ -9,7 +9,7 @@
 
 using namespace std;
 
-namespace feature {
+namespace pano {
 
 BRIEF::BRIEF(const Mat32f& img, const vector<SSPoint>& points,
 		const BriefPattern& pattern):
@@ -96,7 +96,7 @@ BriefPattern BRIEF::gen_brief_pattern(int s, int n) {
  *
  *#include <iostream>
  *int main() {
- *  auto p = feature::gen_brief_pattern(9, 256);
+ *  auto p = pano::gen_brief_pattern(9, 256);
  *  for (auto& pair: p.pattern) {
  *    cout << pair.first/9 << " " << pair.first % 9
  *      << "->" << pair.second/ 9 << " " << pair.second %9<< endl;

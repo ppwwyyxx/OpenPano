@@ -21,9 +21,7 @@
 #include <cassert>
 
 using namespace std;
-using namespace feature;
-using namespace stitch;
-using namespace projector;
+using namespace pano;
 using namespace config;
 
 bool TEMPDEBUG = false;

@@ -8,6 +8,8 @@
 #include "lib/geometry.hh"
 #include "lib/color.hh"
 
+namespace pano {
+
 class BlenderBase {
 	public:
 		virtual ~BlenderBase() {}
@@ -57,3 +59,5 @@ class LinearBlender : public BlenderBase {
 		// render each component, for debug
 		void debug_run(int w, int h);
 };
+
+}

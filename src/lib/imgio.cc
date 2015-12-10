@@ -13,6 +13,26 @@
 using namespace cimg_library;
 using namespace std;
 
+namespace {
+
+void write_png(const char* fname, const Mat32f& mat) {
+	int n = mat.pixels();
+	vector<unsigned char> img(n * 4);
+	const float* p = mat.ptr();
+	unsigned char* data = img.data();
+	REP(i, n) {
+		data[0] = (p[0] < 0 ? 0 : p[0]) * 255;
+		data[1] = (p[1] < 0 ? 0 : p[1]) * 255;
+		data[2] = (p[2] < 0 ? 0 : p[2]) * 255;
+		data[3] = 255;
+		data += 4; p += 3;
+	}
+	unsigned error = lodepng::encode(fname, img, mat.width(), mat.height());
+	if(error)
+		error_exit(ssprintf(
+					"png encoder error %u: %s", error, lodepng_error_text(error)));
+}
+
 Mat32f read_png(const char* fname) {
 	vector<unsigned char> img;
 	unsigned w, h;
@@ -32,6 +52,10 @@ Mat32f read_png(const char* fname) {
 	}
 	return mat;
 }
+
+}	// namespace
+
+namespace pano {
 
 Mat32f read_img(const char* fname) {
 	if (! exists_file(fname))
@@ -59,24 +83,6 @@ Mat32f read_img(const char* fname) {
 }
 
 
-void write_png(const char* fname, const Mat32f& mat) {
-	int n = mat.pixels();
-	vector<unsigned char> img(n * 4);
-	const float* p = mat.ptr();
-	unsigned char* data = img.data();
-	REP(i, n) {
-		data[0] = (p[0] < 0 ? 0 : p[0]) * 255;
-		data[1] = (p[1] < 0 ? 0 : p[1]) * 255;
-		data[2] = (p[2] < 0 ? 0 : p[2]) * 255;
-		data[3] = 255;
-		data += 4; p += 3;
-	}
-	unsigned error = lodepng::encode(fname, img, mat.width(), mat.height());
-	if(error)
-		error_exit(ssprintf(
-					"png encoder error %u: %s", error, lodepng_error_text(error)));
-}
-
 void write_rgb(const char* fname, const Mat32f& mat) {
 	m_assert(mat.channels() == 3);
 	if (endswith(fname, ".png")) {
@@ -94,3 +100,5 @@ void write_rgb(const char* fname, const Mat32f& mat) {
 	img.save(fname);
 }
 
+
+}

@@ -11,6 +11,8 @@
 using namespace std;
 using namespace config;
 
+namespace pano {
+
 void ConnectedImages::calc_inverse_homo() {
 	for (auto& m : component)
 		m.homo_inv = m.homo.inverse();
@@ -82,8 +84,7 @@ void ConnectedImages::update_proj_range() {
 	proj_range.min = proj_min, proj_range.max = proj_max;
 }
 
-projector::homo2proj_t ConnectedImages::get_homo2proj() const {
-	using namespace projector;
+homo2proj_t ConnectedImages::get_homo2proj() const {
 	switch (proj_method) {
 		case ProjectionMethod::flat:
 			return flat::homo2proj;
@@ -95,8 +96,7 @@ projector::homo2proj_t ConnectedImages::get_homo2proj() const {
 	assert(false);
 }
 
-projector::proj2homo_t ConnectedImages::get_proj2homo() const {
-	using namespace projector;
+proj2homo_t ConnectedImages::get_proj2homo() const {
 	switch (proj_method) {
 		case ProjectionMethod::flat:
 			return flat::proj2homo;
@@ -106,4 +106,6 @@ projector::proj2homo_t ConnectedImages::get_proj2homo() const {
 			return spherical::proj2homo;
 	}
 	assert(false);
+}
+
 }

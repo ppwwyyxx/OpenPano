@@ -9,12 +9,13 @@
 
 #include "lib/timer.hh"
 #include "match_info.hh"
-#include "transform.hh"
+#include "homography.hh"
 using namespace std;
+using namespace pano;
 // Implement stuffs about camera K,R matrices
 namespace {
 
-// From Creating Full View Panoramic Image Mosaics - Szeliski
+// See: Creating Full View Panoramic Image Mosaics - Szeliski
 double get_focal_from_matrix(const Homography& h) {
 	double d1, d2; // Denominators
 	double v1, v2; // Focal squares value candidates
@@ -52,7 +53,7 @@ double get_focal_from_matrix(const Homography& h) {
 
 }
 
-namespace stitch {
+namespace pano {
 
 Camera::Camera() : R(Homography::I()) { }
 

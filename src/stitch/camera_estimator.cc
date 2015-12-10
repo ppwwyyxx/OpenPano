@@ -15,7 +15,7 @@
 using namespace std;
 using namespace config;
 
-namespace stitch {
+namespace pano {
 
 vector<Camera> CameraEstimator::estimate() {
 	{ // assign an initial focal length

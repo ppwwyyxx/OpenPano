@@ -5,8 +5,8 @@
 #include "lib/matrix.hh"
 #include "lib/geometry.hh"
 
-// TODO write operator *, remove type-conversion
-// TODO don't inherit from Matrix
+namespace pano {
+
 
 class Homography {
 	public:
@@ -141,3 +141,5 @@ class Homography {
 		}
 
 };
+
+}

@@ -37,7 +37,7 @@ float fast_atan(float y, float x) {
 }
 }
 
-namespace feature {
+namespace pano {
 
 GaussianPyramid::GaussianPyramid(const Mat32f& m, int num_scale):
 	nscale(num_scale),

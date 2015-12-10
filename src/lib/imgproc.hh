@@ -3,13 +3,16 @@
 //Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
+#include <list>
 #include "mat.h"
 #include "color.hh"
 
-// forward declaration
 class Matrix;
 
-#include <list>
+namespace pano {
+
+// forward declaration
+
 Mat32f read_img(const char* fname);
 void write_rgb(const char* fname, const Mat32f& mat);
 
@@ -33,3 +36,5 @@ void fill(Mat32f& mat, const Color& c);
 
 template <typename T>
 void resize(const Mat<T> &src, Mat<T> &dst);
+
+}

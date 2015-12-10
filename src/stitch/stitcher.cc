@@ -19,11 +19,11 @@
 #include "camera_estimator.hh"
 #include "warp.hh"
 using namespace std;
-using namespace feature;
-using namespace projector;
+using namespace pano;
+using namespace pano;
 using namespace config;
 
-namespace stitch {
+namespace pano {
 
 // use in development
 const static bool DEBUG_OUT = false;

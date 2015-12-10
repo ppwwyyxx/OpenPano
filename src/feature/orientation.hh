@@ -6,7 +6,7 @@
 #include <vector>
 #include "dog.hh"
 
-namespace feature {
+namespace pano {
 struct SSPoint;
 
 class OrientationAssign {

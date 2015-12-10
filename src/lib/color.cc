@@ -6,6 +6,8 @@
 #include "color.hh"
 using namespace std;
 
+namespace pano {
+
 const Color Color::BLACK(0, 0, 0),
 			Color::WHITE(1,1,1),
 			Color::RED(1, 0, 0),
@@ -22,4 +24,6 @@ void Color::normalize() {
 		y /= max;
 		z /= max;
 	}
+}
+
 }

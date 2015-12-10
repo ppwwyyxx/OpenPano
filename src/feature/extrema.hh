@@ -8,7 +8,7 @@
 #include "lib/mat.h"
 #include "lib/geometry.hh"
 
-namespace feature {
+namespace pano {
 
 struct SSPoint;
 

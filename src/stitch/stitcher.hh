@@ -15,12 +15,11 @@
 #include "stitcher_image.hh"
 #include "camera.hh"
 
+namespace pano {
+
 // forward declaration
 class Homography;
-namespace feature { class MatchData; }
-
-namespace stitch {
-
+class MatchData;
 struct MatchInfo;
 
 class Stitcher {
@@ -29,12 +28,12 @@ class Stitcher {
 		// transformation and metadata of each image
 		ConnectedImages bundle;
 		// feature of each image
-		std::vector<std::vector<feature::Descriptor>> feats;
+		std::vector<std::vector<Descriptor>> feats;
 		// 2d array of all matches
 		// pairwise_matches[i][j].homo transform j to i
 		std::vector<std::vector<MatchInfo>> pairwise_matches;
 		// feature detector
-		std::unique_ptr<feature::FeatureDetector> feature_det;
+		std::unique_ptr<FeatureDetector> feature_det;
 
 		// get feature descriptor for each image
 		void calc_feature();
@@ -68,7 +67,7 @@ class Stitcher {
 		// in cylindrical mode, search warping parameter for straightening
 		float update_h_factor(float, float&, float&,
 				std::vector<Homography>&,
-				const std::vector<feature::MatchData>&);
+				const std::vector<MatchData>&);
 		// in cylindrical mode, perspective correction on the final image
 		Mat32f perspective_correction(const Mat32f&);
 
@@ -92,7 +91,7 @@ class Stitcher {
 				if (imgs.size() <= 1)
 					error_exit(ssprintf("Cannot stitch with only %lu images.", imgs.size()));
 
-				feature_det.reset(new feature::SIFTDetector);
+				feature_det.reset(new SIFTDetector);
 
 				// initialize bundle
 				bundle.component.resize(imgs.size());

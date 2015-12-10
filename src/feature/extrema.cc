@@ -12,7 +12,7 @@
 using namespace std;
 using namespace config;
 
-namespace feature {
+namespace pano {
 
 ExtremaDetector::ExtremaDetector(const DOGSpace& dg):
 	dog(dg) {}

@@ -7,12 +7,13 @@
 #include "dog.hh"
 using namespace std;
 using namespace config;
+using namespace pano;
 
 namespace {
 	const int featlen = DESC_HIST_WIDTH * DESC_HIST_WIDTH * DESC_HIST_BIN_NUM;
 
-	feature::Descriptor hist_to_descriptor(float* hist) {
-		feature::Descriptor ret;
+	Descriptor hist_to_descriptor(float* hist) {
+		Descriptor ret;
 		ret.descriptor.resize(featlen);
 		memcpy(ret.descriptor.data(), hist, featlen * sizeof(float));
 
@@ -77,7 +78,7 @@ namespace {
 	}
 }
 
-namespace feature {
+namespace pano {
 
 SIFT::SIFT(const ScaleSpace& ss,
 		const vector<SSPoint>& keypoints):

@@ -11,6 +11,8 @@
 #include "lib/debugutils.hh"
 using namespace std;
 
+namespace pano {
+
 struct KDTree::Node {
 	Node* child[2];
 
@@ -126,7 +128,7 @@ KDTree::NNResult KDTree::nn_in_node(const Point& p, Node* n, float thres) const 
 		float min_d = thres;
 		int min_i = -1;
 		for (auto& lp: n->pts) {
-			float v = feature::euclidean_sqr(
+			float v = euclidean_sqr(
 					lp.second->data(), p.data(), D, min_d);
 			if (update_min(min_d, v))
 				min_i = lp.first;
@@ -162,7 +164,7 @@ KDTree::TwoNNResult KDTree::two_nn_in_node(const Point& p, Node* n, float thres)
 		float min_d = thres, min_d2 = thres;
 		int min_i = -1;
 		for (auto& lp: n->pts) {		// leaf point
-			float v = feature::euclidean_sqr(
+			float v = euclidean_sqr(
 					lp.second->data(), p.data(), D, min_d2);
 			if (v < min_d)
 				min_d2 = min_d, min_d = v, min_i = lp.first;
@@ -205,4 +207,6 @@ KDTree::TwoNNResult KDTree::two_nn_in_node(const Point& p, Node* n, float thres)
 			update_min(ret.sqrdist2, ret2.sqrdist);
 		return ret;
 	}
+}
+
 }

@@ -6,9 +6,9 @@
 #include <iostream>
 
 #include "lib/geometry.hh"
-#include "transform.hh"
+#include "homography.hh"
 
-namespace stitch {
+namespace pano {
 
 struct MatchInfo {
 	// coordinate is half-shifted

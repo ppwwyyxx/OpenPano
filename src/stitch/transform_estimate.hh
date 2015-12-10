@@ -5,14 +5,14 @@
 #pragma once
 #include <vector>
 #include "lib/matrix.hh"
-#include "transform.hh"
+#include "homography.hh"
 
-namespace feature {
+namespace pano {
 	class MatchData;
 	struct Descriptor;
 }
 
-namespace stitch {
+namespace pano {
 struct MatchInfo;
 struct Shape2D;
 
@@ -21,9 +21,9 @@ class TransformEstimation {
 	public:
 		// MatchData contains pairs of (f1_idx, f2_idx)
 		// shape1 is (w, h) of the first image
-		TransformEstimation(const feature::MatchData& m_match,
-				const std::vector<feature::Descriptor>& m_f1,
-				const std::vector<feature::Descriptor>& m_f2,
+		TransformEstimation(const MatchData& m_match,
+				const std::vector<Descriptor>& m_f1,
+				const std::vector<Descriptor>& m_f2,
 				const Shape2D& shape1);
 
 		// get a transform matix from second(f2) -> first(f1)
@@ -32,8 +32,8 @@ class TransformEstimation {
 		enum TransformType { Affine, Homo };
 
 	private:
-		const feature::MatchData& match;
-		const std::vector<feature::Descriptor> &f1, &f2;
+		const MatchData& match;
+		const std::vector<Descriptor> &f1, &f2;
 		float ransac_inlier_thres;
 		TransformType transform_type;
 

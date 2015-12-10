@@ -8,7 +8,7 @@
 
 // BRIEF: Binary Robust Independent Elementary Features
 
-namespace feature {
+namespace pano {
 
 struct BriefPattern {
 	int s;	// size

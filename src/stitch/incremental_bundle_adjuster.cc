@@ -13,7 +13,7 @@
 #include "lib/config.hh"
 #include "lib/timer.hh"
 using namespace std;
-using namespace stitch;
+using namespace pano;
 using namespace config;
 
 namespace {
@@ -94,7 +94,7 @@ namespace {
 
 }	// namespace
 
-namespace stitch {
+namespace pano {
 	void IncrementalBundleAdjuster::add_match(
 			int i, int j, const MatchInfo& match) {
 		match_pairs.emplace_back(i, j, match);

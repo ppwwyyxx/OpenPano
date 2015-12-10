@@ -10,6 +10,7 @@
 #include <cmath>
 #include "common.hh"
 
+
 class Geometry {
 	public:
 		int w, h;
@@ -246,11 +247,8 @@ std::ostream& operator << (std::ostream& os, const Vector2D<T>& v) {
 	return os;
 }
 
+
 typedef Vector<double> Vec;
 typedef Vector2D<int> Coor;
-
 typedef Vector2D<double> Vec2D;
-
-typedef std::pair<Coor, Coor> Line2D;
-typedef std::vector<Coor> _Polygon;
 
