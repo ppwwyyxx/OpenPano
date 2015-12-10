@@ -16,6 +16,10 @@
 using namespace std;
 using namespace config;
 
+namespace {
+const int ESTIMATE_MIN_NR_MATCH = 6;
+}
+
 namespace pano {
 
 TransformEstimation::TransformEstimation(const MatchData& m_match,
@@ -117,6 +121,16 @@ vector<int> TransformEstimation::get_inliers(const Matrix& trans) const {
 	return ret;
 }
 
+bool TransformEstimation::good_inlier_set(const std::vector<int>& inliers) const {
+	vector<Vec2D> coor1, coor2;
+	for (auto& idx: inliers) {
+		coor1.emplace_back(f1[match.data[idx].first].coor);
+		coor2.emplace_back(f2[match.data[idx].second].coor);
+	}
+
+	return true;
+}
+
 void TransformEstimation::fill_inliers_to_matchinfo(
 		const std::vector<int>& inliers, MatchInfo* info) const {
 	info->match.clear();
@@ -130,7 +144,7 @@ void TransformEstimation::fill_inliers_to_matchinfo(
 	// TODO filter out low confidence, by finding the overlapping area
 	info->confidence = inliers.size() / (8 + 0.3 * match.size());
 
-	// overlap too much. not helpful. but still keep it for connectivity
+	// overlap too much. not helpful. but might need to keep it for connectivity
 	if (info->confidence > 3.1) {
 		info->confidence = 0.;
 		print_debug("If you are not giving two almost identical image, then there is a bug..\n");

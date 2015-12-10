@@ -136,6 +136,21 @@ void test_inlier(const char* f1, const char* f2) {
 		pld.circle(icoor2 + Coor(pic1.width(), 0), LABEL_LEN);
 		pld.line(icoor1, icoor2 + Coor(pic1.width(), 0));
 	}
+
+	// draw convex hull
+	vector<Vec2D> pts1, pts2;
+	Vec2D offset1(pic1.width()/2, pic1.height()/2);
+	Vec2D offset2(pic2.width()/2, pic2.height()/2);
+	for (auto& x : info.match) {
+		pts1.emplace_back(x.first + offset1);
+		pts2.emplace_back(x.second + offset2 + Vec2D(pic1.width(), 0));
+	}
+	pld.set_color(Color(0,0,0));
+	auto hull = convex_hull(pts1);
+	pld.polygon(hull);
+	hull = convex_hull(pts2);
+	pld.polygon(hull);
+
 	write_rgb("inlier.jpg", concatenated);
 }
 

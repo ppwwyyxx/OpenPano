@@ -8,11 +8,8 @@
 #include "homography.hh"
 
 namespace pano {
-	class MatchData;
-	struct Descriptor;
-}
-
-namespace pano {
+class MatchData;
+struct Descriptor;
 struct MatchInfo;
 struct Shape2D;
 
@@ -43,14 +40,14 @@ class TransformEstimation {
 		// calculate best transform from given samples
 		Matrix calc_transform(const std::vector<int>&) const;
 
-		// fillin result to MatchInfo object
+		// fill in result to MatchInfo object
 		void fill_inliers_to_matchinfo(
 				const std::vector<int>&, MatchInfo*) const;
 
+		// determine whether a set of inlier is geometrically good
+		bool good_inlier_set(const std::vector<int>&) const;
+
 		// get inliers of a transform
 		std::vector<int> get_inliers(const Matrix &) const;
-
-		static const int ESTIMATE_MIN_NR_MATCH = 6;
-
 };
 }

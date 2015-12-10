@@ -69,7 +69,7 @@ class PlaneDrawer {
 		}
 
 		void polygon(std::vector<Vec2D> p)
-		{ polygon(to_renderable(p)); }
+		{ polygon(vecf_to_polygon(p)); }
 
 		//Mat32f& get_img() { return mat; }
 
@@ -78,7 +78,8 @@ class PlaneDrawer {
 		Mat32f mat;
 		Color c = Color::BLACK;
 
-		Polygon to_renderable(std::vector<Vec2D> p) {
+		// convert float coordinates to polygon
+		Polygon vecf_to_polygon(std::vector<Vec2D> p) {
 			Polygon ret;
 			for (auto v : p)
 				ret.push_back(Coor(v.x, v.y));
