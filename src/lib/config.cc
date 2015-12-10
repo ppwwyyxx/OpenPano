@@ -9,7 +9,7 @@ using namespace std;
 namespace config {
 
 ConfigParser::ConfigParser(const char* fname) {
-	if (not exists_file(fname))
+	if (! exists_file(fname))
 		error_exit("Cannot find config file!");
 	const static size_t BUFSIZE = 4096;
 	ifstream fin(fname);

@@ -6,6 +6,7 @@
 #include <Eigen/Dense>
 #include <cmath>
 #include <memory>
+#include <array>
 
 #include "camera.hh"
 #include "match_info.hh"
@@ -37,7 +38,7 @@ namespace {
 	}
 
 	inline Homography cross_product_matrix(double x, double y, double z) {
-		return {(const double[]){ 0 , -z, y,
+		return {{ 0 , -z, y,
 															z , 0 , -x,
 															-y, x , 0}};
 	}
@@ -78,15 +79,15 @@ namespace {
 	}
 
 	// dK/dfocal = dKdfocal
-	static const Homography dKdfocal((const double[]){
+	static const Homography dKdfocal({
 			1.0, 0.0, 0.0,
 			0.0, 1.0, 0.0,
 			0.0, 0.0, 0.0});
-	static const Homography dKdppx((const double[]){
+	static const Homography dKdppx({
 			0.0, 0.0, 1.0,
 			0.0, 0.0, 0.0,
 			0.0, 0.0, 0.0});
-	static const Homography dKdppy((const double[]){
+	static const Homography dKdppy({
 			0.0, 0.0, 0.0,
 			0.0, 0.0, 1.0,
 			0.0, 0.0, 0.0});
@@ -182,7 +183,7 @@ namespace stitch {
 		int nr_img = idx_added.size();
 		MatrixXd J(NR_TERM_PER_MATCH * nr_pointwise_match, NR_PARAM_PER_CAMERA * nr_img);
 		MatrixXd JtJ(NR_PARAM_PER_CAMERA * nr_img, NR_PARAM_PER_CAMERA * nr_img);
-		if (not SYMBOLIC_DIFF) {
+		if (! SYMBOLIC_DIFF) {
 			calcJacobianNumerical(J, state);
 			JtJ = (J.transpose() * J).eval();
 		} else {

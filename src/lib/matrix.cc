@@ -71,7 +71,7 @@ bool Matrix::inverse(Matrix &ret) const {
 	auto res = Map<Eigen::Matrix<double, Dynamic, Dynamic, RowMajor>>(ret.ptr(), m_rows, m_cols);
 	auto input = Map<Eigen::Matrix<double, Dynamic, Dynamic, RowMajor>>(m_data.get(), m_rows, m_cols);
 	FullPivLU<Eigen::Matrix<double,Dynamic,Dynamic,RowMajor>> lu(input);
-	if (not lu.isInvertible()) return false;
+	if (! lu.isInvertible()) return false;
 	res = lu.inverse().eval();
 	return true;
 }

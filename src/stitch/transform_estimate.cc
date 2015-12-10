@@ -5,6 +5,7 @@
 #include "transform_estimate.hh"
 
 #include <set>
+#include <random>
 
 #include "match_info.hh"
 #include "feature/matcher.hh"
@@ -25,7 +26,7 @@ TransformEstimation::TransformEstimation(const feature::MatchData& m_match,
 	match(m_match), f1(m_f1), f2(m_f2),
 	f2_homo_coor(3, match.size())
 {
-	if (CYLINDER or TRANS)
+	if (CYLINDER || TRANS)
 		transform_type = Affine;
 	else
 		transform_type = Homo;
@@ -69,7 +70,7 @@ bool TransformEstimation::get_transform(MatchInfo* info) {
 			inliers.push_back(random);
 		}
 		Matrix transform = calc_transform(inliers);
-		if (not Homography::health(transform.ptr()))
+		if (! Homography::health(transform.ptr()))
 			continue;
 		int n_inlier = get_inliers(transform).size();
 		if (update_max(maxinlierscnt, n_inlier))

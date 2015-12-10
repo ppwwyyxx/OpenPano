@@ -58,7 +58,7 @@ class PlaneDrawer {
 
 		void arrow(Coor o, real_t dir, int r);
 
-		void polygon(Polygon p) {
+		void polygon(_Polygon p) {
 			for (unsigned int i = 0; i < p.size() - 1; i++)
 				line(p[i], p[i + 1]);
 			line(p.back(), p.front());
@@ -74,8 +74,8 @@ class PlaneDrawer {
 		Mat32f mat;
 		Color c = Color::BLACK;
 
-		Polygon to_renderable(std::vector<Vec2D> p) {
-			Polygon ret;
+		_Polygon to_renderable(std::vector<Vec2D> p) {
+			_Polygon ret;
 			for (auto v : p)
 				ret.push_back(Coor(v.x, v.y));
 			return ret;

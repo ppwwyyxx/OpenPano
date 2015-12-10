@@ -10,7 +10,7 @@ namespace feature {
 
 float euclidean_sqr(
 		const float* x, const float* y,
-		int n, float now_thres);
+		size_t n, float now_thres);
 
 int hamming(const float* x, const float* y, int n);
 

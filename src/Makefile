@@ -3,27 +3,30 @@
 
 OBJ_DIR = obj
 TARGET = image-stitching
-CXX ?= g++
 
-EIGEN_PATH ?= /usr/include/eigen3
+UNAME_S := $(shell uname -s)
+ifeq ($(UNAME_S),Linux)
+	CXX ?= g++
+	EIGEN_PATH ?= /usr/include/Eigen3
+endif
+ifeq ($(UNAME_S),Darwin)
+	CXX = g++-5
+	EIGEN_PATH ?= /usr/local/include/eigen3
+endif
 INCLUDE_DIR = -I. -isystem $(EIGEN_PATH) -isystem third-party
 DEFINES = -DDEBUG
 
 OPTFLAGS ?= -O3 -msse3 #-march=native
 #OPTFLAGS = -g -O0
 
-#LIBS =
-#INCLUDE_DIR += $(shell pkg-config --cflags $(LIBS))
-
 CXXFLAGS = $(INCLUDE_DIR) -fopenmp -Wall -Wextra
 CXXFLAGS += $(DEFINES) -std=c++1y $(OPTFLAGS)
 
 LDFLAGS += -fopenmp $(OPTFLAGS)
-#LDFLAGS += $(shell pkg-config $(LIBS) --libs)
 LDFLAGS += -ljpeg
 
 SHELL = bash
-ccSOURCES = $(shell find -name "*.cc" | sed 's/^\.\///g')
+ccSOURCES = $(shell find . -name "*.cc" | sed 's/^\.\///g')
 OBJS = $(addprefix $(OBJ_DIR)/,$(ccSOURCES:.cc=.o))
 DEPFILES = $(OBJS:.o=.d)
 

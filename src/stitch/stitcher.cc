@@ -65,7 +65,7 @@ Mat32f Stitcher::build() {
 }
 
 void Stitcher::calc_feature() {
-	GuardedTimer tm("calc_feature()");
+	GuardedTimer tm(std::string("calc_feature()"));
 	int n = imgs.size();
 	feats.resize(n);
 	// detect feature
@@ -79,7 +79,7 @@ void Stitcher::calc_feature() {
 }
 
 void Stitcher::pairwise_match() {
-	GuardedTimer tm("pairwise_match() with transform");
+	GuardedTimer tm(std::string("pairwise_match() with transform"));
 
 	PairWiseMatcher pwmatcher(feats);
 	size_t n = imgs.size();
@@ -90,20 +90,20 @@ void Stitcher::pairwise_match() {
 	REP(i, n) REPL(j, i + 1, n) tasks.emplace_back(i, j);
 
 #pragma omp parallel for schedule(dynamic)
-	REP(k, tasks.size()) {
+	REP(k, (int)tasks.size()) {
 		int i = tasks[k].first, j = tasks[k].second;
 		//auto match = matcher(feats[i], feats[j]).match();	// slow
 		auto match = pwmatcher.match(i, j);
 		TransformEstimation transf(match, feats[i], feats[j], {imgs[i].width(), imgs[i].height()});	// from j to i
 		MatchInfo info;
 		bool succ = transf.get_transform(&info);
-		if (not succ) {
+		if (!succ) {
 			//print_debug("Only %d inlier from %d to %d\n", -(int)info.confidence, i, j);
 			continue;
 		}
 		auto inv = info.homo.inverse(&succ);
 		inv.mult(1.0 / inv[8]);	// more stable?
-		if (not succ) continue;	// cannot inverse. mal-formed homography
+		if (!succ) continue;	// cannot inverse. mal-formed homography
 		print_debug(
 				"Connection between image %d and %d, ninliers=%lu, conf=%f\n",
 				i, j, info.match.size(), info.confidence);
@@ -116,7 +116,7 @@ void Stitcher::pairwise_match() {
 }
 
 void Stitcher::assume_linear_pairwise() {
-	GuardedTimer tm("assume_linear_pairwise()");
+	GuardedTimer tm(std::string("assume_linear_pairwise()"));
 	int n = imgs.size();
 	PairWiseMatcher pwmatcher(feats);
 #pragma omp parallel for schedule(dynamic)
@@ -126,10 +126,10 @@ void Stitcher::assume_linear_pairwise() {
 		TransformEstimation transf(match, feats[i], feats[next], {imgs[i].width(), imgs[i].height()});
 		MatchInfo info;
 		bool succ = transf.get_transform(&info);
-		if (not succ)
+		if (! succ)
 			error_exit(ssprintf("Image %d and %d doesn't match.\n", i, next));
 		auto inv = info.homo.inverse(&succ);
-		if (not succ) // cannot inverse. mal-formed homography
+		if (! succ) // cannot inverse. mal-formed homography
 			error_exit(ssprintf("Image %d and %d doesn't match.\n", i, next));
 		print_debug("Match between image %d and %d, ninliers=%lu, conf=%f\n",
 				i, next, info.match.size(), info.confidence);
@@ -185,7 +185,7 @@ void Stitcher::build_bundle_linear_simple() {
 
 
 void Stitcher::build_bundle_warp() {;
-	GuardedTimer tm("build_bundle_warp()");
+	GuardedTimer tm(std::string("build_bundle_warp()"));
 	int n = imgs.size(), mid = bundle.identity_idx;
 	REP(i, n) bundle.component[i].homo = Homography::I();
 
@@ -229,7 +229,7 @@ void Stitcher::build_bundle_warp() {;
 		MatchInfo info;
 		bool succ = TransformEstimation(
 				matches[i], feats[i + 1], feats[i], {imgs[i+1].width(), imgs[i+1].height()}).get_transform(&info);
-		if (not succ)
+		if (! succ)
 			error_exit(ssprintf("Image %d and %d doesn't match. Failed", i, i+1));
 		bundle.component[i].homo = info.homo;
 	}
@@ -266,7 +266,7 @@ float Stitcher::update_h_factor(float nowfactor,
 		MatchInfo info;
 		bool succ = TransformEstimation(matches[k - 1 + mid], nowfeats[k - 1],
 				nowfeats[k], {nowimgs[k-1].width(), nowimgs[k-1].height()}).get_transform(&info);
-		if (not succ)
+		if (! succ)
 			failed = true;
 		//error_exit("The two image doesn't match. Failed");
 		nowmat[k-1] = info.homo;
@@ -330,7 +330,7 @@ Mat32f Stitcher::perspective_correction(const Mat32f& img) {
 }
 
 Mat32f Stitcher::blend() {
-	GuardedTimer tm("blend()");
+	GuardedTimer tm(std::string("blend()"));
 	// it's hard to do coordinates.......
 	int refw = imgs[bundle.identity_idx].width(),
 		refh = imgs[bundle.identity_idx].height();
@@ -376,12 +376,12 @@ Mat32f Stitcher::blend() {
 			Vec2D c(t.x * x_per_pixel + proj_min.x,
 							t.y * y_per_pixel + proj_min.y);
 			Vec homo = proj2homo(Vec2D(c.x / refw, c.y / refh));
-			if (not ESTIMATE_CAMERA)  {	// scale and offset is in camera intrinsic
+			if (! ESTIMATE_CAMERA)  {	// scale and offset is in camera intrinsic
 				homo.x -= 0.5 * homo.z, homo.y -= 0.5 * homo.z;	// shift center for homography
 				homo.x *= refw, homo.y *= refh;
 			}
 			Vec2D orig = cur.homo_inv.trans_normalize(homo);
-			if (not ESTIMATE_CAMERA)
+			if (! ESTIMATE_CAMERA)
 				orig = orig + Vec2D(imgw/2, imgh/2);
 			return orig;
 		});

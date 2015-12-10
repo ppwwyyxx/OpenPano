@@ -13,7 +13,7 @@
 
 void LinearBlender::debug_run(int w, int h) {
 #pragma omp parallel for schedule(dynamic)
-	REP(k, images.size()) {
+	REP(k, (int)images.size()) {
 		auto& img = images[k];
 		Mat32f target(h, w, 3);
 		fill(target, Color::NO);

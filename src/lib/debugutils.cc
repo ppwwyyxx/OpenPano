@@ -9,6 +9,12 @@
 #include <iostream>
 #include <cstdarg>
 #include <map>
+#ifdef _MSC_VER
+#include <filesystem>
+using namespace std::tr2::sys;
+#else
+#include <libgen.h>
+#endif
 using namespace std;
 
 #include "utils.hh"
@@ -30,8 +36,13 @@ void __print_debug__(const char *file, const char *func, int line, const char *f
 		color = (color + 1) % 5;
 	}
 
-	char *fbase = basename(strdupa(file));
-	c_fprintf(colormap[line].c_str(), stderr, "[%s@%s:%d] ", func, fbase, line);
+  #ifdef _MSC_VER
+  std::tr2::sys::path _fbase(file);
+  auto fbase = _fbase.stem().c_str();
+#else
+  char *fbase = basename(strdup(file));
+  #endif
+  c_fprintf(colormap[line].c_str(), stderr, "[%s@%s:%d] ", func, fbase, line);
 
 	va_list ap;
 	va_start(ap, fmt);

@@ -3,6 +3,9 @@
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
+#define _USE_MATH_DEFINES
+#include <cmath>
+
 #include <map>
 #include <cstring>
 #include <fstream>

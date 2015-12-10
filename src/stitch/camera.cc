@@ -120,7 +120,7 @@ void Camera::angle_to_rotation(double rx, double ry, double rz, Homography& r) {
 	double theta = rx*rx + ry*ry + rz*rz;
 	if (theta < GEO_EPS_SQR) {	// theta ^2
 		// first order Taylor. see code of ceres-solver
-		r = Homography{(const double[]){1, -rz, ry, rz, 1, -rx, -ry, rx, 1}};
+		r = Homography{{1, -rz, ry, rz, 1, -rx, -ry, rx, 1}};
 		return;
 	}
 	theta = sqrt(theta);
