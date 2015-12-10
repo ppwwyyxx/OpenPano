@@ -36,12 +36,12 @@ void __print_debug__(const char *file, const char *func, int line, const char *f
 		color = (color + 1) % 5;
 	}
 
-  #ifdef _MSC_VER
+#ifdef _MSC_VER
   std::tr2::sys::path _fbase(file);
   auto fbase = _fbase.stem().c_str();
 #else
   char *fbase = basename(strdup(file));
-  #endif
+#endif
   c_fprintf(colormap[line].c_str(), stderr, "[%s@%s:%d] ", func, fbase, line);
 
 	va_list ap;

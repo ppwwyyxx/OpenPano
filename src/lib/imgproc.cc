@@ -90,16 +90,15 @@ Color interpolate(const Mat32f& mat, float r, float c) {
 
 bool is_edge_color(const Mat32f& mat, float y, float x) {
 	int w = mat.width(), h = mat.height();
-	if (!between(x, 0, w) || !between(y, 0, h)) return true;
 	m_assert(mat.channels() == 3);
 	int fx = floor(x), fy = floor(y);
+	if (fx < 0 || fy < 0 || fx + 1 >= w || fy + 1 >= h)
+		return true;
 
-	if(fy+1<h && fx+6<w) {
-		const float* ptr = mat.ptr(fy, fx);
-		REP(i, 6) if (ptr[i] < 0) return true;
-		ptr = mat.ptr(fy + 1, fx);
-		REP(i, 6) if (ptr[i] < 0) return true;
-	}
+	const float* ptr = mat.ptr(fy, fx);
+	REP(i, 6) if (ptr[i] < 0) return true;
+	ptr = mat.ptr(fy + 1, fx);
+	REP(i, 6) if (ptr[i] < 0) return true;
 	return false;
 }
 
@@ -114,10 +113,10 @@ void fill(Mat32f& mat, const Color& c) {
 
 Mat32f crop(const Mat32f& mat) {
 	int w = mat.width(), h = mat.height();
-	int *height=new int[w], *left=new int[w], *right=new int[w];
+	int *height = new int[w](),
+			*left = new int[w], *right = new int[w];
 	int maxarea = 0;
 	int ll = 0, rr = 0, hh = 0, nl = 0;
-	memset(height, 0, sizeof(height));
 	REP(line, h) {
 		REP(k, w) {
 			const float* p = mat.ptr(line, k);
@@ -147,9 +146,9 @@ Mat32f crop(const Mat32f& mat) {
 		memcpy(dst, src, 3 * ret.width() * sizeof(float));
 	}
 
-  delete[] height;
-  delete[] left;
-  delete[] right;
+	delete[] height;
+	delete[] left;
+	delete[] right;
 	return ret;
 }
 

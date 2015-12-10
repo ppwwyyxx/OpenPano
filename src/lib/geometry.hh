@@ -205,18 +205,18 @@ class Vector2D {
 		T sqr() const
 		{ return x * x + y * y; }
 
-		float mod() const
+		T mod() const
 		{ return hypot(x, y); }
 
 		Vector2D<T> get_normalized() const {
-			float m = mod();
+			T m = mod();
 			m_assert(m > EPS);
-			m = 1 / m;
+			m = 1.0 / m;
 			return Vector2D<T>(x * m, y * m);
 		}
 
 		virtual void normalize() {
-			float m = 1.f / mod();
+			T m = (T)1.0 / mod();
 			x *= m, y *= m;		// work?
 			m_assert(std::isnormal(m));
 		}

@@ -7,7 +7,7 @@ TARGET = image-stitching
 UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S),Linux)
 	CXX ?= g++
-	EIGEN_PATH ?= /usr/include/Eigen3
+	EIGEN_PATH ?= /usr/include/eigen3
 endif
 ifeq ($(UNAME_S),Darwin)
 	CXX = g++-5

@@ -71,7 +71,7 @@ MatchData FeatureMatcher::match() const {
 }
 
 void PairWiseMatcher::build() {
-	GuardedTimer tm(std::string("BuildTrees"));
+	GuardedTimer tm("BuildTrees");
 	for (auto& feat: feats)	{
 		float* buf = new float[feat.size() * D];
 		bufs.emplace_back(buf);

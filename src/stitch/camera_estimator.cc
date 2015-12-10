@@ -35,7 +35,7 @@ vector<Camera> CameraEstimator::estimate() {
 	propagate_rotation(graph);
 
 	{
-		GuardedTimer tm(std::string("IncrementalBundleAdjuster"));
+		GuardedTimer tm("IncrementalBundleAdjuster");
 		IncrementalBundleAdjuster iba(shapes, cameras);
 		// TODO add by certain order
 		REP(i, n) {

@@ -65,7 +65,7 @@ Mat32f Stitcher::build() {
 }
 
 void Stitcher::calc_feature() {
-	GuardedTimer tm(std::string("calc_feature()"));
+	GuardedTimer tm("calc_feature()");
 	int n = imgs.size();
 	feats.resize(n);
 	// detect feature
@@ -79,7 +79,7 @@ void Stitcher::calc_feature() {
 }
 
 void Stitcher::pairwise_match() {
-	GuardedTimer tm(std::string("pairwise_match() with transform"));
+	GuardedTimer tm("pairwise_match() with transform");
 
 	PairWiseMatcher pwmatcher(feats);
 	size_t n = imgs.size();
@@ -116,7 +116,7 @@ void Stitcher::pairwise_match() {
 }
 
 void Stitcher::assume_linear_pairwise() {
-	GuardedTimer tm(std::string("assume_linear_pairwise()"));
+	GuardedTimer tm("assume_linear_pairwise()");
 	int n = imgs.size();
 	PairWiseMatcher pwmatcher(feats);
 #pragma omp parallel for schedule(dynamic)
@@ -185,7 +185,7 @@ void Stitcher::build_bundle_linear_simple() {
 
 
 void Stitcher::build_bundle_warp() {;
-	GuardedTimer tm(std::string("build_bundle_warp()"));
+	GuardedTimer tm("build_bundle_warp()");
 	int n = imgs.size(), mid = bundle.identity_idx;
 	REP(i, n) bundle.component[i].homo = Homography::I();
 
@@ -330,7 +330,7 @@ Mat32f Stitcher::perspective_correction(const Mat32f& img) {
 }
 
 Mat32f Stitcher::blend() {
-	GuardedTimer tm(std::string("blend()"));
+	GuardedTimer tm("blend()");
 	// it's hard to do coordinates.......
 	int refw = imgs[bundle.identity_idx].width(),
 		refh = imgs[bundle.identity_idx].height();

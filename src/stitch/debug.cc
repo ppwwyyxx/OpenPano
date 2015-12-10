@@ -32,8 +32,8 @@ void LinearBlender::debug_run(int w, int h) {
 				isum.write_to(row + j * 3);
 			}
 		}
-		print_debug("Debug rendering %02lu image\n", k);
-		write_rgb(ssprintf("log/blend-%02lu.jpg", k).c_str(), target);
+		print_debug("Debug rendering %02d image\n", k);
+		write_rgb(ssprintf("log/blend-%02d.jpg", k).c_str(), target);
 	}
 }
 

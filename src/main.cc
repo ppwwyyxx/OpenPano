@@ -167,7 +167,7 @@ void work(int argc, char* argv[]) {
 
 	if (CROP) res = crop(res);
 	{
-		GuardedTimer tm(std::string("Writing image"));
+		GuardedTimer tm("Writing image");
 		write_rgb("out.jpg", res);
 	}
 }

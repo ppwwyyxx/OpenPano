@@ -39,6 +39,9 @@ class GuardedTimer: public Timer {
 				})
 		{ enabled_ = enabled; }
 
+		GuardedTimer(const char* msg, bool enabled=true):
+			GuardedTimer(std::string(msg), enabled) {}
+
 		GuardedTimer(std::function<void(double)> callback):
 			m_callback(callback)
 		{ }
