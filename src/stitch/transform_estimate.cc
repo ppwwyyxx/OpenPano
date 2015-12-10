@@ -78,7 +78,7 @@ bool TransformEstimation::get_transform(MatchInfo* info) {
 	}
 	inliers = get_inliers(best_transform);
 	if (inliers.size() <= 8) {
-		info->confidence = -(float)inliers.size();	// debug
+		info->confidence = -(float)inliers.size();	// for debug
 		return false;
 	}
 	best_transform = calc_transform(inliers);
@@ -128,6 +128,7 @@ void TransformEstimation::fill_inliers_to_matchinfo(
 				);
 	}
 	// From D. Lowe 2008 Automatic Panoramic Image Stitching
+	// TODO filter out low confidence, by finding the overlapping area
 	info->confidence = inliers.size() / (8 + 0.3 * match.size());
 
 	// overlap too much. not helpful. but still keep it for connectivity

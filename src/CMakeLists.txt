@@ -1,3 +1,4 @@
+# Currently this doesn't work for Linux. Use the Makefile instead.
 find_package(jpeg)
 include_directories(${JPEG_INCLUDE_DIR})
 include_directories(third-party)
@@ -18,7 +19,7 @@ target_link_libraries(image_stitching ${JPEG_LIBRARY})
 if(MSVC)
   set_target_properties(
     image_stitching
-    PROPERTIES 
+    PROPERTIES
     GENERATED true
     EXTERNAL_OBJECT true
     LINK_FLAGS "setargv.obj"

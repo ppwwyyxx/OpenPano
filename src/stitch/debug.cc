@@ -81,6 +81,10 @@ void Stitcher::load_matchinfo(const char* fname) {
 	print_debug("Load matchinfo from %s\n", fname);
 	ifstream fin(fname);
 	int i, j;
+	int n = imgs.size();
+	pairwise_matches.resize(n);
+	for (auto& k : pairwise_matches) k.resize(n);
+
 	while (true) {
 		fin >> i >> j;
 		if (fin.eof()) break;
