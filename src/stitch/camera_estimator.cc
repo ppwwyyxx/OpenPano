@@ -41,7 +41,7 @@ vector<Camera> CameraEstimator::estimate() {
 		REP(i, n) {
 			REPL(j, i+1, n) {
 				auto& m = matches[j][i];
-				if (m.match.size())
+				if (m.match.size() && m.confidence > 0)
 					iba.add_match(i, j, m);
 			}
 			// TODO optimize after every k images

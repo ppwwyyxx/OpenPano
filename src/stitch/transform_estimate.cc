@@ -131,46 +131,35 @@ bool TransformEstimation::good_inlier_set(const std::vector<int>& inliers) const
 		coor2.emplace_back(f2[match.data[idx].second].coor);
 	}
 
-	// TODO convex hull is only part of the overlapping area, use image shape to get more
-	auto get_ratio = [](vector<Vec2D>& pts, const vector<Descriptor>& feats) {
-		auto hull = convex_hull(pts);
-		auto pip = PointInPolygon(hull);
-		int cnt_kp = 0;		// number of key point in the hull
-		for (auto& d : feats)
-			if (pip.in_polygon(d.coor)) cnt_kp ++;
-		float ret = pts.size() * 1.f / cnt_kp;
-		PP(ret);
-		return ret;
-	};
-
+	// use the number of feature in the area is not robust,
+	// when dealing with moving object (trees, etc), as there are a lot of unmatched feature
+	// use the number of match in the area to compute inlier ratio
 	auto get_ratio2 = [&](vector<Vec2D>& pts, int o) {
+		// TODO convex hull is only part of the overlapping area, use image shape to get more
 		auto hull = convex_hull(pts);
 		auto pip = PointInPolygon(hull);
-		int cnt_kp = 0;		// number of key point in the hull
+		int cnt_kp1 = 0;		// number of key point in the hull
 		for (auto& p : match.data)
 			if (pip.in_polygon(o == 1 ? f1[p.first].coor : f2[p.second].coor))
-				cnt_kp ++;
-		float ret = pts.size() * 1.f / cnt_kp;
-		PP(ret);
-		return ret;
+				cnt_kp1 ++;
+		int cnt_kp2 = 0;
+		for (auto& p : o == 1 ? f1 : f2)
+			if (pip.in_polygon(p.coor))
+				cnt_kp2 ++;
+		return make_pair(pts.size() * 1.f / cnt_kp1, pts.size() * 1.f / cnt_kp2);
 	};
-/*
- *  if (get_ratio(coor1, f1) < INLIER_MINIMUM_RATIO) {
- *    PP("false");
- *    //return false;
- *  }
- *  if (get_ratio(coor2, f2) < INLIER_MINIMUM_RATIO) {
- *
- *    PP("false");
- *    //return false;
- *  }
- */
-  if (get_ratio2(coor1, 1) < INLIER_MINIMUM_RATIO) {
-    return false;
-  }
-  if (get_ratio2(coor2, 2) < INLIER_MINIMUM_RATIO) {
-    return false;
-  }
+	auto r = get_ratio2(coor1, 1);
+//	cout << "r:" << r.first << " " << r.second << endl;
+	if (r.first < INLIER_MINIMUM_RATIO || r.second < 0.01) {
+		print_debug("A false match is rejected.\n");
+		return false;
+	}
+	r = get_ratio2(coor2, 2);
+//	cout << "r:" << r.first << " " << r.second << endl;
+	if (r.first < INLIER_MINIMUM_RATIO || r.second < 0.01) {
+		print_debug("A false match is rejected.\n");
+		return false;
+	}
 	return true;
 }
 
