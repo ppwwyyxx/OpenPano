@@ -36,8 +36,4 @@ void fill(Mat32f& mat, const Color& c);
 
 template <typename T>
 void resize(const Mat<T> &src, Mat<T> &dst);
-
-// return n points for a n-node polygon
-// will modify the order of the input
-std::vector<Vec2D> convex_hull(std::vector<Vec2D>&);
 }

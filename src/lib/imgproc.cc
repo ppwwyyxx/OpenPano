@@ -297,37 +297,4 @@ void resize<float>(const Mat32f &src, Mat32f &dst) {
 	return resize_bilinear(src, dst);
 }
 
-vector<Vec2D> convex_hull(vector<Vec2D>& pts) {
-	if (pts.size() <= 3) return pts;
-	m_assert(pts.size());
-	sort(begin(pts), end(pts), [](const Vec2D& a, const Vec2D& b) {
-				if (a.y == b.y)	return a.x < b.x;
-				return a.y < b.y;
-			});
-	vector<Vec2D> ret;
-	ret.emplace_back(pts[0]);
-	ret.emplace_back(pts[1]);
-
-	auto side = [](const Vec2D& a, const Vec2D& b, const Vec2D& p)
-	{ return (b - a).cross(p - a); };
-
-	// right link
-	int n = pts.size();
-	for (int i = 2; i < n; ++i) {
-		while (ret.size() >= 2 && side(ret[ret.size() - 2], ret.back(), pts[i]) <= 0)
-			ret.pop_back();
-		ret.emplace_back(pts[i]);
-	}
-
-	// left link
-	size_t mid = ret.size();
-	ret.emplace_back(pts[n - 2]);
-	for (int i = n - 3; i >= 0; --i) {
-		while (ret.size() > mid && side(ret[ret.size() - 2], ret.back(), pts[i]) <= 0)
-			ret.pop_back();
-		ret.emplace_back(pts[i]);
-	}
-	return ret;
-}
-
 }

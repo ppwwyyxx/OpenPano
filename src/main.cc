@@ -12,6 +12,7 @@
 #include "lib/geometry.hh"
 #include "lib/imgproc.hh"
 #include "lib/planedrawer.hh"
+#include "lib/polygon.hh"
 #include "lib/timer.hh"
 #include "stitch/match_info.hh"
 #include "stitch/stitcher.hh"
@@ -44,8 +45,11 @@ void test_extrema(const char* fname, int mode) {
 	} else if (mode == 1) {
 		auto extrema = ex.get_extrema();
 		cout << extrema.size() << endl;
-		for (auto &i : extrema)
-			pld.cross(i.real_coor, LABEL_LEN / 2);
+		for (auto &i : extrema) {
+			Coor c{(int)(i.real_coor.x * mat.width()), (int)(i.real_coor.y * mat.height())};
+			PP(c);
+			pld.cross(c, LABEL_LEN / 2);
+		}
 	}
 	write_rgb("extrema.jpg", mat);
 }
@@ -227,6 +231,7 @@ void init_config() {
 	MATCH_REJECT_NEXT_RATIO = Config.get("MATCH_REJECT_NEXT_RATIO");
 	RANSAC_ITERATIONS = Config.get("RANSAC_ITERATIONS");
 	RANSAC_INLIER_THRES = Config.get("RANSAC_INLIER_THRES");
+	INLIER_MINIMUM_RATIO = Config.get("INLIER_MINIMUM_RATIO");
 	SLOPE_PLAIN = Config.get("SLOPE_PLAIN");
 }
 

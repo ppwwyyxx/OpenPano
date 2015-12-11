@@ -59,6 +59,7 @@ extern float MATCH_REJECT_NEXT_RATIO;
 
 extern int RANSAC_ITERATIONS;
 extern double RANSAC_INLIER_THRES;
+extern float INLIER_MINIMUM_RATIO;
 
 extern float SLOPE_PLAIN;
 

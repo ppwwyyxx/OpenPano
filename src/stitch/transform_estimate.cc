@@ -9,6 +9,7 @@
 
 #include "feature/feature.hh"
 #include "feature/matcher.hh"
+#include "lib/polygon.hh"
 #include "lib/config.hh"
 #include "lib/imgproc.hh"
 #include "lib/timer.hh"
@@ -80,7 +81,7 @@ bool TransformEstimation::get_transform(MatchInfo* info) {
 			best_transform = move(transform);
 	}
 	inliers = get_inliers(best_transform);
-	if (inliers.size() <= 8) {
+	if (!good_inlier_set(inliers)) {
 		info->confidence = -(float)inliers.size();	// for debug
 		return false;
 	}
@@ -122,12 +123,54 @@ vector<int> TransformEstimation::get_inliers(const Matrix& trans) const {
 }
 
 bool TransformEstimation::good_inlier_set(const std::vector<int>& inliers) const {
+	if (inliers.size() < 8)
+		return false;
 	vector<Vec2D> coor1, coor2;
 	for (auto& idx: inliers) {
 		coor1.emplace_back(f1[match.data[idx].first].coor);
 		coor2.emplace_back(f2[match.data[idx].second].coor);
 	}
 
+	// TODO convex hull is only part of the overlapping area, use image shape to get more
+	auto get_ratio = [](vector<Vec2D>& pts, const vector<Descriptor>& feats) {
+		auto hull = convex_hull(pts);
+		auto pip = PointInPolygon(hull);
+		int cnt_kp = 0;		// number of key point in the hull
+		for (auto& d : feats)
+			if (pip.in_polygon(d.coor)) cnt_kp ++;
+		float ret = pts.size() * 1.f / cnt_kp;
+		PP(ret);
+		return ret;
+	};
+
+	auto get_ratio2 = [&](vector<Vec2D>& pts, int o) {
+		auto hull = convex_hull(pts);
+		auto pip = PointInPolygon(hull);
+		int cnt_kp = 0;		// number of key point in the hull
+		for (auto& p : match.data)
+			if (pip.in_polygon(o == 1 ? f1[p.first].coor : f2[p.second].coor))
+				cnt_kp ++;
+		float ret = pts.size() * 1.f / cnt_kp;
+		PP(ret);
+		return ret;
+	};
+/*
+ *  if (get_ratio(coor1, f1) < INLIER_MINIMUM_RATIO) {
+ *    PP("false");
+ *    //return false;
+ *  }
+ *  if (get_ratio(coor2, f2) < INLIER_MINIMUM_RATIO) {
+ *
+ *    PP("false");
+ *    //return false;
+ *  }
+ */
+  if (get_ratio2(coor1, 1) < INLIER_MINIMUM_RATIO) {
+    return false;
+  }
+  if (get_ratio2(coor2, 2) < INLIER_MINIMUM_RATIO) {
+    return false;
+  }
 	return true;
 }
 
@@ -141,7 +184,7 @@ void TransformEstimation::fill_inliers_to_matchinfo(
 				);
 	}
 	// From D. Lowe 2008 Automatic Panoramic Image Stitching
-	// TODO filter out low confidence, by finding the overlapping area
+	// TODO use the overlapping area, instead of all match
 	info->confidence = inliers.size() / (8 + 0.3 * match.size());
 
 	// overlap too much. not helpful. but might need to keep it for connectivity

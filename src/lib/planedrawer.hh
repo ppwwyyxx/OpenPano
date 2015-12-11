@@ -3,13 +3,13 @@
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
-#include "lib/color.hh"
-#include "lib/mat.h"
+#include "color.hh"
+#include "mat.h"
+#include "polygon.hh"
 
 namespace pano {
 
 typedef std::pair<Coor, Coor> Line2D;
-typedef std::vector<Coor> Polygon;
 
 class PlaneDrawer {
 	public:
@@ -62,7 +62,7 @@ class PlaneDrawer {
 
 		void arrow(Coor o, real_t dir, int r);
 
-		void polygon(Polygon p) {
+		void polygon(const std::vector<Coor>& p) {
 			for (unsigned int i = 0; i < p.size() - 1; i++)
 				line(p[i], p[i + 1]);
 			line(p.back(), p.front());
@@ -78,9 +78,9 @@ class PlaneDrawer {
 		Mat32f mat;
 		Color c = Color::BLACK;
 
-		// convert float coordinates to polygon
-		Polygon vecf_to_polygon(std::vector<Vec2D> p) {
-			Polygon ret;
+		// convert float coordinates to integer coordinate polygon
+		std::vector<Coor> vecf_to_polygon(std::vector<Vec2D> p) {
+			std::vector<Coor> ret;
 			for (auto v : p)
 				ret.push_back(Coor(v.x, v.y));
 			return ret;
