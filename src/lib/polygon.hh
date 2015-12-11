@@ -28,6 +28,7 @@ Polygon convex_hull(std::vector<Vec2D>&);
 class PointInPolygon {
 	public:
 		PointInPolygon(const Polygon& p): poly(p) {
+			m_assert(p.size() >= 3);
 			com = get_com(poly);
 
 			REP(i, p.size()) {

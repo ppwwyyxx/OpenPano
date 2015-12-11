@@ -58,6 +58,25 @@ struct Shape2D {
 
 	inline double halfw() const { return w * 0.5; }
 	inline double halfh() const { return h * 0.5; }
+
+	inline Vec2D center() const { return Vec2D{halfw(), halfh()}; }
+
+	// 1 2
+	// 3 4	return corner in [-w/2,w/2] coor
+	std::vector<Vec2D> shifted_corner() const {
+		return {Vec2D{-w*0.5, -h*0.5}, Vec2D{w*0.5,-h*0.5},
+						Vec2D{-w*0.5, h*0.5}, Vec2D{w*0.5, h*0.5}};
+	}
+
+	// whether a point in shifted coor is inside the shape
+	inline bool shifted_in(Vec2D p) const {
+		return (p.x >= -w*0.5 && p.x < w*0.5 && p.y >= -h*0.5 && p.y < h*0.5);
+	}
+
+	friend std::ostream& operator << (std::ostream& os, const Shape2D& s) {
+		os << "w=" << s.w << ",h=" << s.h;
+		return os;
+	}
 };
 
 }

@@ -15,7 +15,7 @@ namespace pano {
 struct BriefPattern;	// forward declaration
 
 struct Descriptor {
-	Vec2D coor;			// coordinate in range [0, w or h)
+	Vec2D coor;
 	std::vector<float> descriptor;
 
 	// square of euclidean. use now_thres to early-stop
@@ -34,6 +34,7 @@ class FeatureDetector {
 		virtual ~FeatureDetector() = default;
 		FeatureDetector(const FeatureDetector&) = delete;
 
+		// return [-w/2,w/2] coordinated
 		std::vector<Descriptor> detect_feature(const Mat32f& img) const;
 		virtual std::vector<Descriptor> do_detect_feature(const Mat32f& img) const = 0;
 };

@@ -47,7 +47,6 @@ void test_extrema(const char* fname, int mode) {
 		cout << extrema.size() << endl;
 		for (auto &i : extrema) {
 			Coor c{(int)(i.real_coor.x * mat.width()), (int)(i.real_coor.y * mat.height())};
-			PP(c);
 			pld.cross(c, LABEL_LEN / 2);
 		}
 	}
@@ -125,10 +124,13 @@ void test_inlier(const char* f1, const char* f2) {
 	auto ret = match.match();
 	print_debug("Match size: %d\n", ret.size());
 
-	TransformEstimation est(ret, feat1, feat2, {pic1.width(), pic1.height()});
+	TransformEstimation est(ret, feat1, feat2,
+			{pic1.width(), pic1.height()}, {pic2.width(), pic2.height()});
 	MatchInfo info;
 	est.get_transform(&info);
 	print_debug("Inlier size: %lu, conf=%lf\n", info.match.size(), info.confidence);
+	if (info.match.size() == 0)
+		return;
 
 	for (auto &x : info.match) {
 		pld.set_rand_color();
@@ -140,20 +142,68 @@ void test_inlier(const char* f1, const char* f2) {
 		pld.circle(icoor2 + Coor(pic1.width(), 0), LABEL_LEN);
 		pld.line(icoor1, icoor2 + Coor(pic1.width(), 0));
 	}
-
-	// draw convex hull
-	vector<Vec2D> pts1, pts2;
-	Vec2D offset1(pic1.width()/2, pic1.height()/2);
-	Vec2D offset2(pic2.width()/2, pic2.height()/2);
-	for (auto& x : info.match) {
-		pts1.emplace_back(x.first + offset1);
-		pts2.emplace_back(x.second + offset2 + Vec2D(pic1.width(), 0));
-	}
 	pld.set_color(Color(0,0,0));
-	auto hull = convex_hull(pts1);
-	pld.polygon(hull);
-	hull = convex_hull(pts2);
-	pld.polygon(hull);
+	Vec2D offset1(pic1.width()/2, pic1.height()/2);
+	Vec2D offset2(pic2.width()/2 + pic1.width(), pic2.height()/2);
+
+	// draw convex hull of inliers
+	/*
+	 *vector<Vec2D> pts1, pts2;
+	 *for (auto& x : info.match) {
+	 *  pts1.emplace_back(x.first + offset1);
+	 *  pts2.emplace_back(x.second + offset2, 0));
+	 *}
+	 *auto hull = convex_hull(pts1);
+	 *pld.polygon(hull);
+	 *hull = convex_hull(pts2);
+	 *pld.polygon(hull);
+	 */
+
+	// draw warped four edges
+	Shape2D shape2{pic2.width(), pic2.height()}, shape1{pic1.width(), pic1.height()};
+	/*
+	 *vector<Vec2D> poly2in1, poly1in2;
+	 *auto transform = info.homo;
+	 *PP(transform);
+	 *poly2in1.emplace_back(offset1 + transform.trans2d(Vec2D{-shape2.halfw(), -shape2.halfh()}));
+	 *poly2in1.emplace_back(offset1 + transform.trans2d(Vec2D{-shape2.halfw(), shape2.halfh()}));
+	 *poly2in1.emplace_back(offset1 + transform.trans2d(shape2.center()));
+	 *poly2in1.emplace_back(offset1 + transform.trans2d(Vec2D{shape2.halfw(), -shape2.halfh()}));
+	 *PA(poly2in1);
+	 *REP(i, shape2.w) {
+	 *  Vec2D pin2{(double)i - shape2.halfw(), (double)i - shape2.halfh()};
+	 *  Vec2D pin1 = transform.trans2d(pin2) + offset1;
+	 *  pld.cross(pin1, 10);
+	 *  pin2 = Vec2D{(double)i - shape2.halfw(), shape2.h- shape2.w + (double)i - shape2.halfh()};
+	 *  pin1 = transform.trans2d(pin2) + offset1;
+	 *  pld.cross(pin1, 10);
+	 *}
+	 *auto inv = transform.inverse();
+	 *PP(inv);
+	 *poly1in2.emplace_back(offset2 + inv.trans2d(Vec2D{-shape1.halfw(), -shape1.halfh()}));
+	 *poly1in2.emplace_back(offset2 + inv.trans2d(Vec2D{-shape1.halfw(), shape1.halfh()}));
+	 *poly1in2.emplace_back(offset2 + inv.trans2d(shape1.center()));
+	 *poly1in2.emplace_back(offset2 + inv.trans2d(Vec2D{shape1.halfw(), -shape1.halfh()}));
+	 *PA(poly1in2);
+	 *pld.polygon(poly2in1);
+	 *pld.polygon(poly1in2);
+	 */
+
+	// draw overlapping region
+	Matrix homo(3,3);
+	REP(i, 9) homo.ptr()[i] = info.homo[i];
+	Homography inv = info.homo.inverse();
+	auto p = overlap_region(shape1, shape2, homo, inv);
+	PA(p);
+	for (auto& v: p) v += offset1;
+	pld.polygon(p);
+
+	Matrix invM(3, 3);
+	REP(i, 9) invM.ptr()[i] = inv[i];
+	p = overlap_region(shape2, shape1, invM, info.homo);
+	PA(p);
+	for (auto& v: p) v += offset2;
+	pld.polygon(p);
 
 	write_rgb("inlier.jpg", concatenated);
 }

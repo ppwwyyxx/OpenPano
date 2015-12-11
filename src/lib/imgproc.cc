@@ -7,6 +7,10 @@
 #include <vector>
 
 #include <Eigen/Dense>
+/*
+ *#include <opencv2/core.hpp>
+ *#include <opencv2/calib3d/calib3d.hpp>
+ */
 
 #include "debugutils.hh"
 #include "common.hh"
@@ -236,6 +240,14 @@ Matrix getPerspectiveTransform(const std::vector<Vec2D>& p1, const std::vector<V
 	int n = p1.size();
 	m_assert(n == (int)p2.size() && n >= 4);
 
+	/*	// try opencv
+	 *vector<cv::Point2f> src, dst;
+	 *for (auto& p : p1) dst.emplace_back(cv::Point2f(p.x, p.y));
+	 *for (auto& p : p2) src.emplace_back(cv::Point2f(p.x, p.y));
+	 *auto cvm = cv::findHomography(src, dst);
+	 *PP(cvm);
+	 */
+
 	// solve with constraint h(2,2) = 1
 	MatrixXd m(n * 2, 8);
 	VectorXd b(n * 2);
@@ -252,17 +264,22 @@ Matrix getPerspectiveTransform(const std::vector<Vec2D>& p1, const std::vector<V
 	REP(i, 8) ret.ptr()[i] = ans[i];
 	ret.at(2, 2) = 1;
 
-	/* // solve with constraint |h| = 1
-	 *MatrixXd m(n*2, 9);
-	 *REP(i, n) {
-	 *  const Vec2D &m0 = p1[i], &m1 = p2[i];
-	 *  m.row(i) << m1.x, m1.y, 1, 0, 0, 0, -m1.x * m0.x, -m1.y * m0.x, -m0.x;
-	 *  m.row(n + i) << 0, 0, 0, m1.x, m1.y, 1, -m1.x * m0.y, -m1.y * m0.y, -m0.y;
-	 *}
-	 *VectorXd ans = m.jacobiSvd(ComputeThinU | ComputeThinV).matrixV().col(8);
-	 *::Matrix ret(3, 3);
-	 *REP(i, 9) ret.ptr()[i] = ans(i) / ans(8);
-	 */
+	 // solve with constraint |h| = 1
+/*
+ *  {
+ *    MatrixXd m(n*2, 9);
+ *    REP(i, n) {
+ *      const Vec2D &m0 = p1[i], &m1 = p2[i];
+ *      m.row(i) << m1.x, m1.y, 1, 0, 0, 0, -m1.x * m0.x, -m1.y * m0.x, -m0.x;
+ *      m.row(n + i) << 0, 0, 0, m1.x, m1.y, 1, -m1.x * m0.y, -m1.y * m0.y, -m0.y;
+ *    }
+ *    VectorXd ans = m.jacobiSvd(ComputeThinU | ComputeThinV).matrixV().col(8);
+ *    ::Matrix ret(3, 3);
+ *    REP(i, 9) ret.ptr()[i] = ans(i) / ans(8);
+ *    PP(ret);
+ *
+ *  }
+ */
 	return ret;
 }
 

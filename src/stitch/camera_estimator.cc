@@ -25,7 +25,7 @@ vector<Camera> CameraEstimator::estimate() {
 				c.focal = focal;
 			print_debug("Estimated focal: %lf\n", focal);
 		} else {
-			print_debug("Cannot estimate focal. Will use a naive one.");
+			print_debug("Cannot estimate focal. Will use a naive one.\n");
 			REP(i, n) // hack focal
 				cameras[i].focal = (shapes[i].w + shapes[i].h) * 0.5;
 		}

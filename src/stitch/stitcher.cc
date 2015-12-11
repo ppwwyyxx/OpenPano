@@ -94,16 +94,22 @@ void Stitcher::pairwise_match() {
 		int i = tasks[k].first, j = tasks[k].second;
 		//auto match = matcher(feats[i], feats[j]).match();	// slow
 		auto match = pwmatcher.match(i, j);
-		TransformEstimation transf(match, feats[i], feats[j], {imgs[i].width(), imgs[i].height()});	// from j to i
+		TransformEstimation transf(match, feats[i], feats[j],
+				{imgs[i].width(), imgs[i].height()},
+				{imgs[j].width(), imgs[j].height()});	// from j to i
 		MatchInfo info;
 		bool succ = transf.get_transform(&info);
 		if (!succ) {
-			//print_debug("Only %d inlier from %d to %d\n", -(int)info.confidence, i, j);
+			if (-(int)info.confidence >= 8)	// reject for geometry reason
+				print_debug("Reject %d inlier from %d to %d\n", -(int)info.confidence, i, j);
 			continue;
 		}
 		auto inv = info.homo.inverse(&succ);
 		inv.mult(1.0 / inv[8]);	// more stable?
-		if (!succ) continue;	// cannot inverse. mal-formed homography
+		if (!succ) {
+			//print_debug("Cannot inverse. Ill-formed.\n");
+			continue;	// cannot inverse. mal-formed homography
+		}
 		print_debug(
 				"Connection between image %d and %d, ninliers=%lu, conf=%f\n",
 				i, j, info.match.size(), info.confidence);
@@ -123,7 +129,9 @@ void Stitcher::assume_linear_pairwise() {
 	REP(i, n-1) {
 		int next = (i + 1) % n;
 		auto match = pwmatcher.match(i, next);
-		TransformEstimation transf(match, feats[i], feats[next], {imgs[i].width(), imgs[i].height()});
+		TransformEstimation transf(match, feats[i], feats[next],
+				{imgs[i].width(), imgs[i].height()},
+				{imgs[next].width(), imgs[next].height()});
 		MatchInfo info;
 		bool succ = transf.get_transform(&info);
 		if (! succ)
@@ -228,7 +236,9 @@ void Stitcher::build_bundle_warp() {;
 		matches[i].reverse();
 		MatchInfo info;
 		bool succ = TransformEstimation(
-				matches[i], feats[i + 1], feats[i], {imgs[i+1].width(), imgs[i+1].height()}).get_transform(&info);
+				matches[i], feats[i + 1], feats[i],
+				{imgs[i+1].width(), imgs[i+1].height()},
+				{imgs[i].width(), imgs[i].height()}).get_transform(&info);
 		if (! succ)
 			error_exit(ssprintf("Image %d and %d doesn't match. Failed", i, i+1));
 		bundle.component[i].homo = info.homo;
@@ -264,8 +274,10 @@ float Stitcher::update_h_factor(float nowfactor,
 #pragma omp parallel for schedule(dynamic)
 	REPL(k, 1, len) {
 		MatchInfo info;
-		bool succ = TransformEstimation(matches[k - 1 + mid], nowfeats[k - 1],
-				nowfeats[k], {nowimgs[k-1].width(), nowimgs[k-1].height()}).get_transform(&info);
+		bool succ = TransformEstimation(
+				matches[k - 1 + mid], nowfeats[k - 1], nowfeats[k],
+				{nowimgs[k-1].width(), nowimgs[k-1].height()},
+				{nowimgs[k].width(), nowimgs[k].height()}).get_transform(&info);
 		if (! succ)
 			failed = true;
 		//error_exit("The two image doesn't match. Failed");

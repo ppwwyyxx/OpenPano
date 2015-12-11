@@ -1,4 +1,4 @@
-//File: transform.hh
+//File: homography.hh
 //Author: Yuxin Wu <ppwwyyxx@gmail.com>
 
 #pragma once
@@ -7,6 +7,14 @@
 
 namespace pano {
 
+struct Shape2D;
+class Homography;
+
+// return a polygon in [-w/2,w/2] coor
+// homo: from 2 to 1
+std::vector<Vec2D> overlap_region(
+		const Shape2D& shape1, const Shape2D& shape2,
+		const Matrix& homo, const Homography& inv);
 
 class Homography {
 	public:
@@ -65,7 +73,7 @@ class Homography {
 		inline Vec2D trans2d(const Vec2D& m) const {
 			Vec v = trans(Vec(m.x, m.y, 1));
 			double denom = 1.0 / v.z;
-			return Vec2D(v.x * denom, v.y * denom);
+			return Vec2D{v.x * denom, v.y * denom};
 		}
 
 		inline Vec2D trans2d(double x, double y) const {
@@ -139,7 +147,6 @@ class Homography {
 			REP(i, 9) is >> ret[i];
 			return ret;
 		}
-
 };
 
 }
