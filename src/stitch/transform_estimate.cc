@@ -118,6 +118,7 @@ vector<int> TransformEstimation::get_inliers(const Matrix& trans) const {
 
 bool TransformEstimation::fill_inliers_to_matchinfo(
 		const std::vector<int>& inliers, MatchInfo* info) const {
+	TotalTimer tm("fill inliers");
 	info->confidence = -(float)inliers.size();		// only for debug
 	if (inliers.size() < ESTIMATE_MIN_NR_MATCH)
 		return false;
@@ -142,7 +143,6 @@ bool TransformEstimation::fill_inliers_to_matchinfo(
 		return cnt;
 	};
 
-
 	auto homoM = calc_transform(inliers);			// from 2 to 1
 	Homography homo{homoM};
 	Homography inv = homo.inverse();
@@ -159,8 +159,7 @@ bool TransformEstimation::fill_inliers_to_matchinfo(
 	if (r2m < INLIER_MINIMUM_RATIO || r2m > 1) return false;
 	float r2p = inliers.size() * 1.0f / get_keypoint_cnt(overlap, false);
 	if (r2p < 0.01 || r2p > 1) return false;
-	print_debug("r1m: %lf, r2m: %lf\n", r1m, r2m);
-	print_debug("r1p: %lf, r2p: %lf\n", r1p, r2p);
+	print_debug("r1mr1p: %lf,%lf, r2mr2p: %lf,%lf\n", r1m, r1p, r2m, r2p);
 
 	// fill in result
 	info->homo = homo;

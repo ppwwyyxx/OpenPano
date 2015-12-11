@@ -101,7 +101,7 @@ void Stitcher::pairwise_match() {
 		bool succ = transf.get_transform(&info);
 		if (!succ) {
 			if (-(int)info.confidence >= 8)	// reject for geometry reason
-				print_debug("Reject %d inlier from %d to %d\n", -(int)info.confidence, i, j);
+				print_debug("Reject bad match with %d inlier from %d to %d\n", -(int)info.confidence, i, j);
 			continue;
 		}
 		auto inv = info.homo.inverse(&succ);

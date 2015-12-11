@@ -19,14 +19,14 @@ DEFINES = -DDEBUG
 OPTFLAGS ?= -O3 -msse3 #-march=native
 #OPTFLAGS = -g -O0
 
-LIBS = opencv
-INCLUDE_DIR += $(shell pkg-config --cflags $(LIBS))
+#LIBS = opencv
+#INCLUDE_DIR += $(shell pkg-config --cflags $(LIBS))
 
 CXXFLAGS = $(INCLUDE_DIR) -fopenmp -Wall -Wextra
 CXXFLAGS += $(DEFINES) -std=c++1y $(OPTFLAGS)
 
 
-LDFLAGS += $(shell pkg-config $(LIBS) --libs)
+#LDFLAGS += $(shell pkg-config $(LIBS) --libs)
 LDFLAGS += -fopenmp $(OPTFLAGS)
 LDFLAGS += -ljpeg
 

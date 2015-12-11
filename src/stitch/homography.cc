@@ -45,7 +45,9 @@ Homography Homography::operator * (const Homography& r) const {
 std::vector<Vec2D> overlap_region(
 		const Shape2D& shape1, const Shape2D& shape2,
 		const Matrix& homo, const Homography& inv) {
-	// use sampled edge points, rather than 4 corner, to avoid distorted homography
+	// use sampled edge points, rather than 4 corner, to deal with distorted homography
+	// for distorted homography, the range of projected z coordinate contains 0
+	// or equivalently, some point is projected to infinity
 	const int NR_POINT_ON_EDGE = 100;
 	Matrix edge_points(3, 4 * NR_POINT_ON_EDGE);
 	float stepw = shape2.w * 1.0 / NR_POINT_ON_EDGE,
@@ -60,7 +62,8 @@ std::vector<Vec2D> overlap_region(
 		p = Vec2D{shape2.halfw(), -shape2.halfh() + i * steph};
 		edge_points.at(0, i * 4 + 3) = p.x, edge_points.at(1, i * 4 + 3) = p.y;
 	}
-	REP(i, 4 * NR_POINT_ON_EDGE) edge_points.at(2, i) = 1;
+	REP(i, 4 * NR_POINT_ON_EDGE)
+		edge_points.at(2, i) = 1;
 	auto transformed_pts = homo * edge_points;	//3x4n
 	vector<Vec2D> pts2in1;
 	REP(i, 4 * NR_POINT_ON_EDGE) {

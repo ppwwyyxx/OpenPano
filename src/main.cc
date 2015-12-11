@@ -232,7 +232,11 @@ void work(int argc, char* argv[]) {
 		res = dst;
 	}
 
-	if (CROP) res = crop(res);
+	if (CROP) {
+		int oldw = res.width(), oldh = res.height();
+		res = crop(res);
+		print_debug("Crop from %dx%d to %dx%d\n", oldh, oldw, res.height(), res.width());
+	}
 	{
 		GuardedTimer tm("Writing image");
 		write_rgb("out.jpg", res);
