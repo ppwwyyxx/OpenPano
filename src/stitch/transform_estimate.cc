@@ -145,7 +145,10 @@ bool TransformEstimation::fill_inliers_to_matchinfo(
 
 	auto homoM = calc_transform(inliers);			// from 2 to 1
 	Homography homo{homoM};
-	Homography inv = homo.inverse();
+	bool succ = false;
+	Homography inv = homo.inverse(&succ);
+	if (not succ)	// cannot inverse. ill-formed.
+		return false;
 	auto overlap = overlap_region(shape1, shape2, homoM, inv);
 	float r1m = inliers.size() * 1.0f / get_match_cnt(overlap, true);
 	if (r1m < INLIER_MINIMUM_RATIO || r1m > 1) return false;

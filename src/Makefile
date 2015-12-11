@@ -14,21 +14,29 @@ ifeq ($(UNAME_S),Darwin)
 	EIGEN_PATH ?= /usr/local/include/eigen3
 endif
 INCLUDE_DIR = -I. -isystem $(EIGEN_PATH) -isystem third-party
-DEFINES = -DDEBUG
 
 OPTFLAGS ?= -O3 -msse3 #-march=native
-#OPTFLAGS = -g -O0
+#OPTFLAGS ?= -g -O0
+DEFINES = -DDEBUG  	# comment out this line improves speed
 
+# optional extra packages
 #LIBS = opencv
 #INCLUDE_DIR += $(shell pkg-config --cflags $(LIBS))
+#LDFLAGS += $(shell pkg-config $(LIBS) --libs)
+
+# use mkl for eigen
+ifdef MKLROOT
+	INCLUDE_DIR += -I$(MKLROOT)/include
+	LDFLAGS += -m64 -L$(MKLROOT)/lib/intel64 -L$(MKLROOT)/../compiler/lib/intel64
+	LDFLAGS += -Wl,--no-as-needed -lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core -liomp5 -lpthread -lm
+	DEFINES += -DEIGEN_USE_MKL_ALL
+endif
 
 CXXFLAGS = $(INCLUDE_DIR) -fopenmp -Wall -Wextra
-CXXFLAGS += $(DEFINES) -std=c++1y $(OPTFLAGS)
+CXXFLAGS += $(DEFINES) -std=c++11 $(OPTFLAGS)
 
-
-#LDFLAGS += $(shell pkg-config $(LIBS) --libs)
-LDFLAGS += -fopenmp $(OPTFLAGS)
-LDFLAGS += -ljpeg
+LDFLAGS += $(OPTFLAGS)
+LDFLAGS += -ljpeg -fopenmp
 
 SHELL = bash
 ccSOURCES = $(shell find . -name "*.cc" | sed 's/^\.\///g')
@@ -57,7 +65,6 @@ $(TARGET): $(OBJS)
 	@echo "Linking ..."
 	@$(CXX) $(OBJS) -o $@ $(LDFLAGS)
 	@echo "done."
-
 
 clean:
 	@rm -rvf $(OBJ_DIR)

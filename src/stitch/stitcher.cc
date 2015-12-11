@@ -104,12 +104,8 @@ void Stitcher::pairwise_match() {
 				print_debug("Reject bad match with %d inlier from %d to %d\n", -(int)info.confidence, i, j);
 			continue;
 		}
-		auto inv = info.homo.inverse(&succ);
-		inv.mult(1.0 / inv[8]);	// more stable?
-		if (!succ) {
-			//print_debug("Cannot inverse. Ill-formed.\n");
-			continue;	// cannot inverse. mal-formed homography
-		}
+		auto inv = info.homo.inverse();	// TransformEstimation ensures invertible
+		inv.mult(1.0 / inv[8]);	// TODO more stable?
 		print_debug(
 				"Connection between image %d and %d, ninliers=%lu, conf=%f\n",
 				i, j, info.match.size(), info.confidence);
