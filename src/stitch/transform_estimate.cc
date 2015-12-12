@@ -29,7 +29,7 @@ TransformEstimation::TransformEstimation(const MatchData& m_match,
 		const Shape2D& shape1, const Shape2D& shape2):
 	match(m_match), kp1(kp1), kp2(kp2),
 	shape1(shape1), shape2(shape2),
-	f2_homo_coor(3, match.size())
+	f2_homo_coor(match.size(), 3)
 {
 	if (CYLINDER || TRANS)
 		transform_type = Affine;
@@ -39,9 +39,9 @@ TransformEstimation::TransformEstimation(const MatchData& m_match,
 	if (n < ESTIMATE_MIN_NR_MATCH) return;
 	REP(i, n) {
 		Vec2D old = kp2[match.data[i].second];
-		f2_homo_coor.at(0, i) = old.x;
-		f2_homo_coor.at(1, i) = old.y;
-		f2_homo_coor.at(2, i) = 1;
+		f2_homo_coor.at(i, 0) = old.x;
+		f2_homo_coor.at(i, 1) = old.y;
+		f2_homo_coor.at(i, 2) = 1;
 	}
 	ransac_inlier_thres = (shape1.w + shape1.h) * 0.5 / 800 * RANSAC_INLIER_THRES;
 }
@@ -103,12 +103,12 @@ vector<int> TransformEstimation::get_inliers(const Matrix& trans) const {
 	vector<int> ret;
 	int n = match.size();
 
-	Matrix transformed = trans.prod(f2_homo_coor);	// 3xn
+	Matrix transformed = f2_homo_coor.prod(trans.transpose());	// nx3
 	REP(i, n) {
 		const Vec2D& fcoor = kp1[match.data[i].first];
-		double idenom = 1.f / transformed.at(2, i);
-		double dist = (Vec2D(transformed.at(0, i) * idenom,
-					transformed.at(1, i) * idenom) - fcoor).sqr();
+		double* ptr = transformed.ptr(i);
+		double idenom = 1.f / ptr[2];
+		double dist = (Vec2D{ptr[0] * idenom, ptr[1] * idenom} - fcoor).sqr();
 		if (dist < INLIER_DIST)
 			ret.push_back(i);
 	}

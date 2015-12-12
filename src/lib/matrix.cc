@@ -2,16 +2,21 @@
 // Date: Thu Jun 18 04:36:58 2015 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
-#include <Eigen/Dense>
+#include "matrix.hh"
+
 #include <algorithm>
 #include <memory>
-#include "matrix.hh"
+#include <Eigen/Dense>
+
 #include "geometry.hh"
 #include "timer.hh"
 
 using namespace std;
 
-//TODO speedup at()
+#define EIGENMAP_FROM_MATRIX(m, var) \
+	auto var = Map<Eigen::Matrix<double, Dynamic, Dynamic, RowMajor>>((double*)(m).ptr(), (m).rows(), (m).cols());
+
+//TODO speedup at() to avoid channel mult
 
 ostream& operator << (std::ostream& os, const Matrix & m) {
 	os << "[" << m.rows() << " " << m.cols() << "] :" << endl;
@@ -28,13 +33,12 @@ Matrix Matrix::transpose() const {
 }
 
 Matrix Matrix::prod(const Matrix & r) const {
-	m_assert(m_cols == r.rows());
-	const Matrix transp(r.transpose());
+	using namespace Eigen;
 	Matrix ret(m_rows, r.cols());
-	ret.zero();
-
-	REP(i, m_rows) REP(j, r.cols()) REP(k, m_cols)
-		ret.at(i, j) += at(i, k) * transp.at(j, k);
+	EIGENMAP_FROM_MATRIX(*this, m1);
+	EIGENMAP_FROM_MATRIX(r, m2);
+	EIGENMAP_FROM_MATRIX(ret, res);
+	res = m1 * m2;
 	return move(ret);
 }
 
@@ -68,8 +72,8 @@ bool Matrix::inverse(Matrix &ret) const {
 	m_assert(m_rows == m_cols);
 	using namespace Eigen;
 	ret = Matrix(m_rows, m_rows);
-	auto res = Map<Eigen::Matrix<double, Dynamic, Dynamic, RowMajor>>(ret.ptr(), m_rows, m_cols);
-	auto input = Map<Eigen::Matrix<double, Dynamic, Dynamic, RowMajor>>(m_data.get(), m_rows, m_cols);
+	EIGENMAP_FROM_MATRIX(*this, input);
+	EIGENMAP_FROM_MATRIX(ret, res);
 	FullPivLU<Eigen::Matrix<double,Dynamic,Dynamic,RowMajor>> lu(input);
 	if (! lu.isInvertible()) return false;
 	res = lu.inverse().eval();
@@ -80,7 +84,7 @@ bool Matrix::inverse(Matrix &ret) const {
 Matrix Matrix::pseudo_inverse() const {
 	using namespace Eigen;
 	m_assert(m_rows >= m_cols);
-	auto input = Map<Eigen::Matrix<double, Dynamic, Dynamic, RowMajor>>(m_data.get(), m_rows, m_cols);
+	EIGENMAP_FROM_MATRIX(*this, input);
 	JacobiSVD<MatrixXd> svd(input, ComputeThinU | ComputeThinV);
 	auto sinv = svd.singularValues();
 	REP(i, m_cols) {
@@ -90,7 +94,7 @@ Matrix Matrix::pseudo_inverse() const {
 			sinv(i) = 0;
 	}
 	Matrix ret(m_cols, m_rows);
-	auto res = Map<Eigen::Matrix<double, Dynamic, Dynamic, RowMajor>>(ret.ptr(), m_cols, m_rows);
+	EIGENMAP_FROM_MATRIX(ret, res);
 	res = svd.matrixV() * sinv.asDiagonal() * svd.matrixU().transpose();
 	m_assert(ret.at(0, 2) == res(0, 2));
 	return ret;
@@ -140,6 +144,5 @@ Matrix Matrix::I(int k) {
 void Matrix::zero() {
 	double* p = ptr();
 	int n = pixels();
-	//REP(i, n) p[i] = 0;
 	memset(p, 0, n * sizeof(double));
 }

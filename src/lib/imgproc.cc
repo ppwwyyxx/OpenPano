@@ -1,11 +1,9 @@
 //File: imgproc.cc
-//Date:
 //Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "imgproc.hh"
 
 #include <vector>
-
 #include <Eigen/Dense>
 /*
  *#include <opencv2/core.hpp>

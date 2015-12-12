@@ -35,8 +35,8 @@ class TransformEstimation {
 		float ransac_inlier_thres;
 		TransformType transform_type;
 
-		// homogeneous coordinate of points in f2
-		Matrix f2_homo_coor;	// 3xn
+		// homogeneous coordinate of points in image2
+		Matrix f2_homo_coor;	// nx3
 
 		// calculate best transform from given samples
 		Matrix calc_transform(const std::vector<int>&) const;
