@@ -62,7 +62,6 @@ vector<SSPoint> ExtremaDetector::get_extrema() const {
 }
 
 bool ExtremaDetector::calc_kp_offset(SSPoint* sp) const {
-	TotalTimer tm("offset");
 	auto& now_pyramid = dog.dogs[sp->pyr_id];
 	auto& now_img = now_pyramid[sp->scale_id];
 	int w = now_img.width(), h = now_img.height();
@@ -79,8 +78,8 @@ bool ExtremaDetector::calc_kp_offset(SSPoint* sp) const {
 
 		auto iter_offset = calc_kp_offset_iter(
 				now_pyramid, nowx, nowy, nows);
-		offset = iter_offset.first,
-			delta = iter_offset.second;
+		offset = iter_offset.first;
+		delta = iter_offset.second;
 		if (offset.get_abs_max() < OFFSET_THRES) // found
 			break;
 
@@ -99,7 +98,7 @@ bool ExtremaDetector::calc_kp_offset(SSPoint* sp) const {
 	sp->coor = Coor(nowx, nowy);
 	sp->scale_id = nows;
 	sp->scale_factor = GAUSS_SIGMA * pow(
-					SCALE_FACTOR, ((double)nows + offset.z) / nscale);
+				SCALE_FACTOR, ((double)nows + offset.z) / nscale);
 	// accurate real-value coor
 	sp->real_coor = Vec2D(
 			((double)nowx + offset.x) / w,

@@ -10,72 +10,72 @@ using namespace config;
 using namespace pano;
 
 namespace {
-	const int featlen = DESC_HIST_WIDTH * DESC_HIST_WIDTH * DESC_HIST_BIN_NUM;
+const int featlen = DESC_HIST_WIDTH * DESC_HIST_WIDTH * DESC_HIST_BIN_NUM;
 
-	Descriptor hist_to_descriptor(float* hist) {
-		Descriptor ret;
-		ret.descriptor.resize(featlen);
-		memcpy(ret.descriptor.data(), hist, featlen * sizeof(float));
+Descriptor hist_to_descriptor(float* hist) {
+	Descriptor ret;
+	ret.descriptor.resize(featlen);
+	memcpy(ret.descriptor.data(), hist, featlen * sizeof(float));
 
-		// normalize and thresholding and renormalize
-		/*
-		 *float sum = 0;
-		 *for (auto &i : ret.descriptor) sum += sqr(i);
-		 *sum = sqrt(sum);
-		 *for (auto &i : ret.descriptor) {
-		 *  i /= sum;
-		 *  update_min(i, (float)DESC_NORM_THRESH);
-		 *}
-		 *sum = 0;
-		 *for (auto &i : ret.descriptor) sum += sqr(i);
-		 *sum = sqrt(sum);
-		 *sum = (float)DESC_INT_FACTOR / sum;
-		 *for (auto &i : ret.descriptor) i = i * sum;
-		 */
+	// normalize and thresholding and renormalize
+	/*
+	 *float sum = 0;
+	 *for (auto &i : ret.descriptor) sum += sqr(i);
+	 *sum = sqrt(sum);
+	 *for (auto &i : ret.descriptor) {
+	 *  i /= sum;
+	 *  update_min(i, (float)DESC_NORM_THRESH);
+	 *}
+	 *sum = 0;
+	 *for (auto &i : ret.descriptor) sum += sqr(i);
+	 *sum = sqrt(sum);
+	 *sum = (float)DESC_INT_FACTOR / sum;
+	 *for (auto &i : ret.descriptor) i = i * sum;
+	 */
 
-		// using RootSIFT: rootsift= sqrt( sift / sum(sift) );
-
-		// 1. L1 normalize descriptor
-		float sum = 0;
-		for (auto &i : ret.descriptor) sum += std::abs(i);
-		for (auto &i : ret.descriptor) {
-			i /= sum;
-			update_min(i, (float)DESC_NORM_THRESH); // thresholding
-		}
-
-		// 2. square root each element
-		for (auto &i : ret.descriptor) i = std::sqrt(i);
-
-		// 3. L2 normlize
-		sum = 0;
-		for (auto &i : ret.descriptor) sum += sqr(i);
-		sum = sqrt(sum);
-		sum = (float)DESC_INT_FACTOR / sum;
-		for (auto &i : ret.descriptor) i *= sum;
-
-		return ret;
+	// using RootSIFT: rootsift= sqrt( sift / sum(sift) );
+	// 1. L1 normalize descriptor
+	float sum = 0;
+	for (auto &i : ret.descriptor) sum += i;
+	for (auto &i : ret.descriptor) {
+		i /= sum;
+		// thresholding. maybe unnecessary when using rootsift
+		update_min(i, (float)DESC_NORM_THRESH);
 	}
 
-	void trilinear_interpolate(
-			float xbin, float ybin, float hbin,
-			float weight, float hist[][DESC_HIST_BIN_NUM]) {
-		// WARNING: x,y can be -1
-		int ybinf = floor(ybin),
-		xbinf = floor(xbin),
-		hbinf = floor(hbin);
-		float ybind = ybin - ybinf,
-					xbind = xbin - xbinf,
-					hbind = hbin - hbinf;
-		REP(dy, 2) if (between(ybinf + dy, 0, DESC_HIST_WIDTH)) {
-			float w_y = weight * (dy ? ybind : 1 - ybind);
-			REP(dx, 2) if (between(xbinf + dx, 0, DESC_HIST_WIDTH)) {
-				float w_x = w_y * (dx ? xbind : 1 - xbind);
-				int bin_2d_idx = (ybinf + dy) * DESC_HIST_WIDTH + (xbinf + dx);
-				hist[bin_2d_idx][hbinf % DESC_HIST_BIN_NUM] += w_x * (1 - hbind);
-				hist[bin_2d_idx][(hbinf + 1) % DESC_HIST_BIN_NUM] += w_x * hbind;
-			}
+	// 2. square root each element
+	for (auto &i : ret.descriptor) i = std::sqrt(i);
+
+	// 3. L2 normlize
+	sum = 0;
+	for (auto &i : ret.descriptor) sum += sqr(i);
+	sum = sqrt(sum);
+	sum = (float)DESC_INT_FACTOR / sum;
+	for (auto &i : ret.descriptor) i *= sum;
+
+	return ret;
+}
+
+void trilinear_interpolate(
+		float xbin, float ybin, float hbin,
+		float weight, float hist[][DESC_HIST_BIN_NUM]) {
+	// WARNING: x,y can be -1
+	int ybinf = floor(ybin),
+	xbinf = floor(xbin),
+	hbinf = floor(hbin);
+	float ybind = ybin - ybinf,
+				xbind = xbin - xbinf,
+				hbind = hbin - hbinf;
+	REP(dy, 2) if (between(ybinf + dy, 0, DESC_HIST_WIDTH)) {
+		float w_y = weight * (dy ? ybind : 1 - ybind);
+		REP(dx, 2) if (between(xbinf + dx, 0, DESC_HIST_WIDTH)) {
+			float w_x = w_y * (dx ? xbind : 1 - xbind);
+			int bin_2d_idx = (ybinf + dy) * DESC_HIST_WIDTH + (xbinf + dx);
+			hist[bin_2d_idx][hbinf % DESC_HIST_BIN_NUM] += w_x * (1 - hbind);
+			hist[bin_2d_idx][(hbinf + 1) % DESC_HIST_BIN_NUM] += w_x * hbind;
 		}
 	}
+}
 }
 
 namespace pano {
@@ -96,8 +96,8 @@ std::vector<Descriptor> SIFT::get_descriptor() const {
 }
 
 Descriptor SIFT::calc_descriptor(const SSPoint& p) const {
-	static float pi2 = 2 * M_PI;
-	static float nbin_per_rad = DESC_HIST_BIN_NUM / pi2;
+	const static float pi2 = 2 * M_PI;
+	const static float nbin_per_rad = DESC_HIST_BIN_NUM / pi2;
 
 	const GaussianPyramid& pyramid = ss.pyramids[p.pyr_id];
 	int w = pyramid.w, h = pyramid.h;

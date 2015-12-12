@@ -6,6 +6,7 @@
 #include <cmath>
 #include "orientation.hh"
 #include "lib/config.hh"
+#include "lib/timer.hh"
 #include "feature.hh"
 using namespace std;
 using namespace config;
@@ -32,6 +33,7 @@ vector<SSPoint> OrientationAssign::work() const {
 
 std::vector<float> OrientationAssign::calc_dir(
 		const SSPoint& p) const {
+	const static float halfipi = 0.5f / M_PI;
 	auto& pyramid = ss.pyramids[p.pyr_id];
 	auto& orient_img = pyramid.get_ort(p.scale_id);
 	auto& mag_img = pyramid.get_mag(p.scale_id);
@@ -40,7 +42,6 @@ std::vector<float> OrientationAssign::calc_dir(
 	int rad = round(p.scale_factor * ORI_RADIUS);
 	float exp_denom = 2 * sqr(gauss_weight_sigma);
 	float hist[ORI_HIST_BIN_NUM];
-	static float halfipi = 0.5f / M_PI;
 	memset(hist, 0, sizeof(hist));
 
 	// calculate gaussian/magnitude weighted histogram

@@ -37,7 +37,7 @@ class PairWiseMatcher {
 	public:
 		PairWiseMatcher(
 				const std::vector<std::vector<Descriptor>>& feats)
-			: D(feats[0][0].descriptor.size()), feats(feats)
+			: D(feats.at(0).at(0).descriptor.size()), feats(feats)
 		{ build(); }
 
 		// return pair of <idx in i, idx in j>

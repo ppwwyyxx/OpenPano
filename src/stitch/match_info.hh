@@ -18,11 +18,8 @@ struct MatchInfo {
 	Homography homo;
 
 	void reverse() {
-		for (auto& c : match) {
-			auto p = c.first;
-			c.first = c.second;
-			c.second = p;
-		}
+		for (auto& c : match)
+			std::swap(c.first, c.second);
 	}
 
 	void serialize(std::ostream& os) const {
