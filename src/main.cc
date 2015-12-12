@@ -116,6 +116,8 @@ void test_inlier(const char* f1, const char* f2) {
 	detector.reset(new SIFTDetector);
 	vector<Descriptor> feat1 = detector->detect_feature(pic1),
 										 feat2 = detector->detect_feature(pic2);
+	vector<Vec2D> kp1; for (auto& d : feat1) kp1.emplace_back(d.coor);
+	vector<Vec2D> kp2; for (auto& d : feat2) kp2.emplace_back(d.coor);
 	print_debug("Feature: %lu, %lu\n", feat1.size(), feat2.size());
 
 	Mat32f concatenated = hconcat(imagelist);
@@ -124,7 +126,7 @@ void test_inlier(const char* f1, const char* f2) {
 	auto ret = match.match();
 	print_debug("Match size: %d\n", ret.size());
 
-	TransformEstimation est(ret, feat1, feat2,
+	TransformEstimation est(ret, kp1, kp2,
 			{pic1.width(), pic1.height()}, {pic2.width(), pic2.height()});
 	MatchInfo info;
 	est.get_transform(&info);

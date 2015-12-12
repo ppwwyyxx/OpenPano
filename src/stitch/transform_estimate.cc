@@ -24,10 +24,10 @@ const int ESTIMATE_MIN_NR_MATCH = 8;
 namespace pano {
 
 TransformEstimation::TransformEstimation(const MatchData& m_match,
-		const std::vector<Descriptor>& m_f1,
-		const std::vector<Descriptor>& m_f2,
+		const std::vector<Vec2D>& kp1,
+		const std::vector<Vec2D>& kp2,
 		const Shape2D& shape1, const Shape2D& shape2):
-	match(m_match), f1(m_f1), f2(m_f2),
+	match(m_match), kp1(kp1), kp2(kp2),
 	shape1(shape1), shape2(shape2),
 	f2_homo_coor(3, match.size())
 {
@@ -38,7 +38,7 @@ TransformEstimation::TransformEstimation(const MatchData& m_match,
 	int n = match.size();
 	if (n < ESTIMATE_MIN_NR_MATCH) return;
 	REP(i, n) {
-		Vec2D old = f2[match.data[i].second].coor;
+		Vec2D old = kp2[match.data[i].second];
 		f2_homo_coor.at(0, i) = old.x;
 		f2_homo_coor.at(1, i) = old.y;
 		f2_homo_coor.at(2, i) = 1;
@@ -86,11 +86,10 @@ bool TransformEstimation::get_transform(MatchInfo* info) {
 }
 
 Matrix TransformEstimation::calc_transform(const vector<int>& matches) const {
-	int n = matches.size();
 	vector<Vec2D> p1, p2;
-	REP(i, n) {
-		p1.emplace_back(f1[match.data[matches[i]].first].coor);
-		p2.emplace_back(f2[match.data[matches[i]].second].coor);
+	for (auto& i : matches) {
+		p1.emplace_back(kp1[match.data[i].first]);
+		p2.emplace_back(kp2[match.data[i].second]);
 	}
 	if (transform_type == Affine)
 		return getAffineTransform(p1, p2);
@@ -106,7 +105,7 @@ vector<int> TransformEstimation::get_inliers(const Matrix& trans) const {
 
 	Matrix transformed = trans.prod(f2_homo_coor);	// 3xn
 	REP(i, n) {
-		const Vec2D& fcoor = f1[match.data[i].first].coor;
+		const Vec2D& fcoor = kp1[match.data[i].first];
 		double idenom = 1.f / transformed.at(2, i);
 		double dist = (Vec2D(transformed.at(0, i) * idenom,
 					transformed.at(1, i) * idenom) - fcoor).sqr();
@@ -129,7 +128,7 @@ bool TransformEstimation::fill_inliers_to_matchinfo(
 		auto pip = PointInPolygon(poly);
 		int cnt = 0;
 		for (auto& p : match.data)
-			if (pip.in_polygon(first ? f1[p.first].coor : f2[p.second].coor))
+			if (pip.in_polygon(first ? kp1[p.first] : kp2[p.second]))
 				cnt ++;
 		return cnt;
 	};
@@ -137,8 +136,8 @@ bool TransformEstimation::fill_inliers_to_matchinfo(
 	auto get_keypoint_cnt = [&](vector<Vec2D>& poly, bool first) {
 		auto pip = PointInPolygon(poly);
 		int cnt = 0;
-		for (auto& p : first ? f1 : f2)
-			if (pip.in_polygon(p.coor))
+		for (auto& p : first ? kp1 : kp2)
+			if (pip.in_polygon(p))
 				cnt ++;
 		return cnt;
 	};
@@ -169,8 +168,8 @@ bool TransformEstimation::fill_inliers_to_matchinfo(
 	info->match.clear();
 	for (auto& idx : inliers) {
 		info->match.emplace_back(
-				f1[match.data[idx].first].coor,
-				f2[match.data[idx].second].coor
+				kp1[match.data[idx].first],
+				kp2[match.data[idx].second]
 				);
 	}
 	info->confidence = (r1m + r2m) * 0.5;

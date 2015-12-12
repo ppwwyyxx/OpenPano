@@ -34,7 +34,7 @@ Mat32f Stitcher::build() {
 	// TODO choose a better starting point by MST use centrality
 	if (CYLINDER) {
 		assign_center();
-		build_bundle_warp();
+		build_warp();
 		bundle.proj_method = ConnectedImages::ProjectionMethod::flat;
 	} else {
 		if (TRANS)
@@ -42,6 +42,7 @@ Mat32f Stitcher::build() {
 		else
 			pairwise_match();
 		feats.clear(); feats.shrink_to_fit();	// free memory for feature
+		keypoints.clear(); keypoints.shrink_to_fit();	// free memory for feature
 		//load_matchinfo(MATCHINFO_DUMP);
 		if (DEBUG_OUT) {
 			draw_matchinfo();
@@ -52,7 +53,7 @@ Mat32f Stitcher::build() {
 		if (ESTIMATE_CAMERA)
 			estimate_camera();
 		else
-			build_bundle_linear_simple();		// naive mode
+			build_linear_simple();		// naive mode
 		// TODO automatically determine projection method
 		if (ESTIMATE_CAMERA)
 			bundle.proj_method = ConnectedImages::ProjectionMethod::cylindrical;
@@ -68,13 +69,17 @@ void Stitcher::calc_feature() {
 	GuardedTimer tm("calc_feature()");
 	int n = imgs.size();
 	feats.resize(n);
+	keypoints.resize(n);
 	// detect feature
 #pragma omp parallel for schedule(dynamic)
 	REP(k, n) {
 		feats[k] = feature_det->detect_feature(imgs[k]);
 		if (feats[k].size() == 0)	// TODO delete the image
-			error_exit("Cannot find feature in this image!");
+			error_exit(ssprintf("Cannot find feature in image %d!\n", k));
 		print_debug("Image %d has %lu features\n", k, feats[k].size());
+		keypoints[k].resize(feats[k].size());
+		REP(i, feats[k].size())
+			keypoints[k][i] = feats[k][i].coor;
 	}
 }
 
@@ -94,7 +99,7 @@ void Stitcher::pairwise_match() {
 		int i = tasks[k].first, j = tasks[k].second;
 		//auto match = matcher(feats[i], feats[j]).match();	// slow
 		auto match = pwmatcher.match(i, j);
-		TransformEstimation transf(match, feats[i], feats[j],
+		TransformEstimation transf(match, keypoints[i], keypoints[j],
 				{imgs[i].width(), imgs[i].height()},
 				{imgs[j].width(), imgs[j].height()});	// from j to i
 		MatchInfo info;
@@ -125,7 +130,7 @@ void Stitcher::assume_linear_pairwise() {
 	REP(i, n-1) {
 		int next = (i + 1) % n;
 		auto match = pwmatcher.match(i, next);
-		TransformEstimation transf(match, feats[i], feats[next],
+		TransformEstimation transf(match, keypoints[i], keypoints[next],
 				{imgs[i].width(), imgs[i].height()},
 				{imgs[next].width(), imgs[next].height()});
 		MatchInfo info;
@@ -164,7 +169,7 @@ void Stitcher::estimate_camera() {
 }
 
 
-void Stitcher::build_bundle_linear_simple() {
+void Stitcher::build_linear_simple() {
 	// TODO bfs over pairwise to build bundle
 	// assume pano pairwise
 	int n = imgs.size(), mid = bundle.identity_idx;
@@ -188,8 +193,8 @@ void Stitcher::build_bundle_linear_simple() {
 }
 
 
-void Stitcher::build_bundle_warp() {;
-	GuardedTimer tm("build_bundle_warp()");
+void Stitcher::build_warp() {;
+	GuardedTimer tm("build_warp()");
 	int n = imgs.size(), mid = bundle.identity_idx;
 	REP(i, n) bundle.component[i].homo = Homography::I();
 
@@ -223,7 +228,7 @@ void Stitcher::build_bundle_warp() {;
 	print_debug("Best hfactor: %lf\n", bestfactor);
 	CylinderWarper warper(bestfactor);
 #pragma omp parallel for schedule(dynamic)
-	REP(k, n) warper.warp(imgs[k], feats[k]);
+	REP(k, n) warper.warp(imgs[k], keypoints[k]);
 
 	// accumulate
 	REPL(k, mid + 1, n) bundle.component[k].homo = move(bestmat[k - mid - 1]);
@@ -232,7 +237,7 @@ void Stitcher::build_bundle_warp() {;
 		matches[i].reverse();
 		MatchInfo info;
 		bool succ = TransformEstimation(
-				matches[i], feats[i + 1], feats[i],
+				matches[i], keypoints[i + 1], keypoints[i],
 				{imgs[i+1].width(), imgs[i+1].height()},
 				{imgs[i].width(), imgs[i].height()}).get_transform(&info);
 		if (! succ)
@@ -253,16 +258,16 @@ float Stitcher::update_h_factor(float nowfactor,
 	const int start = mid, end = n, len = end - start;
 
 	vector<Mat32f> nowimgs;
-	vector<vector<Descriptor>> nowfeats;
+	vector<vector<Vec2D>> nowkpts;
 	REPL(k, start, end) {
 		nowimgs.push_back(imgs[k].clone());
-		nowfeats.push_back(feats[k]);
+		nowkpts.push_back(keypoints[k]);
 	}			// nowfeats[0] == feats[mid]
 
 	CylinderWarper warper(nowfactor);
 #pragma omp parallel for schedule(dynamic)
 	REP(k, len)
-		warper.warp(nowimgs[k], nowfeats[k]);
+		warper.warp(nowimgs[k], nowkpts[k]);
 
 	vector<Homography> nowmat;		// size = len - 1
 	nowmat.resize(len - 1);
@@ -271,7 +276,7 @@ float Stitcher::update_h_factor(float nowfactor,
 	REPL(k, 1, len) {
 		MatchInfo info;
 		bool succ = TransformEstimation(
-				matches[k - 1 + mid], nowfeats[k - 1], nowfeats[k],
+				matches[k - 1 + mid], nowkpts[k - 1], nowkpts[k],
 				{nowimgs[k-1].width(), nowimgs[k-1].height()},
 				{nowimgs[k].width(), nowimgs[k].height()}).get_transform(&info);
 		if (! succ)

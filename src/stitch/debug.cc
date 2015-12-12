@@ -40,7 +40,7 @@ void LinearBlender::debug_run(int w, int h) {
 }
 
 
-void Stitcher::draw_matchinfo() {
+void Stitcher::draw_matchinfo() const {
 	int n = imgs.size();
 	REP(i, n) REPL(j, i+1, n) {
 		auto& m = pairwise_matches[j][i];
@@ -63,7 +63,7 @@ void Stitcher::draw_matchinfo() {
 	}
 }
 
-void Stitcher::dump_matchinfo(const char* fname) {
+void Stitcher::dump_matchinfo(const char* fname) const {
 	print_debug("Dump matchinfo to %s\n", fname);
 	ofstream fout(fname);
 	m_assert(fout.good());

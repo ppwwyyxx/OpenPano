@@ -22,7 +22,7 @@ Vec2D CylinderProject::proj_r(const Vec2D& p) const {
 	return Vec2D(x, y);
 }
 
-Mat32f CylinderProject::project(const Mat32f& img, vector<Descriptor>& ft) const {
+Mat32f CylinderProject::project(const Mat32f& img, vector<Vec2D>& pts) const {
 	Vec2D min(numeric_limits<real_t>::max(), numeric_limits<real_t>::max()),
 		  max(0, 0);
 	REP(i, img.height()) REP(j, img.width()) {			// TODO finally: only use rect corners
@@ -48,21 +48,21 @@ Mat32f CylinderProject::project(const Mat32f& img, vector<Descriptor>& ft) const
 		}
 	}
 
-	for (auto & f : ft) {
-		Vec2D coor(f.coor.x + img.width() / 2, f.coor.y + img.height() / 2);
-		f.coor = proj(coor) * sizefactor + offset;
-		f.coor.x -= mat.width() / 2;
-		f.coor.y -= mat.height() / 2;
+	for (auto & f : pts) {
+		Vec2D coor(f.x + img.width() / 2, f.y + img.height() / 2);
+		f = proj(coor) * sizefactor + offset;
+		f.x -= mat.width() / 2;
+		f.y -= mat.height() / 2;
 	}
 	return mat;
 }
 
-void CylinderWarper::warp(Mat32f& mat, std::vector<Descriptor>& ft) const {
+void CylinderWarper::warp(Mat32f& mat, std::vector<Vec2D>& kpts) const {
 	// 43.266 = hypot(36, 24)
 	int r = hypot(mat.width(), mat.height()) * (config::FOCAL_LENGTH / 43.266);
 	Vec cen(mat.width() / 2, mat.height() / 2 * h_factor, r);
 	CylinderProject cyl(r, cen, r);
-	mat = cyl.project(mat, ft);
+	mat = cyl.project(mat, kpts);
 }
 
 }

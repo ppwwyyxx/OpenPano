@@ -27,15 +27,19 @@ class Stitcher {
 		std::vector<Mat32f> imgs;
 		// transformation and metadata of each image
 		ConnectedImages bundle;
-		// feature of each image
+
+		// feature and keypoints of each image
 		std::vector<std::vector<Descriptor>> feats;
+		std::vector<std::vector<Vec2D>> keypoints;	// store coordinates in [-w/2,w/2]
+
 		// 2d array of all matches
 		// pairwise_matches[i][j].homo transform j to i
 		std::vector<std::vector<MatchInfo>> pairwise_matches;
+
 		// feature detector
 		std::unique_ptr<FeatureDetector> feature_det;
 
-		// get feature descriptor for each image
+		// get feature descriptor and keypoints for each image
 		void calc_feature();
 
 		// pairwise matching of all images
@@ -46,22 +50,19 @@ class Stitcher {
 		// assign a center to be identity
 		void assign_center();
 
-		// build bundle by estimating camera parameters
+		// build by estimating camera parameters
 		void estimate_camera();
 
-		// naively build bundle assuming linear imgs
-		void build_bundle_linear_simple();
+		// naively build panorama assuming linear imgs
+		void build_linear_simple();
 
-		// build bundle with cylindrical pre-warping
-		void build_bundle_warp();
-
-		// find MST from pair-matches, by confidence
-		bool max_spanning_tree(std::vector<std::vector<int>>& graph);
+		// build panorama with cylindrical pre-warping
+		void build_warp();
 
 		// straighten camera parameters
 		void straighten();
 
-		// blend the bundle
+		// render the panorama
 		Mat32f blend();
 
 		// in cylindrical mode, search warping parameter for straightening
@@ -80,8 +81,8 @@ class Stitcher {
 			>::type;
 
 		// for debug
-		void draw_matchinfo();
-		void dump_matchinfo(const char*);
+		void draw_matchinfo() const;
+		void dump_matchinfo(const char*) const;
 		void load_matchinfo(const char*);
 	public:
 		// universal reference constructor to initialize imgs

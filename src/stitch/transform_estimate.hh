@@ -18,8 +18,8 @@ class TransformEstimation {
 		// MatchData contains pairs of (f1_idx, f2_idx)
 		// shape1 is (w, h) of the first image
 		TransformEstimation(const MatchData& m_match,
-				const std::vector<Descriptor>& m_f1,
-				const std::vector<Descriptor>& m_f2,
+				const std::vector<Vec2D>& kp1,
+				const std::vector<Vec2D>& kp2,
 				const Shape2D& shape1, const Shape2D& shape2);
 
 		// get a transform matix from second(f2) -> first(f1)
@@ -29,7 +29,7 @@ class TransformEstimation {
 
 	private:
 		const MatchData& match;
-		const std::vector<Descriptor> &f1, &f2;
+		const std::vector<Vec2D> &kp1, &kp2;
 		const Shape2D shape1, shape2;
 
 		float ransac_inlier_thres;
