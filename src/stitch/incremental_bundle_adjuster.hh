@@ -106,17 +106,16 @@ class IncrementalBundleAdjuster {
 
 
 		/// Optimization routines:
+		Eigen::MatrixXd J, JtJ;		// to avoid too many malloc
+
 		ErrorStats calcError(ParamState& state);
 
 		Eigen::VectorXd get_param_update(
 				ParamState& state, const std::vector<double>& residual, float);
 
-		void calcJacobianNumerical(Eigen::MatrixXd& J, ParamState& state);
-
-		// calculate J & JtJ together
-		void calcJacobianSymbolic(
-				Eigen::MatrixXd& J,
-				Eigen::MatrixXd& JtJ, ParamState& state);
+		// calculate J & JtJ
+		void calcJacobianNumerical(ParamState& state);
+		void calcJacobianSymbolic(ParamState& state);
 
 };
 

@@ -107,6 +107,10 @@ void IncrementalBundleAdjuster::add_match(
 void IncrementalBundleAdjuster::optimize() {
 	using namespace Eigen;
 	update_index_map();
+	int nr_img = idx_added.size();
+	J = MatrixXd{NR_TERM_PER_MATCH * nr_pointwise_match, NR_PARAM_PER_CAMERA * nr_img};
+	JtJ = MatrixXd{NR_PARAM_PER_CAMERA * nr_img, NR_PARAM_PER_CAMERA * nr_img};
+
 	ParamState state;
 	for (auto& idx : idx_added)
 		state.cameras.emplace_back(result_cameras[idx]);
@@ -180,13 +184,10 @@ Eigen::VectorXd IncrementalBundleAdjuster::get_param_update(
 	TotalTimer tm("get_param_update");
 	using namespace Eigen;
 	int nr_img = idx_added.size();
-	MatrixXd J(NR_TERM_PER_MATCH * nr_pointwise_match, NR_PARAM_PER_CAMERA * nr_img);
-	MatrixXd JtJ(NR_PARAM_PER_CAMERA * nr_img, NR_PARAM_PER_CAMERA * nr_img);
 	if (! SYMBOLIC_DIFF) {
-		calcJacobianNumerical(J, state);
-		JtJ = (J.transpose() * J).eval();
+		calcJacobianNumerical(state);
 	} else {
-		calcJacobianSymbolic(J, JtJ, state);
+		calcJacobianSymbolic(state);
 		// check correctness
 		// PP((JtJ - J.transpose() * J).eval().maxCoeff());
 	}
@@ -201,12 +202,12 @@ Eigen::VectorXd IncrementalBundleAdjuster::get_param_update(
 			JtJ(i, i) += lambda / 10;
 		}
 	}
-	return JtJ.jacobiSvd(ComputeThinU | ComputeThinV).solve(b);
-
+	//return JtJ.jacobiSvd(ComputeThinU | ComputeThinV).solve(b);
+	//return JtJ.partialPivLu().solve(b).eval();
+	return JtJ.colPivHouseholderQr().solve(b).eval();
 }
 
-void IncrementalBundleAdjuster::calcJacobianNumerical(
-		Eigen::MatrixXd& J, ParamState& state) {
+void IncrementalBundleAdjuster::calcJacobianNumerical(ParamState& state) {
 	TotalTimer tm("calcJacobianNumerical");
 	// Numerical Differentiation of Residual w.r.t all parameters
 	const double step = 1e-6;
@@ -226,20 +227,20 @@ void IncrementalBundleAdjuster::calcJacobianNumerical(
 				J(k, param_idx) = (err1.residuals[k] - err2.residuals[k]) / (2 * step);
 		}
 	}
+	JtJ = (J.transpose() * J).eval();
 }
 
-void IncrementalBundleAdjuster::calcJacobianSymbolic(
-		Eigen::MatrixXd& J, Eigen::MatrixXd& JtJ, ParamState& state) {
+void IncrementalBundleAdjuster::calcJacobianSymbolic(ParamState& state) {
 	// Symbolic Differentiation of Residual w.r.t all parameters
 	// See Section 4 of: Automatic Panoramic Image Stitching using Invariant Features - David Lowe,IJCV07.pdf
 	TotalTimer tm("calcJacobianSymbolic");
-	J.setZero();
-	JtJ.setZero();	// n_params * n_params
+	J.setZero();	// this took 1/3 time. J.rows() could reach 130000
+	JtJ.setZero();
 	auto& cameras = state.get_cameras();
 	// pre-calculate all derivatives of R
-	vector<array<Homography, 3>> all_dRdvi;
-	for (auto& c : cameras)
-		all_dRdvi.emplace_back(dRdvi(c.R));
+	vector<array<Homography, 3>> all_dRdvi(cameras.size());
+	REP(i, cameras.size())
+		all_dRdvi[i] = dRdvi(cameras[i].R);
 
 	REP(pair_idx, match_pairs.size()) {
 		const auto& pair = match_pairs[pair_idx];
@@ -250,29 +251,30 @@ void IncrementalBundleAdjuster::calcJacobianSymbolic(
 				param_idx_to = to * NR_PARAM_PER_CAMERA;
 		const auto &c_from = cameras[from],
 					&c_to = cameras[to];
-		auto toKinv = c_to.Kinv();
-		auto toRinv = c_to.Rinv();
+		const auto fromK = c_from.K();
+		const auto toKinv = c_to.Kinv();
+		const auto toRinv = c_to.Rinv();
 		const auto& dRfromdvi = all_dRdvi[from];
 		auto dRtodviT = all_dRdvi[to];	// copying. will modify!
 		for (auto& m: dRtodviT) m = m.transpose();
 
-		const Homography Hto_to_from = (c_from.K() * c_from.R) * (toRinv * toKinv);
+		const Homography Hto_to_from = (fromK * c_from.R) * (toRinv * toKinv);
 		Vec2D mid_vec_to{shapes[pair.to].halfw(), shapes[pair.to].halfh()};
 
 		for (const auto& p : pair.m.match) {
 			Vec2D to = p.first + mid_vec_to;
 			Vec homo = Hto_to_from.trans(to);
-			double hz_sqr = sqr(homo.z);
+			double hz_sqr_inv = 1.0 / sqr(homo.z);
 			double hz_inv = 1.0 / homo.z;
 
-			// calculate d(residual) / d(variable)
-			auto drdv = [&](Vec dhdv /* d(homo) / d(variable) */) {
-				// d(point 2d coor) / d(variable) = d(p)/d(homo) * d(homo)/d(variable)
-				Vec2D dpdv{
-					dhdv.x * hz_inv - dhdv.z * homo.x / hz_sqr,
-						dhdv.y * hz_inv - dhdv.z * homo.y / hz_sqr};
-				return dpdv * (-1);
-			};
+			Vec dhdv;	// d(homo)/d(variable)
+			// calculate d(residual) / d(variable) = -d(point 2d) / d(variable)
+			// d(point 2d coor) / d(variable) = d(p)/d(homo) * d(homo)/d(variable)
+#define drdv(xx) \
+			(dhdv = xx, Vec2D{ \
+			 -dhdv.x * hz_inv + dhdv.z * homo.x * hz_sqr_inv, \
+			 -dhdv.y * hz_inv + dhdv.z * homo.y * hz_sqr_inv})
+
 			array<Vec2D, NR_PARAM_PER_CAMERA> dfrom, dto;
 
 			// from:
@@ -285,14 +287,13 @@ void IncrementalBundleAdjuster::calcJacobianSymbolic(
 			// ppy
 			dfrom[2] = drdv(dKdppy.trans(dot_u2));
 			// rot
-			m = c_from.K();
 			dot_u2 = (toRinv * toKinv).trans(to);
-			dfrom[3] = drdv((m * dRfromdvi[0]).trans(dot_u2));
-			dfrom[4] = drdv((m * dRfromdvi[1]).trans(dot_u2));
-			dfrom[5] = drdv((m * dRfromdvi[2]).trans(dot_u2));
+			dfrom[3] = drdv((fromK * dRfromdvi[0]).trans(dot_u2));
+			dfrom[4] = drdv((fromK * dRfromdvi[1]).trans(dot_u2));
+			dfrom[5] = drdv((fromK * dRfromdvi[2]).trans(dot_u2));
 
 			// to: d(Kinv) / dv = -Kinv * d(K)/dv * Kinv
-			m = c_from.K() * c_from.R * toRinv * toKinv;
+			m = fromK * c_from.R * toRinv * toKinv;
 			dot_u2 = toKinv.trans(to) * (-1);
 			// focal
 			dto[0] = drdv((m * dKdfocal).trans(dot_u2));
@@ -301,7 +302,7 @@ void IncrementalBundleAdjuster::calcJacobianSymbolic(
 			// ppy
 			dto[2] = drdv((m * dKdppy).trans(dot_u2));
 			// rot
-			m = c_from.K() * c_from.R;
+			m = fromK * c_from.R;
 			dot_u2 = toKinv.trans(to);
 			dto[3] = drdv((m * dRtodviT[0]).trans(dot_u2));
 			dto[4] = drdv((m * dRtodviT[1]).trans(dot_u2));
@@ -310,8 +311,8 @@ void IncrementalBundleAdjuster::calcJacobianSymbolic(
 			// fill J
 			REP(i, 6) {
 				J(idx, param_idx_from+i) = dfrom[i].x;
-				J(idx+1, param_idx_from+i) = dfrom[i].y;
 				J(idx, param_idx_to+i) = dto[i].x;
+				J(idx+1, param_idx_from+i) = dfrom[i].y;
 				J(idx+1, param_idx_to+i) = dto[i].y;
 			}
 
