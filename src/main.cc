@@ -226,8 +226,6 @@ void work(int argc, char* argv[]) {
 		imgs.emplace_back(read_img(argv[i]));
 	Stitcher p(move(imgs));
 	Mat32f res = p.build();
-	if (res.width() * res.height() > 600000000 || max(res.width(), res.height()) > 30000)
-		error_exit("Result too large. Something must be wrong\n");
 	if (res.width() * res.height() > 12000000) {
 		print_debug("Result is large, resizing for faster output...\n");
 		float ratio = max(res.width(), res.height()) * 1.0f / 8000;

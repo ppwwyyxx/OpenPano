@@ -240,8 +240,9 @@ void Stitcher::build_warp() {;
 				matches[i], keypoints[i + 1], keypoints[i],
 				{imgs[i+1].width(), imgs[i+1].height()},
 				{imgs[i].width(), imgs[i].height()}).get_transform(&info);
+		// Can match before, but not here. This is a bug.
 		if (! succ)
-			error_exit(ssprintf("Image %d and %d doesn't match. Failed", i, i+1));
+			error_exit(ssprintf("Failed to match between image %d and %d.", i, i+1));
 		bundle.component[i].homo = info.homo;
 	}
 	REPD(i, mid - 2, 0)
@@ -365,6 +366,8 @@ Mat32f Stitcher::blend() {
 
 	Coor size(target_width, target_height);
 	print_debug("Final Image Size: (%d, %d)\n", size.x, size.y);
+	if (max(size.x, size.y) > 30000 || size.x * size.y > 600000000)
+		error_exit("Result too large. Something must be wrong\n");
 
 	auto scale_coor_to_img_coor = [&](Vec2D v) {
 		v = v - proj_min;
