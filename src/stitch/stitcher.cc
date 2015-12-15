@@ -162,6 +162,7 @@ void Stitcher::estimate_camera() {
 	CameraEstimator ce(pairwise_matches, shapes);
 	auto cameras = ce.estimate();
 
+	// produced homo operates on [0,w] coordinate
 	REP(i, imgs.size()) {
 		bundle.component[i].homo_inv = cameras[i].K() * cameras[i].R;
 		bundle.component[i].homo = cameras[i].Rinv() * cameras[i].K().inverse();
@@ -188,7 +189,9 @@ void Stitcher::build_linear_simple() {
 		REPD(k, mid - 2, 0)
 			comp[k].homo = comp[k + 1].homo * pairwise_matches[k+1][k].homo;
 	}
-	// then, comp[k]: from k to identity
+	// now, comp[k]: from k to identity
+
+	bundle.shift_all_homo();
 	bundle.calc_inverse_homo();
 }
 
@@ -243,10 +246,13 @@ void Stitcher::build_warp() {;
 		// Can match before, but not here. This is a bug.
 		if (! succ)
 			error_exit(ssprintf("Failed to match between image %d and %d.", i, i+1));
+		// homo: operate on half-shifted coor
 		bundle.component[i].homo = info.homo;
 	}
 	REPD(i, mid - 2, 0)
 		bundle.component[i].homo = bundle.component[i + 1].homo * bundle.component[i].homo;
+
+	bundle.shift_all_homo();
 	bundle.calc_inverse_homo();
 }
 
@@ -347,22 +353,26 @@ Mat32f Stitcher::blend() {
 	GuardedTimer tm("blend()");
 	// it's hard to do coordinates.......
 	int refw = imgs[bundle.identity_idx].width(),
-		refh = imgs[bundle.identity_idx].height();
+			refh = imgs[bundle.identity_idx].height();
 	auto homo2proj = bundle.get_homo2proj();
 	auto proj2homo = bundle.get_proj2homo();
 
-	Vec2D id_img_range = homo2proj(Vec(1, 1, 1)) - homo2proj(Vec(0, 0, 1));
-	id_img_range.x *= refw, id_img_range.y *= refh;
+	Vec2D id_img_range = homo2proj(Vec(refw, refh, 1)) - homo2proj(Vec(0, 0, 1));
 	cout << "projmin:" << bundle.proj_range.min << "projmax" << bundle.proj_range.max << endl;
+	if (ESTIMATE_CAMERA) {
+		id_img_range = homo2proj(Vec(1,1,1)) - homo2proj(Vec(0,0,1));
+		// this yields better aspect ratio in the result.
+		id_img_range.x *= (refw * 1.0 / refh);
+	}
+	cout << "id_img range: " << id_img_range.x << " "<< id_img_range.y << endl;
 
 	Vec2D proj_min = bundle.proj_range.min;
 	double x_len = bundle.proj_range.max.x - proj_min.x,
-		   y_len = bundle.proj_range.max.y - proj_min.y,
-			 // TODO this gives better aspect ratio. why?
-		   x_per_pixel = id_img_range.x / (bundle.proj_method == ConnectedImages::ProjectionMethod::flat ? refw : refh),
-		   y_per_pixel = id_img_range.y / refh,
-		   target_width = x_len / x_per_pixel,
-		   target_height = y_len / y_per_pixel;
+				 y_len = bundle.proj_range.max.y - proj_min.y,
+				 x_per_pixel = id_img_range.x / refw,
+				 y_per_pixel = id_img_range.y / refh,
+				 target_width = x_len / x_per_pixel,
+				 target_height = y_len / y_per_pixel;
 
 	Coor size(target_width, target_height);
 	print_debug("Final Image Size: (%d, %d)\n", size.x, size.y);
@@ -385,20 +395,11 @@ Mat32f Stitcher::blend() {
 		Coor top_left = scale_coor_to_img_coor(cur.range.min);
 		Coor bottom_right = scale_coor_to_img_coor(cur.range.max);
 
-		int imgw = cur.imgptr->width(),
-				imgh = cur.imgptr->height();
-
 		blender.add_image(top_left, bottom_right, *cur.imgptr, [=,&cur](Coor t) -> Vec2D {
 			Vec2D c(t.x * x_per_pixel + proj_min.x,
 							t.y * y_per_pixel + proj_min.y);
-			Vec homo = proj2homo(Vec2D(c.x / refw, c.y / refh));
-			if (! ESTIMATE_CAMERA)  {	// scale and offset is in camera intrinsic
-				homo.x -= 0.5 * homo.z, homo.y -= 0.5 * homo.z;	// shift center for homography
-				homo.x *= refw, homo.y *= refh;
-			}
+			Vec homo = proj2homo(Vec2D(c.x, c.y));
 			Vec2D orig = cur.homo_inv.trans_normalize(homo);
-			if (! ESTIMATE_CAMERA)
-				orig = orig + Vec2D(imgw/2, imgh/2);
 			return orig;
 		});
 	}

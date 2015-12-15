@@ -48,6 +48,11 @@ struct ConnectedImages {
 
 	std::vector<ImageComponent> component;
 
+	// apply translation to homography
+	// originally all homo operates on half-shifted coordinate
+	// after calling this function they operate on image coordinate
+	void shift_all_homo();
+
 	// inverse all homographies
 	void calc_inverse_homo();
 

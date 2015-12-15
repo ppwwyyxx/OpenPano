@@ -13,6 +13,19 @@ using namespace config;
 
 namespace pano {
 
+void ConnectedImages::shift_all_homo() {
+	int mid = identity_idx;
+	Homography t2 = Homography::get_translation(
+			component[mid].imgptr->width() * 0.5,
+			component[mid].imgptr->height() * 0.5);
+	REP(i, (int)component.size()) if (i != mid) {
+		Homography t1 = Homography::get_translation(
+				component[i].imgptr->width() * 0.5,
+				component[i].imgptr->height() * 0.5);
+		component[i].homo = t2 * component[i].homo * t1.inverse();
+	}
+}
+
 void ConnectedImages::calc_inverse_homo() {
 	for (auto& m : component)
 		m.homo_inv = m.homo.inverse();
@@ -22,10 +35,7 @@ void ConnectedImages::update_proj_range() {
 	vector<Vec2D> corner;
 	const static int CORNER_SAMPLE = 100;
 	REP(i, CORNER_SAMPLE) REP(j, CORNER_SAMPLE)
-		corner.emplace_back((double)i / CORNER_SAMPLE - 0.5, (double)j / CORNER_SAMPLE - 0.5);
-
-	int refw = component[identity_idx].imgptr->width(),
-			refh = component[identity_idx].imgptr->height();
+		corner.emplace_back((double)i / CORNER_SAMPLE, (double)j / CORNER_SAMPLE);
 
 	auto homo2proj = get_homo2proj();
 
@@ -35,14 +45,8 @@ void ConnectedImages::update_proj_range() {
 		Vec2D now_min(numeric_limits<double>::max(), std::numeric_limits<double>::max()),
 					now_max = now_min * (-1);
 		for (auto v : corner) {
-			if (ESTIMATE_CAMERA)
-				v.x += 0.5, v.y += 0.5;
 			Vec homo = m.homo.trans(
 					Vec2D(v.x * m.imgptr->width(), v.y * m.imgptr->height()));
-			if (! ESTIMATE_CAMERA) {
-				homo.x /= refw, homo.y /= refh;
-				homo.x += 0.5 * homo.z, homo.y += 0.5 * homo.z;
-			}
 			Vec2D t_corner = homo2proj(homo);
 			now_min.update_min(t_corner);
 			now_max.update_max(t_corner);
@@ -55,27 +59,20 @@ void ConnectedImages::update_proj_range() {
 			now_min = Vec2D(numeric_limits<double>::max(), std::numeric_limits<double>::max());
 			now_max = now_min * (-1);
 			for (auto v : corner) {
-				if (ESTIMATE_CAMERA)
-					v.x += 0.5, v.y += 0.5;
 				Vec homo = m.homo.trans(
 						Vec2D(v.x * m.imgptr->width(), v.y * m.imgptr->height()));
-				if (! ESTIMATE_CAMERA) {
-					homo.x /= refw, homo.y /= refh;
-					homo.x += 0.5 * homo.z, homo.y += 0.5 * homo.z;
-				}
 				Vec2D t_corner = homo2proj(homo);
 				if (t_corner.x < 0) t_corner.x += 2*M_PI;
 				now_min.update_min(t_corner);
 				now_max.update_max(t_corner);
 			}
 		}
-		now_min.x *= refw, now_min.y *= refh;
-		now_max.x *= refw, now_max.y *= refh;
 		m.range = Range(now_min, now_max);
 		proj_min.update_min(now_min);
 		proj_max.update_max(now_max);
 		print_debug("Range: (%lf,%lf)~(%lf,%lf)\n",
-				m.range.min.x / refw, m.range.min.y / refh, m.range.max.x / refw, m.range.max.y / refh);
+				m.range.min.x, m.range.min.y,
+				m.range.max.x, m.range.max.y);
 	}
 	if (proj_method == ProjectionMethod::cylindrical) {
 		// TODO keep everything inside 2 * pi

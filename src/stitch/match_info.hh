@@ -59,8 +59,8 @@ struct Shape2D {
 	inline Vec2D center() const { return Vec2D{halfw(), halfh()}; }
 
 	// 1 2
-	// 3 4	return corner in [-w/2,w/2] coor
-	std::vector<Vec2D> shifted_corner() const {
+	// 3 4	return corner in [-w/2,w/2] coordinate
+	inline std::vector<Vec2D> shifted_corner() const {
 		return {Vec2D{-w*0.5, -h*0.5}, Vec2D{w*0.5,-h*0.5},
 						Vec2D{-w*0.5, h*0.5}, Vec2D{w*0.5, h*0.5}};
 	}

@@ -29,7 +29,7 @@ class Stitcher {
 		ConnectedImages bundle;
 
 		// feature and keypoints of each image
-		std::vector<std::vector<Descriptor>> feats;
+		std::vector<std::vector<Descriptor>> feats;	// [-w/2,w/2]
 		std::vector<std::vector<Vec2D>> keypoints;	// store coordinates in [-w/2,w/2]
 
 		// 2d array of all matches

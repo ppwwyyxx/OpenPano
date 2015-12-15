@@ -165,8 +165,8 @@ IncrementalBundleAdjuster::ErrorStats IncrementalBundleAdjuster::calcError(
 			& c_to = cameras[to];
 		Homography Hto_to_from = (c_from.K() * c_from.R) * (c_to.Rinv() * c_to.K().inverse());
 
-		Vec2D mid_vec_from{shapes[pair.from].halfw(), shapes[pair.from].halfh()};
-		Vec2D mid_vec_to{shapes[pair.to].halfw(), shapes[pair.to].halfh()};
+		Vec2D mid_vec_from = shapes[pair.from].center();
+		Vec2D mid_vec_to = shapes[pair.to].center();
 		for (auto& p: pair.m.match) {
 			Vec2D to = p.first + mid_vec_to, from = p.second + mid_vec_from;
 			Vec2D transformed = Hto_to_from.trans2d(to);
@@ -259,7 +259,7 @@ void IncrementalBundleAdjuster::calcJacobianSymbolic(ParamState& state) {
 		for (auto& m: dRtodviT) m = m.transpose();
 
 		const Homography Hto_to_from = (fromK * c_from.R) * (toRinv * toKinv);
-		Vec2D mid_vec_to{shapes[pair.to].halfw(), shapes[pair.to].halfh()};
+		Vec2D mid_vec_to = shapes[pair.to].center();
 
 		for (const auto& p : pair.m.match) {
 			Vec2D to = p.first + mid_vec_to;
