@@ -18,12 +18,13 @@ void ConnectedImages::shift_all_homo() {
 	Homography t2 = Homography::get_translation(
 			component[mid].imgptr->width() * 0.5,
 			component[mid].imgptr->height() * 0.5);
-	REP(i, (int)component.size()) if (i != mid) {
-		Homography t1 = Homography::get_translation(
-				component[i].imgptr->width() * 0.5,
-				component[i].imgptr->height() * 0.5);
-		component[i].homo = t2 * component[i].homo * t1.inverse();
-	}
+	REP(i, (int)component.size())
+		if (i != mid) {
+			Homography t1 = Homography::get_translation(
+					component[i].imgptr->width() * 0.5,
+					component[i].imgptr->height() * 0.5);
+			component[i].homo = t2 * component[i].homo * t1.inverse();
+		}
 }
 
 void ConnectedImages::calc_inverse_homo() {
@@ -74,7 +75,7 @@ void ConnectedImages::update_proj_range() {
 				m.range.min.x, m.range.min.y,
 				m.range.max.x, m.range.max.y);
 	}
-	if (proj_method == ProjectionMethod::cylindrical) {
+	if (proj_method != ProjectionMethod::flat) {
 		// TODO keep everything inside 2 * pi
 		// doesn't seem to be trivial. need to maintain range of each component
 	}

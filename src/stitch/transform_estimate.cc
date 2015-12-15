@@ -58,7 +58,7 @@ bool TransformEstimation::get_transform(MatchInfo* info) {
 	set<int> selected;
 
 	int maxinlierscnt = -1;
-	Matrix best_transform(3, 3);
+	Homography best_transform;
 
 	random_device rd;
 	mt19937 rng(rd());
@@ -74,8 +74,8 @@ bool TransformEstimation::get_transform(MatchInfo* info) {
 			selected.insert(random);
 			inliers.push_back(random);
 		}
-		Matrix transform = calc_transform(inliers);
-		if (! Homography::health(transform.ptr()))
+		auto transform = calc_transform(inliers);
+		if (! transform.health())
 			continue;
 		int n_inlier = get_inliers(transform).size();
 		if (update_max(maxinlierscnt, n_inlier))
@@ -85,25 +85,32 @@ bool TransformEstimation::get_transform(MatchInfo* info) {
 	return fill_inliers_to_matchinfo(inliers, info);
 }
 
-Matrix TransformEstimation::calc_transform(const vector<int>& matches) const {
+Homography TransformEstimation::calc_transform(const vector<int>& matches) const {
 	vector<Vec2D> p1, p2;
+	// calculate transform by normalized shifted coordinate. should be more stable
 	for (auto& i : matches) {
 		p1.emplace_back(kp1[match.data[i].first]);
+		p1.back().x /= shape1.w;
+		p1.back().y /= shape1.h;
 		p2.emplace_back(kp2[match.data[i].second]);
+		p2.back().x /= shape2.w;
+		p2.back().y /= shape2.h;
 	}
-	if (transform_type == Affine)
-		return getAffineTransform(p1, p2);
-	else
-		return getPerspectiveTransform(p1, p2);
+	// homo from p2 to p1
+	Matrix homo = ((transform_type == Affine) ? getAffineTransform : getPerspectiveTransform)(p1, p2);
+	Homography t1{{(double)shape1.w, 0, 0, 0, (double)shape1.h, 0, 0, 0, 1}};
+	Homography t2inv{{1.0 / shape2.w, 0, 0, 0, 1.0 / shape2.h, 0, 0, 0, 1}};
+	// return transform on non-normalized coordinate
+	return t1 * Homography{homo} * t2inv;
 }
 
-vector<int> TransformEstimation::get_inliers(const Matrix& trans) const {
+vector<int> TransformEstimation::get_inliers(const Homography& trans) const {
 	float INLIER_DIST = sqr(ransac_inlier_thres);
 	TotalTimer tm("get_inlier");
 	vector<int> ret;
 	int n = match.size();
 
-	Matrix transformed = f2_homo_coor.prod(trans.transpose());	// nx3
+	Matrix transformed = f2_homo_coor.prod(trans.transpose().to_matrix());	// nx3
 	REP(i, n) {
 		const Vec2D& fcoor = kp1[match.data[i].first];
 		double* ptr = transformed.ptr(i);
@@ -142,8 +149,8 @@ bool TransformEstimation::fill_inliers_to_matchinfo(
 		return cnt;
 	};
 
-	auto homoM = calc_transform(inliers);			// from 2 to 1
-	Homography homo{homoM};
+	auto homo = calc_transform(inliers);			// from 2 to 1
+	Matrix homoM = homo.to_matrix();
 	bool succ = false;
 	Homography inv = homo.inverse(&succ);
 	if (not succ)	// cannot inverse. ill-formed.
@@ -154,8 +161,7 @@ bool TransformEstimation::fill_inliers_to_matchinfo(
 	float r1p = inliers.size() * 1.0f / get_keypoint_cnt(overlap, true);
 	if (r1p < 0.01 || r1p > 1) return false;
 
-	Matrix invM(3, 3);
-	REP(i, 9) invM.ptr()[i] = inv[i];
+	Matrix invM = inv.to_matrix();
 	overlap = overlap_region(shape2, shape1, invM, homo);
 	float r2m = inliers.size() * 1.0f / get_match_cnt(overlap, false);
 	if (r2m < INLIER_MINIMUM_RATIO || r2m > 1) return false;

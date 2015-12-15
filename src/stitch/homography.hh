@@ -136,6 +136,12 @@ class Homography {
         0, 0, 1 }};
 		}
 
+		Matrix to_matrix() const {
+			Matrix ret(3, 3);
+			REP(i, 9) ret.ptr()[i] = data[i];
+			return ret;
+		}
+
 		friend std::ostream& operator << (std::ostream& os, const Homography& r) {
 			os << "[" << r.data[0] << " " << r.data[1] << " " << r.data[2]
 				 << "; " << r.data[3] << " " << r.data[4] << " " << r.data[5]

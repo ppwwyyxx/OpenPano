@@ -114,7 +114,7 @@ vector<vector<int>> CameraEstimator::max_spanning_tree() {
 }
 
 void CameraEstimator::propagate_rotation(const Graph& graph) {
-	int start = 0;	// TODO select root of tree (best confidence)
+	int start = n >> 1;		// TODO select root of tree (best confidence)
 
 	queue<int> q; q.push(start);
 	vector<bool> vst(graph.size(), false);		// in queue

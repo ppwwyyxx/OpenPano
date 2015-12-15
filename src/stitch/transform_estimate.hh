@@ -39,7 +39,7 @@ class TransformEstimation {
 		Matrix f2_homo_coor;	// nx3
 
 		// calculate best transform from given samples
-		Matrix calc_transform(const std::vector<int>&) const;
+		Homography calc_transform(const std::vector<int>&) const;
 
 		// check if result can be further filtered,
 		// fill in result to MatchInfo object,
@@ -48,6 +48,6 @@ class TransformEstimation {
 				const std::vector<int>&, MatchInfo*) const;
 
 		// get inliers of a transform
-		std::vector<int> get_inliers(const Matrix &) const;
+		std::vector<int> get_inliers(const Homography&) const;
 };
 }
