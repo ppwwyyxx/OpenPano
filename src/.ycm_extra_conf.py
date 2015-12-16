@@ -62,6 +62,9 @@ flags = [
 '-I/usr/include/eigen3',
 '-Ithird-party'
 ]
+ep = os.environ.get('EIGEN_PATH')
+if ep:
+    flags.append('-I{}'.format(ep))
 
 # Set this to the absolute path to the folder (NOT the file!) containing the
 # compile_commands.json file to use that instead of 'flags'. See here for

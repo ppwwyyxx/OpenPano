@@ -186,6 +186,9 @@ class Vector2D {
 		Vector2D<T> operator * (T f) const
 		{ return Vector2D<T>(x * f, y * f); }
 
+		Vector2D<T>& operator *= (T p)
+		{ x *= p; y *= p; return *this; }
+
 		Vector2D<T> operator / (T f) const
 		{ return *this * (1.0 / f); }
 

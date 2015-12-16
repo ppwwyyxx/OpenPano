@@ -42,23 +42,42 @@ void LinearBlender::debug_run(int w, int h) {
 
 void Stitcher::draw_matchinfo() const {
 	int n = imgs.size();
+#pragma omp parallel for schedule(dynamic)
 	REP(i, n) REPL(j, i+1, n) {
-		auto& m = pairwise_matches[j][i];
-		if (m.confidence <= 0) continue;
-		print_debug("Dump matchinfo of %d->%d\n", i, j);
+		Vec2D offset1(imgs[i].width()/2, imgs[i].height()/2);
+		Vec2D offset2(imgs[j].width()/2 + imgs[i].width(), imgs[j].height()/2);
+		Shape2D shape2{imgs[j].width(), imgs[j].height()},
+						shape1{imgs[i].width(), imgs[i].height()};
+
+		auto& m = pairwise_matches[i][j];
+		if (m.confidence <= 0)
+			continue;
 		list<Mat32f> imagelist{imgs[i], imgs[j]};
-		Mat32f conc = vconcat(imagelist);
+		Mat32f conc = hconcat(imagelist);
 		PlaneDrawer pld(conc);
 		for (auto& p : m.match) {
 			pld.set_rand_color();
-			Coor icoor1 = Coor(p.second.x + imgs[i].width()/2,
-					p.second.y + imgs[i].height()/2);
-			Coor icoor2 = Coor(p.first.x + imgs[j].width()/2,
-					p.first.y + imgs[j].height()/2);
-			pld.circle(icoor1, 7);
-			pld.circle(icoor2 + Coor(0, imgs[i].height()), 7);
-			pld.line(icoor1, icoor2 + Coor(0, imgs[i].height()));
+			pld.circle(p.first + offset1, 7);
+			pld.circle(p.second + offset2, 7);
+			pld.line(p.first + offset1, p.second + offset2);
 		}
+
+		pld.set_color(Color(0,0,0));
+
+		Matrix homo(3,3);
+		REP(i, 9) homo.ptr()[i] = m.homo[i];
+		Homography inv = m.homo.inverse();
+		auto p = overlap_region(shape1, shape2, homo, inv);
+		for (auto& v: p) v += offset1;
+		pld.polygon(p);
+
+		Matrix invM(3, 3);
+		REP(i, 9) invM.ptr()[i] = inv[i];
+		p = overlap_region(shape2, shape1, invM, m.homo);
+		for (auto& v: p) v += offset2;
+		pld.polygon(p);
+
+		print_debug("Dump matchinfo of %d->%d\n", i, j);
 		write_rgb(ssprintf("log/match%d-%d.jpg", i, j).c_str(), conc);
 	}
 }

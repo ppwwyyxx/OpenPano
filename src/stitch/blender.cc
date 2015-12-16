@@ -35,6 +35,7 @@ void LinearBlender::run(Mat32f &target) {
 						// TODO speedup. edge & interpolate are redundant
 						if (!is_edge_color(img.img, r, c)){
 							auto color = interpolate(img.img, r, c);
+							// TODO decide which interpolation method to use
 							// t.w = (0.5 - fabs(p.x / img.width() - 0.5)) * (0.5 - fabs(p.y / img.height() - 0.5));
 							// x-axis linear interpolation
 							float w = 0.5 - fabs(c / img.img.width() - 0.5);

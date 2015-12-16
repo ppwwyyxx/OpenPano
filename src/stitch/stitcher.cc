@@ -360,8 +360,10 @@ Mat32f Stitcher::blend() {
 	Vec2D id_img_range = homo2proj(Vec(refw, refh, 1)) - homo2proj(Vec(0, 0, 1));
 	cout << "projmin:" << bundle.proj_range.min << "projmax" << bundle.proj_range.max << endl;
 	if (bundle.proj_method != ConnectedImages::ProjectionMethod::flat) {
+		id_img_range = homo2proj(Vec(1,1,1)) - homo2proj(Vec(0,0,1));
+		//id_img_range.x *= refw, id_img_range.y *= refh;
 		// this yields better aspect ratio in the result.
-		id_img_range.x /= (refw * 1.0 / refh);
+		id_img_range.x *= (refw * 1.0 / refh);
 	}
 
 	Vec2D proj_min = bundle.proj_range.min;

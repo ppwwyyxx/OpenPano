@@ -87,21 +87,45 @@ bool TransformEstimation::get_transform(MatchInfo* info) {
 
 Homography TransformEstimation::calc_transform(const vector<int>& matches) const {
 	vector<Vec2D> p1, p2;
-	// calculate transform by normalized shifted coordinate. should be more stable
 	for (auto& i : matches) {
 		p1.emplace_back(kp1[match.data[i].first]);
-		p1.back().x /= shape1.w;
-		p1.back().y /= shape1.h;
 		p2.emplace_back(kp2[match.data[i].second]);
-		p2.back().x /= shape2.w;
-		p2.back().y /= shape2.h;
 	}
+	//return ((transform_type == Affine) ? getAffineTransform : getPerspectiveTransform)(p1, p2);
+
+	// normalize the coordinates before DLT, so that points are zero-centered and have sqrt(2) mean distance to origin.
+	// suggested by MVG Sec 4.4
+	auto normalize = [](vector<Vec2D>& pts) {
+		double sizeinv = 1.0 / pts.size();
+		Vec2D mean{0, 0};
+		// TODO it seems like when camera distortion is severe,
+		// mean-subtract leads to more chances of failure
+		/*
+		 *for (const auto& p : pts) mean += p * sizeinv;
+		 *for (auto& p : pts) p -= mean;
+		 */
+
+		double sqrsum = 0;
+		for (const auto& p : pts) sqrsum += p.sqr() * sizeinv;
+		double div_inv = sqrt(2.0 / sqrsum);
+		for (auto& p : pts) p *= div_inv;
+		return make_pair(mean, div_inv);
+	};
+	auto param1 = normalize(p1),
+			 param2 = normalize(p2);
+
 	// homo from p2 to p1
 	Matrix homo = ((transform_type == Affine) ? getAffineTransform : getPerspectiveTransform)(p1, p2);
-	Homography t1{{(double)shape1.w, 0, 0, 0, (double)shape1.h, 0, 0, 0, 1}};
-	Homography t2inv{{1.0 / shape2.w, 0, 0, 0, 1.0 / shape2.h, 0, 0, 0, 1}};
+
+	Homography t1{{param1.second, 0, -param1.second * param1.first.x,
+								 0, param1.second, -param1.second * param1.first.y,
+								 0, 0, 1}};
+	Homography t2{{param2.second, 0, -param2.second * param2.first.x,
+								 0, param2.second, -param2.second * param2.first.y,
+								 0, 0, 1}};
 	// return transform on non-normalized coordinate
-	return t1 * Homography{homo} * t2inv;
+	Homography ret = t1.inverse() * Homography{homo} * t2;
+	return ret;
 }
 
 vector<int> TransformEstimation::get_inliers(const Homography& trans) const {
@@ -141,7 +165,7 @@ bool TransformEstimation::fill_inliers_to_matchinfo(
 	};
 	// get the number of keypoint in the polygon
 	auto get_keypoint_cnt = [&](vector<Vec2D>& poly, bool first) {
-		auto pip = PointInPolygon(poly);
+		auto pip = PointInPolygon{poly};
 		int cnt = 0;
 		for (auto& p : first ? kp1 : kp2)
 			if (pip.in_polygon(p))

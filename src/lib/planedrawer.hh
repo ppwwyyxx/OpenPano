@@ -55,6 +55,10 @@ class PlaneDrawer {
 
 		void circle(Coor o, int r);
 
+		inline void circle(Vec2D o, int r) {
+			circle(Coor(o.x, o.y), r);
+		}
+
 		void cross(Coor o, int r);
 
 		void cross(Vec2D o, int r)

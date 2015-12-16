@@ -24,6 +24,7 @@ void __m_assert_check__(bool val, const char *expr, const char *file, const char
 		return;
 	c_fprintf(COLOR_RED, stderr, "assertion \"%s\" failed, in %s, (%s:%d)\n",
 			expr, func, file, line);
+	//abort();
 	exit(1);
 }
 
@@ -31,9 +32,9 @@ void __m_assert_check__(bool val, const char *expr, const char *file, const char
 void __print_debug__(const char *file, const char *func, int line, const char *fmt, ...) {
 	static map<int, string> colormap;
 	if (! colormap[line].length()) {
-		static int color = 0;
+		int color = std::hash<int>()(line) % 5;
+#pragma omp critical
 		colormap[line] = TERM_COLOR(color);
-		color = (color + 1) % 5;
 	}
 
 #ifdef _MSC_VER

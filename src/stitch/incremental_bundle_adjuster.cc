@@ -105,6 +105,8 @@ void IncrementalBundleAdjuster::add_match(
 }
 
 void IncrementalBundleAdjuster::optimize() {
+	if (idx_added.empty())
+		return;
 	using namespace Eigen;
 	update_index_map();
 	int nr_img = idx_added.size();

@@ -38,11 +38,12 @@ vector<Camera> CameraEstimator::estimate() {
 		GuardedTimer tm("IncrementalBundleAdjuster");
 		IncrementalBundleAdjuster iba(shapes, cameras);
 		// TODO add by certain order
-		REP(i, n) {
-			REPL(j, i+1, n) {
+		REPL(i, 1, n) {
+			REP(j, i) {
 				auto& m = matches[j][i];
-				if (m.match.size() && m.confidence > 0)
+				if (m.match.size() && m.confidence > 0) {
 					iba.add_match(i, j, m);
+				}
 			}
 			// TODO optimize after every k images
 			if (MULTIPASS_BA)	{ // optimize after adding every image
