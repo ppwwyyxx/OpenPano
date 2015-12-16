@@ -49,7 +49,8 @@ TransformEstimation::TransformEstimation(const MatchData& m_match,
 bool TransformEstimation::get_transform(MatchInfo* info) {
 	TotalTimer tm("get_transform");
 	// use Affine in cylinder mode, and Homography in normal mode
-	int nr_match_used = (transform_type == Affine ? 6: 8) + 1 / 2;
+	// TODO more condidate set will require more ransac iterations
+	int nr_match_used = (transform_type == Affine ? 6: 8) / 2 + 4;
 	int nr_match = match.size();
 	if (nr_match < nr_match_used)
 		return false;
