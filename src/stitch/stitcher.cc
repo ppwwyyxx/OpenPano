@@ -112,8 +112,8 @@ void Stitcher::pairwise_match() {
 		auto inv = info.homo.inverse();	// TransformEstimation ensures invertible
 		inv.mult(1.0 / inv[8]);	// TODO more stable?
 		print_debug(
-				"Connection between image %d and %d, ninliers=%lu, conf=%f\n",
-				i, j, info.match.size(), info.confidence);
+				"Connection between image %d and %d, ninliers=%lu/%d=%lf, conf=%f\n",
+				i, j, info.match.size(), match.size(), info.match.size() * 1.0 / match.size(), info.confidence);
 		// fill in pairwise matches
 		pairwise_matches[i][j] = info;
 		info.homo = inv;
