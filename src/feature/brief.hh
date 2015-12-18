@@ -22,6 +22,7 @@ class BRIEF {
 		BRIEF(const Mat32f& img, const std::vector<SSPoint>&,
 				const BriefPattern&);
 		BRIEF(const BRIEF&) = delete;
+		BRIEF& operator = (const BRIEF&) = delete;
 
 		std::vector<Descriptor> get_descriptor() const;
 

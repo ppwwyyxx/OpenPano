@@ -13,10 +13,15 @@
 
 using namespace std;
 
-#define EIGENMAP_FROM_MATRIX(m, var) \
-	auto var = Map<Eigen::Matrix<double, Dynamic, Dynamic, RowMajor>>((double*)(m).ptr(), (m).rows(), (m).cols());
-
 //TODO speedup at() to avoid channel mult
+
+namespace {
+inline Eigen::Map<Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>>
+	to_eigenmap(const Matrix& m) {
+		return Eigen::Map<Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>>(
+				(double*)m.ptr(), m.rows(), m.cols());
+	}
+}
 
 ostream& operator << (std::ostream& os, const Matrix & m) {
 	os << "[" << m.rows() << " " << m.cols() << "] :" << endl;
@@ -35,9 +40,9 @@ Matrix Matrix::transpose() const {
 Matrix Matrix::prod(const Matrix & r) const {
 	using namespace Eigen;
 	Matrix ret(m_rows, r.cols());
-	EIGENMAP_FROM_MATRIX(*this, m1);
-	EIGENMAP_FROM_MATRIX(r, m2);
-	EIGENMAP_FROM_MATRIX(ret, res);
+	auto m1 = to_eigenmap(*this),
+			 m2 = to_eigenmap(r),
+			 res = to_eigenmap(ret);
 	res = m1 * m2;
 	return move(ret);
 }
@@ -72,8 +77,8 @@ bool Matrix::inverse(Matrix &ret) const {
 	m_assert(m_rows == m_cols);
 	using namespace Eigen;
 	ret = Matrix(m_rows, m_rows);
-	EIGENMAP_FROM_MATRIX(*this, input);
-	EIGENMAP_FROM_MATRIX(ret, res);
+	auto input = to_eigenmap(*this),
+			 res = to_eigenmap(ret);
 	FullPivLU<Eigen::Matrix<double,Dynamic,Dynamic,RowMajor>> lu(input);
 	if (! lu.isInvertible()) return false;
 	res = lu.inverse().eval();
@@ -84,7 +89,7 @@ bool Matrix::inverse(Matrix &ret) const {
 Matrix Matrix::pseudo_inverse() const {
 	using namespace Eigen;
 	m_assert(m_rows >= m_cols);
-	EIGENMAP_FROM_MATRIX(*this, input);
+	auto input = to_eigenmap(*this);
 	JacobiSVD<MatrixXd> svd(input, ComputeThinU | ComputeThinV);
 	auto sinv = svd.singularValues();
 	REP(i, m_cols) {
@@ -94,7 +99,7 @@ Matrix Matrix::pseudo_inverse() const {
 			sinv(i) = 0;
 	}
 	Matrix ret(m_cols, m_rows);
-	EIGENMAP_FROM_MATRIX(ret, res);
+	auto res = to_eigenmap(ret);
 	res = svd.matrixV() * sinv.asDiagonal() * svd.matrixU().transpose();
 	m_assert(ret.at(0, 2) == res(0, 2));
 	return ret;

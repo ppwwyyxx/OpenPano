@@ -12,7 +12,6 @@ class Camera;
 
 class CameraEstimator {
 	public:
-
 		CameraEstimator(
 				const std::vector<std::vector<MatchInfo>>& matches,
 				const std::vector<Shape2D>& image_shapes) :
@@ -21,6 +20,9 @@ class CameraEstimator {
 				shapes(image_shapes),
 				cameras(matches.size())
 			{ m_assert(matches.size() == shapes.size()); }
+
+		CameraEstimator(const CameraEstimator&) = delete;
+		CameraEstimator& operator = (const CameraEstimator&) = delete;
 
 		std::vector<Camera> estimate();
 

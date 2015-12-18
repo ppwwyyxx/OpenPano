@@ -11,16 +11,21 @@
 
 using namespace std;
 
-#define EIGENMAP_FROM_HOMO(homo, var) \
-	auto var = Map<Eigen::Matrix<double, 3, 3, RowMajor>>((double*)(homo).data, 3, 3);
+namespace {
+inline Eigen::Map<Eigen::Matrix<double, 3, 3, Eigen::RowMajor>>
+	to_eigenmap(const pano::Homography& m) {
+		return Eigen::Map<Eigen::Matrix<double, 3, 3, Eigen::RowMajor>>(
+				(double*)m.data, 3, 3);
+	}
+}
 
 namespace pano {
 
 Homography Homography::inverse(bool* succ) const {
 	using namespace Eigen;
 	Homography ret;
-	EIGENMAP_FROM_HOMO(ret, res);
-	EIGENMAP_FROM_HOMO(*this, input);
+	auto res = to_eigenmap(ret),
+			 input = to_eigenmap(*this);
 	FullPivLU<Eigen::Matrix<double,3,3,RowMajor>> lu(input);
 	if (succ == nullptr) {
 		m_assert(lu.isInvertible());
@@ -35,9 +40,9 @@ Homography Homography::inverse(bool* succ) const {
 Homography Homography::operator * (const Homography& r) const {
 	using namespace Eigen;
 	Homography ret;
-	EIGENMAP_FROM_HOMO(*this, m1);
-	EIGENMAP_FROM_HOMO(r, m2);
-	EIGENMAP_FROM_HOMO(ret, res);
+	auto m1 = to_eigenmap(*this),
+			 m2 = to_eigenmap(r),
+			 res = to_eigenmap(ret);
 	res = m1 * m2;
 	return ret;
 }

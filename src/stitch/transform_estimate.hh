@@ -22,6 +22,9 @@ class TransformEstimation {
 				const std::vector<Vec2D>& kp2,
 				const Shape2D& shape1, const Shape2D& shape2);
 
+		TransformEstimation(const TransformEstimation&) = delete;
+		TransformEstimation& operator = (const TransformEstimation&) = delete;
+
 		// get a transform matix from second(f2) -> first(f1)
 		bool get_transform(MatchInfo* info);
 

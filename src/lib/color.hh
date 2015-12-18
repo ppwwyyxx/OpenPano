@@ -11,13 +11,13 @@ namespace pano {
 
 class Color: public Vector<float> {
 	public:
-		Color(float r = 0, float g = 0, float b = 0):
+		constexpr explicit Color(float r = 0, float g = 0, float b = 0):
 			Vector(r, g, b){}
 
-		Color(const Vector<float>& v):
+		explicit Color(const Vector<float>& v):
 			Vector<float>(v) {}
 
-		Color(const float* p) : Vector<float>(p) {}
+		explicit Color(const float* p) : Vector<float>(p) {}
 
 		static constexpr float C_EPS = 1e-4;
 
@@ -40,10 +40,10 @@ class Color: public Vector<float> {
 		Color operator * (const Color& c) const
 		{ return Color(x * c.x, y * c.y, z * c.z); }
 
-		static const Color WHITE, BLACK, RED, BLUE, NO;
-
 		Color operator + (const Color &v) const
 		{ return Color(x + v.x, y + v.y, z + v.z); }
+
+		static const Color WHITE, BLACK, RED, BLUE, NO;
 };
 
 

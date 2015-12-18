@@ -8,7 +8,8 @@
 #include <limits>
 #include <algorithm>
 #include <cmath>
-#include "common.hh"
+#include "utils.hh"
+#include "debugutils.hh"
 
 
 class Geometry {
@@ -33,7 +34,7 @@ class Vector {
 	public:
 		T x = 0, y = 0, z = 0;
 
-		explicit Vector(T m_x = 0, T m_y = 0, T m_z = 0):
+		constexpr explicit Vector(T m_x = 0, T m_y = 0, T m_z = 0):
 			x(m_x), y(m_y), z(m_z) {}
 
 		Vector(const Vector &p0, const Vector &p1):

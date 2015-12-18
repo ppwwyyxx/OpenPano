@@ -3,6 +3,7 @@
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "config.hh"
+#include "debugutils.hh"
 #include "utils.hh"
 using namespace std;
 

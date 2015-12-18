@@ -9,7 +9,6 @@
 #include <type_traits>
 #include "lib/mat.h"
 #include "lib/utils.hh"
-#include "lib/common.hh"
 #include "lib/debugutils.hh"
 #include "feature/feature.hh"
 #include "stitcher_image.hh"
@@ -99,6 +98,9 @@ class Stitcher {
 				REP(i, imgs.size())
 					bundle.component[i].imgptr = &imgs[i];
 			}
+
+		Stitcher(const Stitcher&) = delete;
+		Stitcher& operator = (const Stitcher&) = delete;
 
 		Mat32f build();
 };

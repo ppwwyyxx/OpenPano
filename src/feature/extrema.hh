@@ -16,6 +16,9 @@ class ExtremaDetector {
 	public:
 		explicit ExtremaDetector(const DOGSpace&);
 
+		ExtremaDetector(const ExtremaDetector&) = delete;
+		ExtremaDetector& operator = (const ExtremaDetector&) = delete;
+
 		std::vector<SSPoint> get_extrema() const;
 
 		// return extrema in global coor

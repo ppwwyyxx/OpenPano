@@ -10,8 +10,8 @@
  *#include <opencv2/calib3d/calib3d.hpp>
  */
 
+#include "utils.hh"
 #include "debugutils.hh"
-#include "common.hh"
 #include "matrix.hh"
 #include "timer.hh"
 
@@ -180,8 +180,8 @@ void fill(Mat32f& mat, const Color& c) {
 
 Mat32f crop(const Mat32f& mat) {
 	int w = mat.width(), h = mat.height();
-	int *height = new int[w](),
-			*left = new int[w], *right = new int[w];
+	vector<int> height(w, 0),
+		left(w), right(w);
 	int maxarea = 0;
 	int ll = 0, rr = 0, hh = 0, nl = 0;
 	REP(line, h) {
@@ -212,10 +212,6 @@ Mat32f crop(const Mat32f& mat) {
 		const float* src = mat.ptr(i + offsety, offsetx);
 		memcpy(dst, src, 3 * ret.width() * sizeof(float));
 	}
-
-	delete[] height;
-	delete[] left;
-	delete[] right;
 	return ret;
 }
 

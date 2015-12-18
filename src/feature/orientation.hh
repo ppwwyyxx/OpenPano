@@ -15,6 +15,9 @@ class OrientationAssign {
 				const DOGSpace& dog, const ScaleSpace& ss,
 				const std::vector<SSPoint>& keypoints);
 
+		OrientationAssign(const OrientationAssign&) = delete;
+		OrientationAssign& operator = (const OrientationAssign&) = delete;
+
 		// assign orientation to each SSPoint
 		std::vector<SSPoint> work() const;
 

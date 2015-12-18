@@ -9,7 +9,7 @@
 #include "dog.hh"
 #include "lib/imgproc.hh"
 #include "lib/timer.hh"
-#include "lib/common.hh"
+#include "lib/utils.hh"
 #include "filter.hh"
 using namespace std;
 using namespace config;

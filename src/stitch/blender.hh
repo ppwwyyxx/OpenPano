@@ -14,6 +14,9 @@ class BlenderBase {
 	public:
 		virtual ~BlenderBase() {}
 
+		BlenderBase(const BlenderBase&) = delete;
+		BlenderBase& operator = (const BlenderBase&) = delete;
+
 		// upper_left/bottom_right: position of the two corners of img on result image
 		// coor_func: the function maps from target coordinate to original image coordinate.
 		virtual void add_image(

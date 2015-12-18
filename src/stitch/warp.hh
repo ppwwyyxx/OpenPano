@@ -19,6 +19,9 @@ class CylinderProject {
 			center(m_center), r(m_r),
 			sizefactor(m_size){}
 
+		CylinderProject(const CylinderProject&) = delete;
+		CylinderProject& operator = (const CylinderProject&) = delete;
+
 		Mat32f project(const Mat32f& img, std::vector<Vec2D>& pts) const;
 
 	private:
@@ -31,12 +34,10 @@ class CylinderProject {
 		Vec2D proj_r(const Vec2D& p) const;
 };
 
-
-
 class CylinderWarper {
 	public:
 		const real_t h_factor;
-		CylinderWarper(real_t m_hfactor):
+		explicit CylinderWarper(real_t m_hfactor):
 			h_factor(m_hfactor) {}
 
 		void warp(Mat32f& mat, std::vector<Vec2D>& kpts) const;

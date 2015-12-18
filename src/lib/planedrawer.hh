@@ -14,7 +14,7 @@ typedef std::pair<Coor, Coor> Line2D;
 class PlaneDrawer {
 	public:
 		// will directly WRITE to mat
-		PlaneDrawer(Mat32f mat):
+		explicit PlaneDrawer(Mat32f mat):
 			 mat(mat) {
 			m_assert(mat.channels() == 3);
 		}

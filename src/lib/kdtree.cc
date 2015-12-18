@@ -7,7 +7,7 @@
 #include <algorithm>
 
 #include "feature/dist.hh"
-#include "lib/common.hh"
+#include "lib/utils.hh"
 #include "lib/debugutils.hh"
 using namespace std;
 

@@ -9,7 +9,6 @@
 #include <map>
 #include <cstring>
 #include <fstream>
-#include "common.hh"
 
 namespace config {
 

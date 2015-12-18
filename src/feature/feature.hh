@@ -28,11 +28,22 @@ struct Descriptor {
 	}
 };
 
+// A Scale-Space point. used as intermediate result
+struct SSPoint {
+	Coor coor;						// integer coordinate in the pyramid
+	Vec2D real_coor;			// scaled [0,1) coordinate in the original image
+	int pyr_id, scale_id; // pyramid / scale id
+	float dir;
+	float scale_factor;
+};
+
+
 class FeatureDetector {
 	public:
 		FeatureDetector() = default;
 		virtual ~FeatureDetector() = default;
 		FeatureDetector(const FeatureDetector&) = delete;
+		FeatureDetector& operator = (const FeatureDetector&) = delete;
 
 		// return [-w/2,w/2] coordinated
 		std::vector<Descriptor> detect_feature(const Mat32f& img) const;
@@ -54,15 +65,6 @@ class BRIEFDetector : public FeatureDetector {
 
 	protected:
 		std::unique_ptr<BriefPattern> pattern;
-};
-
-// A Scale-Space point
-struct SSPoint {
-	Coor coor;						// integer coordinate in the pyramid
-	Vec2D real_coor;			// scaled [0,1) coordinate in the original image
-	int pyr_id, scale_id; // pyramid / scale id
-	float dir;
-	float scale_factor;
 };
 
 }

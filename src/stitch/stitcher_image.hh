@@ -10,6 +10,9 @@ namespace pano {
 
 /// A group of connected images, and metadata for stitching
 struct ConnectedImages {
+	ConnectedImages() = default;
+	ConnectedImages(const ConnectedImages&) = delete;
+	ConnectedImages& operator = (const ConnectedImages&) = delete;
 	struct Range {
 		Vec2D min, max;
 		Range(){}
@@ -21,12 +24,6 @@ struct ConnectedImages {
 	ProjectionMethod proj_method;
 
 	Range proj_range;	// in identity image coordinate
-
-	// update range of projection of all transformations
-	void update_proj_range();
-
-	homo2proj_t get_homo2proj() const;
-	proj2homo_t get_proj2homo() const;
 
 	int identity_idx;
 
@@ -47,6 +44,13 @@ struct ConnectedImages {
 	};
 
 	std::vector<ImageComponent> component;
+
+	// update range of projection of all transformations
+	void update_proj_range();
+
+	homo2proj_t get_homo2proj() const;
+	proj2homo_t get_proj2homo() const;
+
 
 	// apply translation to homography
 	// originally all homo operates on half-shifted coordinate

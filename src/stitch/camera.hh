@@ -12,6 +12,8 @@ struct MatchInfo;
 class Camera {
 	public:
 		Camera();
+		Camera(const Camera&) = default;
+		Camera& operator = (const Camera&) = default;
 
 		// return the intrinsic matrix
 		Homography K() const;

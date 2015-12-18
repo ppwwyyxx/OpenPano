@@ -309,6 +309,7 @@ void IncrementalBundleAdjuster::calcJacobianSymbolic(ParamState& state) {
 			dto[3] = drdv((m * dRtodviT[0]).trans(dot_u2));
 			dto[4] = drdv((m * dRtodviT[1]).trans(dot_u2));
 			dto[5] = drdv((m * dRtodviT[2]).trans(dot_u2));
+#undef drdv
 
 			// fill J
 			REP(i, 6) {

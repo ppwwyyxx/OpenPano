@@ -6,7 +6,6 @@
 #include "lib/config.hh"
 #include "lib/matrix.hh"
 #include "lib/timer.hh"
-#include "lib/common.hh"
 #include "feature.hh"
 #include <vector>
 using namespace std;

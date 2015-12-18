@@ -60,9 +60,8 @@ Mat32f Filter::GaussianBlur(
 	const int center = kw / 2;
 	float * kernel = gauss.kernel;
 
-	auto cur_line_mem = create_auto_buf<float>(
-			center * 2 + std::max(w, h), true);
-	float *cur_line = cur_line_mem.get() + center;
+	vector<float> cur_line_mem(center * 2 + std::max(w, h), 0);
+	float *cur_line = cur_line_mem.data() + center;
 
 	// apply to columns
 	REP(j, w){

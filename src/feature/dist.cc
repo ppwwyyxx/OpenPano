@@ -4,7 +4,7 @@
 
 #include "dist.hh"
 #include "lib/debugutils.hh"
-#include "lib/common.hh"
+#include "lib/utils.hh"
 #include "lib/timer.hh"
 
 #include <limits>

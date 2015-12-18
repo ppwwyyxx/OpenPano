@@ -10,7 +10,7 @@
 #include <Eigen/Dense>
 
 #include "lib/mat.h"
-#include "lib/common.hh"
+#include "lib/utils.hh"
 
 
 namespace pano {
@@ -25,6 +25,9 @@ class IncrementalBundleAdjuster {
 				std::vector<Camera>& cameras):
 			shapes(shapes), result_cameras(cameras), index_map(shapes.size())
 		{ m_assert(shapes.size() == cameras.size()); }
+
+		IncrementalBundleAdjuster(const IncrementalBundleAdjuster&) = delete;
+		IncrementalBundleAdjuster& operator = (const IncrementalBundleAdjuster&) = delete;
 
 		void add_match(int i, int j, const MatchInfo& m);
 
