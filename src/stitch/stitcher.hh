@@ -12,7 +12,6 @@
 #include "lib/debugutils.hh"
 #include "feature/feature.hh"
 #include "stitcher_image.hh"
-#include "camera.hh"
 
 namespace pano {
 

@@ -21,15 +21,14 @@ class PlaneDrawer {
 
 		virtual ~PlaneDrawer(){}
 
-		void set_color(Color m_c)
-		{ c = m_c; }
+		void set_color(Color m_c) { c = m_c; }
 
 		void set_rand_color() {
 			auto gen_rand = []() { return (real_t)rand() / RAND_MAX; };
 			set_color(Color(gen_rand(), gen_rand(), gen_rand()));
 		}
 
-		inline void point(int x, int y) {
+		void point(int x, int y) {
 			// drawing algorithms are easy to draw out-of-range
 			if (!between(x, 0, mat.width()) ||
 					!between(y, 0, mat.height()))
@@ -37,32 +36,19 @@ class PlaneDrawer {
 			float* p = mat.ptr(y, x);
 			c.write_to(p);
 		}
+		void point(Coor v) { point(v.x, v.y); }
 
-		inline void point(Coor v)
-		{ point(v.x, v.y); }
-
-		inline void line(Coor s, Coor t)
-		{ Bresenham(s, t); }
-
-		inline void line(Vec2D s, Vec2D t)
-		{ line(Coor(s.x, s.y), Coor(t.x, t.y)); }
-
-		inline void line(Line2D l)
-		{ line(l.first, l.second); }
-
-		inline void line(std::pair<Vec2D, Vec2D> l)
-		{ line(l.first, l.second); }
+		void line(Coor s, Coor t) { Bresenham(s, t); }
+		void line(Vec2D s, Vec2D t) { line(Coor(s.x, s.y), Coor(t.x, t.y)); }
+		void line(Line2D l) { line(l.first, l.second); }
+		void line(std::pair<Vec2D, Vec2D> l) { line(l.first, l.second); }
 
 		void circle(Coor o, int r);
 
-		inline void circle(Vec2D o, int r) {
-			circle(Coor(o.x, o.y), r);
-		}
+		void circle(Vec2D o, int r) { circle(Coor(o.x, o.y), r); }
 
 		void cross(Coor o, int r);
-
-		void cross(Vec2D o, int r)
-		{ cross(Coor(o.x, o.y), r); }
+		void cross(Vec2D o, int r) { cross(Coor(o.x, o.y), r); }
 
 		void arrow(Coor o, real_t dir, int r);
 
@@ -71,11 +57,7 @@ class PlaneDrawer {
 				line(p[i], p[i + 1]);
 			line(p.back(), p.front());
 		}
-
-		void polygon(std::vector<Vec2D> p)
-		{ polygon(vecf_to_polygon(p)); }
-
-		//Mat32f& get_img() { return mat; }
+		void polygon(std::vector<Vec2D> p) { polygon(vecf_to_polygon(p)); }
 
 	protected:
 		void Bresenham(Coor s, Coor t);

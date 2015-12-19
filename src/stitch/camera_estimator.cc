@@ -10,12 +10,24 @@
 #include "lib/utils.hh"
 #include "lib/config.hh"
 #include "camera.hh"
+#include "match_info.hh"
 #include "incremental_bundle_adjuster.hh"
 
 using namespace std;
 using namespace config;
 
 namespace pano {
+
+CameraEstimator::CameraEstimator(
+		const std::vector<std::vector<MatchInfo>>& matches,
+		const std::vector<Shape2D>& image_shapes) :
+		n(matches.size()),
+		matches(matches),
+		shapes(image_shapes),
+		cameras(matches.size())
+	{ m_assert(matches.size() == shapes.size()); }
+
+CameraEstimator::~CameraEstimator() = default;
 
 vector<Camera> CameraEstimator::estimate() {
 	{ // assign an initial focal length

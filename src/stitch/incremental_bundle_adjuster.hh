@@ -70,6 +70,7 @@ class IncrementalBundleAdjuster {
 
 			inline int num_terms() const { return residuals.size(); }
 
+			// TODO which error func to use?
 			void update_stats(int inlier_threshold) {
 				auto error_func = [&](double diff) -> double {
 					return sqr(diff);	// square error is good

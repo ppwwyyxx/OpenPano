@@ -12,6 +12,7 @@ namespace pano {
 
 class BlenderBase {
 	public:
+		BlenderBase() = default;
 		virtual ~BlenderBase() {}
 
 		BlenderBase(const BlenderBase&) = delete;

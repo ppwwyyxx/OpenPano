@@ -5,11 +5,12 @@
 #pragma once
 #include <vector>
 #include "lib/matrix.hh"
+#include "lib/geometry.hh"
 #include "match_info.hh"
-#include "homography.hh"
 
 namespace pano {
 class MatchData;
+class Homography;
 struct Descriptor;
 
 // find transformation matrix between two set of matched feature

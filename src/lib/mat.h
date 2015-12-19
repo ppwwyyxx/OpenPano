@@ -35,20 +35,20 @@ class Mat {
 					return res;
 				}
 
-				inline const T *ptr(int r = 0) const
+				const T *ptr(int r = 0) const
 				{ return m_data.get() + r * m_cols * m_channels; }
-				inline T *ptr(int r = 0)
+				T *ptr(int r = 0)
 				{ return m_data.get() + r * m_cols * m_channels; }
-				inline const T *ptr(int r, int c) const
+				const T *ptr(int r, int c) const
 				{ return m_data.get() + (r * m_cols + c) * m_channels; }
-				inline T *ptr(int r, int c)
+				T *ptr(int r, int c)
 				{ return m_data.get() + (r * m_cols + c) * m_channels; }
-				inline int height() const { return m_rows; }
-				inline int width() const { return m_cols; }
-				inline int rows() const { return m_rows; }
-				inline int cols() const { return m_cols; }
-				inline int channels() const { return m_channels; }
-				inline int pixels() const { return m_rows * m_cols; }
+				int height() const { return m_rows; }
+				int width() const { return m_cols; }
+				int rows() const { return m_rows; }
+				int cols() const { return m_cols; }
+				int channels() const { return m_channels; }
+				int pixels() const { return m_rows * m_cols; }
 
 		protected:
 				int m_rows, m_cols;

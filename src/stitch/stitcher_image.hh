@@ -3,6 +3,7 @@
 
 #pragma once
 #include <vector>
+#include "lib/mat.h"
 #include "projection.hh"
 #include "homography.hh"
 

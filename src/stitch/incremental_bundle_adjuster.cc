@@ -125,9 +125,8 @@ void IncrementalBundleAdjuster::optimize() {
 	int itr = 0;
 	int nr_non_decrease = 0;// number of non-decreasing iteration
 	inlier_threshold = std::numeric_limits<int>::max();
-	float lambda = LM_LAMBDA;
 	while (itr++ < LM_MAX_ITER) {
-		auto update = get_param_update(state, err_stat.residuals, lambda);
+		auto update = get_param_update(state, err_stat.residuals, LM_LAMBDA);
 
 		ParamState new_state;
 		new_state.params = state.get_params();
@@ -212,7 +211,7 @@ Eigen::VectorXd IncrementalBundleAdjuster::get_param_update(
 void IncrementalBundleAdjuster::calcJacobianNumerical(ParamState& state) {
 	TotalTimer tm("calcJacobianNumerical");
 	// Numerical Differentiation of Residual w.r.t all parameters
-	const double step = 1e-6;
+	const static double step = 1e-6;
 	state.ensure_params();
 	REP(i, idx_added.size()) {
 		REP(p, NR_PARAM_PER_CAMERA) {

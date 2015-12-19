@@ -19,13 +19,13 @@ class Geometry {
 		Geometry(int m_w = 0, int m_h = 0):
 			w(m_w), h(m_h) {}
 
-		inline int area() const
+		int area() const
 		{ return w * h; }
 
 		real_t ratio() const
 		{ return (real_t) std::max(w, h) / std::min(w, h); }
 
-		inline bool contain(int x, int y)
+		bool contain(int x, int y)
 		{ return (x >= 0 && x < w && y >= 0 && y < h); }
 };
 
