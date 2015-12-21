@@ -203,7 +203,7 @@ bool TransformEstimation::fill_inliers_to_matchinfo(
 				kp2[match.data[idx].second]
 				);
 	}
-	info->confidence = (r1m + r2m) * 0.5;
+	info->confidence = (r1p + r2p) * 0.5;
 	return true;
 }
 

@@ -3,6 +3,7 @@
 
 #pragma once
 #include <vector>
+#include <functional>
 
 namespace pano {
 
@@ -32,9 +33,7 @@ class CameraEstimator {
 
 		std::vector<Camera> cameras;
 
-		Graph max_spanning_tree();
-
-		void propagate_rotation(const Graph& graph);
+		void traverse(std::function<void(int, int)>);
 };
 
 

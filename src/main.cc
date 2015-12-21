@@ -8,6 +8,7 @@
 #include "feature/extrema.hh"
 #include "feature/matcher.hh"
 #include "feature/orientation.hh"
+#include "lib/mat.h"
 #include "lib/config.hh"
 #include "lib/geometry.hh"
 #include "lib/imgproc.hh"
@@ -86,7 +87,7 @@ void test_match(const char* f1, const char* f2) {
 										 feat2 = detector->detect_feature(pic2);
 	print_debug("Feature: %lu, %lu\n", feat1.size(), feat2.size());
 
-	Mat32f concatenated = vconcat(imagelist);
+	Mat32f concatenated = hconcat(imagelist);
 	PlaneDrawer pld(concatenated);
 
 	FeatureMatcher match(feat1, feat2);
@@ -97,10 +98,10 @@ void test_match(const char* f1, const char* f2) {
 		Vec2D coor1 = feat1[x.first].coor,
 					coor2 = feat2[x.second].coor;
 		Coor icoor1 = Coor(coor1.x + pic1.width()/2, coor1.y + pic1.height()/2);
-		Coor icoor2 = Coor(coor2.x + pic2.width()/2, coor2.y + pic2.height()/2);
+		Coor icoor2 = Coor(coor2.x + pic2.width()/2 + pic1.width(), coor2.y + pic2.height()/2);
 		pld.circle(icoor1, LABEL_LEN);
-		pld.circle(icoor2 + Coor(0, pic1.height()), LABEL_LEN);
-		pld.line(icoor1, icoor2 + Coor(0, pic1.height()));
+		pld.circle(icoor2, LABEL_LEN);
+		pld.line(icoor1, icoor2);
 	}
 	write_rgb("match.jpg", concatenated);
 }

@@ -3,6 +3,7 @@
 
 #pragma once
 #include <vector>
+#include <cassert>
 #include "lib/mat.h"
 #include "projection.hh"
 #include "homography.hh"
@@ -50,8 +51,28 @@ struct ConnectedImages {
 	// update range of projection of all transformations
 	void update_proj_range();
 
-	homo2proj_t get_homo2proj() const;
-	proj2homo_t get_proj2homo() const;
+	homo2proj_t get_homo2proj() const {
+		switch (proj_method) {
+			case ProjectionMethod::flat:
+				return flat::homo2proj;
+			case ProjectionMethod::cylindrical:
+				return cylindrical::homo2proj;
+			case ProjectionMethod::spherical:
+				return spherical::homo2proj;
+		}
+		assert(false);
+	}
+	proj2homo_t get_proj2homo() const {
+		switch (proj_method) {
+			case ProjectionMethod::flat:
+				return flat::proj2homo;
+			case ProjectionMethod::cylindrical:
+				return cylindrical::proj2homo;
+			case ProjectionMethod::spherical:
+				return spherical::proj2homo;
+		}
+		assert(false);
+	}
 
 
 	// apply translation to homography

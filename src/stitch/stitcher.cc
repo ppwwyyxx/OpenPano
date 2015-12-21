@@ -36,8 +36,7 @@ Mat32f Stitcher::build() {
 		assume_linear_pairwise();
 	else
 		pairwise_match();
-	feats.clear(); feats.shrink_to_fit();	// free memory for feature
-	keypoints.clear(); keypoints.shrink_to_fit();	// free memory for feature
+	free_feature();
 	//load_matchinfo(MATCHINFO_DUMP);
 	if (DEBUG_OUT) {
 		draw_matchinfo();
@@ -72,7 +71,7 @@ void Stitcher::pairwise_match() {
 #pragma omp parallel for schedule(dynamic)
 	REP(k, (int)tasks.size()) {
 		int i = tasks[k].first, j = tasks[k].second;
-		//auto match = matcher(feats[i], feats[j]).match();	// slow
+		//auto match = FeatureMatcher(feats[i], feats[j]).match();	// slow
 		auto match = pwmatcher.match(i, j);
 		TransformEstimation transf(match, keypoints[i], keypoints[j],
 				{imgs[i].width(), imgs[i].height()},

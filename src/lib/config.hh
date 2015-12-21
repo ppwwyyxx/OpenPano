@@ -77,6 +77,6 @@ const float DESC_NORM_THRESH = 0.2f;
 const int BRIEF_PATH_SIZE = 9;
 const int BRIEF_NR_PAIR = 256;
 
-const int FLANN_NR_KDTREE = 4;
+const int FLANN_NR_KDTREE = 6;
 
 }

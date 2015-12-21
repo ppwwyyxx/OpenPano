@@ -21,6 +21,7 @@ Mat32f CylinderStitcher::build() {
 	// naively. when changing here, keep mid for CYLINDER
 	bundle.identity_idx = imgs.size() >> 1;
 	build_warp();
+	free_feature();
 	bundle.proj_method = ConnectedImages::ProjectionMethod::flat;
 	bundle.update_proj_range();
 	auto ret = bundle.blend();

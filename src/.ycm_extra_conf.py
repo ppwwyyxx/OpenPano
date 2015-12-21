@@ -53,9 +53,12 @@ flags = [
 '-Ilib',
 '-Ifeature',
 '-Istitch',
-'-Ithird-party',
+'-isystem'
+'third-party',
 '-isystem',
 '/usr/include/eigen3',
+'-isystem',
+'/usr/include',
 ]
 
 

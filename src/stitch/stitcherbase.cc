@@ -23,4 +23,9 @@ void StitcherBase::calc_feature() {
 	}
 }
 
+void StitcherBase::free_feature() {
+	feats.clear(); feats.shrink_to_fit();	// free memory for feature
+	keypoints.clear(); keypoints.shrink_to_fit();	// free memory for feature
+}
+
 }

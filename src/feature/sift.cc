@@ -19,18 +19,18 @@ Descriptor hist_to_descriptor(float* hist) {
   float sum = 0;
 
 	// normalize and thresholding and renormalize
-	for (auto &i : ret.descriptor) sum += sqr(i);
-	sum = sqrt(sum);
-	for (auto &i : ret.descriptor) {
-		i /= sum;
-		update_min(i, (float)DESC_NORM_THRESH);
-	}
-/*	// L2 normalize SIFT
+/*
+ *  for (auto &i : ret.descriptor) sum += sqr(i);
+ *  sum = sqrt(sum);
+ *  for (auto &i : ret.descriptor) {
+ *    i /= sum;
+ *    update_min(i, (float)DESC_NORM_THRESH);
+ *  }
+ *  // L2 normalize SIFT
  *  sum = 0;
  *  for (auto &i : ret.descriptor) sum += sqr(i);
  *  sum = sqrt(sum);
- *  //sum = (float)DESC_INT_FACTOR / sum;
- *  sum = 1.0 / sum;
+ *  sum = (float)DESC_INT_FACTOR / sum;
  *  for (auto &i : ret.descriptor) i = i * sum;
  *
  */
@@ -38,12 +38,9 @@ Descriptor hist_to_descriptor(float* hist) {
 	// L1 normalize SIFT
 	sum = 0;
 	for (auto &i : ret.descriptor) sum += i;
-	for (auto &i : ret.descriptor) {
-		i /= sum;
-	}
-	// 2. square root each element
-	for (auto &i : ret.descriptor) i = std::sqrt(i);
-	for (auto &i : ret.descriptor) i *= DESC_INT_FACTOR;
+	for (auto &i : ret.descriptor) i /= sum;
+	// square root each element
+	for (auto &i : ret.descriptor) i = std::sqrt(i) * DESC_INT_FACTOR;
 
 	return ret;
 }

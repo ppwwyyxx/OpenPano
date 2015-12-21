@@ -30,6 +30,7 @@ CameraEstimator::CameraEstimator(
 CameraEstimator::~CameraEstimator() = default;
 
 vector<Camera> CameraEstimator::estimate() {
+	GuardedTimer tm("Estimate Camera");
 	{ // assign an initial focal length
 		double focal = Camera::estimate_focal(matches);
 		if (focal > 0) {
@@ -43,113 +44,100 @@ vector<Camera> CameraEstimator::estimate() {
 		}
 	}
 
-	auto graph = max_spanning_tree();
-	propagate_rotation(graph);
+	IncrementalBundleAdjuster iba(shapes, cameras);
+	vector<bool> vst(n, false);
+	traverse([&](int now, int next) {
+			print_debug("Best edge from %d to %d\n", now, next);
+			auto Kfrom = cameras[now].K();
+			auto Kto = cameras[next].K();
+			auto Hinv = matches[now][next].homo;	// from next to now
+			Kfrom[2] = Kfrom[5] = 0;		// set K to zero, because homo operates on zero-based index
+			auto Mat = Kfrom.inverse() * Hinv * Kto;
+			// this is camera extrincis R, i.e. going from identity to this image
+			cameras[next].R = (cameras[now].Rinv() * Mat).transpose();
+			cameras[next].ppx = shapes[next].halfw();
+			cameras[next].ppy = shapes[next].halfh();
 
-	{
-		GuardedTimer tm("IncrementalBundleAdjuster");
-		IncrementalBundleAdjuster iba(shapes, cameras);
-		// TODO add by certain order
-		REPL(i, 1, n) {
-			REP(j, i) {
-				auto& m = matches[j][i];
-				if (m.match.size() && m.confidence > 0) {
-					iba.add_match(i, j, m);
+			if (MULTIPASS_BA) {
+				// add next to BA
+				vst[now] = vst[next] = true;
+				REP(i, n) if (vst[i] && i != next) {
+					auto& m = matches[next][i];
+					if (m.match.size() && m.confidence > 0)
+						iba.add_match(i, next, m);
 				}
-			}
-			// TODO optimize after every k images
-			if (MULTIPASS_BA)	{ // optimize after adding every image
-				print_debug("Adding image %d to BA\n", i);
 				iba.optimize();
 			}
+	});
+
+	if (!MULTIPASS_BA) {
+		REPL(i, 1, n) REP(j, i) {
+			auto& m = matches[j][i];
+			if (m.match.size() && m.confidence > 0)
+				iba.add_match(i, j, m);
 		}
-		if (! MULTIPASS_BA)
-			iba.optimize();
+		iba.optimize();
 	}
 
 	if (STRAIGHTEN) Camera::straighten(cameras);
 	return cameras;
 }
 
-vector<vector<int>> CameraEstimator::max_spanning_tree() {
+void CameraEstimator::traverse(function<void(int, int)> callback) {
 	struct Edge {
 		int v1, v2;
 		float weight;
-		bool have(int v) { return v1 == v || v2 == v; }
 		Edge(int a, int b, float v):v1(a), v2(b), weight(v) {}
-		bool operator < (const Edge& r) const
-		{ return weight > r.weight;	}
+		bool operator < (const Edge& r) const { return weight < r.weight;	}
 	};
-
-	vector<vector<int>> graph(n);
-
-	vector<Edge> edges;
+	// choose a starting point
+	float max_conf = 0;
+	Edge best_edge{-1, -1, 0};
 	REP(i, n) REPL(j, i+1, n) {
 		auto& m = matches[i][j];
 		if (m.confidence <= 0) continue;
-		edges.emplace_back(i, j, m.confidence);
-	}
-	if (edges.empty()) error_exit("No connected images are found!");
-	sort(edges.begin(), edges.end());		// large weight to small weight
-	vector<bool> in_tree(n, false);
-	int edge_cnt = 0;
-	in_tree[edges.front().v1] = true;
-	while (true) {
-		int old_edge_cnt = edge_cnt;
-		auto itr = begin(edges);
-		for (; itr != edges.end(); ++itr) {
-			Edge& e = *itr;
-			if (in_tree[e.v1] && in_tree[e.v2]) {
-				edges.erase(itr);
-				break;
-			}
-			if (! in_tree[e.v1] && ! in_tree[e.v2])
-				continue;
-			in_tree[e.v1] = in_tree[e.v2] = true;
-			graph[e.v1].push_back(e.v2);
-			graph[e.v2].push_back(e.v1);
-			print_debug("MST: Best edge from %d to %d\n", e.v1, e.v2);
-			edges.erase(itr);
-			edge_cnt ++;
-			break;
+		if (m.confidence > max_conf) {
+			max_conf = m.confidence;
+			best_edge = Edge(i, j, m.confidence);
 		}
-		if (edge_cnt == n - 1) // tree is full
-			break;
-		if (edge_cnt == old_edge_cnt && itr == edges.end())
-			// no edge to add
-			break;
 	}
-	if (edge_cnt != n - 1)
+	if (best_edge.v1 == -1)
+		error_exit("No connected images are found!");
+	// set the starting point to identity
+	cameras[best_edge.v1].R = Homography::I();
+	cameras[best_edge.v1].ppx = shapes[best_edge.v1].halfw();
+	cameras[best_edge.v1].ppy = shapes[best_edge.v1].halfh();
+
+	priority_queue<Edge> q;
+	vector<bool> vst(n, false);
+
+	auto enqueue_edges_from = [&](int from) {
+		REP(i, n) if (i != from && !vst[i]) {
+			auto& m = matches[from][i];
+			if (m.confidence <= 0) continue;
+			q.emplace(from, i, m.confidence);
+		}
+	};
+
+	vst[best_edge.v1] = true;
+	enqueue_edges_from(best_edge.v1);
+	int cnt = 1;
+	while (q.size()) {
+		do {
+			best_edge = q.top();
+			q.pop();
+		} while (q.size() && vst[best_edge.v2]);
+		if (vst[best_edge.v2])	// the queue is exhausted
+			break;
+		vst[best_edge.v2] = true;
+		cnt ++;
+		callback(best_edge.v1, best_edge.v2);
+		enqueue_edges_from(best_edge.v2);
+	}
+	if (cnt != n) {
 		error_exit(ssprintf(
 					"Found a tree of size %d!=%d, images are not connected well!",
-					edge_cnt, n - 1));
-	return graph;
-}
-
-void CameraEstimator::propagate_rotation(const Graph& graph) {
-	int start = n >> 1;		// TODO select root of tree (best confidence)
-
-	queue<int> q; q.push(start);
-	vector<bool> vst(graph.size(), false);		// in queue
-	vst[start] = true;
-	while (q.size()) {
-		int now = q.front(); q.pop();
-		for (int next: graph[now]) {
-			if (vst[next]) continue;
-			vst[next] = true;
-			// from now to next
-			auto Kfrom = cameras[now].K();
-			auto Kto = cameras[next].K();
-			auto Hinv = matches[now][next].homo;	// from next to now
-			auto Mat = Kfrom.inverse() * Hinv * Kto;
-			cameras[next].R = (cameras[now].Rinv() * Mat).transpose();
-			// this is camera extrincis R, i.e. going from identity to this image
-			q.push(next);
-		}
-	}
-	REP(i, n) {
-		cameras[i].ppx = shapes[i].halfw();
-		cameras[i].ppy = shapes[i].halfh();
+					cnt, n));
 	}
 }
 }

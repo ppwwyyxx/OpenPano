@@ -37,6 +37,8 @@ class StitcherBase {
 		// get feature descriptor and keypoints for each image
 		void calc_feature();
 
+		void free_feature();
+
 	public:
 		// universal reference constructor to initialize imgs
 		template<typename U, typename X =

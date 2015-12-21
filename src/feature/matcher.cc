@@ -12,11 +12,8 @@ using namespace config;
 
 #ifdef _MSC_VER
 // necessary to define here since flann doesn't provide serialization for size_t as unsigned long long
-namespace flann
-{
-  namespace serialization
-  {
-
+namespace flann {
+  namespace serialization {
     BASIC_TYPE_SERIALIZER(size_t);
   }
 }
@@ -80,7 +77,7 @@ void PairWiseMatcher::build() {
 			memcpy(row, feat[i].descriptor.data(), D * sizeof(float));
 		}
 		flann::Matrix<float> points(buf, feat.size(), D);
-		trees.emplace_back(points, flann::KDTreeIndexParams(FLANN_NR_KDTREE));
+		trees.emplace_back(points, flann::KDTreeIndexParams(FLANN_NR_KDTREE));	// TODO param
 	}
 #pragma omp parallel for schedule(dynamic)
 	REP(i, (int)trees.size())
@@ -103,7 +100,7 @@ MatchData PairWiseMatcher::match(int i, int j) const {
 
 	flann::Matrix<int> indices(new int[source.size() * 2], source.size(), 2);
 	flann::Matrix<float> dists(new float[source.size() * 2], source.size(), 2);
-	t.knnSearch(query, indices, dists, 2, flann::SearchParams(50));	// TODO param
+	t.knnSearch(query, indices, dists, 2, flann::SearchParams(128));	// TODO param
 	REP(i, source.size()) {
 		int mini = indices[i][0];
 		float mind = dists[i][0], mind2 = dists[i][1];
