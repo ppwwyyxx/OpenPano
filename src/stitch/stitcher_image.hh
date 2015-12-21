@@ -14,6 +14,7 @@ struct ConnectedImages {
 	ConnectedImages() = default;
 	ConnectedImages(const ConnectedImages&) = delete;
 	ConnectedImages& operator = (const ConnectedImages&) = delete;
+
 	struct Range {
 		Vec2D min, max;
 		Range(){}
@@ -26,7 +27,7 @@ struct ConnectedImages {
 
 	Range proj_range;	// in identity image coordinate
 
-	int identity_idx;
+	int identity_idx;	// WARNING, this should be the index within this bundle
 
 	// -- image transformations and metadata
 
@@ -61,6 +62,7 @@ struct ConnectedImages {
 	// inverse all homographies
 	void calc_inverse_homo();
 
+	Mat32f blend() const;
 };
 
 }

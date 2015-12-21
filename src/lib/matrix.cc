@@ -34,7 +34,7 @@ Matrix Matrix::transpose() const {
 	Matrix ret(m_cols, m_rows);
 	REP(i, m_rows) REP(j, m_cols)
 		ret.at(j, i) = at(i, j);
-	return move(ret);
+	return ret;
 }
 
 Matrix Matrix::prod(const Matrix & r) const {
@@ -44,7 +44,7 @@ Matrix Matrix::prod(const Matrix & r) const {
 			 m2 = to_eigenmap(r),
 			 res = to_eigenmap(ret);
 	res = m1 * m2;
-	return move(ret);
+	return ret;
 }
 
 Matrix Matrix::elem_prod(const Matrix& r) const {
@@ -135,7 +135,7 @@ Matrix Matrix::col(int i) const {
 	Matrix ret(m_rows, 1);
 	REP(j, m_rows)
 		ret.at(j, 0) = at(j, i);
-	return move(ret);
+	return ret;
 }
 
 Matrix Matrix::I(int k) {
@@ -143,7 +143,7 @@ Matrix Matrix::I(int k) {
 	ret.zero();
 	REP(i, k)
 		ret.at(i, i) = 1;
-	return move(ret);
+	return ret;
 }
 
 void Matrix::zero() {

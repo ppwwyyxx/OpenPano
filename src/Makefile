@@ -13,6 +13,7 @@ ifeq ($(UNAME_S),Darwin)
 	CXX = g++-5
 	EIGEN_PATH ?= /usr/local/include/eigen3
 endif
+#INCLUDE_DIR = -I. -isystem $(EIGEN_PATH) -isystem third-party
 INCLUDE_DIR = -I. -isystem $(EIGEN_PATH) -isystem third-party
 
 OPTFLAGS ?= -O3 -msse3 #-march=native

@@ -21,7 +21,6 @@
 #include "warp.hh"
 using namespace std;
 using namespace pano;
-using namespace pano;
 using namespace config;
 
 namespace pano {
@@ -33,59 +32,35 @@ const static char* MATCHINFO_DUMP = "log/matchinfo.txt";
 Mat32f Stitcher::build() {
 	calc_feature();
 	// TODO choose a better starting point by MST use centrality
-	if (CYLINDER) {
-		assign_center();
-		build_warp();
-		bundle.proj_method = ConnectedImages::ProjectionMethod::flat;
-	} else {
-		if (TRANS)
-			assume_linear_pairwise();
-		else
-			pairwise_match();
-		feats.clear(); feats.shrink_to_fit();	// free memory for feature
-		keypoints.clear(); keypoints.shrink_to_fit();	// free memory for feature
-		//load_matchinfo(MATCHINFO_DUMP);
-		if (DEBUG_OUT) {
-			draw_matchinfo();
-			dump_matchinfo(MATCHINFO_DUMP);
-		}
-		assign_center();
-
-		if (ESTIMATE_CAMERA)
-			estimate_camera();
-		else
-			build_linear_simple();		// naive mode
-		// TODO automatically determine projection method
-		if (ESTIMATE_CAMERA)
-			bundle.proj_method = ConnectedImages::ProjectionMethod::cylindrical;
-		else
-			bundle.proj_method = ConnectedImages::ProjectionMethod::flat;
+	if (TRANS)
+		assume_linear_pairwise();
+	else
+		pairwise_match();
+	feats.clear(); feats.shrink_to_fit();	// free memory for feature
+	keypoints.clear(); keypoints.shrink_to_fit();	// free memory for feature
+	//load_matchinfo(MATCHINFO_DUMP);
+	if (DEBUG_OUT) {
+		draw_matchinfo();
+		dump_matchinfo(MATCHINFO_DUMP);
 	}
+	assign_center();
+
+	if (ESTIMATE_CAMERA)
+		estimate_camera();
+	else
+		build_linear_simple();		// naive mode
+	// TODO automatically determine projection method
+	if (ESTIMATE_CAMERA)
+		bundle.proj_method = ConnectedImages::ProjectionMethod::cylindrical;
+	else
+		bundle.proj_method = ConnectedImages::ProjectionMethod::flat;
 	print_debug("Using projection method: %d\n", bundle.proj_method);
 	bundle.update_proj_range();
-	return blend();
-}
-
-void Stitcher::calc_feature() {
-	GuardedTimer tm("calc_feature()");
-	feats.resize(imgs.size());
-	keypoints.resize(imgs.size());
-	// detect feature
-#pragma omp parallel for schedule(dynamic)
-	REP(k, imgs.size()) {
-		feats[k] = feature_det->detect_feature(imgs[k]);
-		if (feats[k].size() == 0)	// TODO delete the image
-			error_exit(ssprintf("Cannot find feature in image %lu!\n", k));
-		print_debug("Image %lu has %lu features\n", k, feats[k].size());
-		keypoints[k].resize(feats[k].size());
-		REP(i, feats[k].size())
-			keypoints[k][i] = feats[k][i].coor;
-	}
+	return bundle.blend();
 }
 
 void Stitcher::pairwise_match() {
 	GuardedTimer tm("pairwise_match() with transform");
-
 	PairWiseMatcher pwmatcher(feats);
 	size_t n = imgs.size();
 	pairwise_matches.resize(n);
@@ -169,7 +144,6 @@ void Stitcher::estimate_camera() {
 	}
 }
 
-
 void Stitcher::build_linear_simple() {
 	// TODO bfs over pairwise to build bundle
 	// assume pano pairwise
@@ -194,221 +168,5 @@ void Stitcher::build_linear_simple() {
 	bundle.shift_all_homo();
 	bundle.calc_inverse_homo();
 }
-
-
-void Stitcher::build_warp() {;
-	GuardedTimer tm("build_warp()");
-	int n = imgs.size(), mid = bundle.identity_idx;
-	REP(i, n) bundle.component[i].homo = Homography::I();
-
-	Timer timer;
-	vector<MatchData> matches;		// matches[k]: k,k+1
-	PairWiseMatcher pwmatcher(feats);
-	matches.resize(n-1);
-#pragma omp parallel for schedule(dynamic)
-	REP(k, n - 1)
-		matches[k] = pwmatcher.match(k, (k + 1) % n);
-	print_debug("match time: %lf secs\n", timer.duration());
-
-	vector<Homography> bestmat;
-
-	float minslope = numeric_limits<float>::max();
-	float bestfactor = 1;
-	if (n - mid > 1) {
-		float newfactor = 1;
-		// XXX: ugly
-		float slope = update_h_factor(newfactor, minslope, bestfactor, bestmat, matches);
-		if (bestmat.empty())
-			error_exit("Failed to find hfactor");
-		float centerx1 = 0, centerx2 = bestmat[0].trans2d(0, 0).x;
-		float order = (centerx2 > centerx1 ? 1 : -1);
-		REP(k, 3) {
-			if (fabs(slope) < SLOPE_PLAIN) break;
-			newfactor += (slope < 0 ? order : -order) / (5 * pow(2, k));
-			slope = Stitcher::update_h_factor(newfactor, minslope, bestfactor, bestmat, matches);
-		}
-	}
-	print_debug("Best hfactor: %lf\n", bestfactor);
-	CylinderWarper warper(bestfactor);
-#pragma omp parallel for schedule(dynamic)
-	REP(k, n) warper.warp(imgs[k], keypoints[k]);
-
-	// accumulate
-	REPL(k, mid + 1, n) bundle.component[k].homo = move(bestmat[k - mid - 1]);
-#pragma omp parallel for schedule(dynamic)
-	REPD(i, mid - 1, 0) {
-		matches[i].reverse();
-		MatchInfo info;
-		bool succ = TransformEstimation(
-				matches[i], keypoints[i + 1], keypoints[i],
-				{imgs[i+1].width(), imgs[i+1].height()},
-				{imgs[i].width(), imgs[i].height()}).get_transform(&info);
-		// Can match before, but not here. This is a bug.
-		if (! succ)
-			error_exit(ssprintf("Failed to match between image %d and %d.", i, i+1));
-		// homo: operate on half-shifted coor
-		bundle.component[i].homo = info.homo;
-	}
-	REPD(i, mid - 2, 0)
-		bundle.component[i].homo = bundle.component[i + 1].homo * bundle.component[i].homo;
-
-	bundle.shift_all_homo();
-	bundle.calc_inverse_homo();
-}
-
-float Stitcher::update_h_factor(float nowfactor,
-		float & minslope,
-		float & bestfactor,
-		vector<Homography>& mat,
-		const vector<MatchData>& matches) {
-	const int n = imgs.size(), mid = bundle.identity_idx;
-	const int start = mid, end = n, len = end - start;
-
-	vector<Mat32f> nowimgs;
-	vector<vector<Vec2D>> nowkpts;
-	REPL(k, start, end) {
-		nowimgs.push_back(imgs[k].clone());
-		nowkpts.push_back(keypoints[k]);
-	}			// nowfeats[0] == feats[mid]
-
-	CylinderWarper warper(nowfactor);
-#pragma omp parallel for schedule(dynamic)
-	REP(k, len)
-		warper.warp(nowimgs[k], nowkpts[k]);
-
-	vector<Homography> nowmat;		// size = len - 1
-	nowmat.resize(len - 1);
-	bool failed = false;
-#pragma omp parallel for schedule(dynamic)
-	REPL(k, 1, len) {
-		MatchInfo info;
-		bool succ = TransformEstimation(
-				matches[k - 1 + mid], nowkpts[k - 1], nowkpts[k],
-				{nowimgs[k-1].width(), nowimgs[k-1].height()},
-				{nowimgs[k].width(), nowimgs[k].height()}).get_transform(&info);
-		if (! succ)
-			failed = true;
-		//error_exit("The two image doesn't match. Failed");
-		nowmat[k-1] = info.homo;
-	}
-	if (failed) return 0;
-
-	REPL(k, 1, len - 1)
-		nowmat[k] = nowmat[k - 1] * nowmat[k];	// transform to nowimgs[0] == imgs[mid]
-
-	// check the slope of the result image
-	Vec2D center2 = nowmat.back().trans2d(0, 0);
-	const float slope = center2.y/ center2.x;
-	print_debug("slope: %lf\n", slope);
-	if (update_min(minslope, fabs(slope))) {
-		bestfactor = nowfactor;
-		mat = move(nowmat);
-	}
-	return slope;
-}
-
-Mat32f Stitcher::perspective_correction(const Mat32f& img) {
-	int w = img.width(), h = img.height();
-	int refw = imgs[bundle.identity_idx].width(),
-			refh = imgs[bundle.identity_idx].height();
-	auto homo2proj = bundle.get_homo2proj();
-	Vec2D proj_min = bundle.proj_range.min;
-
-	vector<Vec2D> corners;
-	auto cur = &(bundle.component.front());
-	auto to_ref_coor = [&](Vec2D v) {
-		v.x *= cur->imgptr->width(), v.y *= cur->imgptr->height();
-		Vec homo = cur->homo.trans(v);
-		homo.x /= refw, homo.y /= refh;
-		homo.x += 0.5 * homo.z, homo.y += 0.5 * homo.z;
-		Vec2D t_corner = homo2proj(homo);
-		t_corner.x *= refw, t_corner.y *= refh;
-		t_corner = t_corner - proj_min;
-		corners.push_back(t_corner);
-	};
-	to_ref_coor(Vec2D(-0.5, -0.5));
-	to_ref_coor(Vec2D(-0.5, 0.5));
-	cur = &(bundle.component.back());
-	to_ref_coor(Vec2D(0.5, -0.5));
-	to_ref_coor(Vec2D(0.5, 0.5));
-
-	// stretch the four corner to rectangle
-	vector<Vec2D> corners_std = {
-		Vec2D(0, 0), Vec2D(0, h),
-		Vec2D(w, 0), Vec2D(w, h)};
-	Matrix m = getPerspectiveTransform(corners, corners_std);
-	Homography inv(m);
-
-	LinearBlender blender;
-	blender.add_image(Coor(0,0), Coor(w,h), img, [=](Coor c) -> Vec2D {
-		return inv.trans2d(Vec2D(c.x, c.y));
-	});
-	auto ret = Mat32f(h, w, 3);
-	fill(ret, Color::NO);
-	blender.run(ret);
-	return ret;
-}
-
-Mat32f Stitcher::blend() {
-	GuardedTimer tm("blend()");
-	// it's hard to do coordinates.......
-	int refw = imgs[bundle.identity_idx].width(),
-			refh = imgs[bundle.identity_idx].height();
-	auto homo2proj = bundle.get_homo2proj();
-	auto proj2homo = bundle.get_proj2homo();
-
-	Vec2D id_img_range = homo2proj(Vec(refw, refh, 1)) - homo2proj(Vec(0, 0, 1));
-	cout << "projmin:" << bundle.proj_range.min << "projmax" << bundle.proj_range.max << endl;
-	if (bundle.proj_method != ConnectedImages::ProjectionMethod::flat) {
-		id_img_range = homo2proj(Vec(1,1,1)) - homo2proj(Vec(0,0,1));
-		//id_img_range.x *= refw, id_img_range.y *= refh;
-		// this yields better aspect ratio in the result.
-		id_img_range.x *= (refw * 1.0 / refh);
-	}
-
-	Vec2D proj_min = bundle.proj_range.min;
-	double x_len = bundle.proj_range.max.x - proj_min.x,
-				 y_len = bundle.proj_range.max.y - proj_min.y,
-				 x_per_pixel = id_img_range.x / refw,
-				 y_per_pixel = id_img_range.y / refh,
-				 target_width = x_len / x_per_pixel,
-				 target_height = y_len / y_per_pixel;
-
-	Coor size(target_width, target_height);
-	print_debug("Final Image Size: (%d, %d)\n", size.x, size.y);
-	if (max(size.x, size.y) > 30000 || size.x * size.y > 600000000)
-		error_exit("Result too large. Something must be wrong\n");
-
-	auto scale_coor_to_img_coor = [&](Vec2D v) {
-		v = v - proj_min;
-		v.x /= x_per_pixel, v.y /= y_per_pixel;
-		return Coor(v.x, v.y);
-	};
-
-	// blending
-	Mat32f ret(size.y, size.x, 3);
-	fill(ret, Color::NO);
-
-	LinearBlender blender;
-	REP(comp_idx, bundle.component.size()) {
-		auto& cur = bundle.component[comp_idx];
-		Coor top_left = scale_coor_to_img_coor(cur.range.min);
-		Coor bottom_right = scale_coor_to_img_coor(cur.range.max);
-
-		blender.add_image(top_left, bottom_right, *cur.imgptr, [=,&cur](Coor t) -> Vec2D {
-			Vec2D c(t.x * x_per_pixel + proj_min.x,
-							t.y * y_per_pixel + proj_min.y);
-			Vec homo = proj2homo(Vec2D(c.x, c.y));
-			Vec2D orig = cur.homo_inv.trans_normalize(homo);
-			return orig;
-		});
-	}
-	//if (DEBUG_OUT) blender.debug_run(size.x, size.y);
-	blender.run(ret);
-	if (CYLINDER)
-		return perspective_correction(ret);
-	return ret;
-}
-
 
 }	// namepsace stitch

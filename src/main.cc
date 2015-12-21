@@ -14,6 +14,7 @@
 #include "lib/planedrawer.hh"
 #include "lib/polygon.hh"
 #include "lib/timer.hh"
+#include "stitch/cylstitcher.hh"
 #include "stitch/match_info.hh"
 #include "stitch/stitcher.hh"
 #include "stitch/transform_estimate.hh"
@@ -224,8 +225,14 @@ void work(int argc, char* argv[]) {
 	vector<Mat32f> imgs;
 	REPL(i, 1, argc)
 		imgs.emplace_back(read_img(argv[i]));
-	Stitcher p(move(imgs));
-	Mat32f res = p.build();
+	Mat32f res;
+	if (CYLINDER) {
+		CylinderStitcher p(move(imgs));
+		res = p.build();
+	} else {
+		Stitcher p(move(imgs));
+		res = p.build();
+	}
 	if (res.width() * res.height() > 12000000) {
 		print_debug("Result is large, resizing for faster output...\n");
 		float ratio = max(res.width(), res.height()) * 1.0f / 8000;

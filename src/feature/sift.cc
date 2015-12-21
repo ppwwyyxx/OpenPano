@@ -16,42 +16,34 @@ Descriptor hist_to_descriptor(float* hist) {
 	Descriptor ret;
 	ret.descriptor.resize(featlen);
 	memcpy(ret.descriptor.data(), hist, featlen * sizeof(float));
+  float sum = 0;
 
 	// normalize and thresholding and renormalize
-	/*
-	 *float sum = 0;
-	 *for (auto &i : ret.descriptor) sum += sqr(i);
-	 *sum = sqrt(sum);
-	 *for (auto &i : ret.descriptor) {
-	 *  i /= sum;
-	 *  update_min(i, (float)DESC_NORM_THRESH);
-	 *}
-	 *sum = 0;
-	 *for (auto &i : ret.descriptor) sum += sqr(i);
-	 *sum = sqrt(sum);
-	 *sum = (float)DESC_INT_FACTOR / sum;
-	 *for (auto &i : ret.descriptor) i = i * sum;
-	 */
-
+	for (auto &i : ret.descriptor) sum += sqr(i);
+	sum = sqrt(sum);
+	for (auto &i : ret.descriptor) {
+		i /= sum;
+		update_min(i, (float)DESC_NORM_THRESH);
+	}
+/*	// L2 normalize SIFT
+ *  sum = 0;
+ *  for (auto &i : ret.descriptor) sum += sqr(i);
+ *  sum = sqrt(sum);
+ *  //sum = (float)DESC_INT_FACTOR / sum;
+ *  sum = 1.0 / sum;
+ *  for (auto &i : ret.descriptor) i = i * sum;
+ *
+ */
 	// using RootSIFT: rootsift= sqrt( sift / sum(sift) );
-	// 1. L1 normalize descriptor
-	float sum = 0;
+	// L1 normalize SIFT
+	sum = 0;
 	for (auto &i : ret.descriptor) sum += i;
 	for (auto &i : ret.descriptor) {
 		i /= sum;
-		// thresholding. maybe unnecessary when using rootsift
-		update_min(i, (float)DESC_NORM_THRESH);
 	}
-
 	// 2. square root each element
 	for (auto &i : ret.descriptor) i = std::sqrt(i);
-
-	// 3. L2 normlize
-	sum = 0;
-	for (auto &i : ret.descriptor) sum += sqr(i);
-	sum = sqrt(sum);
-	sum = (float)DESC_INT_FACTOR / sum;
-	for (auto &i : ret.descriptor) i *= sum;
+	for (auto &i : ret.descriptor) i *= DESC_INT_FACTOR;
 
 	return ret;
 }
