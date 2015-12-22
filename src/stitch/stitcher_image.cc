@@ -86,13 +86,10 @@ void ConnectedImages::update_proj_range() {
 	proj_range.min = proj_min, proj_range.max = proj_max;
 }
 
-Mat32f ConnectedImages::blend() const {
-	GuardedTimer tm("blend()");
-	// it's hard to do coordinates.......
+Vec2D ConnectedImages::get_final_resolution() const {
 	int refw = component[identity_idx].imgptr->width(),
 			refh = component[identity_idx].imgptr->height();
 	auto homo2proj = get_homo2proj();
-	auto proj2homo = get_proj2homo();
 
 	Vec2D id_img_range = homo2proj(Vec(refw, refh, 1)) - homo2proj(Vec(0, 0, 1));
 	cout << "projmin:" << proj_range.min << "projmax" << proj_range.max << endl;
@@ -103,22 +100,31 @@ Mat32f ConnectedImages::blend() const {
 		id_img_range.x *= (refw * 1.0 / refh);
 	}
 
-	Vec2D proj_min = proj_range.min;
-	double x_len = proj_range.max.x - proj_min.x,
-				 y_len = proj_range.max.y - proj_min.y,
-				 x_per_pixel = id_img_range.x / refw,
-				 y_per_pixel = id_img_range.y / refh,
-				 target_width = x_len / x_per_pixel,
-				 target_height = y_len / y_per_pixel;
+	Vec2D resolution = id_img_range / Vec2D(refw, refh),		// x-per-pixel, y-per-pixel
+				target_size = proj_range.size() / resolution;
+	double max_edge = max(target_size.x, target_size.y);
+	if (max_edge > 30000 || target_size.x * target_size.y > 600000000)
+		error_exit("Result too large. Something must be wrong!\n");
+	// resize the result
+	if (max_edge > MAX_OUTPUT_SIZE) {
+		float ratio = max_edge / MAX_OUTPUT_SIZE;
+		resolution *= ratio;
+	}
+	return resolution;
+}
 
-	Coor size(target_width, target_height);
+Mat32f ConnectedImages::blend() const {
+	GuardedTimer tm("blend()");
+	// it's hard to do coordinates.......
+	auto proj2homo = get_proj2homo();
+	Vec2D resolution = get_final_resolution();
+
+	Vec2D size_d = proj_range.size() / resolution;
+	Coor size(size_d.x, size_d.y);
 	print_debug("Final Image Size: (%d, %d)\n", size.x, size.y);
-	if (max(size.x, size.y) > 30000 || size.x * size.y > 600000000)
-		error_exit("Result too large. Something must be wrong\n");
 
 	auto scale_coor_to_img_coor = [&](Vec2D v) {
-		v = v - proj_min;
-		v.x /= x_per_pixel, v.y /= y_per_pixel;
+		v = (v - proj_range.min) / resolution;
 		return Coor(v.x, v.y);
 	};
 
@@ -132,12 +138,11 @@ Mat32f ConnectedImages::blend() const {
 		Coor bottom_right = scale_coor_to_img_coor(cur.range.max);
 
 		blender.add_image(top_left, bottom_right, *cur.imgptr, [=,&cur](Coor t) -> Vec2D {
-			Vec2D c(t.x * x_per_pixel + proj_min.x,
-							t.y * y_per_pixel + proj_min.y);
-			Vec homo = proj2homo(Vec2D(c.x, c.y));
-			Vec2D orig = cur.homo_inv.trans_normalize(homo);
-			return orig;
-		});
+				Vec2D c = Vec2D(t.x, t.y) * resolution + proj_range.min;
+				Vec homo = proj2homo(Vec2D(c.x, c.y));
+				Vec2D orig = cur.homo_inv.trans_normalize(homo);
+				return orig;
+				});
 	}
 	//if (DEBUG_OUT) blender.debug_run(size.x, size.y);
 	blender.run(ret);

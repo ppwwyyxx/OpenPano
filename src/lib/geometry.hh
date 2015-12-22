@@ -193,6 +193,12 @@ class Vector2D {
 		Vector2D<T> operator / (T f) const
 		{ return *this * (1.0 / f); }
 
+		Vector2D<T> operator * (const Vector2D<T>& v) const
+		{ return Vector2D<T>(x * v.x, y * v.y); }
+
+		Vector2D<T> operator / (const Vector2D<T>& v) const
+		{ return Vector2D<T>(x / v.x, y / v.y); }
+
 		bool operator == (const Vector2D<T> &v) const
 		{ return fabs(x - v.x) < EPS && fabs(y - v.y) < EPS; }
 

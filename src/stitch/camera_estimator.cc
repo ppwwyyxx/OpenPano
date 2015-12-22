@@ -46,7 +46,13 @@ vector<Camera> CameraEstimator::estimate() {
 
 	IncrementalBundleAdjuster iba(shapes, cameras);
 	vector<bool> vst(n, false);
-	traverse([&](int now, int next) {
+	traverse(
+		[&](int node) {
+			cameras[node].R = Homography::I();
+			cameras[node].ppx = shapes[node].halfw();
+			cameras[node].ppy = shapes[node].halfh();
+		},
+		[&](int now, int next) {
 			print_debug("Best edge from %d to %d\n", now, next);
 			auto Kfrom = cameras[now].K();
 			auto Kto = cameras[next].K();
@@ -57,6 +63,7 @@ vector<Camera> CameraEstimator::estimate() {
 			cameras[next].R = (cameras[now].Rinv() * Mat).transpose();
 			cameras[next].ppx = shapes[next].halfw();
 			cameras[next].ppy = shapes[next].halfh();
+			//cameras[next] = cameras[now];	// initialize by the last camera. also good
 
 			if (MULTIPASS_BA) {
 				// add next to BA
@@ -68,9 +75,9 @@ vector<Camera> CameraEstimator::estimate() {
 				}
 				iba.optimize();
 			}
-	});
+		});
 
-	if (!MULTIPASS_BA) {
+	if (!MULTIPASS_BA) {		// optimize everything together
 		REPL(i, 1, n) REP(j, i) {
 			auto& m = matches[j][i];
 			if (m.match.size() && m.confidence > 0)
@@ -83,7 +90,9 @@ vector<Camera> CameraEstimator::estimate() {
 	return cameras;
 }
 
-void CameraEstimator::traverse(function<void(int, int)> callback) {
+void CameraEstimator::traverse(
+		function<void(int)> callback_node,
+		function<void(int, int)> callback_edge) {
 	struct Edge {
 		int v1, v2;
 		float weight;
@@ -91,22 +100,16 @@ void CameraEstimator::traverse(function<void(int, int)> callback) {
 		bool operator < (const Edge& r) const { return weight < r.weight;	}
 	};
 	// choose a starting point
-	float max_conf = 0;
 	Edge best_edge{-1, -1, 0};
 	REP(i, n) REPL(j, i+1, n) {
 		auto& m = matches[i][j];
-		if (m.confidence <= 0) continue;
-		if (m.confidence > max_conf) {
-			max_conf = m.confidence;
-			best_edge = Edge(i, j, m.confidence);
-		}
+		if (m.confidence > best_edge.weight)
+			best_edge = Edge{i, j, m.confidence};
 	}
 	if (best_edge.v1 == -1)
 		error_exit("No connected images are found!");
 	// set the starting point to identity
-	cameras[best_edge.v1].R = Homography::I();
-	cameras[best_edge.v1].ppx = shapes[best_edge.v1].halfw();
-	cameras[best_edge.v1].ppy = shapes[best_edge.v1].halfh();
+	callback_node(best_edge.v1);
 
 	priority_queue<Edge> q;
 	vector<bool> vst(n, false);
@@ -114,8 +117,8 @@ void CameraEstimator::traverse(function<void(int, int)> callback) {
 	auto enqueue_edges_from = [&](int from) {
 		REP(i, n) if (i != from && !vst[i]) {
 			auto& m = matches[from][i];
-			if (m.confidence <= 0) continue;
-			q.emplace(from, i, m.confidence);
+			if (m.confidence > 0)
+				q.emplace(from, i, m.confidence);
 		}
 	};
 
@@ -131,13 +134,12 @@ void CameraEstimator::traverse(function<void(int, int)> callback) {
 			break;
 		vst[best_edge.v2] = true;
 		cnt ++;
-		callback(best_edge.v1, best_edge.v2);
+		callback_edge(best_edge.v1, best_edge.v2);
 		enqueue_edges_from(best_edge.v2);
 	}
-	if (cnt != n) {
+	if (cnt != n)
 		error_exit(ssprintf(
 					"Found a tree of size %d!=%d, images are not connected well!",
 					cnt, n));
-	}
 }
 }

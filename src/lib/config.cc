@@ -39,6 +39,7 @@ bool CROP = true;
 float FOCAL_LENGTH;
 bool ESTIMATE_CAMERA;
 bool STRAIGHTEN;
+int MAX_OUTPUT_SIZE;
 
 bool MULTIPASS_BA;
 float LM_LAMBDA;

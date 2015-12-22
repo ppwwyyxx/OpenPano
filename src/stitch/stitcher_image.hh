@@ -20,6 +20,7 @@ struct ConnectedImages {
 		Vec2D min, max;
 		Range(){}
 		Range(const Vec2D& a, const Vec2D& b): min(a), max(b) {}
+		Vec2D size() const { return max - min; }
 	};
 
 	// -- projections
@@ -84,6 +85,8 @@ struct ConnectedImages {
 	void calc_inverse_homo();
 
 	Mat32f blend() const;
+
+	Vec2D get_final_resolution() const;
 };
 
 }

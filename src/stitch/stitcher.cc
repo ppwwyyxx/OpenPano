@@ -133,8 +133,7 @@ void Stitcher::estimate_camera() {
 	vector<Shape2D> shapes;
 	for (auto& m: imgs)
 		shapes.emplace_back(m.cols(), m.rows());
-	CameraEstimator ce(pairwise_matches, shapes);
-	auto cameras = ce.estimate();
+	auto cameras = CameraEstimator{pairwise_matches, shapes}.estimate();
 
 	// produced homo operates on [0,w] coordinate
 	REP(i, imgs.size()) {

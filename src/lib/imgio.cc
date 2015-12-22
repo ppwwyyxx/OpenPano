@@ -59,7 +59,7 @@ namespace pano {
 
 Mat32f read_img(const char* fname) {
 	if (! exists_file(fname))
-		error_exit(ssprintf("File %s not exists!", fname));
+		error_exit(ssprintf("File \"%s\" not exists!", fname));
 	if (endswith(fname, ".png"))
 		return read_png(fname);
 	CImg<float> img(fname);

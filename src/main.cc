@@ -234,13 +234,15 @@ void work(int argc, char* argv[]) {
 		Stitcher p(move(imgs));
 		res = p.build();
 	}
-	if (res.width() * res.height() > 12000000) {
-		print_debug("Result is large, resizing for faster output...\n");
-		float ratio = max(res.width(), res.height()) * 1.0f / 8000;
-		Mat32f dst(res.height() * 1.0f / ratio, res.width() * 1.0f / ratio, 3);
-		resize(res, dst);
-		res = dst;
-	}
+	/*
+	 *if (res.width() * res.height() > 12000000) {
+	 *  print_debug("Result is large, resizing for faster output...\n");
+	 *  float ratio = max(res.width(), res.height()) * 1.0f / 8000;
+	 *  Mat32f dst(res.height() * 1.0f / ratio, res.width() * 1.0f / ratio, 3);
+	 *  resize(res, dst);
+	 *  res = dst;
+	 *}
+	 */
 
 	if (CROP) {
 		int oldw = res.width(), oldh = res.height();
@@ -273,8 +275,7 @@ void init_config() {
 	CROP = Config.get("CROP");
 	STRAIGHTEN = Config.get("STRAIGHTEN");
 	FOCAL_LENGTH = Config.get("FOCAL_LENGTH");
-	MULTIPASS_BA = Config.get("MULTIPASS_BA");
-	LM_LAMBDA = Config.get("LM_LAMBDA");
+	MAX_OUTPUT_SIZE = Config.get("MAX_OUTPUT_SIZE");
 
 	SIFT_WORKING_SIZE = Config.get("SIFT_WORKING_SIZE");
 	NUM_OCTAVE = Config.get("NUM_OCTAVE");
@@ -297,6 +298,9 @@ void init_config() {
 	RANSAC_INLIER_THRES = Config.get("RANSAC_INLIER_THRES");
 	INLIER_MINIMUM_RATIO = Config.get("INLIER_MINIMUM_RATIO");
 	SLOPE_PLAIN = Config.get("SLOPE_PLAIN");
+
+	LM_LAMBDA = Config.get("LM_LAMBDA");
+	MULTIPASS_BA = Config.get("MULTIPASS_BA");
 }
 
 void planet(const char* fname) {
@@ -339,10 +343,11 @@ void planet(const char* fname) {
 }
 
 int main(int argc, char* argv[]) {
+	if (argc <= 2)
+		error_exit("Need at least two images to stitch.\n");
 	TotalTimerGlobalGuard _g;
 	srand(time(NULL));
 	init_config();
-
 	string command = argv[1];
 	if (command == "raw_extrema")
 		test_extrema(argv[2], 0);

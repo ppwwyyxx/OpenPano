@@ -33,7 +33,9 @@ class CameraEstimator {
 
 		std::vector<Camera> cameras;
 
-		void traverse(std::function<void(int, int)>);
+		void traverse(
+				std::function<void(int)> callback_init_node,
+				std::function<void(int, int)> callback_add_edge);
 };
 
 
