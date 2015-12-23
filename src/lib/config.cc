@@ -12,10 +12,10 @@ namespace config {
 ConfigParser::ConfigParser(const char* fname) {
 	if (! exists_file(fname))
 		error_exit("Cannot find config file!");
-	const static size_t BUFSIZE = 4096;
+	const static size_t BUFSIZE = 4096;		// TODO overflow
 	ifstream fin(fname);
 	string s; s.resize(BUFSIZE);
-	double val;
+	float val;
 	while (fin >> s) {
 		if (s[0] == '#') {
 			fin.getline(&s[0], BUFSIZE, '\n');
@@ -27,7 +27,7 @@ ConfigParser::ConfigParser(const char* fname) {
 	}
 }
 
-double ConfigParser::get(const std::string& s) {
+float ConfigParser::get(const std::string& s) {
 	if (data.count(s) == 0)
 		error_exit(ssprintf("No option %s in config file!", s.c_str()));
 	return data[s];
@@ -41,7 +41,7 @@ bool ESTIMATE_CAMERA;
 bool STRAIGHTEN;
 int MAX_OUTPUT_SIZE;
 
-bool MULTIPASS_BA;
+int MULTIPASS_BA;
 float LM_LAMBDA;
 
 int SIFT_WORKING_SIZE;

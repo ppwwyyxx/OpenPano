@@ -14,11 +14,11 @@ namespace config {
 
 class ConfigParser {
 	public:
-		std::map<std::string, double> data;
+		std::map<std::string, float> data;
 
 		ConfigParser(const char* fname);
 
-		double get(const std::string& s);
+		float get(const std::string& s);
 
 };
 
@@ -60,7 +60,7 @@ extern float INLIER_MINIMUM_RATIO;
 
 extern float SLOPE_PLAIN;
 
-extern bool MULTIPASS_BA;
+extern int MULTIPASS_BA;
 extern float LM_LAMBDA;
 
 

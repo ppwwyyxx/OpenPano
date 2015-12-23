@@ -48,6 +48,7 @@ vector<Camera> CameraEstimator::estimate() {
 	vector<bool> vst(n, false);
 	traverse(
 		[&](int node) {
+			// set the starting point to identity
 			cameras[node].R = Homography::I();
 			cameras[node].ppx = shapes[node].halfw();
 			cameras[node].ppy = shapes[node].halfh();
@@ -63,21 +64,26 @@ vector<Camera> CameraEstimator::estimate() {
 			cameras[next].R = (cameras[now].Rinv() * Mat).transpose();
 			cameras[next].ppx = shapes[next].halfw();
 			cameras[next].ppy = shapes[next].halfh();
+
 			//cameras[next] = cameras[now];	// initialize by the last camera. also good
 
-			if (MULTIPASS_BA) {
+			if (MULTIPASS_BA > 0) {
 				// add next to BA
 				vst[now] = vst[next] = true;
 				REP(i, n) if (vst[i] && i != next) {
 					auto& m = matches[next][i];
-					if (m.match.size() && m.confidence > 0)
+					if (m.match.size() && m.confidence > 0) {
 						iba.add_match(i, next, m);
+						if (MULTIPASS_BA == 2)
+							iba.optimize();
+					}
 				}
-				iba.optimize();
+				if (MULTIPASS_BA == 1)
+					iba.optimize();
 			}
 		});
 
-	if (!MULTIPASS_BA) {		// optimize everything together
+	if (MULTIPASS_BA == 0) {		// optimize everything together
 		REPL(i, 1, n) REP(j, i) {
 			auto& m = matches[j][i];
 			if (m.match.size() && m.confidence > 0)
@@ -108,7 +114,6 @@ void CameraEstimator::traverse(
 	}
 	if (best_edge.v1 == -1)
 		error_exit("No connected images are found!");
-	// set the starting point to identity
 	callback_node(best_edge.v1);
 
 	priority_queue<Edge> q;
