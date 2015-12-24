@@ -9,6 +9,7 @@ using namespace std;
 
 namespace config {
 
+// TODO allow different types for a value. using template
 ConfigParser::ConfigParser(const char* fname) {
 	if (! exists_file(fname))
 		error_exit("Cannot find config file!");
@@ -29,7 +30,7 @@ ConfigParser::ConfigParser(const char* fname) {
 
 float ConfigParser::get(const std::string& s) {
 	if (data.count(s) == 0)
-		error_exit(ssprintf("No option %s in config file!", s.c_str()));
+		error_exit(ssprintf("Option %s not found in config file!\n", s.c_str()));
 	return data[s];
 }
 
@@ -40,6 +41,7 @@ float FOCAL_LENGTH;
 bool ESTIMATE_CAMERA;
 bool STRAIGHTEN;
 int MAX_OUTPUT_SIZE;
+bool LINEAR_INPUT;
 
 int MULTIPASS_BA;
 float LM_LAMBDA;

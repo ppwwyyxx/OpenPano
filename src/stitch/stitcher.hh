@@ -16,6 +16,7 @@ namespace pano {
 class Homography;
 class MatchData;
 struct MatchInfo;
+class PairWiseMatcher;
 
 class Stitcher : public StitcherBase {
 	private:
@@ -26,10 +27,13 @@ class Stitcher : public StitcherBase {
 		// pairwise_matches[i][j].homo transform j to i
 		std::vector<std::vector<MatchInfo>> pairwise_matches;
 
+		// match two images
+		bool match_image(const PairWiseMatcher&, int i, int j);
+
 		// pairwise matching of all images
 		void pairwise_match();
 		// equivalent to pairwise_match when dealing with linear images
-		void assume_linear_pairwise();
+		void linear_pairwise_match();
 
 		// assign a center to be identity
 		void assign_center();
@@ -44,7 +48,6 @@ class Stitcher : public StitcherBase {
 		void draw_matchinfo() const;
 		void dump_matchinfo(const char*) const;
 		void load_matchinfo(const char*);
-
 	public:
 		template<typename U, typename X =
 			disable_if_same_or_derived<Stitcher, U>>

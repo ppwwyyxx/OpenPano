@@ -29,6 +29,7 @@ extern float FOCAL_LENGTH;
 extern bool ESTIMATE_CAMERA;
 extern bool STRAIGHTEN;
 extern int MAX_OUTPUT_SIZE;
+extern bool LINEAR_INPUT;
 
 extern int SIFT_WORKING_SIZE;
 extern int NUM_OCTAVE;

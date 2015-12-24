@@ -262,7 +262,7 @@ void init_config() {
 	TRANS = Config.get("TRANS");
 	ESTIMATE_CAMERA = Config.get("ESTIMATE_CAMERA");
 	if (int(CYLINDER) + int(TRANS) + int(ESTIMATE_CAMERA) >= 2)
-		error_exit("You set two many modes...");
+		error_exit("You set two many modes...\n");
 	if (CYLINDER)
 		print_debug("Run with cylinder mode.\n");
 	else if (TRANS)
@@ -272,6 +272,9 @@ void init_config() {
 	else
 		print_debug("Run with naive mode.\n");
 
+	LINEAR_INPUT = Config.get("LINEAR_INPUT");
+	if (!LINEAR_INPUT && !ESTIMATE_CAMERA)
+		error_exit("Require LINEAR_INPUT under this mode!\n");
 	CROP = Config.get("CROP");
 	STRAIGHTEN = Config.get("STRAIGHTEN");
 	FOCAL_LENGTH = Config.get("FOCAL_LENGTH");

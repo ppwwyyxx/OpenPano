@@ -32,8 +32,11 @@ const static char* MATCHINFO_DUMP = "log/matchinfo.txt";
 Mat32f Stitcher::build() {
 	calc_feature();
 	// TODO choose a better starting point by MST use centrality
-	if (TRANS)
-		assume_linear_pairwise();
+
+	pairwise_matches.resize(imgs.size());
+	for (auto& k : pairwise_matches) k.resize(imgs.size());
+	if (LINEAR_INPUT)
+		linear_pairwise_match();
 	else
 		pairwise_match();
 	free_feature();
@@ -58,68 +61,67 @@ Mat32f Stitcher::build() {
 	return bundle.blend();
 }
 
-void Stitcher::pairwise_match() {
-	GuardedTimer tm("pairwise_match() with transform");
-	PairWiseMatcher pwmatcher(feats);
-	size_t n = imgs.size();
-	pairwise_matches.resize(n);
-	for (auto& k : pairwise_matches) k.resize(n);
+bool Stitcher::match_image(
+		const PairWiseMatcher& pwmatcher, int i, int j) {
+	auto match = pwmatcher.match(i, j);
+	//auto match = FeatureMatcher(feats[i], feats[j]).match();	// slow
+	TransformEstimation transf(match, keypoints[i], keypoints[j],
+			{imgs[i].width(), imgs[i].height()},
+			{imgs[j].width(), imgs[j].height()});	// from j to i
+	MatchInfo info;
+	bool succ = transf.get_transform(&info);
+	if (!succ) {
+		if (-(int)info.confidence >= 8)	// reject for geometry reason
+			print_debug("Reject bad match with %d inlier from %d to %d\n",
+					-(int)info.confidence, i, j);
+		return false;
+	}
+	auto inv = info.homo.inverse();	// TransformEstimation ensures invertible
+	inv.mult(1.0 / inv[8]);	// TODO more stable?
+	print_debug(
+			"Connection between image %d and %d, ninliers=%lu/%d=%lf, conf=%f\n",
+			i, j, info.match.size(), match.size(),
+			info.match.size() * 1.0 / match.size(),
+			info.confidence);
 
+	// fill in pairwise matches
+	pairwise_matches[i][j] = info;
+	info.homo = inv;
+	info.reverse();
+	pairwise_matches[j][i] = move(info);
+	return true;
+}
+
+void Stitcher::pairwise_match() {
+	GuardedTimer tm("pairwise_match()");
+	size_t n = imgs.size();
 	vector<pair<int, int>> tasks;
 	REP(i, n) REPL(j, i + 1, n) tasks.emplace_back(i, j);
 
+	PairWiseMatcher pwmatcher(feats);
 #pragma omp parallel for schedule(dynamic)
 	REP(k, (int)tasks.size()) {
 		int i = tasks[k].first, j = tasks[k].second;
-		//auto match = FeatureMatcher(feats[i], feats[j]).match();	// slow
-		auto match = pwmatcher.match(i, j);
-		TransformEstimation transf(match, keypoints[i], keypoints[j],
-				{imgs[i].width(), imgs[i].height()},
-				{imgs[j].width(), imgs[j].height()});	// from j to i
-		MatchInfo info;
-		bool succ = transf.get_transform(&info);
-		if (!succ) {
-			if (-(int)info.confidence >= 8)	// reject for geometry reason
-				print_debug("Reject bad match with %d inlier from %d to %d\n", -(int)info.confidence, i, j);
-			continue;
-		}
-		auto inv = info.homo.inverse();	// TransformEstimation ensures invertible
-		inv.mult(1.0 / inv[8]);	// TODO more stable?
-		print_debug(
-				"Connection between image %d and %d, ninliers=%lu/%d=%lf, conf=%f\n",
-				i, j, info.match.size(), match.size(), info.match.size() * 1.0 / match.size(), info.confidence);
-		// fill in pairwise matches
-		pairwise_matches[i][j] = info;
-		info.homo = inv;
-		info.reverse();
-		pairwise_matches[j][i] = move(info);
+		match_image(pwmatcher, i, j);
 	}
 }
 
-void Stitcher::assume_linear_pairwise() {
-	GuardedTimer tm("assume_linear_pairwise()");
+void Stitcher::linear_pairwise_match() {
+	GuardedTimer tm("linear_pairwise_match()");
 	int n = imgs.size();
 	PairWiseMatcher pwmatcher(feats);
 #pragma omp parallel for schedule(dynamic)
-	REP(i, n-1) {
+	REP(i, n) {
 		int next = (i + 1) % n;
-		auto match = pwmatcher.match(i, next);
-		TransformEstimation transf(match, keypoints[i], keypoints[next],
-				{imgs[i].width(), imgs[i].height()},
-				{imgs[next].width(), imgs[next].height()});
-		MatchInfo info;
-		bool succ = transf.get_transform(&info);
-		if (! succ)
-			error_exit(ssprintf("Image %d and %d doesn't match.\n", i, next));
-		auto inv = info.homo.inverse(&succ);
-		if (! succ) // cannot inverse. mal-formed homography
-			error_exit(ssprintf("Image %d and %d doesn't match.\n", i, next));
-		print_debug("Match between image %d and %d, ninliers=%lu, conf=%f\n",
-				i, next, info.match.size(), info.confidence);
-		pairwise_matches[i][next] = info;
-		info.homo = inv;
-		info.reverse();
-		pairwise_matches[next][i] = move(info);
+		if (!match_image(pwmatcher, i, next)) {
+			if (i == n - 1)	// head and tail don't have to match
+				continue;
+			else
+				error_exit(ssprintf("Image %d and %d don't match\n", i, next));
+		}
+		do {
+			next = (next + 1) % n;
+		} while (match_image(pwmatcher, i, next));
 	}
 }
 
