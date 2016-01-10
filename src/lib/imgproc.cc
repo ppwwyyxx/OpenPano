@@ -135,38 +135,24 @@ Mat32f vconcat(const list<Mat32f>& mats) {
 Color interpolate(const Mat32f& mat, float r, float c) {
 	m_assert(mat.channels() == 3);
 	int fr = floor(r), fc =  floor(c);
-	m_assert(fr >= 0 && fr < mat.rows());
-	m_assert(fc >= 0 && fc < mat.cols());
+	if (fr < 0 || fc < 0 || fc + 1 >= mat.cols() || fr + 1 >= mat.rows())
+		return Color::NO;
 	Color ret = Color::BLACK;
 	r -= fr, c -= fc;
 
-	if (fr == mat.rows() - 1)
-		fr --;
-	if (fc == mat.cols() - 1)
-		fc --;
 	const float* p = mat.ptr(fr, fc);
+	if (*p < 0) return Color::NO;		// return Color::NO if any one of the neighbor is Colo::NO
 	ret += Color(p) * ((1 - r) * (1 - c));
 	p = mat.ptr(fr + 1, fc);
+	if (*p < 0) return Color::NO;
 	ret += Color(p) * (r * (1 - c));
 	p = mat.ptr(fr + 1, fc + 1);
+	if (*p < 0) return Color::NO;
 	ret += Color(p) * (r * c);
 	p = mat.ptr(fr, fc + 1);
+	if (*p < 0) return Color::NO;
 	ret += Color(p[0], p[1], p[2]) * ((1 - r) * c);
 	return ret;
-}
-
-bool is_edge_color(const Mat32f& mat, float y, float x) {
-	int w = mat.width(), h = mat.height();
-	m_assert(mat.channels() == 3);
-	int fx = floor(x), fy = floor(y);
-	if (fx < 0 || fy < 0 || fx + 1 >= w || fy + 1 >= h)
-		return true;
-
-	const float* ptr = mat.ptr(fy, fx);
-	REP(i, 6) if (ptr[i] < 0) return true;
-	ptr = mat.ptr(fy + 1, fx);
-	REP(i, 6) if (ptr[i] < 0) return true;
-	return false;
 }
 
 void fill(Mat32f& mat, const Color& c) {

@@ -169,4 +169,5 @@ void Stitcher::build_linear_simple() {
 	bundle.calc_inverse_homo();
 }
 
-}	// namepsace stitch
+}	// namepsace pano
+

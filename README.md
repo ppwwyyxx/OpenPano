@@ -91,4 +91,4 @@ Simply use a modern allocator (e.g. tcmalloc, hoard) can help a lot.
 + Transformation: use [RANSAC](http://en.wikipedia.org/wiki/RANSAC) to estimate a homography or affine transformation.
 + Optimization: focal estimation, [bundle adjustment](https://en.wikipedia.org/wiki/Bundle_adjustment), and some straightening tricks.
 
-For details, please see [readme.pdf](https://github.com/ppwwyyxx/panorama/raw/master/readme.pdf).
+For details, please see [my post](http://ppwwyyxx.com/2016/How-to-Write-a-Panorama-Stitcher/).

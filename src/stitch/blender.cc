@@ -31,21 +31,18 @@ void LinearBlender::run(Mat32f &target) {
 					Vec2D img_coor = img.map_coor(i, j);
 					if (!img_coor.isNaN()) {
 						float r = img_coor.y, c = img_coor.x;
+						auto color = interpolate(img.img, r, c);
+						if (color.x < 0) continue;
+						// TODO decide which interpolation method to use
+						// t.w = (0.5 - fabs(p.x / img.width() - 0.5)) * (0.5 - fabs(p.y / img.height() - 0.5));
+						// x-axis linear interpolation
+						float w = 0.5 - fabs(c / img.img.width() - 0.5);
 
-						// TODO speedup. edge & interpolate are redundant
-						if (!is_edge_color(img.img, r, c)){
-							auto color = interpolate(img.img, r, c);
-							// TODO decide which interpolation method to use
-							// t.w = (0.5 - fabs(p.x / img.width() - 0.5)) * (0.5 - fabs(p.y / img.height() - 0.5));
-							// x-axis linear interpolation
-							float w = 0.5 - fabs(c / img.img.width() - 0.5);
-
-							isum += color * w;
-							wsum += w;
-						}
+						isum += color * w;
+						wsum += w;
 					}
 				}
-			if (wsum)	// keep original Color::NO
+			if (wsum > 0)	// keep original Color::NO
 				(isum / wsum).write_to(row + j * 3);
 		}
 	}

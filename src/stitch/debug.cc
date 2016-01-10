@@ -27,8 +27,7 @@ void LinearBlender::debug_run(int w, int h) {
 					Vec2D img_coor = img.map_coor(i, j);
 					if (!img_coor.isNaN()) {
 						float r = img_coor.y, c = img_coor.x;
-						if (!is_edge_color(img.img, r, c))
-							isum = interpolate(img.img, r, c);
+						isum = interpolate(img.img, r, c);
 					}
 				}
 				isum.write_to(row + j * 3);
