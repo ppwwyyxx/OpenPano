@@ -1,10 +1,10 @@
-// File: filter.cc
+// File: gaussian.cc
 // Date: Thu Jul 04 11:05:14 2013 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include <algorithm>
 #include <cmath>
-#include "filter.hh"
+#include "gaussian.hh"
 #include "lib/config.hh"
 #include "lib/utils.hh"
 #include "lib/timer.hh"
@@ -39,26 +39,16 @@ GaussCache::GaussCache(float sigma) {
 		kernel[-i] = (kernel[i] *= fac);
 }
 
-Filter::Filter(int nscale,
-		float gauss_sigma,
-		float scale_factor) {
-	REP(k, nscale - 1) {
-		gcache.emplace_back(gauss_sigma);
-		gauss_sigma *= scale_factor;
-	}
-}
-
 // TODO faster convolution
-Mat32f Filter::GaussianBlur(
-		const Mat32f& img, const GaussCache& gauss) const {
+Mat32f GaussianBlur::blur(const Mat32f& img) const {
 	m_assert(img.channels() == 1);
 	TotalTimer tm("gaussianblur");
 	const int w = img.width(), h = img.height();
 	Mat32f ret(h, w, 1);
 
-	const int kw = gauss.kw;
+	const int kw = gcache.kw;
 	const int center = kw / 2;
-	float * kernel = gauss.kernel;
+	float * kernel = gcache.kernel;
 
 	vector<float> cur_line_mem(center * 2 + std::max(w, h), 0);
 	float *cur_line = cur_line_mem.data() + center;
@@ -111,6 +101,5 @@ Mat32f Filter::GaussianBlur(
 	}
 	return ret;
 }
-
 
 }

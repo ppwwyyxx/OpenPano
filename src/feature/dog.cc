@@ -10,7 +10,7 @@
 #include "lib/imgproc.hh"
 #include "lib/timer.hh"
 #include "lib/utils.hh"
-#include "filter.hh"
+#include "gaussian.hh"
 using namespace std;
 using namespace config;
 
@@ -50,9 +50,9 @@ GaussianPyramid::GaussianPyramid(const Mat32f& m, int num_scale):
 	else
 		data[0] = m.clone();
 
-	Filter blurer(nscale, GAUSS_SIGMA, SCALE_FACTOR);
+	MultiScaleGaussianBlur blurer(nscale, GAUSS_SIGMA, SCALE_FACTOR);
 	for (int i = 1; i < nscale; i ++) {
-		data[i] = blurer.GaussianBlur(data[0], i);	// sigma needs a better one
+		data[i] = blurer.blur(data[0], i);	// sigma needs a better one
 		cal_mag_ort(i);
 	}
 }
