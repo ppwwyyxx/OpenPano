@@ -23,7 +23,9 @@ class GaussianBlur {
 	GaussCache gcache;
 	public:
 		GaussianBlur(float sigma): sigma(sigma), gcache(sigma) {}
-		Mat32f blur(const Mat32f&) const;
+
+		template <typename T>
+		Mat<T> blur(const Mat<T>&) const;
 };
 
 class MultiScaleGaussianBlur {
