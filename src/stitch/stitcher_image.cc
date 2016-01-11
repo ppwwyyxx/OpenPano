@@ -129,9 +129,6 @@ Mat32f ConnectedImages::blend() const {
 	};
 
 	// blending
-	Mat32f ret(size.y, size.x, 3);
-	fill(ret, Color::NO);
-
 	LinearBlender blender;
 	for (auto& cur : component) {
 		Coor top_left = scale_coor_to_img_coor(cur.range.min);
@@ -145,9 +142,7 @@ Mat32f ConnectedImages::blend() const {
 				});
 	}
 	//if (DEBUG_OUT) blender.debug_run(size.x, size.y);
-	blender.run(ret);
-	return ret;
-
+	return blender.run();
 }
 
 }

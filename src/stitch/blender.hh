@@ -15,10 +15,19 @@ class BlenderBase {
 		BlenderBase() = default;
 		virtual ~BlenderBase() {}
 
+		struct Range {
+			Coor min, max;
+			bool contain(int r, int c) const {
+				return (r >= min.y && r < max.y && c >= min.x && c < max.x);
+			}
+			int width() const { return max.x - min.x + 1; }
+			int height() const { return max.y - min.y + 1; }
+		};
+
 		BlenderBase(const BlenderBase&) = delete;
 		BlenderBase& operator = (const BlenderBase&) = delete;
 
-		// upper_left/bottom_right: position of the two corners of img on result image
+		// upper_left/bottom_right: range of img on result image
 		// coor_func: the function maps from target coordinate to original image coordinate.
 		virtual void add_image(
 				const Coor& upper_left,
@@ -26,17 +35,10 @@ class BlenderBase {
 				const Mat32f &img,
 				std::function<Vec2D(Coor)> coor_func) = 0;
 
-		virtual void run(Mat32f &target) = 0;
+		virtual Mat32f run() = 0;
 };
 
 class LinearBlender : public BlenderBase {
-	struct Range {
-		Coor min, max;
-		bool contain(int r, int c) const {
-			return (r >= min.y && r < max.y && c >= min.x && c < max.x);
-		}
-	};
-
 	struct ImageToBlend {
 		Range range;
 		const Mat32f& img;
@@ -51,17 +53,19 @@ class LinearBlender : public BlenderBase {
 	};
 	std::vector<ImageToBlend> images;
 
+	Coor target_size{0, 0};
+
 	public:
-		void add_image(
-				const Coor& upper_left,
-				const Coor& bottom_right,
-				const Mat32f &img,
-				std::function<Vec2D(Coor)>) override;
+	void add_image(
+			const Coor& upper_left,
+			const Coor& bottom_right,
+			const Mat32f &img,
+			std::function<Vec2D(Coor)>) override;
 
-		void run(Mat32f &target) override;
+	Mat32f run() override;
 
-		// render each component, for debug
-		void debug_run(int w, int h);
+	// render each component, for debug
+	void debug_run(int w, int h);
 };
 
 }

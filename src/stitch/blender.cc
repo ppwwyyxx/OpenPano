@@ -16,10 +16,12 @@ void LinearBlender::add_image(
 			const Mat32f &img,
 			std::function<Vec2D(Coor)> coor_func) {
 	images.emplace_back(ImageToBlend{Range{upper_left, bottom_right}, img, coor_func});
+	target_size.update_max(bottom_right);
 }
 
-void LinearBlender::run(Mat32f &target) {
-	m_assert(target.channels() == 3);
+Mat32f LinearBlender::run() {
+	Mat32f target(target_size.y, target_size.x, 3);
+	fill(target, Color::NO);
 #pragma omp parallel for schedule(dynamic)
 	for (int i = 0; i < target.height(); i ++) {
 		float *row = target.ptr(i);
@@ -46,6 +48,7 @@ void LinearBlender::run(Mat32f &target) {
 				(isum / wsum).write_to(row + j * 3);
 		}
 	}
+	return target;
 }
 
 }
