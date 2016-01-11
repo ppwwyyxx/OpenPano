@@ -70,7 +70,7 @@ class Vector {
 		Vector& operator = (const Vector& v)
 		{ x = v.x, y = v.y, z = v.z; return *this; }
 
-		virtual void normalize() {
+		void normalize() {
 			T m = 1 / mod();
 			*this *= m;		// work?
 			m_assert(std::isnormal(m));
@@ -114,6 +114,9 @@ class Vector {
 
 		Vector operator / (T p) const
 		{ return *this * (1.0 / p); }
+
+		Vector& operator /= (T p)
+		{ x /= p; y /= p; z /= p; return *this; }
 
 		bool operator == (const Vector &v) const
 		{ return fabs(x - v.x) < EPS && fabs(y - v.y) < EPS && fabs(z - v.z) < EPS; }
@@ -226,7 +229,7 @@ class Vector2D {
 			return Vector2D<T>(x * m, y * m);
 		}
 
-		virtual void normalize() {
+		void normalize() {
 			T m = (T)1.0 / mod();
 			x *= m, y *= m;		// work?
 			m_assert(std::isnormal(m));

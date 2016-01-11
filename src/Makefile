@@ -15,8 +15,8 @@ ifeq ($(UNAME_S),Darwin)
 endif
 INCLUDE_DIR = -I. -isystem $(EIGEN_PATH) -isystem third-party
 
-OPTFLAGS ?= -O3 -msse3 -march=native
-#OPTFLAGS ?= -g -O0
+#OPTFLAGS ?= -O3 -msse3 -march=native
+OPTFLAGS ?= -g -O0
 DEFINES = -DDEBUG  	# comment out this line improves speed
 
 # optional extra packages

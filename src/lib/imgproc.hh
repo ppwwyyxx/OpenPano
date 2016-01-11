@@ -10,11 +10,9 @@
 class Matrix;
 
 namespace pano {
-
-// forward declaration
-
 Mat32f read_img(const char* fname);
 void write_rgb(const char* fname, const Mat32f& mat);
+inline void write_rgb(const std::string s, const Mat32f& mat) { write_rgb(s.c_str(), mat); }
 
 Mat32f hconcat(const std::list<Mat32f>& mats);
 Mat32f vconcat(const std::list<Mat32f>& mats);

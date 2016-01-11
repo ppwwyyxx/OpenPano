@@ -8,6 +8,7 @@
 #include "projection.hh"
 #include "lib/config.hh"
 #include "lib/timer.hh"
+#include "multiband.hh"
 #include "lib/imgproc.hh"
 #include "blender.hh"
 #include <cassert>
@@ -130,6 +131,7 @@ Mat32f ConnectedImages::blend() const {
 
 	// blending
 	LinearBlender blender;
+	//MultiBandBlender blender(8);
 	for (auto& cur : component) {
 		Coor top_left = scale_coor_to_img_coor(cur.range.min);
 		Coor bottom_right = scale_coor_to_img_coor(cur.range.max);

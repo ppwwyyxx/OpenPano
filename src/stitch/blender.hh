@@ -16,9 +16,10 @@ class BlenderBase {
 		virtual ~BlenderBase() {}
 
 		struct Range {
-			Coor min, max;
+			Coor min, max;	// min, max are both inclusive
 			bool contain(int r, int c) const {
-				return (r >= min.y && r < max.y && c >= min.x && c < max.x);
+				return (r >= min.y && r <= max.y
+						&& c >= min.x && c <= max.x);
 			}
 			int width() const { return max.x - min.x + 1; }
 			int height() const { return max.y - min.y + 1; }

@@ -2,6 +2,7 @@
 //Author: Yuxin Wu <ppwwyyxx@gmail.com>
 
 #include "blender.hh"
+#include "multiband.hh"
 #include "stitcher.hh"
 #include "match_info.hh"
 
@@ -34,7 +35,24 @@ void LinearBlender::debug_run(int w, int h) {
 			}
 		}
 		print_debug("Debug rendering %02d image\n", k);
-		write_rgb(ssprintf("log/blend-%02d.jpg", k).c_str(), target);
+		write_rgb(ssprintf("log/blend-%02d.jpg", k), target);
+	}
+}
+
+void MultiBandBlender::debug_level(int level) const {
+	int imgid = 0;
+	for (auto& t: next_lvl_images) {
+		auto& wimg = t.img;
+		Mat32f img(wimg.rows(), wimg.cols(), 3);
+		Mat32f weight(wimg.rows(), wimg.cols(), 3);
+		REP(i, wimg.rows()) REP(j, wimg.cols()) {
+			wimg.at(i, j).c.write_to(img.ptr(i, j));
+			float* p = weight.ptr(i, j);
+			p[0] = p[1] = p[2] = wimg.at(i, j).w;
+		}
+		write_rgb(ssprintf("log/multiband%d-%d.jpg", imgid, level), img);
+		write_rgb(ssprintf("log/multibandw%d-%d.jpg", imgid, level), weight);
+		imgid ++;
 	}
 }
 
@@ -77,7 +95,7 @@ void Stitcher::draw_matchinfo() const {
 		pld.polygon(p);
 
 		print_debug("Dump matchinfo of %d->%d\n", i, j);
-		write_rgb(ssprintf("log/match%d-%d.jpg", i, j).c_str(), conc);
+		write_rgb(ssprintf("log/match%d-%d.jpg", i, j), conc);
 	}
 }
 
