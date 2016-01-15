@@ -95,8 +95,19 @@ static const Homography dKdppy({
 }	// namespace
 
 namespace pano {
+
+IncrementalBundleAdjuster::IncrementalBundleAdjuster(
+		const std::vector<Shape2D>& shapes,
+		std::vector<Camera>& cameras):
+	shapes(shapes), result_cameras(cameras),
+	index_map(shapes.size())
+{
+	m_assert(shapes.size() == cameras.size());
+}
+
+
 void IncrementalBundleAdjuster::add_match(
-		int i, int j, const MatchInfo& match) {
+		int i, int j, MatchInfo& match) {
 	match_pairs.emplace_back(i, j, match);
 	match_cnt_prefix_sum.emplace_back(nr_pointwise_match);
 	nr_pointwise_match += match.match.size();
@@ -117,7 +128,7 @@ void IncrementalBundleAdjuster::optimize() {
 	for (auto& idx : idx_added)
 		state.cameras.emplace_back(result_cameras[idx]);
 	state.ensure_params();
-	state.cameras.clear();
+	state.cameras.clear();		// why do I need this
 	auto err_stat = calcError(state);
 	double best_err = err_stat.avg;
 	print_debug("BA: init err: %lf\n", best_err);
@@ -153,8 +164,18 @@ void IncrementalBundleAdjuster::optimize() {
 		result_cameras[i] = results[now++];
 }
 
+void IncrementalBundleAdjuster::filter() {
+	ParamState state;
+	for (auto& idx : idx_added)
+		state.cameras.emplace_back(result_cameras[idx]);
+	state.ensure_params();
+	state.cameras.clear();
+	auto err_stat = calcError(state);
+
+}
+
 IncrementalBundleAdjuster::ErrorStats IncrementalBundleAdjuster::calcError(
-		ParamState& state) {
+		const ParamState& state) {
 	ErrorStats ret(nr_pointwise_match * NR_TERM_PER_MATCH);
 	auto cameras = state.get_cameras();
 
@@ -181,7 +202,7 @@ IncrementalBundleAdjuster::ErrorStats IncrementalBundleAdjuster::calcError(
 }
 
 Eigen::VectorXd IncrementalBundleAdjuster::get_param_update(
-		ParamState& state, const vector<double>& residual, float lambda) {
+		const ParamState& state, const vector<double>& residual, float lambda) {
 	TotalTimer tm("get_param_update");
 	using namespace Eigen;
 	int nr_img = idx_added.size();
@@ -208,11 +229,11 @@ Eigen::VectorXd IncrementalBundleAdjuster::get_param_update(
 	return JtJ.colPivHouseholderQr().solve(b).eval();
 }
 
-void IncrementalBundleAdjuster::calcJacobianNumerical(ParamState& state) {
+void IncrementalBundleAdjuster::calcJacobianNumerical(const ParamState& old_state) {
 	TotalTimer tm("calcJacobianNumerical");
 	// Numerical Differentiation of Residual w.r.t all parameters
 	const static double step = 1e-6;
-	state.ensure_params();
+	ParamState& state = const_cast<ParamState&>(old_state); // all mutated state will be recovered at last.
 	REP(i, idx_added.size()) {
 		REP(p, NR_PARAM_PER_CAMERA) {
 			int param_idx = i * NR_PARAM_PER_CAMERA + p;
@@ -231,13 +252,13 @@ void IncrementalBundleAdjuster::calcJacobianNumerical(ParamState& state) {
 	JtJ = (J.transpose() * J).eval();
 }
 
-void IncrementalBundleAdjuster::calcJacobianSymbolic(ParamState& state) {
+void IncrementalBundleAdjuster::calcJacobianSymbolic(const ParamState& state) {
 	// Symbolic Differentiation of Residual w.r.t all parameters
 	// See Section 4 of: Automatic Panoramic Image Stitching using Invariant Features - David Lowe,IJCV07.pdf
 	TotalTimer tm("calcJacobianSymbolic");
 	J.setZero();	// this took 1/3 time. J.rows() could reach 130000
 	JtJ.setZero();
-	auto& cameras = state.get_cameras();
+	const auto& cameras = state.get_cameras();
 	// pre-calculate all derivatives of R
 	vector<array<Homography, 3>> all_dRdvi(cameras.size());
 	REP(i, cameras.size())
@@ -352,10 +373,12 @@ vector<Camera>& IncrementalBundleAdjuster::ParamState::get_cameras() {
 	return cameras;
 }
 
-void IncrementalBundleAdjuster::ParamState::ensure_params() {
+void IncrementalBundleAdjuster::ParamState::ensure_params() const {
 	if (params.size())
 		return;
 	m_assert(cameras.size());
+	// this function serves the semantic of 'updating the cache'. thus it is const
+	vector<double>& params = const_cast<vector<double>&>(this->params);
 	params.resize(cameras.size() * NR_PARAM_PER_CAMERA);
 	REP(i, cameras.size())
 		camera_to_params(cameras[i], params.data() + i * NR_PARAM_PER_CAMERA);

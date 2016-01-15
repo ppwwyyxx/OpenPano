@@ -19,7 +19,7 @@ using namespace config;
 namespace pano {
 
 CameraEstimator::CameraEstimator(
-		const std::vector<std::vector<MatchInfo>>& matches,
+		std::vector<std::vector<MatchInfo>>& matches,
 		const std::vector<Shape2D>& image_shapes) :
 		n(matches.size()),
 		matches(matches),

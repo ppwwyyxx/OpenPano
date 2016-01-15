@@ -14,7 +14,7 @@ class Camera;
 class CameraEstimator {
 	public:
 		CameraEstimator(
-				const std::vector<std::vector<MatchInfo>>& matches,
+				std::vector<std::vector<MatchInfo>>& matches,
 				const std::vector<Shape2D>& image_shapes);
 
 		~CameraEstimator();
@@ -28,7 +28,8 @@ class CameraEstimator {
 		typedef std::vector<std::vector<int>> Graph;
 
 		int n;	// nr_img
-		const std::vector<std::vector<MatchInfo>>& matches;
+		// matches will be modified to filter-out low-quality matches
+		std::vector<std::vector<MatchInfo>>& matches;
 		const std::vector<Shape2D>& shapes;
 
 		std::vector<Camera> cameras;

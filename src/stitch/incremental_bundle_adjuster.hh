@@ -22,16 +22,16 @@ class IncrementalBundleAdjuster {
 	public:
 		IncrementalBundleAdjuster(
 				const std::vector<Shape2D>& shapes,
-				std::vector<Camera>& cameras):
-			shapes(shapes), result_cameras(cameras), index_map(shapes.size())
-		{ m_assert(shapes.size() == cameras.size()); }
+				std::vector<Camera>& cameras);
 
 		IncrementalBundleAdjuster(const IncrementalBundleAdjuster&) = delete;
 		IncrementalBundleAdjuster& operator = (const IncrementalBundleAdjuster&) = delete;
 
-		void add_match(int i, int j, const MatchInfo& m);
+		void add_match(int i, int j, MatchInfo& m);
 
 		void optimize();
+
+		void filter();
 
 	protected:
 		const std::vector<Shape2D>& shapes;
@@ -39,8 +39,8 @@ class IncrementalBundleAdjuster {
 
 		struct MatchPair {
 			int from, to;		// the original index
-			const MatchInfo& m;
-			MatchPair(int i, int j, const MatchInfo& m):
+			MatchInfo& m;
+			MatchPair(int i, int j, MatchInfo& m):
 				from(i), to(j), m(m){}
 		};
 
@@ -97,12 +97,17 @@ class IncrementalBundleAdjuster {
 			std::vector<double> params;
 
 			std::vector<Camera>& get_cameras();
-			void ensure_params();
-
-			inline std::vector<double>& get_params() {
-				ensure_params();
-				return params;
+			const std::vector<Camera>& get_cameras() const {
+				return const_cast<ParamState*>(this)->get_cameras();
 			}
+
+			void ensure_params() const;
+
+			const std::vector<double>& get_params() const
+			{ ensure_params(); return params; }
+
+			std::vector<double>& get_params()
+			{ ensure_params(); return params; }
 
 			// change a param, and its corresponding camera
 			void mutate_param(int param_idx, double new_val);
@@ -112,14 +117,14 @@ class IncrementalBundleAdjuster {
 		/// Optimization routines:
 		Eigen::MatrixXd J, JtJ;		// to avoid too many malloc
 
-		ErrorStats calcError(ParamState& state);
+		ErrorStats calcError(const ParamState& state);
 
 		Eigen::VectorXd get_param_update(
-				ParamState& state, const std::vector<double>& residual, float);
+				const ParamState& state, const std::vector<double>& residual, float);
 
 		// calculate J & JtJ
-		void calcJacobianNumerical(ParamState& state);
-		void calcJacobianSymbolic(ParamState& state);
+		void calcJacobianNumerical(const ParamState& state);
+		void calcJacobianSymbolic(const ParamState& state);
 
 };
 
