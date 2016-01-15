@@ -6,18 +6,16 @@ os:
   - linux
 
 compiler:
-  - clang
   - gcc
+  - clang
 
 env:
-  - TASK=lint
   - TASK=build
 
 # dependent apt packages
 addons:
   apt:
     packages:
-      - g++-4.8
       - libeigen3-dev
 
 before_install: true
