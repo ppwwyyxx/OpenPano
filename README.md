@@ -8,6 +8,8 @@ which is also the one used by [AutoStitch](http://matthewalunbrown.com/autostitc
 
 (Recently I'm working on refactoring & improvements, changes are expected)
 
+[![Build Status](https://travis-ci.org/ppwwyyxx/panorama.svg?branch=master)](https://travis-ci.org/ppwwyyxx/panorama)
+
 ### Compile Dependencies:
 
 * gcc >= 4.7

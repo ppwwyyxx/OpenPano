@@ -7,7 +7,6 @@ os:
 
 compiler:
   - gcc
-  - clang
 
 env:
   - TASK=build
@@ -34,4 +33,3 @@ notifications:
   email:
     on_success: change
     on_failure: always
-  #slack: dmlc:NmroCzntCiWOuxUZpii40USd
