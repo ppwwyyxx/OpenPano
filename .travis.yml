@@ -15,12 +15,16 @@ env:
 # dependent apt packages
 addons:
   apt:
+    sources:
+      - ubuntu-toolchain-r-test
     packages:
+      - g++-4.8
       - libeigen3-dev
 
 before_install: true
 
-install: true
+install:
+  - if [ "$CXX" == "g++" ]; then export CXX="g++-4.8"; fi
 
 script:
   - make -C src
