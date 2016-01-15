@@ -1,0 +1,35 @@
+sudo: false
+
+language: cpp
+
+os:
+  - linux
+
+compiler:
+  - clang
+  - gcc
+
+env:
+  - TASK=lint
+  - TASK=build
+
+# dependent apt packages
+addons:
+  apt:
+    packages:
+      - g++-4.8
+      - libeigen3-dev
+
+before_install: true
+
+install: true
+
+script:
+  - make -C src
+
+notifications:
+# Emails are sent to the committer's git-configured email address by default,
+  email:
+    on_success: change
+    on_failure: always
+  #slack: dmlc:NmroCzntCiWOuxUZpii40USd
