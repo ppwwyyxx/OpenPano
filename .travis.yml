@@ -20,13 +20,13 @@ addons:
       - g++-4.8
       - libeigen3-dev
 
-before_install: true
-
-install:
+before_script:
   - if [ "$CXX" == "g++" ]; then export CXX="g++-4.8"; fi
+  - export OMP_NUM_THREADS=4
 
 script:
-  - make -C src
+  - make -j -C src
+  - cd src && ./run_test.py
 
 notifications:
 # Emails are sent to the committer's git-configured email address by default,
