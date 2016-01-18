@@ -164,16 +164,6 @@ void IncrementalBundleAdjuster::optimize() {
 		result_cameras[i] = results[now++];
 }
 
-void IncrementalBundleAdjuster::filter() {
-	ParamState state;
-	for (auto& idx : idx_added)
-		state.cameras.emplace_back(result_cameras[idx]);
-	state.ensure_params();
-	state.cameras.clear();
-	auto err_stat = calcError(state);
-
-}
-
 IncrementalBundleAdjuster::ErrorStats IncrementalBundleAdjuster::calcError(
 		const ParamState& state) {
 	ErrorStats ret(nr_pointwise_match * NR_TERM_PER_MATCH);
@@ -199,6 +189,26 @@ IncrementalBundleAdjuster::ErrorStats IncrementalBundleAdjuster::calcError(
 	}
 	ret.update_stats(inlier_threshold);
 	return ret;
+}
+
+void IncrementalBundleAdjuster::ErrorStats::update_stats(int inlier_threshold) {
+	// TODO which error func to use?
+	auto error_func = [&](double diff) -> double {
+		return sqr(diff);	// square error is good
+		diff = fabs(diff);
+		if (diff < inlier_threshold)
+			return sqr(diff);
+		return 2.0 * inlier_threshold * diff - sqr(inlier_threshold);
+	};
+
+	avg = max = 0;
+	for (auto& e : residuals) {
+		avg += error_func(e);
+		update_max(max, fabs(e));
+	}
+	avg /= residuals.size();
+	avg = sqrt(avg);
+
 }
 
 Eigen::VectorXd IncrementalBundleAdjuster::get_param_update(

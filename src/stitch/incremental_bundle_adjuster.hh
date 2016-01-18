@@ -20,6 +20,17 @@ struct Shape2D;
 
 class IncrementalBundleAdjuster {
 	public:
+		// statistics of error
+		struct ErrorStats {
+			std::vector<double> residuals;
+			double max, avg;
+			ErrorStats(int size): residuals(size) {}
+
+			inline int num_terms() const { return residuals.size(); }
+
+			void update_stats(int inlier_threshold);
+		};
+
 		IncrementalBundleAdjuster(
 				const std::vector<Shape2D>& shapes,
 				std::vector<Camera>& cameras);
@@ -31,7 +42,12 @@ class IncrementalBundleAdjuster {
 
 		void optimize();
 
-		void filter();
+		ErrorStats get_error_stat() {
+			ParamState state;
+			for (auto& c: result_cameras) state.cameras.emplace_back(c);
+			state.ensure_params();
+			return calcError(state);
+		}
 
 	protected:
 		const std::vector<Shape2D>& shapes;
@@ -53,7 +69,7 @@ class IncrementalBundleAdjuster {
 
 		// map from original image index to index added
 		std::vector<int> index_map;
-		// map from index of matched pair to the index of its first error term
+		// map from index in match_pairs to the index of its first error term
 		std::vector<int> match_cnt_prefix_sum;
 
 		inline void update_index_map() {
@@ -61,34 +77,6 @@ class IncrementalBundleAdjuster {
 			for (auto& i : idx_added)
 				index_map[i] = cnt++;
 		}
-
-		// statistics of error
-		struct ErrorStats {
-			std::vector<double> residuals;
-			double max, avg;
-			ErrorStats(int size): residuals(size) {}
-
-			inline int num_terms() const { return residuals.size(); }
-
-			// TODO which error func to use?
-			void update_stats(int inlier_threshold) {
-				auto error_func = [&](double diff) -> double {
-					return sqr(diff);	// square error is good
-					diff = fabs(diff);
-					if (diff < inlier_threshold)
-						return sqr(diff);
-					return 2.0 * inlier_threshold * diff - sqr(inlier_threshold);
-				};
-
-				avg = max = 0;
-				for (auto& e : residuals) {
-					avg += error_func(e);
-					update_max(max, fabs(e));
-				}
-				avg /= residuals.size();
-				avg = sqrt(avg);
-			}
-		};
 
 		// state of all parameters estimated so far
 		// could be in the form of either cameras or params
@@ -112,7 +100,6 @@ class IncrementalBundleAdjuster {
 			// change a param, and its corresponding camera
 			void mutate_param(int param_idx, double new_val);
 		};
-
 
 		/// Optimization routines:
 		Eigen::MatrixXd J, JtJ;		// to avoid too many malloc
