@@ -4,6 +4,7 @@
 #include "blender.hh"
 
 #include <iostream>
+#include "lib/config.hh"
 #include "lib/imgproc.hh"
 #include "lib/timer.hh"
 using namespace std;
@@ -35,10 +36,12 @@ Mat32f LinearBlender::run() {
 						float r = img_coor.y, c = img_coor.x;
 						auto color = interpolate(img.img, r, c);
 						if (color.x < 0) continue;
-						// TODO decide which interpolation method to use
-						// t.w = (0.5 - fabs(p.x / img.width() - 0.5)) * (0.5 - fabs(p.y / img.height() - 0.5));
-						// x-axis linear interpolation
-						float w = 0.5 - fabs(c / img.img.width() - 0.5);
+						float w;
+						if (config::LINEAR_INPUT)
+							// x-axis linear interpolation
+							w = 0.5 - fabs(c / img.img.width() - 0.5);
+						else
+						  w = (0.5 - fabs(c / img.img.width() - 0.5)) * (0.5 - fabs(r / img.img.height() - 0.5));
 
 						isum += color * w;
 						wsum += w;
