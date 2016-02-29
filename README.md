@@ -16,7 +16,7 @@ which is also the one used by [AutoStitch](http://matthewalunbrown.com/autostitc
 * [Eigen](http://eigen.tuxfamily.org/index.php?title=Main_Page)
 * [FLANN](http://www.cs.ubc.ca/research/flann/) (already included in the repository, slightly modified)
 * [CImg](http://cimg.eu/) (optional. already included in the repository)
-* libjpeg (optional. If you only need png, you can commenting the jpeg macro in lib/imgio.cc)
+* libjpeg (optional. If you only need png, you can comment the jpeg macro in lib/imgio.cc)
 
 Eigen, CImg and FLANN are header-only, to simplify the compilation on different platforms.
 CImg and libjpeg are only used to read and write images, so you can easily get rid of them.
