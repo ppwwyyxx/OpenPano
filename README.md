@@ -22,9 +22,11 @@ Eigen, CImg and FLANN are header-only, to simplify the compilation on different 
 CImg and libjpeg are only used to read and write images, so you can easily get rid of them.
 
 ### Compile:
+Linux / OSX:
 ```
 $ cd src; make
 ```
+Windows users can try cmake with the given `CMakeLists.txt`.
 
 ### Options:
 
@@ -43,7 +45,7 @@ Three modes are available (set/unset the options in ``config.cfg``):
 
 Some options you may care:
 + __FOCAL_LENGTH__: focal length of your camera in [35mm equivalent](https://en.wikipedia.org/wiki/35_mm_equivalent_focal_length). Only used in cylinder mode.
-+ __LINEAR_INPUT__: whether input images are ordered. it is required in CYLINDER and TRANS mode.
++ __ORDERED_INPUT__: whether input images are ordered. it is required in CYLINDER and TRANS mode.
 + __CROP__: whether to crop the final image to avoid meaningless border.
 
 Other parameters are quality-related.
@@ -82,8 +84,11 @@ Carnegie Mellon University from 38 images
 For more examples, see [results](https://github.com/ppwwyyxx/panorama/tree/master/results).
 
 ## Speed & Memory:
-In cylinder mode, it took 10 seconds to process 17 images of size 1000x660 on 2 x i5-2430M (pretty old cpu).
-I know there are room for speed up.
+Tested on Intel Core i7-6700HQ, with ESTIMATE_CAMERA mode:
+
++ 11 ordered images of size 600x400: 3.2s.
++ 13 ordered images of size 1500x1112: 6s.
++ 38 unordered images of size 1300x867 (high vertical FOV): 51s.
 
 Memory consumption is known to be huge with default libc allocator.
 Simply use a modern allocator (e.g. tcmalloc, hoard) can help a lot.

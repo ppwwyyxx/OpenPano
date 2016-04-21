@@ -37,7 +37,7 @@ Mat32f LinearBlender::run() {
 						auto color = interpolate(img.img, r, c);
 						if (color.x < 0) continue;
 						float w;
-						if (config::LINEAR_INPUT)
+						if (config::ORDERED_INPUT)
 							// x-axis linear interpolation
 							w = 0.5 - fabs(c / img.img.width() - 0.5);
 						else

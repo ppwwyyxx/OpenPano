@@ -272,9 +272,9 @@ void init_config() {
 	else
 		print_debug("Run with naive mode.\n");
 
-	LINEAR_INPUT = Config.get("LINEAR_INPUT");
-	if (!LINEAR_INPUT && !ESTIMATE_CAMERA)
-		error_exit("Require LINEAR_INPUT under this mode!\n");
+	ORDERED_INPUT = Config.get("ORDERED_INPUT");
+	if (!ORDERED_INPUT && !ESTIMATE_CAMERA)
+		error_exit("Require ORDERED_INPUT under this mode!\n");
 	CROP = Config.get("CROP");
 	STRAIGHTEN = Config.get("STRAIGHTEN");
 	FOCAL_LENGTH = Config.get("FOCAL_LENGTH");

@@ -35,7 +35,7 @@ Mat32f Stitcher::build() {
 
 	pairwise_matches.resize(imgs.size());
 	for (auto& k : pairwise_matches) k.resize(imgs.size());
-	if (LINEAR_INPUT)
+	if (ORDERED_INPUT)
 		linear_pairwise_match();
 	else
 		pairwise_match();
