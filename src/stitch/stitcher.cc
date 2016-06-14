@@ -119,8 +119,11 @@ void Stitcher::linear_pairwise_match() {
 			else
 				error_exit(ssprintf("Image %d and %d don't match\n", i, next));
 		}
+		int oldnext = next;
 		do {
 			next = (next + 1) % n;
+				if (next == oldnext)
+					break;
 		} while (match_image(pwmatcher, i, next));
 	}
 }

@@ -65,7 +65,7 @@ vector<Camera> CameraEstimator::estimate() {
 			cameras[next].ppx = shapes[next].halfw();
 			cameras[next].ppy = shapes[next].halfh();
 
-			//cameras[next] = cameras[now];	// initialize by the last camera. also good
+			//cameras[next] = cameras[now];	 // initialize by the last camera. seems better?
 
 			if (MULTIPASS_BA > 0) {
 				// add next to BA

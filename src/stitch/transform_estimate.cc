@@ -204,6 +204,7 @@ bool TransformEstimation::fill_inliers_to_matchinfo(
 				);
 	}
 	info->confidence = (r1p + r2p) * 0.5;
+  //if (info->confidence < 0.1) return false;
 	return true;
 }
 
