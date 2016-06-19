@@ -30,9 +30,9 @@ def test_final_size(image_globs, w, h):
             ww, hh = map(int, m.group(1, 2))
             if good_size(ww, w) and good_size(hh, h):
                 return
-            else:
-                print "Test Failed! Output:"
-                sys.exit(1)
+            break
+    print "Test Failed!"
+    sys.exit(1)
 
 if __name__ == '__main__':
     ret = os.system('wget https://github.com/ppwwyyxx/panorama/releases/download/0.1/example-data.tgz')
