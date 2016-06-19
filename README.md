@@ -44,13 +44,13 @@ Three modes are available (set/unset the options in ``config.cfg``):
   It works when camera performs pure translation.  It also requires ordered input.
 
 Some options you may care:
-+ __FOCAL_LENGTH__: focal length of your camera in [35mm equivalent](https://en.wikipedia.org/wiki/35_mm_equivalent_focal_length). Only used in cylinder mode.
-+ __ORDERED_INPUT__: whether input images are ordered. it is required in CYLINDER and TRANS mode.
-+ __CROP__: whether to crop the final image to avoid meaningless border.
++ __FOCAL_LENGTH__: focal length of your camera in [35mm equivalent](https://en.wikipedia.org/wiki/35_mm_equivalent_focal_length). Only useful in cylinder mode.
++ __ORDERED_INPUT__: whether input images are ordered. has to be `1` in CYLINDER and TRANS mode.
++ __CROP__: whether to crop the final image to avoid irregular white border.
 
 Other parameters are quality-related.
 The default values are generally good for images with more than 0.7 megapixels.
-If your images are too small and cannot give satisfactory results,
+If your images are too small and cannot produce satisfactory results,
 it might be better to resize your images rather than tune the parameters.
 
 ### Run:
