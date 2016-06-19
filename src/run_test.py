@@ -3,7 +3,7 @@
 # File: run_test.py
 # Author: Yuxin Wu <ppwwyyxx@gmail.com>
 
-import os
+import os, sys
 import glob
 import subprocess
 import re
@@ -30,7 +30,8 @@ def test_final_size(image_globs, w, h):
             if good_size(ww, w) and good_size(hh, h):
                 return
             else:
-                print "Test Failed!"
+                print "Test Failed! Output:"
+                print '\n'.join(outputs)
                 sys.exit(1)
 
 if __name__ == '__main__':
@@ -38,5 +39,5 @@ if __name__ == '__main__':
     assert ret == 0
     ret = os.system('tar xzf example-data.tgz')
     assert ret == 0
-    test_final_size('example-data/zijing/*', 6888, 1093)
+    test_final_size('example-data/zijing/*', 6888, 1100)
     print "Tests Passed"
