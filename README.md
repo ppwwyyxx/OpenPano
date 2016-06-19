@@ -68,17 +68,20 @@ In cylinder/translation mode, the input file names need to have the correct orde
 ## Examples:
 
 Zijing Apartment in Tsinghua University:
-![dorm](https://github.com/ppwwyyxx/panorama/raw/master/results/small/apartment.jpg)
+![dorm](https://github.com/ppwwyyxx/panorama/raw/master/results/apartment.jpg)
 
 Myselves:
-![myself](https://github.com/ppwwyyxx/panorama/raw/master/results/small/myself.jpg)
+![myself](https://github.com/ppwwyyxx/panorama/raw/master/results/myself.jpg)
 
 Zijing Playground in Tsinghua University:
-![planet](https://github.com/ppwwyyxx/panorama/raw/master/results/small/planet.jpg)
+![planet](https://github.com/ppwwyyxx/panorama/raw/master/results/planet.jpg)
 
 Carnegie Mellon University from 38 images
-![cmu0](https://github.com/ppwwyyxx/panorama/raw/master/results/small/CMU0-all.jpg)
+![cmu0](https://github.com/ppwwyyxx/panorama/raw/master/results/CMU0-all.jpg)
 ![apple](https://github.com/ppwwyyxx/panorama/raw/master/results/apple.jpg)
+
+Newell-Simon Hall in CMU:
+![nsh](https://github.com/ppwwyyxx/panorama/raw/master/results/NSH-cyl.jpg)
 
 
 For more examples, see [results](https://github.com/ppwwyyxx/panorama/tree/master/results).
