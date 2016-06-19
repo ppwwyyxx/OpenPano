@@ -34,6 +34,9 @@ def test_final_size(image_globs, w, h):
                 sys.exit(1)
 
 if __name__ == '__main__':
-    #test_final_size('../data/myself/small*', 5220, 853)
-    test_final_size('../data/apartment/small*', 3442, 572)
+    ret = os.system('wget https://github.com/ppwwyyxx/panorama/releases/download/0.1/example-data.tgz')
+	assert ret == 0
+	ret = os.system('tar xzf example-data.tgz')
+    assert ret == 0
+    test_final_size('example-data/zijing/*', 6888, 1093)
     print "Tests Passed"
