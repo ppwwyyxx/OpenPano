@@ -65,7 +65,7 @@ Before dealing with very large images (4 megapixels or more), it's better to res
 
 In cylinder/translation mode, the input file names need to have the correct order.
 
-## Examples:
+## Examples (All data available for [__download__](https://github.com/ppwwyyxx/panorama/releases/tag/0.1)):
 
 Zijing Apartment in Tsinghua University:
 ![dorm](https://github.com/ppwwyyxx/panorama/raw/master/results/apartment.jpg)
@@ -80,14 +80,13 @@ Carnegie Mellon University from 38 images
 ![cmu0](https://github.com/ppwwyyxx/panorama/raw/master/results/CMU0-all.jpg)
 ![apple](https://github.com/ppwwyyxx/panorama/raw/master/results/apple.jpg)
 
-Newell-Simon Hall in CMU:
-![nsh](https://github.com/ppwwyyxx/panorama/raw/master/results/NSH-cyl.jpg)
-
+Newell-Simon Hall in CMU (this one is hard because objects are closer):
+![nsh](https://github.com/ppwwyyxx/panorama/raw/master/results/NSH-all.jpg)
 
 For more examples, see [results](https://github.com/ppwwyyxx/panorama/tree/master/results).
 
 ## Speed & Memory:
-Tested on Intel Core i7-6700HQ, with ESTIMATE_CAMERA mode:
+Tested on Intel Core i7-6700HQ, with `ESTIMATE_CAMERA` mode:
 
 + 11 ordered images of size 600x400: 3.2s.
 + 13 ordered images of size 1500x1112: 6s.

@@ -7,4 +7,8 @@ data/
 output
 *.pyc
 build/
-src/out.jpg
+src/*.jpg
+src/image-stitching
+log
+
+*-report
