@@ -10,7 +10,7 @@ ifeq ($(UNAME_S),Linux)
 	EIGEN_PATH ?= /usr/include/eigen3
 endif
 ifeq ($(UNAME_S),Darwin)
-	CXX = g++-5
+	CXX ?= g++
 	EIGEN_PATH ?= /usr/local/include/eigen3
 endif
 INCLUDE_DIR = -I. -isystem $(EIGEN_PATH) -isystem third-party
