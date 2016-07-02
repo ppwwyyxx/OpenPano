@@ -105,7 +105,7 @@ Vec2D ConnectedImages::get_final_resolution() const {
 				target_size = proj_range.size() / resolution;
 	double max_edge = max(target_size.x, target_size.y);
   print_debug("Target Image Size: (%lf, %lf)\n", target_size.x, target_size.y);
-	if (max_edge > 30000 || target_size.x * target_size.y > 600000000)
+	if (max_edge > 80000 || target_size.x * target_size.y > 1e9)
 		error_exit("Target size too large. Looks like a stitching failure!\n");
 	// resize the result
 	if (max_edge > MAX_OUTPUT_SIZE) {

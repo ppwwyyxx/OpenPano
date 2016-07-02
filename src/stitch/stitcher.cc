@@ -53,7 +53,8 @@ Mat32f Stitcher::build() {
 		build_linear_simple();		// naive mode
 	// TODO automatically determine projection method
 	if (ESTIMATE_CAMERA)
-		bundle.proj_method = ConnectedImages::ProjectionMethod::cylindrical;
+		//bundle.proj_method = ConnectedImages::ProjectionMethod::cylindrical;
+		bundle.proj_method = ConnectedImages::ProjectionMethod::spherical;
 	else
 		bundle.proj_method = ConnectedImages::ProjectionMethod::flat;
 	print_debug("Using projection method: %d\n", bundle.proj_method);

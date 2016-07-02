@@ -35,10 +35,12 @@ def test_final_size(image_globs, w, h):
     sys.exit(1)
 
 if __name__ == '__main__':
-    ret = os.system('wget https://github.com/ppwwyyxx/panorama/releases/download/0.1/example-data.tgz')
-    assert ret == 0
-    ret = os.system('tar xzf example-data.tgz')
-    assert ret == 0
+    if len(sys.argv) == 1:
+        # skip download
+        ret = os.system('wget https://github.com/ppwwyyxx/panorama/releases/download/0.1/example-data.tgz')
+        assert ret == 0
+        ret = os.system('tar xzf example-data.tgz')
+        assert ret == 0
     test_final_size('example-data/zijing/*', 6888, 1100)
     test_final_size('example-data/CMU1-medium/*', 8000, 1349)
     print "Tests Passed"

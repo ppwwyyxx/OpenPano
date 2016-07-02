@@ -19,7 +19,6 @@ class ConfigParser {
 		ConfigParser(const char* fname);
 
 		float get(const std::string& s);
-
 };
 
 extern bool CYLINDER;
@@ -57,7 +56,8 @@ extern float MATCH_REJECT_NEXT_RATIO;
 
 extern int RANSAC_ITERATIONS;
 extern double RANSAC_INLIER_THRES;
-extern float INLIER_MINIMUM_RATIO;
+extern float INLIER_IN_MATCH_RATIO;
+extern float INLIER_IN_POINTS_RATIO;
 
 extern float SLOPE_PLAIN;
 
