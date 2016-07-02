@@ -57,32 +57,12 @@ void ConnectedImages::update_proj_range() {
 			now_min.update_min(t_corner);
 			now_max.update_max(t_corner);
 		}
-		// assume no image has horiz FOV > 180
-		// XXX TODO ugly
-		if (proj_method != ProjectionMethod::flat &&
-				now_max.x - now_min.x > M_PI) {
-			// head and tail
-			now_min = Vec2D(numeric_limits<double>::max(), std::numeric_limits<double>::max());
-			now_max = now_min * (-1);
-			for (auto v : corner) {
-				Vec homo = m.homo.trans(
-						Vec2D(v.x * m.imgptr->width(), v.y * m.imgptr->height()));
-				Vec2D t_corner = homo2proj(homo);
-				if (t_corner.x < 0) t_corner.x += 2*M_PI;
-				now_min.update_min(t_corner);
-				now_max.update_max(t_corner);
-			}
-		}
 		m.range = Range(now_min, now_max);
 		proj_min.update_min(now_min);
 		proj_max.update_max(now_max);
 		print_debug("Range: (%lf,%lf)~(%lf,%lf)\n",
 				m.range.min.x, m.range.min.y,
 				m.range.max.x, m.range.max.y);
-	}
-	if (proj_method != ProjectionMethod::flat) {
-		// TODO keep everything inside 2 * pi
-		// doesn't seem to be trivial. need to maintain range of each component
 	}
 	proj_range.min = proj_min, proj_range.max = proj_max;
 }
@@ -140,11 +120,14 @@ Mat32f ConnectedImages::blend() const {
 		blender.add_image(top_left, bottom_right, *cur.imgptr, [=,&cur](Coor t) -> Vec2D {
 				Vec2D c = Vec2D(t.x, t.y) * resolution + proj_range.min;
 				Vec homo = proj2homo(Vec2D(c.x, c.y));
-				Vec2D orig = cur.homo_inv.trans_normalize(homo);
-				return orig;
+				Vec ret = cur.homo_inv.trans(homo);
+				if (ret.z < 0)
+					return Vec2D{-1, -1};	// was projected to the other side of the lens, discard
+				double denom = 1.0 / ret.z;
+				return Vec2D{ret.x*denom, ret.y*denom};
 				});
 	}
-	//if (DEBUG_OUT) blender.debug_run(size.x, size.y);
+	//blender.debug_run(size.x, size.y);	// for debug
 	return blender.run();
 }
 
