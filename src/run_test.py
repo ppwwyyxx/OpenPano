@@ -35,8 +35,7 @@ def test_final_size(image_globs, w, h):
     sys.exit(1)
 
 if __name__ == '__main__':
-    if len(sys.argv) == 1:
-        # skip download
+    if not os.path.isdir('example-data'):
         ret = os.system('wget https://github.com/ppwwyyxx/panorama/releases/download/0.1/example-data.tgz')
         assert ret == 0
         ret = os.system('tar xzf example-data.tgz')
