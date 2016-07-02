@@ -18,7 +18,6 @@ namespace pano {
 
 Mat32f CylinderStitcher::build() {
 	calc_feature();
-	// naively. when changing here, keep mid for CYLINDER
 	bundle.identity_idx = imgs.size() >> 1;
 	build_warp();
 	free_feature();

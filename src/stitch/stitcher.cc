@@ -128,7 +128,6 @@ void Stitcher::linear_pairwise_match() {
 }
 
 void Stitcher::assign_center() {
-	// naively. when changing here, keep mid for CYLINDER
 	bundle.identity_idx = imgs.size() >> 1;
 	//bundle.identity_idx = 0;
 }

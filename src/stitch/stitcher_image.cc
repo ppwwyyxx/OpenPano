@@ -57,7 +57,7 @@ void ConnectedImages::update_proj_range() {
 			now_min.update_min(t_corner);
 			now_max.update_max(t_corner);
 		}
-		// assume no image has FOV > 180
+		// assume no image has horiz FOV > 180
 		// XXX TODO ugly
 		if (proj_method != ProjectionMethod::flat &&
 				now_max.x - now_min.x > M_PI) {
@@ -104,8 +104,9 @@ Vec2D ConnectedImages::get_final_resolution() const {
 	Vec2D resolution = id_img_range / Vec2D(refw, refh),		// x-per-pixel, y-per-pixel
 				target_size = proj_range.size() / resolution;
 	double max_edge = max(target_size.x, target_size.y);
+  print_debug("Target Image Size: (%lf, %lf)\n", target_size.x, target_size.y);
 	if (max_edge > 30000 || target_size.x * target_size.y > 600000000)
-		error_exit("Result too large. Something must be wrong!\n");
+		error_exit("Target size too large. Looks like a stitching failure!\n");
 	// resize the result
 	if (max_edge > MAX_OUTPUT_SIZE) {
 		float ratio = max_edge / MAX_OUTPUT_SIZE;

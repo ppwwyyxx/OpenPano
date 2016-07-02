@@ -142,9 +142,13 @@ void CameraEstimator::traverse(
 		callback_edge(best_edge.v1, best_edge.v2);
 		enqueue_edges_from(best_edge.v2);
 	}
-	if (cnt != n)
+	if (cnt != n) {
+    string unconnected;
+    REP(i, n) if (not vst[i])
+      unconnected += to_string(i) + " ";
 		error_exit(ssprintf(
-					"Found a tree of size %d!=%d, images are not connected well!",
-					cnt, n));
+					"Found a tree of size %d!=%d, image %s are not connected well!",
+					cnt, n, unconnected.c_str()));
+  }
 }
 }
