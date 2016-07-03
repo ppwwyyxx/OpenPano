@@ -49,7 +49,7 @@ Mat32f read_png(const char* fname) {
 		*(p++) = (float)*(data++) / 255.0;
 		*(p++) = (float)*(data++) / 255.0;
 		*(p++) = (float)*(data++) / 255.0;
-		data++;
+		data++;	// rgba
 	}
 	return mat;
 }
@@ -63,16 +63,15 @@ Mat32f read_img(const char* fname) {
 		error_exit(ssprintf("File \"%s\" not exists!", fname));
 	if (endswith(fname, ".png"))
 		return read_png(fname);
-	CImg<float> img(fname);
+	CImg<unsigned char> img(fname);
 	m_assert(img.spectrum() == 3 || img.spectrum() == 1);
-	img = img / 255.0;
 	Mat32f mat(img.height(), img.width(), 3);
 	if (img.spectrum() == 3) {
 		REP(i, mat.rows())
 			REP(j, mat.cols()) {
-				mat.at(i, j, 0) = img(j, i, 0);
-				mat.at(i, j, 1) = img(j, i, 1);
-				mat.at(i, j, 2) = img(j, i, 2);
+				mat.at(i, j, 0) = (float)img(j, i, 0) / 255.0;
+				mat.at(i, j, 1) = (float)img(j, i, 1) / 255.0;
+				mat.at(i, j, 2) = (float)img(j, i, 2) / 255.0;
 			}
 	} else {
 		REP(i, mat.rows())
@@ -90,7 +89,7 @@ void write_rgb(const char* fname, const Mat32f& mat) {
 		write_png(fname, mat);
 		return;
 	}
-	CImg<float> img(mat.cols(), mat.rows(), 1, 3);
+	CImg<unsigned char> img(mat.cols(), mat.rows(), 1, 3);
 	REP(i, mat.rows())
 		REP(j, mat.cols()) {
 			// use white background. Color::NO turns to 1

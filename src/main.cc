@@ -197,9 +197,12 @@ void test_warp(int argc, char* argv[]) {
 
 void work(int argc, char* argv[]) {
 	vector<Mat32f> imgs(argc - 1);
-//#pragma omp parallel for schedule(dynamic)
-	REPL(i, 1, argc)
-		imgs[i-1] = read_img(argv[i]);
+	{
+		GuardedTimer tm("Read images");
+#pragma omp parallel for schedule(dynamic)
+		REPL(i, 1, argc)
+			imgs[i-1] = read_img(argv[i]);
+	}
 	Mat32f res;
 	if (CYLINDER) {
 		CylinderStitcher p(move(imgs));
@@ -208,15 +211,6 @@ void work(int argc, char* argv[]) {
 		Stitcher p(move(imgs));
 		res = p.build();
 	}
-	/*
-	 *if (res.width() * res.height() > 12000000) {
-	 *  print_debug("Result is large, resizing for faster output...\n");
-	 *  float ratio = max(res.width(), res.height()) * 1.0f / 8000;
-	 *  Mat32f dst(res.height() * 1.0f / ratio, res.width() * 1.0f / ratio, 3);
-	 *  resize(res, dst);
-	 *  res = dst;
-	 *}
-	 */
 
 	if (CROP) {
 		int oldw = res.width(), oldh = res.height();
