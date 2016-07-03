@@ -29,6 +29,7 @@ extern bool ESTIMATE_CAMERA;
 extern bool STRAIGHTEN;
 extern int MAX_OUTPUT_SIZE;
 extern bool ORDERED_INPUT;
+extern bool LAZY_READ;
 
 extern int SIFT_WORKING_SIZE;
 extern int NUM_OCTAVE;

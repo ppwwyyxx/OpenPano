@@ -59,6 +59,7 @@ void MultiBandBlender::debug_level(int level) const {
 
 void Stitcher::draw_matchinfo() const {
 	int n = imgs.size();
+	REP(i, n) imgs[i].load();
 #pragma omp parallel for schedule(dynamic)
 	REP(i, n) REPL(j, i+1, n) {
 		Vec2D offset1(imgs[i].width()/2, imgs[i].height()/2);
@@ -69,7 +70,7 @@ void Stitcher::draw_matchinfo() const {
 		auto& m = pairwise_matches[i][j];
 		if (m.confidence <= 0)
 			continue;
-		list<Mat32f> imagelist{imgs[i], imgs[j]};
+		list<Mat32f> imagelist{*imgs[i].img, *imgs[j].img};
 		Mat32f conc = hconcat(imagelist);
 		PlaneDrawer pld(conc);
 		for (auto& p : m.match) {

@@ -7,6 +7,7 @@
 #include "lib/mat.h"
 #include "lib/geometry.hh"
 #include "feature/feature.hh"
+#include "imagemeta.hh"
 
 namespace pano {
 
@@ -25,7 +26,7 @@ class StitcherBase {
 			>::value
 			>::type;
 
-		std::vector<Mat32f> imgs;
+		std::vector<ImageMeta> imgs;
 
 		// feature and keypoints of each image
 		std::vector<std::vector<Descriptor>> feats;	// [-w/2,w/2]
@@ -43,9 +44,13 @@ class StitcherBase {
 		// universal reference constructor to initialize imgs
 		template<typename U, typename X =
 			disable_if_same_or_derived<StitcherBase, U>>
-			StitcherBase(U&& i) : imgs(std::forward<U>(i)) {
-				if (imgs.size() <= 1)
-					error_exit(ssprintf("Cannot stitch with only %lu images.", imgs.size()));
+			StitcherBase(U&& i) {
+				/*
+				 *if (imgs.size() <= 1)
+				 *  error_exit(ssprintf("Cannot stitch with only %lu images.", imgs.size()));
+				 */
+				for (auto& n : i)
+					imgs.emplace_back(n);
 
 				feature_det.reset(new SIFTDetector);
 			}

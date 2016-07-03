@@ -82,6 +82,11 @@ Mat32f read_img(const char* fname) {
 	return mat;
 }
 
+// TODO a hack for the moment
+Matuc read_img_uc(const char* fname) {
+	return cvt_f2uc(read_img(fname));
+}
+
 
 void write_rgb(const char* fname, const Mat32f& mat) {
 	m_assert(mat.channels() == 3);

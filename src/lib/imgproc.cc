@@ -151,7 +151,31 @@ Color interpolate(const Mat32f& mat, float r, float c) {
 	ret += Color(p) * (r * c);
 	p = mat.ptr(fr, fc + 1);
 	if (*p < 0) return Color::NO;
+	ret += Color(p) * ((1 - r) * c);
+	return ret;
+}
+
+Color interpolate(const Matuc& mat, float r, float c) {
+	m_assert(mat.channels() == 3);
+	int fr = floor(r), fc =  floor(c);
+	if (fr < 0 || fc < 0 || fc + 1 >= mat.cols() || fr + 1 >= mat.rows())
+		return Color::NO;
+	Color ret = Color::BLACK;
+	r -= fr, c -= fc;
+
+	const unsigned char* p = mat.ptr(fr, fc);
+
+	ret += Color(p[0], p[1], p[2]) * ((1 - r) * (1 - c));
+	p = mat.ptr(fr + 1, fc);
+
+	ret += Color(p[0], p[1], p[2]) * (r * (1 - c));
+	p = mat.ptr(fr + 1, fc + 1);
+
+	ret += Color(p[0], p[1], p[2]) * (r * c);
+	p = mat.ptr(fr, fc + 1);
+
 	ret += Color(p[0], p[1], p[2]) * ((1 - r) * c);
+	ret /= 255.0;
 	return ret;
 }
 
@@ -290,6 +314,17 @@ void resize<float>(const Mat32f &src, Mat32f &dst) {
 	m_assert(src.channels() == dst.channels());
 	m_assert(src.channels() == 1 || src.channels() == 3);
 	return resize_bilinear(src, dst);
+}
+
+Matuc cvt_f2uc(const Mat32f& mat) {
+	m_assert(mat.channels() == 3);
+	Matuc ret(mat.rows(), mat.cols(), 3);
+	auto ps = mat.ptr();
+	auto pt = ret.ptr();
+	int n = mat.pixels() * 3;
+	REP(i, n)
+		*(pt++) = *(ps++) * 255.0;
+	return ret;
 }
 
 }

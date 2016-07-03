@@ -136,7 +136,7 @@ void Stitcher::assign_center() {
 void Stitcher::estimate_camera() {
 	vector<Shape2D> shapes;
 	for (auto& m: imgs)
-		shapes.emplace_back(m.cols(), m.rows());
+		shapes.emplace_back(m.shape());
 	auto cameras = CameraEstimator{pairwise_matches, shapes}.estimate();
 
 	// produced homo operates on [0,w] coordinate

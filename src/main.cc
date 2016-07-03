@@ -196,13 +196,17 @@ void test_warp(int argc, char* argv[]) {
 
 
 void work(int argc, char* argv[]) {
-	vector<Mat32f> imgs(argc - 1);
-	{
-		GuardedTimer tm("Read images");
-#pragma omp parallel for schedule(dynamic)
-		REPL(i, 1, argc)
-			imgs[i-1] = read_img(argv[i]);
-	}
+/*
+ *  vector<Mat32f> imgs(argc - 1);
+ *  {
+ *    GuardedTimer tm("Read images");
+ *#pragma omp parallel for schedule(dynamic)
+ *    REPL(i, 1, argc)
+ *      imgs[i-1] = read_img(argv[i]);
+ *  }
+ */
+	vector<string> imgs;
+	REPL(i, 1, argc) imgs.emplace_back(argv[i]);
 	Mat32f res;
 	if (CYLINDER) {
 		CylinderStitcher p(move(imgs));
@@ -250,6 +254,8 @@ void init_config() {
 	CFG(STRAIGHTEN);
 	CFG(FOCAL_LENGTH);
 	CFG(MAX_OUTPUT_SIZE);
+	CFG(LAZY_READ);	// TODO in cyl mode
+
 	CFG(SIFT_WORKING_SIZE);
 	CFG(NUM_OCTAVE);
 	CFG(NUM_SCALE);

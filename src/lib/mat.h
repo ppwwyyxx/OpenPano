@@ -57,3 +57,4 @@ class Mat {
 };
 
 using Mat32f = Mat<float>;
+using Matuc = Mat<unsigned char>;

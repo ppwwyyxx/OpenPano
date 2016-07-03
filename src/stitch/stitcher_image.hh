@@ -7,6 +7,7 @@
 #include "lib/mat.h"
 #include "projection.hh"
 #include "homography.hh"
+#include "imagemeta.hh"
 
 namespace pano {
 
@@ -38,13 +39,13 @@ struct ConnectedImages {
 							 homo_inv;	// from identity to me
 
 		// point to the original image
-		Mat32f* imgptr;
+		ImageMeta* imgptr;
 
 		// range after projected to identity frame
 		Range range;
 
 		ImageComponent(){}
-		ImageComponent(Mat32f* img):imgptr(img) {}
+		ImageComponent(ImageMeta* img):imgptr(img) {}
 	};
 
 	std::vector<ImageComponent> component;

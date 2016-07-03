@@ -61,8 +61,9 @@ void CylinderStitcher::build_warp() {;
 	}
 	print_debug("Best hfactor: %lf\n", bestfactor);
 	CylinderWarper warper(bestfactor);
+	REP(k, n) imgs[k].load();
 #pragma omp parallel for schedule(dynamic)
-	REP(k, n) warper.warp(imgs[k], keypoints[k]);
+	REP(k, n) warper.warp(*imgs[k].img, keypoints[k]);
 
 	// accumulate
 	REPL(k, mid + 1, n) bundle.component[k].homo = move(bestmat[k - mid - 1]);
