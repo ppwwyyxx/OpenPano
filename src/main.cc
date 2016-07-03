@@ -200,7 +200,6 @@ void work(int argc, char* argv[]) {
 //#pragma omp parallel for schedule(dynamic)
 	REPL(i, 1, argc)
 		imgs[i-1] = read_img(argv[i]);
-	exit(0);
 	Mat32f res;
 	if (CYLINDER) {
 		CylinderStitcher p(move(imgs));
