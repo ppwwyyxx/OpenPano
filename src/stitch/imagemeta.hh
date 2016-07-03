@@ -9,28 +9,28 @@
 #include "match_info.hh"
 
 namespace pano {
-		struct ImageMeta {
+		// A transparent reference to a image in file
+		struct ImageRef {
 			std::string fname;
-			mutable Mat32f* img = nullptr;
-			mutable int _width, _height;
+			Mat32f* img = nullptr;
+			int _width, _height;
 
-			void load() const {
-				if (img)
-					return;
+			void load() {
+				if (img) return;
 				img = new Mat32f{read_img(fname.c_str())};
 				_width = img->width();
 				_height = img->height();
 			}
 
-			void release() const { if (img) delete img; img = nullptr; }
+			void release() { if (img) delete img; img = nullptr; }
 
 			int width() const { return _width; }
 			int height() const { return _height; }
 			Shape2D shape() const { return {_width, _height}; }
 
-			ImageMeta(const std::string& fname): fname(fname) {}
+			ImageRef(const std::string& fname): fname(fname) {}
 
-			~ImageMeta() { if (img) delete img; }
+			~ImageRef() { if (img) delete img; }
 		};
 
 }

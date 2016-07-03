@@ -26,7 +26,7 @@ class StitcherBase {
 			>::value
 			>::type;
 
-		std::vector<ImageMeta> imgs;
+		std::vector<ImageRef> imgs;
 
 		// feature and keypoints of each image
 		std::vector<std::vector<Descriptor>> feats;	// [-w/2,w/2]

@@ -39,13 +39,13 @@ struct ConnectedImages {
 							 homo_inv;	// from identity to me
 
 		// point to the original image
-		ImageMeta* imgptr;
+		ImageRef* imgptr;
 
 		// range after projected to identity frame
 		Range range;
 
 		ImageComponent(){}
-		ImageComponent(ImageMeta* img):imgptr(img) {}
+		ImageComponent(ImageRef* img):imgptr(img) {}
 	};
 
 	std::vector<ImageComponent> component;

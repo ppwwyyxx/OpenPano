@@ -20,7 +20,6 @@ class MultiBandBlender : public BlenderBase {
 		WeightedPixel operator * (float v) const { return WeightedPixel{w * v, c * v}; }
 		void operator += (const WeightedPixel& p) { w += p.w; c += p.c; }
 	};
-
 	struct ImageToBlend {
 		Range range;
 		Mat<WeightedPixel> img;		// a RoI in target image, starting from range.min
@@ -59,7 +58,7 @@ class MultiBandBlender : public BlenderBase {
 	void add_image(
 			const Coor& upper_left,
 			const Coor& bottom_right,
-			const ImageMeta &img,
+			ImageRef &img,
 			std::function<Vec2D(Coor)>) override;
 
 	Mat32f run() override;

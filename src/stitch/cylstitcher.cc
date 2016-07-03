@@ -73,8 +73,7 @@ void CylinderStitcher::build_warp() {;
 		MatchInfo info;
 		bool succ = TransformEstimation(
 				matches[i], keypoints[i + 1], keypoints[i],
-				{imgs[i+1].width(), imgs[i+1].height()},
-				{imgs[i].width(), imgs[i].height()}).get_transform(&info);
+				imgs[i+1].shape(), imgs[i].shape()).get_transform(&info);
 		// Can match before, but not here. This would be a bug.
 		if (! succ)
 			error_exit(ssprintf("Failed to match between image %d and %d.", i, i+1));
@@ -99,7 +98,7 @@ float CylinderStitcher::update_h_factor(float nowfactor,
 	vector<Shape2D> nowimgs;
 	vector<vector<Vec2D>> nowkpts;
 	REPL(k, start, end) {
-		nowimgs.emplace_back(imgs[k].width(), imgs[k].height());
+		nowimgs.emplace_back(imgs[k].shape());
 		nowkpts.push_back(keypoints[k]);
 	}			// nowfeats[0] == feats[mid]
 
@@ -171,15 +170,14 @@ Mat32f CylinderStitcher::perspective_correction(const Mat32f& img) {
 	Homography inv(m);
 
 	LinearBlender blender;
-	ImageMeta tmp("this_should_not_be_used");
-	tmp.img = const_cast<Mat32f*>(&img);
+	ImageRef tmp("this_should_not_be_used");
+	tmp.img = new Mat32f(img);
 	tmp._width = img.width(), tmp._height = img.height();
 	blender.add_image(
 			Coor(0,0), Coor(w,h), tmp,
 			[=](Coor c) -> Vec2D {
 		return inv.trans2d(Vec2D(c.x, c.y));
 	});
-	tmp.img = nullptr;
 	return blender.run();
 }
 

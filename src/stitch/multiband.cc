@@ -10,7 +10,7 @@ namespace pano {
 void MultiBandBlender::add_image(
 			const Coor& upper_left,
 			const Coor& bottom_right,
-			const ImageMeta &img,
+			ImageRef &img,
 			std::function<Vec2D(Coor)> coor_func) {
 	img.load();
 	Range range{upper_left, bottom_right};

@@ -58,7 +58,7 @@ void MultiBandBlender::debug_level(int level) const {
 }
 
 
-void Stitcher::draw_matchinfo() const {
+void Stitcher::draw_matchinfo() {
 	int n = imgs.size();
 	REP(i, n) imgs[i].load();
 #pragma omp parallel for schedule(dynamic)

@@ -45,7 +45,7 @@ class Stitcher : public StitcherBase {
 		void build_linear_simple();
 
 		// for debug
-		void draw_matchinfo() const;
+		void draw_matchinfo();
 		void dump_matchinfo(const char*) const;
 		void load_matchinfo(const char*);
 	public:
