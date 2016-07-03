@@ -64,6 +64,8 @@ extern float SLOPE_PLAIN;
 extern int MULTIPASS_BA;
 extern float LM_LAMBDA;
 
+extern int MULTIBAND;
+
 
 
 // keep unchanged

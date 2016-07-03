@@ -165,33 +165,6 @@ void test_inlier(const char* f1, const char* f2) {
 
 	// draw warped four edges
 	Shape2D shape2{pic2.width(), pic2.height()}, shape1{pic1.width(), pic1.height()};
-	/*
-	 *vector<Vec2D> poly2in1, poly1in2;
-	 *auto transform = info.homo;
-	 *PP(transform);
-	 *poly2in1.emplace_back(offset1 + transform.trans2d(Vec2D{-shape2.halfw(), -shape2.halfh()}));
-	 *poly2in1.emplace_back(offset1 + transform.trans2d(Vec2D{-shape2.halfw(), shape2.halfh()}));
-	 *poly2in1.emplace_back(offset1 + transform.trans2d(shape2.center()));
-	 *poly2in1.emplace_back(offset1 + transform.trans2d(Vec2D{shape2.halfw(), -shape2.halfh()}));
-	 *PA(poly2in1);
-	 *REP(i, shape2.w) {
-	 *  Vec2D pin2{(double)i - shape2.halfw(), (double)i - shape2.halfh()};
-	 *  Vec2D pin1 = transform.trans2d(pin2) + offset1;
-	 *  pld.cross(pin1, 10);
-	 *  pin2 = Vec2D{(double)i - shape2.halfw(), shape2.h- shape2.w + (double)i - shape2.halfh()};
-	 *  pin1 = transform.trans2d(pin2) + offset1;
-	 *  pld.cross(pin1, 10);
-	 *}
-	 *auto inv = transform.inverse();
-	 *PP(inv);
-	 *poly1in2.emplace_back(offset2 + inv.trans2d(Vec2D{-shape1.halfw(), -shape1.halfh()}));
-	 *poly1in2.emplace_back(offset2 + inv.trans2d(Vec2D{-shape1.halfw(), shape1.halfh()}));
-	 *poly1in2.emplace_back(offset2 + inv.trans2d(shape1.center()));
-	 *poly1in2.emplace_back(offset2 + inv.trans2d(Vec2D{shape1.halfw(), -shape1.halfh()}));
-	 *PA(poly1in2);
-	 *pld.polygon(poly2in1);
-	 *pld.polygon(poly1in2);
-	 */
 
 	// draw overlapping region
 	Matrix homo(3,3);
@@ -306,6 +279,7 @@ void init_config() {
 	CFG(SLOPE_PLAIN);
 	CFG(LM_LAMBDA);
 	CFG(MULTIPASS_BA);
+	CFG(MULTIBAND);
 #undef CFG
 }
 

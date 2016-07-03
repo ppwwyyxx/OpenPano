@@ -36,7 +36,7 @@ float ConfigParser::get(const std::string& s) {
 
 bool CYLINDER;
 bool TRANS;
-bool CROP = true;
+bool CROP;
 float FOCAL_LENGTH;
 bool ESTIMATE_CAMERA;
 bool STRAIGHTEN;
@@ -77,5 +77,7 @@ float INLIER_IN_MATCH_RATIO;
 float INLIER_IN_POINTS_RATIO;
 
 float SLOPE_PLAIN;
+
+int MULTIBAND;
 
 }

@@ -71,8 +71,10 @@ Zijing Apartment in Tsinghua University:
 "Myselves":
 ![myself](https://github.com/ppwwyyxx/panorama/raw/master/results/myself.jpg)
 
-Zijing Playground in Tsinghua University:
-![planet](https://github.com/ppwwyyxx/panorama/raw/master/results/planet.jpg)
+<!--
+   -Zijing Playground in Tsinghua University:
+   -![planet](https://github.com/ppwwyyxx/panorama/raw/master/results/planet.jpg)
+	 -->
 
 Carnegie Mellon University from 38 images
 ![cmu0](https://github.com/ppwwyyxx/panorama/raw/master/results/CMU0-all.jpg)

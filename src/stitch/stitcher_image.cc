@@ -4,6 +4,8 @@
 #define _USE_MATH_DEFINES
 #include <cmath>
 #include <iostream>
+#include <cassert>
+#include <memory>
 #include "stitcher_image.hh"
 #include "projection.hh"
 #include "lib/config.hh"
@@ -11,7 +13,6 @@
 #include "multiband.hh"
 #include "lib/imgproc.hh"
 #include "blender.hh"
-#include <cassert>
 
 using namespace std;
 using namespace config;
@@ -111,13 +112,16 @@ Mat32f ConnectedImages::blend() const {
 	};
 
 	// blending
-	LinearBlender blender;
-	//MultiBandBlender blender(8);
+	std::unique_ptr<BlenderBase> blender;
+	if (MULTIBAND > 0)
+		blender.reset(new MultiBandBlender{MULTIBAND});
+	else
+		blender.reset(new LinearBlender);
 	for (auto& cur : component) {
 		Coor top_left = scale_coor_to_img_coor(cur.range.min);
 		Coor bottom_right = scale_coor_to_img_coor(cur.range.max);
 
-		blender.add_image(top_left, bottom_right, *cur.imgptr, [=,&cur](Coor t) -> Vec2D {
+		blender->add_image(top_left, bottom_right, *cur.imgptr, [=,&cur](Coor t) -> Vec2D {
 				Vec2D c = Vec2D(t.x, t.y) * resolution + proj_range.min;
 				Vec homo = proj2homo(Vec2D(c.x, c.y));
 				Vec ret = cur.homo_inv.trans(homo);
@@ -128,7 +132,7 @@ Mat32f ConnectedImages::blend() const {
 				});
 	}
 	//blender.debug_run(size.x, size.y);	// for debug
-	return blender.run();
+	return blender->run();
 }
 
 }
