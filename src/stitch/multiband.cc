@@ -10,15 +10,16 @@ namespace pano {
 void MultiBandBlender::add_image(
 			const Coor& upper_left,
 			const Coor& bottom_right,
-			const Mat32f &img,
+			const ImageMeta &img,
 			std::function<Vec2D(Coor)> coor_func) {
+	img.load();
 	Range range{upper_left, bottom_right};
 	Mat<WeightedPixel> wimg(range.height(), range.width(), 1);
 	for (int i = 0; i < range.height(); ++i)
 		for (int j = 0; j < range.width(); ++j) {
 			Coor target_coor{j + range.min.x, i + range.min.y};
 			Vec2D orig_coor = coor_func(target_coor);
-			Color c = interpolate(img, orig_coor.y, orig_coor.x);
+			Color c = interpolate(*img.img, orig_coor.y, orig_coor.x);
 			wimg.at(i, j).c = c;
 			if (c.x < 0) {	// Color::NO
 				wimg.at(i, j).w = 0;
@@ -31,6 +32,7 @@ void MultiBandBlender::add_image(
 				// ext? eps?
 			}
 		}
+	img.release();
 	images.emplace_back(ImageToBlend{range, move(wimg)});
 	target_size.update_max(bottom_right);
 }

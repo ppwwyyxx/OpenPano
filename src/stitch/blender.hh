@@ -7,6 +7,7 @@
 #include "lib/mat.h"
 #include "lib/geometry.hh"
 #include "lib/color.hh"
+#include "imagemeta.hh"
 
 namespace pano {
 
@@ -33,7 +34,7 @@ class BlenderBase {
 		virtual void add_image(
 				const Coor& upper_left,
 				const Coor& bottom_right,
-				const Mat32f &img,
+				const ImageMeta &img,
 				std::function<Vec2D(Coor)> coor_func) = 0;
 
 		virtual Mat32f run() = 0;
@@ -42,7 +43,7 @@ class BlenderBase {
 class LinearBlender : public BlenderBase {
 	struct ImageToBlend {
 		Range range;
-		const Mat32f& img;
+		const ImageMeta& img;
 		std::function<Vec2D(Coor)> coor_func;
 
 		Vec2D map_coor(int r, int c) const {
@@ -60,7 +61,7 @@ class LinearBlender : public BlenderBase {
 	void add_image(
 			const Coor& upper_left,
 			const Coor& bottom_right,
-			const Mat32f &img,
+			const ImageMeta &img,
 			std::function<Vec2D(Coor)>) override;
 
 	Mat32f run() override;

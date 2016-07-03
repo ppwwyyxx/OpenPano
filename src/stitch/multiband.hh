@@ -59,7 +59,7 @@ class MultiBandBlender : public BlenderBase {
 	void add_image(
 			const Coor& upper_left,
 			const Coor& bottom_right,
-			const Mat32f &img,
+			const ImageMeta &img,
 			std::function<Vec2D(Coor)>) override;
 
 	Mat32f run() override;

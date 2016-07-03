@@ -171,11 +171,15 @@ Mat32f CylinderStitcher::perspective_correction(const Mat32f& img) {
 	Homography inv(m);
 
 	LinearBlender blender;
+	ImageMeta tmp("this_should_not_be_used");
+	tmp.img = const_cast<Mat32f*>(&img);
+	tmp._width = img.width(), tmp._height = img.height();
 	blender.add_image(
-			Coor(0,0), Coor(w,h), img,
+			Coor(0,0), Coor(w,h), tmp,
 			[=](Coor c) -> Vec2D {
 		return inv.trans2d(Vec2D(c.x, c.y));
 	});
+	tmp.img = nullptr;
 	return blender.run();
 }
 

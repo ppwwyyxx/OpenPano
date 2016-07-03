@@ -22,7 +22,7 @@ namespace pano {
 				_height = img->height();
 			}
 
-			void release() { if (img) delete img; img = nullptr; }
+			void release() const { if (img) delete img; img = nullptr; }
 
 			int width() const { return _width; }
 			int height() const { return _height; }

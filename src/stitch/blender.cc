@@ -14,39 +14,41 @@ namespace pano {
 void LinearBlender::add_image(
 			const Coor& upper_left,
 			const Coor& bottom_right,
-			const Mat32f &img,
+			const ImageMeta &img,
 			std::function<Vec2D(Coor)> coor_func) {
 	images.emplace_back(ImageToBlend{Range{upper_left, bottom_right}, img, coor_func});
 	target_size.update_max(bottom_right);
 }
 
+// TODO use weighted pixel, to iterate over images instead of target
 Mat32f LinearBlender::run() {
 	Mat32f target(target_size.y, target_size.x, 3);
 	fill(target, Color::NO);
+	REP(k, images.size()) images[k].img.load();
 #pragma omp parallel for schedule(dynamic)
 	for (int i = 0; i < target.height(); i ++) {
 		float *row = target.ptr(i);
 		for (int j = 0; j < target.width(); j ++) {
 			Color isum = Color::BLACK;
 			float wsum = 0;
-			for (auto& img : images)
-				if (img.range.contain(i, j)) {
-					Vec2D img_coor = img.map_coor(i, j);
-					if (!img_coor.isNaN()) {
-						float r = img_coor.y, c = img_coor.x;
-						auto color = interpolate(img.img, r, c);
-						if (color.x < 0) continue;
-						float w;
-						if (config::ORDERED_INPUT)
-							// x-axis linear interpolation
-							w = 0.5 - fabs(c / img.img.width() - 0.5);
-						else
-						  w = (0.5 - fabs(c / img.img.width() - 0.5)) * (0.5 - fabs(r / img.img.height() - 0.5));
+			for (auto& img : images) if (img.range.contain(i, j)) {
+				//img.img.load();
+				Vec2D img_coor = img.map_coor(i, j);
+				if (!img_coor.isNaN()) {
+					float r = img_coor.y, c = img_coor.x;
+					auto color = interpolate(*img.img.img, r, c);
+					if (color.x < 0) continue;
+					float w;
+					if (config::ORDERED_INPUT)
+						// x-axis linear interpolation
+						w = 0.5 - fabs(c / img.img.width() - 0.5);
+					else
+						w = (0.5 - fabs(c / img.img.width() - 0.5)) * (0.5 - fabs(r / img.img.height() - 0.5));
 
-						isum += color * w;
-						wsum += w;
-					}
+					isum += color * w;
+					wsum += w;
 				}
+			}
 			if (wsum > 0)	// keep original Color::NO
 				(isum / wsum).write_to(row + j * 3);
 		}
