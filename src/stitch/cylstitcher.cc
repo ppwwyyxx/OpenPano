@@ -95,10 +95,10 @@ float CylinderStitcher::update_h_factor(float nowfactor,
 	const int n = imgs.size(), mid = bundle.identity_idx;
 	const int start = mid, end = n, len = end - start;
 
-	vector<Mat32f> nowimgs;
+	vector<Shape2D> nowimgs;
 	vector<vector<Vec2D>> nowkpts;
 	REPL(k, start, end) {
-		nowimgs.push_back(imgs[k].clone());
+		nowimgs.emplace_back(imgs[k].width(), imgs[k].height());
 		nowkpts.push_back(keypoints[k]);
 	}			// nowfeats[0] == feats[mid]
 
@@ -115,8 +115,7 @@ float CylinderStitcher::update_h_factor(float nowfactor,
 		MatchInfo info;
 		bool succ = TransformEstimation(
 				matches[k - 1 + mid], nowkpts[k - 1], nowkpts[k],
-				{nowimgs[k-1].width(), nowimgs[k-1].height()},
-				{nowimgs[k].width(), nowimgs[k].height()}).get_transform(&info);
+				nowimgs[k-1], nowimgs[k]).get_transform(&info);
 		if (! succ)
 			failed = true;
 		//error_exit("The two image doesn't match. Failed");

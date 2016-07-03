@@ -196,9 +196,11 @@ void test_warp(int argc, char* argv[]) {
 
 
 void work(int argc, char* argv[]) {
-	vector<Mat32f> imgs;
+	vector<Mat32f> imgs(argc - 1);
+//#pragma omp parallel for schedule(dynamic)
 	REPL(i, 1, argc)
-		imgs.emplace_back(read_img(argv[i]));
+		imgs[i-1] = read_img(argv[i]);
+	exit(0);
 	Mat32f res;
 	if (CYLINDER) {
 		CylinderStitcher p(move(imgs));

@@ -6,6 +6,7 @@
 #include "lib/geometry.hh"
 #include "lib/mat.h"
 #include "feature/feature.hh"
+#include "match_info.hh"
 
 namespace pano {
 
@@ -19,10 +20,12 @@ class CylinderProject {
 			center(m_center), r(m_r),
 			sizefactor(m_size){}
 
-		CylinderProject(const CylinderProject&) = delete;
-		CylinderProject& operator = (const CylinderProject&) = delete;
-
+		// project key points in an image, together with the image
 		Mat32f project(const Mat32f& img, std::vector<Vec2D>& pts) const;
+
+		// project key points in an image, given the image shape
+		// return the projected image offset
+		Vec2D project(Shape2D& shape, std::vector<Vec2D>& pts) const;
 
 	private:
 		// return (angle with x) and (angle vertical)
@@ -36,16 +39,30 @@ class CylinderProject {
 
 class CylinderWarper {
 	public:
-		const real_t h_factor;
 		explicit CylinderWarper(real_t m_hfactor):
 			h_factor(m_hfactor) {}
 
-		void warp(Mat32f& mat, std::vector<Vec2D>& kpts) const;
+		// warp image together with key points
+		void warp(Mat32f& mat, std::vector<Vec2D>& kpts) const {
+			mat = get_projector(
+					mat.width(), mat.height()).project(mat, kpts);
+		}
 
+		// warp keypoints given image shape
+		void warp(Shape2D& shape, std::vector<Vec2D>& kpts) const {
+			get_projector(shape.w, shape.h).project(shape, kpts);
+		}
+
+		// warp image only
 		inline void warp(Mat32f& mat) const {
 			std::vector<Vec2D> a;
 			warp(mat, a);
 		}
+
+	protected:
+		CylinderProject get_projector(int w, int h) const;
+		const real_t h_factor;
 };
+
 
 }

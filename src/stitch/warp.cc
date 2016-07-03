@@ -23,20 +23,12 @@ Vec2D CylinderProject::proj_r(const Vec2D& p) const {
 }
 
 Mat32f CylinderProject::project(const Mat32f& img, vector<Vec2D>& pts) const {
-	Vec2D min(numeric_limits<real_t>::max(), numeric_limits<real_t>::max()),
-		  max(0, 0);
-	REP(i, img.height()) REP(j, img.width()) {			// TODO finally: only use rect corners
-		Vec2D newcoor = proj(Vec2D(j, i));
-		min.update_min(newcoor), max.update_max(newcoor);
-	}
+	Shape2D shape{img.width(), img.height()};
+	Vec2D offset = project(shape, pts);
 
-	max = max * sizefactor, min = min * sizefactor;
-	Vec2D realsize = max - min,
-		  offset = min * (-1);
-	Coor size = Coor(realsize.x, realsize.y);
 	real_t sizefactor_inv = 1.0 / sizefactor;
 
-	Mat32f mat(size.y, size.x, 3);
+	Mat32f mat(shape.h, shape.w, 3);
 	fill(mat, Color::NO);
 #pragma omp parallel for schedule(dynamic)
 	REP(i, mat.height()) REP(j, mat.width()) {
@@ -48,21 +40,38 @@ Mat32f CylinderProject::project(const Mat32f& img, vector<Vec2D>& pts) const {
 		}
 	}
 
-	for (auto & f : pts) {
-		Vec2D coor(f.x + img.width() / 2, f.y + img.height() / 2);
-		f = proj(coor) * sizefactor + offset;
-		f.x -= mat.width() / 2;
-		f.y -= mat.height() / 2;
-	}
 	return mat;
 }
 
-void CylinderWarper::warp(Mat32f& mat, std::vector<Vec2D>& kpts) const {
+Vec2D CylinderProject::project(Shape2D& shape, std::vector<Vec2D>& pts) const {
+	Vec2D min(numeric_limits<real_t>::max(), numeric_limits<real_t>::max()),
+				max(0, 0);
+	REP(i, shape.h) REP(j, shape.w) {			// TODO finally: only use rect corners
+		Vec2D newcoor = proj(Vec2D(j, i));
+		min.update_min(newcoor), max.update_max(newcoor);
+	}
+
+	max = max * sizefactor, min = min * sizefactor;
+	Vec2D realsize = max - min,
+		    offset = min * (-1);
+	Coor size = Coor(realsize.x, realsize.y);
+
+	for (auto & f : pts) {
+		Vec2D coor(f.x + shape.w / 2, f.y + shape.h / 2);
+		f = proj(coor) * sizefactor + offset;
+		f.x -= size.x / 2;
+		f.y -= size.y / 2;
+	}
+	shape.w = size.x, shape.h = size.y;
+	return offset;
+}
+
+
+CylinderProject CylinderWarper::get_projector(int w, int h) const {
 	// 43.266 = hypot(36, 24)
-	int r = hypot(mat.width(), mat.height()) * (config::FOCAL_LENGTH / 43.266);
-	Vec cen(mat.width() / 2, mat.height() / 2 * h_factor, r);
-	CylinderProject cyl(r, cen, r);
-	mat = cyl.project(mat, kpts);
+	int r = hypot(w, h) * (config::FOCAL_LENGTH / 43.266);
+	Vec cen(w / 2, h / 2 * h_factor, r);
+	return CylinderProject(r, cen, r);
 }
 
 }
