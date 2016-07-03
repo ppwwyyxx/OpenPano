@@ -67,8 +67,7 @@ bool Stitcher::match_image(
 	auto match = pwmatcher.match(i, j);
 	//auto match = FeatureMatcher(feats[i], feats[j]).match();	// slow
 	TransformEstimation transf(match, keypoints[i], keypoints[j],
-			{imgs[i].width(), imgs[i].height()},
-			{imgs[j].width(), imgs[j].height()});	// from j to i
+			imgs[i].shape(), imgs[j].shape());	// from j to i
 	MatchInfo info;
 	bool succ = transf.get_transform(&info);
 	if (!succ) {
@@ -135,8 +134,7 @@ void Stitcher::assign_center() {
 
 void Stitcher::estimate_camera() {
 	vector<Shape2D> shapes;
-	for (auto& m: imgs)
-		shapes.emplace_back(m.shape());
+	for (auto& m: imgs) shapes.emplace_back(m.shape());
 	auto cameras = CameraEstimator{pairwise_matches, shapes}.estimate();
 
 	// produced homo operates on [0,w] coordinate
