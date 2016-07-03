@@ -18,7 +18,7 @@ void LinearBlender::debug_run(int w, int h) {
 #pragma omp parallel for schedule(dynamic)
 	REP(k, (int)images.size()) {
 		auto& img = images[k];
-		img.img.load();
+		img.imgref.load();
 		Mat32f target(h, w, 3);
 		fill(target, Color::NO);
 		for (int i = 0; i < target.height(); i ++) {
@@ -29,7 +29,7 @@ void LinearBlender::debug_run(int w, int h) {
 					Vec2D img_coor = img.map_coor(i, j);
 					if (!img_coor.isNaN()) {
 						float r = img_coor.y, c = img_coor.x;
-						isum = interpolate(*img.img.img, r, c);
+						isum = interpolate(*img.imgref.img, r, c);
 					}
 				}
 				isum.write_to(row + j * 3);

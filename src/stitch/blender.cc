@@ -23,7 +23,19 @@ void LinearBlender::add_image(
 
 Mat32f LinearBlender::run() {
 	Mat32f target(target_size.y, target_size.x, 3);
-	if (true) {
+
+#define GET_COLOR_AND_W \
+					Vec2D img_coor = img.map_coor(i, j); \
+					if (img_coor.isNaN()) continue; \
+					float r = img_coor.y, c = img_coor.x; \
+					auto color = interpolate(*img.imgref.img, r, c); \
+					if (color.x < 0) continue; \
+					float	w = 0.5 - fabs(c / img.imgref.width() - 0.5); \
+					if (not config::ORDERED_INPUT) /* blend both direction */\
+						w *= (0.5 - fabs(r / img.imgref.height() - 0.5)); \
+					color *= w
+
+	if (LAZY_READ) {
 		// use weighted pixel, to iterate over images (and free them) instead of target
 		// will be a little bit slower
 		Mat<float> weight(target_size.y, target_size.x, 1);
@@ -32,36 +44,23 @@ Mat32f LinearBlender::run() {
 #pragma omp parallel for schedule(dynamic)
 		REP(k, images.size()) {
 			auto& img = images[k];
-			img.img.load();
+			img.imgref.load();
 			auto& range = img.range;
 			for (int i = range.min.y; i < range.max.y; ++i) {
 				float *row = target.ptr(i);
 				float *wrow = weight.ptr(i);
 				for (int j = range.min.x; j < range.max.x; ++j) {
-					Vec2D img_coor = img.map_coor(i, j);
-					if (!img_coor.isNaN()) {
-						float r = img_coor.y, c = img_coor.x;
-						auto color = interpolate(*img.img.img, r, c);
-						if (color.x < 0) continue;
-						float w;
-						if (config::ORDERED_INPUT)
-							// x-axis linear interpolation
-							w = 0.5 - fabs(c / img.img.width() - 0.5);
-						else
-							w = (0.5 - fabs(c / img.img.width() - 0.5)) * (0.5 - fabs(r / img.img.height() - 0.5));
-
-						color *= w;
-						//#pragma omp critical
-						{
-							row[j*3] += color.x;
-							row[j*3+1] += color.y;
-							row[j*3+2] += color.z;
-							wrow[j] += w;
-						}
+					GET_COLOR_AND_W;
+					//#pragma omp critical
+					{
+						row[j*3] += color.x;
+						row[j*3+1] += color.y;
+						row[j*3+2] += color.z;
+						wrow[j] += w;
 					}
 				}
 			}
-			img.img.release();
+			img.imgref.release();
 		}
 #pragma omp parallel for schedule(dynamic)
 		REP(i, target.height()) {
@@ -69,47 +68,30 @@ Mat32f LinearBlender::run() {
 			auto wrow = weight.ptr(i);
 			REP(j, target.width()) {
 				if (wrow[j]) {
-					*(row++) /= wrow[j];
-					*(row++) /= wrow[j];
-					*(row++) /= wrow[j];
+					*(row++) /= wrow[j]; *(row++) /= wrow[j]; *(row++) /= wrow[j];
 				} else {
-					*(row++) = -1;
-					*(row++) = -1;
-					*(row++) = -1;
+					*(row++) = -1; *(row++) = -1; *(row++) = -1;
 				}
 			}
 		}
 	} else {
 		fill(target, Color::NO);
-	#pragma omp parallel for schedule(dynamic)
+#pragma omp parallel for schedule(dynamic)
 		for (int i = 0; i < target.height(); i ++) {
 			float *row = target.ptr(i);
 			for (int j = 0; j < target.width(); j ++) {
 				Color isum = Color::BLACK;
 				float wsum = 0;
 				for (auto& img : images) if (img.range.contain(i, j)) {
-					Vec2D img_coor = img.map_coor(i, j);
-					if (!img_coor.isNaN()) {
-						float r = img_coor.y, c = img_coor.x;
-						auto color = interpolate(*img.img.img, r, c);
-						if (color.x < 0) continue;
-						float w;
-						if (config::ORDERED_INPUT)
-							// x-axis linear interpolation
-							w = 0.5 - fabs(c / img.img.width() - 0.5);
-						else
-							w = (0.5 - fabs(c / img.img.width() - 0.5)) * (0.5 - fabs(r / img.img.height() - 0.5));
-
-						isum += color * w;
-						wsum += w;
-					}
+					GET_COLOR_AND_W;
+					isum += color;
+					wsum += w;
 				}
 				if (wsum > 0)	// keep original Color::NO
 					(isum / wsum).write_to(row + j * 3);
 			}
 		}
 	}
-
 	return target;
 }
 
