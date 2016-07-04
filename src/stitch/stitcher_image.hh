@@ -7,7 +7,7 @@
 #include "lib/mat.h"
 #include "projection.hh"
 #include "homography.hh"
-#include "imagemeta.hh"
+#include "imageref.hh"
 
 namespace pano {
 

@@ -1,4 +1,4 @@
-//File: imagemeta.hh
+//File: imageref.hh
 //Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once

@@ -7,7 +7,7 @@
 #include "lib/mat.h"
 #include "lib/geometry.hh"
 #include "lib/color.hh"
-#include "imagemeta.hh"
+#include "imageref.hh"
 
 namespace pano {
 
