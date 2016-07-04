@@ -51,6 +51,7 @@ void MultiBandBlender::debug_level(int level) const {
 			float* p = weight.ptr(i, j);
 			p[0] = p[1] = p[2] = wimg.at(i, j).w;
 		}
+		print_debug("[MultiBand] debug output image %d\n", imgid);
 		write_rgb(ssprintf("log/multiband%d-%d.jpg", imgid, level), img);
 		write_rgb(ssprintf("log/multibandw%d-%d.jpg", imgid, level), weight);
 		imgid ++;

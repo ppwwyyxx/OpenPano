@@ -38,12 +38,14 @@ void MultiBandBlender::add_image(
 }
 
 Mat32f MultiBandBlender::run() {
+	GuardedTimer tm("MultiBandBlender::run()");
 	update_weight_map();
 	Mat32f target(target_size.y, target_size.x, 3);
 	fill(target, Color::NO);
 
 	next_lvl_images.resize(images.size());
 	for (int level = 0; level < band_level; level ++) {
+		GuardedTimer tmm("Blending level " + to_string(level));
 		create_next_level(level);
 		//debug_level(level);
 		REP(i, target_size.y) REP(j, target_size.x) {
@@ -65,7 +67,7 @@ Mat32f MultiBandBlender::run() {
 				continue;
 			isum /= wsum;
 			float* p = target.ptr(i, j);
-			if (*p < 0) {
+			if (*p == -1) {		// first time to visit *p. Note that *p could be negative after visit.
 				isum.write_to(p);
 			} else {
 				p[0] += isum.x, p[1] += isum.y, p[2] += isum.z;
@@ -74,7 +76,6 @@ Mat32f MultiBandBlender::run() {
 		swap(next_lvl_images, images);
 	}
 
-	// XXX
 	REP(i, target.rows()) REP(j, target.cols()) {
 		float* p = target.ptr(i, j);
 		update_min(p[0], 1.0f);
@@ -86,14 +87,19 @@ Mat32f MultiBandBlender::run() {
 
 void MultiBandBlender::update_weight_map() {
 	REP(i, target_size.y) REP(j, target_size.x) {
-		float max = 0;
+		float max = 0.f;
 		for (auto& img : images)
 			if (img.range.contain(i, j))
 				update_max(max, img.weight_on_target(j, i));
-		max -= EPS;
+		if (max == 0.f)
+			continue;
+		max -= EPS*0.5f;
 		for (auto& img : images) if (img.range.contain(i, j)) {
 			float& w = img.weight_on_target(j, i);
+			//w = w / max;
 			w = (w >= max);
+			if (w == 1)
+				max += 1;		// avoid setting two weight both to 1
 		}
 	}
 }
@@ -110,10 +116,10 @@ void MultiBandBlender::create_next_level(int level) {
 				wimg.at(i, j).c = Color::BLACK;
 				wimg.at(i, j).w = 0;
 			}
-			//memset(wimg.ptr(), 0, sizeof(float) * 4 * img.rows() * img.cols());
+			// TODO memset(wimg.ptr(), 0, sizeof(float) * 4 * img.rows() * img.cols());
 		}
 	} else {
-		GaussianBlur blurer(sqrt(level * 2 + 1.0) * 3);
+		GaussianBlur blurer(sqrt(level * 2 + 1.0) * 4);	// TODO size
 		REP(i, images.size()) {
 			next_lvl_images[i].range = images[i].range;
 			next_lvl_images[i].img = blurer.blur(images[i].img);

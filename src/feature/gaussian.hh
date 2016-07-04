@@ -13,7 +13,7 @@ namespace pano {
 
 class GaussCache {
 	public:
-		std::shared_ptr<float> kernel_buf;
+		std::unique_ptr<float, std::default_delete<float[]>> kernel_buf;
 		float* kernel;
 		int kw;
 		GaussCache(float sigma);

@@ -97,7 +97,7 @@ vector<Camera> CameraEstimator::estimate() {
 }
 
 void CameraEstimator::traverse(
-		function<void(int)> callback_node,
+		function<void(int)> callback_init_node,
 		function<void(int, int)> callback_edge) {
 	struct Edge {
 		int v1, v2;
@@ -114,7 +114,7 @@ void CameraEstimator::traverse(
 	}
 	if (best_edge.v1 == -1)
 		error_exit("No connected images are found!");
-	callback_node(best_edge.v1);
+	callback_init_node(best_edge.v1);
 
 	priority_queue<Edge> q;
 	vector<bool> vst(n, false);

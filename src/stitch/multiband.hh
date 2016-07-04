@@ -10,12 +10,12 @@ namespace pano {
 
 class MultiBandBlender : public BlenderBase {
 	struct WeightedPixel {
-		float w;
 		Color c;
+		float w;
 
 		WeightedPixel() {}
-		WeightedPixel(float v): w(v), c(v,v,v) {}
-		WeightedPixel(float w, const Color& c): w(w), c(c) {}
+		WeightedPixel(float v): c(v,v,v), w(v) {}
+		WeightedPixel(float w, const Color& c): c(c), w(w) {}
 
 		WeightedPixel operator * (float v) const { return WeightedPixel{w * v, c * v}; }
 		void operator += (const WeightedPixel& p) { w += p.w; c += p.c; }
@@ -24,7 +24,7 @@ class MultiBandBlender : public BlenderBase {
 		Range range;
 		Mat<WeightedPixel> img;		// a RoI in target image, starting from range.min
 
-		const float& weight_on_target(int x, int y) const {
+		float weight_on_target(int x, int y) const {
 			// x, y: coordinate on target
 			return img.at(y - range.min.y, x - range.min.x).w;
 		}

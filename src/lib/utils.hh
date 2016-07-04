@@ -72,7 +72,7 @@ inline void free_2d(T** ptr, int w) {
 
 template <typename T>
 std::shared_ptr<T> create_auto_buf(size_t len, bool init_zero = false) {
-	std::shared_ptr<T> ret(new T[len], [](T *ptr){delete []ptr;});
+	std::shared_ptr<T> ret(new T[len], std::default_delete<T[]>());
 	if (init_zero)
 		memset(ret.get(), 0, sizeof(T) * len);
 	return ret;
