@@ -12,26 +12,27 @@ void MultiBandBlender::add_image(
 			const Coor& bottom_right,
 			ImageRef &img,
 			std::function<Vec2D(Coor)> coor_func) {
+	TotalTimer tm("MultiBandBlender::add_image()");
 	img.load();
 	Range range{upper_left, bottom_right};
 	Mat<WeightedPixel> wimg(range.height(), range.width(), 1);
-	for (int i = 0; i < range.height(); ++i)
-		for (int j = 0; j < range.width(); ++j) {
-			Coor target_coor{j + range.min.x, i + range.min.y};
-			Vec2D orig_coor = coor_func(target_coor);
-			Color c = interpolate(*img.img, orig_coor.y, orig_coor.x);
-			wimg.at(i, j).c = c;
-			if (c.x < 0) {	// Color::NO
-				wimg.at(i, j).w = 0;
-			} else {
-				orig_coor.x = orig_coor.x / img.width() - 0.5;
-				orig_coor.y = orig_coor.y / img.height() - 0.5;
-				wimg.at(i, j).w = std::max(
-						(0.5f - fabs(orig_coor.x)) * (0.5f - fabs(orig_coor.y)),
-						0.0) + EPS;
-				// ext? eps?
-			}
+#pragma omp parallel for schedule(dynamic)
+	REP(i, range.height()) REP(j, range.width()) {
+		Coor target_coor{j + range.min.x, i + range.min.y};
+		Vec2D orig_coor = coor_func(target_coor);
+		Color c = interpolate(*img.img, orig_coor.y, orig_coor.x);
+		wimg.at(i, j).c = c;
+		if (c.x < 0) {	// Color::NO
+			wimg.at(i, j).w = 0;
+		} else {
+			orig_coor.x = orig_coor.x / img.width() - 0.5;
+			orig_coor.y = orig_coor.y / img.height() - 0.5;
+			wimg.at(i, j).w = std::max(
+					(0.5f - fabs(orig_coor.x)) * (0.5f - fabs(orig_coor.y)),
+					0.0) + EPS;
+			// ext? eps?
 		}
+	}
 	img.release();
 	images.emplace_back(ImageToBlend{range, move(wimg)});
 	target_size.update_max(bottom_right);
@@ -48,6 +49,7 @@ Mat32f MultiBandBlender::run() {
 		GuardedTimer tmm("Blending level " + to_string(level));
 		create_next_level(level);
 		//debug_level(level);
+#pragma omp parallel for schedule(dynamic)
 		REP(i, target_size.y) REP(j, target_size.x) {
 			Color isum(0, 0, 0);
 			float wsum = 0;
@@ -105,8 +107,10 @@ void MultiBandBlender::update_weight_map() {
 }
 
 void MultiBandBlender::create_next_level(int level) {
+	TotalTimer tm("create_next_level()");
 	m_assert(next_lvl_images.size() == images.size());
 	if (level == band_level - 1) {
+#pragma omp parallel for schedule(dynamic)
 		REP(k, images.size()) {
 			auto& img = images[k].img;
 			next_lvl_images[k].range = images[k].range;
@@ -120,6 +124,7 @@ void MultiBandBlender::create_next_level(int level) {
 		}
 	} else {
 		GaussianBlur blurer(sqrt(level * 2 + 1.0) * 4);	// TODO size
+#pragma omp parallel for schedule(dynamic)
 		REP(i, images.size()) {
 			next_lvl_images[i].range = images[i].range;
 			next_lvl_images[i].img = blurer.blur(images[i].img);
