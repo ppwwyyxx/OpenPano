@@ -94,6 +94,12 @@ Tested on Intel Core i7-6700HQ, with `ESTIMATE_CAMERA` mode:
 
 Memory consumption is known to be huge with default libc allocator.
 Simply use a modern allocator (e.g. tcmalloc, hoard) can help a lot.
+Also, setting `LAZY_READ` to 1 can save memory at the cost of a minor slow down.
+
+Peak memory in bytes (assume each input has the same w & h):
+
++ Without `LAZY_READ` option: finalw \* finalh \* 12 + #photos \* w \* h \* 12
++ With `LAZY_READ` option: finalw \* finalh \* 16 + #threads \* w \* h \* 12
 
 ## Algorithms
 + Features: [SIFT](http://en.wikipedia.org/wiki/Scale-invariant_feature_transform)
