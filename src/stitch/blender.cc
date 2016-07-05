@@ -17,7 +17,7 @@ void LinearBlender::add_image(
 			const Coor& bottom_right,
 			ImageRef &img,
 			std::function<Vec2D(Coor)> coor_func) {
-	images.emplace_back(ImageToBlend{Range{upper_left, bottom_right}, img, coor_func});
+	images.emplace_back(ImageToAdd{Range{upper_left, bottom_right}, img, coor_func});
 	target_size.update_max(bottom_right);
 }
 

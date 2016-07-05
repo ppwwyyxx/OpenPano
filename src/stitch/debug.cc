@@ -48,7 +48,7 @@ void MultiBandBlender::debug_level(int level) const {
 		Mat32f img(wimg.rows(), wimg.cols(), 3);
 		Mat32f weight(wimg.rows(), wimg.cols(), 3);
 		REP(i, wimg.rows()) REP(j, wimg.cols()) {
-			if (t.mask[i * wimg.cols() + j])
+			if (not t.meta.mask.get(i, j))
 				wimg.at(i, j).c.write_to(img.ptr(i, j));
 			else
 				Color::NO.write_to(img.ptr(i, j));

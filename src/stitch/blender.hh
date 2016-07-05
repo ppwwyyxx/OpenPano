@@ -26,6 +26,19 @@ class BlenderBase {
 			int height() const { return max.y - min.y + 1; }
 		};
 
+		struct ImageToAdd {
+			Range range;
+			ImageRef& imgref;
+			std::function<Vec2D(Coor)> coor_func;
+
+			Vec2D map_coor(int r, int c) const {
+				auto ret = coor_func(Coor(c, r));
+				if (ret.x < 0 || ret.x >= imgref.width() || ret.y < 0 || ret.y >= imgref.height())
+					ret = Vec2D::NaN();
+				return ret;
+			}
+		};
+
 		BlenderBase(const BlenderBase&) = delete;
 		BlenderBase& operator = (const BlenderBase&) = delete;
 
@@ -41,19 +54,7 @@ class BlenderBase {
 };
 
 class LinearBlender : public BlenderBase {
-	struct ImageToBlend {
-		Range range;
-		ImageRef& imgref;
-		std::function<Vec2D(Coor)> coor_func;
-
-		Vec2D map_coor(int r, int c) const {
-			auto ret = coor_func(Coor(c, r));
-			if (ret.x < 0 || ret.x >= imgref.width() || ret.y < 0 || ret.y >= imgref.height())
-				ret = Vec2D::NaN();
-			return ret;
-		}
-	};
-	std::vector<ImageToBlend> images;
+	std::vector<ImageToAdd> images;
 
 	Coor target_size{0, 0};
 

@@ -30,34 +30,42 @@ class MultiBandBlender : public BlenderBase {
 		Mask2D(int h, int w):
 			mask(h * w, false), w{w} {}
 	};
-	struct ImageToBlend {
-		Range range;
-		Mat<WeightedPixel> img;		// a RoI in target image, starting from range.min
 
-		std::vector<bool> mask;	// true: valid
+	struct ImageMeta {
+		Range range;
+		Mask2D mask;		// 1: invalid
+	};
+
+	struct ImageToBlend {
+		Mat<WeightedPixel> img;		// a RoI in target image, starting from range.min
+		const ImageMeta& meta;
 
 		float weight_on_target(int x, int y) const {
 			// x, y: coordinate on target
-			return img.at(y - range.min.y, x - range.min.x).w;
+			return img.at(y - meta.range.min.y, x - meta.range.min.x).w;
 		}
 
 		float& weight_on_target(int x, int y) {
-			return img.at(y - range.min.y, x - range.min.x).w;
+			return img.at(y - meta.range.min.y, x - meta.range.min.x).w;
 		}
 
 		const Color& color_on_target(int x, int y) const {
-			return img.at(y - range.min.y, x - range.min.x).c;
+			return img.at(y - meta.range.min.y, x - meta.range.min.x).c;
 		}
 
 		bool valid_on_target(int x, int y) const {
-			x -= range.min.x, y -= range.min.y;
-			return mask[y * range.width() + x];
+			x -= meta.range.min.x, y -= meta.range.min.y;
+			return not meta.mask.get(y, x);
 		}
+
 	};
 
+	std::vector<ImageToAdd> add_images;
+	std::vector<ImageMeta> image_metas;
 	std::vector<ImageToBlend> images;
 	std::vector<ImageToBlend> next_lvl_images;
 
+	void create_first_level();
 	void update_weight_map();
 	// build next level weights from images to next_lvl_images
 	void create_next_level(int level);
