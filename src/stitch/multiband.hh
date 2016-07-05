@@ -22,13 +22,15 @@ class MultiBandBlender : public BlenderBase {
 	};
 
 	struct Mask2D {
-		std::vector<bool> mask;
-		int w;
-
 		bool get(int i, int j) const { return mask[i * w + j]; }
 		void set(int i, int j) { mask[i * w + j] = true; }
-		Mask2D(int h, int w):
-			mask(h * w, false), w{w} {}
+		Mask2D(int hh, int ww):
+			w{(ww + 7) / 8 * 8},		// 8bit-aligned, so rows doesn't share bytes. This allows concurrent access among rows.
+			mask(hh * w, false) {}
+
+		private:
+			int w;
+			std::vector<bool> mask;
 	};
 
 	struct ImageMeta {
@@ -41,11 +43,11 @@ class MultiBandBlender : public BlenderBase {
 		const ImageMeta& meta;
 
 		float weight_on_target(int x, int y) const {
-			// x, y: coordinate on target
 			return img.at(y - meta.range.min.y, x - meta.range.min.x).w;
 		}
 
 		float& weight_on_target(int x, int y) {
+			// x, y: coordinate on target
 			return img.at(y - meta.range.min.y, x - meta.range.min.x).w;
 		}
 
@@ -60,7 +62,7 @@ class MultiBandBlender : public BlenderBase {
 
 	};
 
-	std::vector<ImageToAdd> add_images;
+	std::vector<ImageToAdd> images_to_add;
 	std::vector<ImageMeta> image_metas;
 	std::vector<ImageToBlend> images;
 	std::vector<ImageToBlend> next_lvl_images;
