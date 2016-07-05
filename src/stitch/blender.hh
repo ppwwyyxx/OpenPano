@@ -24,6 +24,11 @@ class BlenderBase {
 			}
 			int width() const { return max.x - min.x + 1; }
 			int height() const { return max.y - min.y + 1; }
+
+			friend std::ostream& operator << (std::ostream& os, const Range& s) {
+				os << "min=" << s.min << ",max=" << s.max;
+				return os;
+			}
 		};
 
 		struct ImageToAdd {
