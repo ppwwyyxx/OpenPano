@@ -81,3 +81,11 @@ struct TotalTimerGlobalGuard {
 	~TotalTimerGlobalGuard() { TotalTimer::print(); }
 };
 
+
+#define GUARDED_FUNC_TIMER \
+	GuardedTimer _long_long_name_guarded_timer(__func__)
+
+#define TOTAL_FUNC_TIMER \
+	TotalTimer _long_long_name_total_timer(__func__)
+
+

@@ -33,14 +33,14 @@ class MultiBandBlender : public BlenderBase {
 			std::vector<bool> mask;
 	};
 
-	struct ImageMeta {
-		Range range;
+	struct MetaImage {
+		Range range;		// a RoI in target image, starting from range.min
 		Mask2D mask;		// 1: invalid
 	};
 
 	struct ImageToBlend {
-		Mat<WeightedPixel> img;		// a RoI in target image, starting from range.min
-		const ImageMeta& meta;
+		Mat<WeightedPixel> img;
+		const MetaImage& meta;
 
 		float weight_on_target(int x, int y) const {
 			return img.at(y - meta.range.min.y, x - meta.range.min.x).w;
@@ -63,7 +63,7 @@ class MultiBandBlender : public BlenderBase {
 	};
 
 	std::vector<ImageToAdd> images_to_add;
-	std::vector<ImageMeta> image_metas;
+	std::vector<MetaImage> meta_images;
 	std::vector<ImageToBlend> images;
 	std::vector<ImageToBlend> next_lvl_images;
 

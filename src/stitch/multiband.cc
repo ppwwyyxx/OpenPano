@@ -17,10 +17,10 @@ void MultiBandBlender::add_image(
 }
 
 void MultiBandBlender::create_first_level() {
-	GuardedTimer tm("MultiBandBlender::create_first_level()");
+	GUARDED_FUNC_TIMER;
 
 	int nr_image = images_to_add.size();
-	image_metas.reserve(nr_image);	// we will need reference to this vector element
+	meta_images.reserve(nr_image);	// we will need reference to this vector element
 #pragma omp parallel for schedule(dynamic)
 	REP(k, nr_image) {
 		ImageToAdd& img = images_to_add[k];
@@ -49,15 +49,14 @@ void MultiBandBlender::create_first_level() {
 		img.imgref.release();
 #pragma omp critical
 		{
-			image_metas.emplace_back(ImageMeta{range, move(mask)});
-			images.emplace_back(ImageToBlend{move(wimg), image_metas.back()});
+			meta_images.emplace_back(MetaImage{range, move(mask)});
+			images.emplace_back(ImageToBlend{move(wimg), meta_images.back()});
 		}
 	}
 	images_to_add.clear();
 }
 
 Mat32f MultiBandBlender::run() {
-	GuardedTimer tm("MultiBandBlender::run()");
 	create_first_level();
 	update_weight_map();
 	Mat32f target(target_size.y, target_size.x, 3);
@@ -124,7 +123,7 @@ Mat32f MultiBandBlender::run() {
 }
 
 void MultiBandBlender::update_weight_map() {
-	GuardedTimer tm("update_weight_map()");
+	GUARDED_FUNC_TIMER;
 #pragma omp parallel for schedule(dynamic, 100)
 	REP(i, target_size.y) REP(j, target_size.x) {
 		float max = 0.f;
@@ -144,7 +143,7 @@ void MultiBandBlender::update_weight_map() {
 }
 
 void MultiBandBlender::create_next_level(int level) {
-	TotalTimer tm("create_next_level()");
+	TOTAL_FUNC_TIMER;
 	GaussianBlur blurer(sqrt(level * 2 + 1.0) * 4);	// TODO size
 #pragma omp parallel for schedule(dynamic)
 	REP(i, images.size())
