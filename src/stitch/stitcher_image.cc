@@ -132,7 +132,7 @@ Mat32f ConnectedImages::blend() const {
 					return Vec2D{ret.x*denom, ret.y*denom};
 				});
 	}
-	//blender.debug_run(size.x, size.y);	// for debug
+	//dynamic_cast<LinearBlender*>(blender.get())->debug_run(size.x, size.y);	// for debug
 	return blender->run();
 }
 

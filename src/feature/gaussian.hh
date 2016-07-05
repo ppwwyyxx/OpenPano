@@ -59,7 +59,7 @@ class GaussianBlur {
 
 				T *dest = ret.ptr(0, j);
 				REP(i, h) {
-					T tmp = 0;
+					T tmp{0};
 					for (int k = -center; k <= center; k ++)
 						tmp += cur_line[i + k] * kernel[k];
 					*dest = tmp;
@@ -80,7 +80,7 @@ class GaussianBlur {
 						cur_line[center + j] = v0;
 				}
 				REP(j, w) {
-					T tmp = 0;
+					T tmp{0};
 					for (int k = -center; k <= center; k ++)
 						tmp += cur_line[j + k] * kernel[k];
 					*(dest ++) = tmp;

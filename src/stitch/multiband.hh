@@ -20,27 +20,54 @@ class MultiBandBlender : public BlenderBase {
 		WeightedPixel operator * (float v) const { return WeightedPixel{w * v, c * v}; }
 		void operator += (const WeightedPixel& p) { w += p.w; c += p.c; }
 	};
-	struct ImageToBlend {
+
+	struct Mask2D {
+		bool get(int i, int j) const { return mask[i * w + j]; }
+		void set(int i, int j) { mask[i * w + j] = true; }
+		Mask2D(int hh, int ww):
+			w{(ww + 7) / 8 * 8},		// 8bit-aligned, so rows doesn't share bytes. This allows concurrent access among rows.
+			mask(hh * w, false) {}
+
+		private:
+			int w;
+			std::vector<bool> mask;
+	};
+
+	struct ImageMeta {
 		Range range;
+		Mask2D mask;		// 1: invalid
+	};
+
+	struct ImageToBlend {
 		Mat<WeightedPixel> img;		// a RoI in target image, starting from range.min
+		const ImageMeta& meta;
 
 		float weight_on_target(int x, int y) const {
-			// x, y: coordinate on target
-			return img.at(y - range.min.y, x - range.min.x).w;
+			return img.at(y - meta.range.min.y, x - meta.range.min.x).w;
 		}
 
 		float& weight_on_target(int x, int y) {
-			return img.at(y - range.min.y, x - range.min.x).w;
+			// x, y: coordinate on target
+			return img.at(y - meta.range.min.y, x - meta.range.min.x).w;
 		}
 
 		const Color& color_on_target(int x, int y) const {
-			return img.at(y - range.min.y, x - range.min.x).c;
+			return img.at(y - meta.range.min.y, x - meta.range.min.x).c;
 		}
+
+		bool valid_on_target(int x, int y) const {
+			x -= meta.range.min.x, y -= meta.range.min.y;
+			return not meta.mask.get(y, x);
+		}
+
 	};
 
+	std::vector<ImageToAdd> images_to_add;
+	std::vector<ImageMeta> image_metas;
 	std::vector<ImageToBlend> images;
 	std::vector<ImageToBlend> next_lvl_images;
 
+	void create_first_level();
 	void update_weight_map();
 	// build next level weights from images to next_lvl_images
 	void create_next_level(int level);

@@ -22,9 +22,9 @@ void write_png(const char* fname, const Mat32f& mat) {
 	const float* p = mat.ptr();
 	unsigned char* data = img.data();
 	REP(i, n) {
-		data[0] = (p[0] < 0 ? 0 : p[0]) * 255;
-		data[1] = (p[1] < 0 ? 0 : p[1]) * 255;
-		data[2] = (p[2] < 0 ? 0 : p[2]) * 255;
+		data[0] = (p[0] < 0 ? 1 : p[0]) * 255;
+		data[1] = (p[1] < 0 ? 1 : p[1]) * 255;
+		data[2] = (p[2] < 0 ? 1 : p[2]) * 255;
 		data[3] = 255;
 		data += 4; p += 3;
 	}
