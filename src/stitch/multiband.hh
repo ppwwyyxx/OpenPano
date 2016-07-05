@@ -20,9 +20,21 @@ class MultiBandBlender : public BlenderBase {
 		WeightedPixel operator * (float v) const { return WeightedPixel{w * v, c * v}; }
 		void operator += (const WeightedPixel& p) { w += p.w; c += p.c; }
 	};
+
+	struct Mask2D {
+		std::vector<bool> mask;
+		int w;
+
+		bool get(int i, int j) const { return mask[i * w + j]; }
+		void set(int i, int j) { mask[i * w + j] = true; }
+		Mask2D(int h, int w):
+			mask(h * w, false), w{w} {}
+	};
 	struct ImageToBlend {
 		Range range;
 		Mat<WeightedPixel> img;		// a RoI in target image, starting from range.min
+
+		std::vector<bool> mask;	// true: valid
 
 		float weight_on_target(int x, int y) const {
 			// x, y: coordinate on target
@@ -35,6 +47,11 @@ class MultiBandBlender : public BlenderBase {
 
 		const Color& color_on_target(int x, int y) const {
 			return img.at(y - range.min.y, x - range.min.x).c;
+		}
+
+		bool valid_on_target(int x, int y) const {
+			x -= range.min.x, y -= range.min.y;
+			return mask[y * range.width() + x];
 		}
 	};
 

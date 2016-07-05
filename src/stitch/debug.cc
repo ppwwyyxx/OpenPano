@@ -42,12 +42,16 @@ void LinearBlender::debug_run(int w, int h) {
 
 void MultiBandBlender::debug_level(int level) const {
 	int imgid = 0;
-	for (auto& t: next_lvl_images) {
+	// TODO omp
+	for (auto& t: images) {
 		auto& wimg = t.img;
 		Mat32f img(wimg.rows(), wimg.cols(), 3);
 		Mat32f weight(wimg.rows(), wimg.cols(), 3);
 		REP(i, wimg.rows()) REP(j, wimg.cols()) {
-			wimg.at(i, j).c.write_to(img.ptr(i, j));
+			if (t.mask[i * wimg.cols() + j])
+				wimg.at(i, j).c.write_to(img.ptr(i, j));
+			else
+				Color::NO.write_to(img.ptr(i, j));
 			float* p = weight.ptr(i, j);
 			p[0] = p[1] = p[2] = wimg.at(i, j).w;
 		}

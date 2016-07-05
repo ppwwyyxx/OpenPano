@@ -5,6 +5,7 @@
 #include "lib/imgproc.hh"
 #include "feature/gaussian.hh"
 
+using namespace std;
 namespace pano {
 
 void MultiBandBlender::add_image(
@@ -16,15 +17,18 @@ void MultiBandBlender::add_image(
 	img.load();
 	Range range{upper_left, bottom_right};
 	Mat<WeightedPixel> wimg(range.height(), range.width(), 1);
-#pragma omp parallel for schedule(dynamic)
+	vector<bool> mask(range.height() * range.width(), true);
+//#pragma omp parallel for schedule(dynamic)
 	REP(i, range.height()) REP(j, range.width()) {
 		Coor target_coor{j + range.min.x, i + range.min.y};
 		Vec2D orig_coor = coor_func(target_coor);
 		Color c = interpolate(*img.img, orig_coor.y, orig_coor.x);
-		wimg.at(i, j).c = c;
-		if (c.x < 0) {	// Color::NO
+		if (c.get_min() < 0) {	// Color::NO
 			wimg.at(i, j).w = 0;
+			wimg.at(i, j).c = Color::BLACK;	// -1 will mess up with gaussian blur
+			mask[i * range.width() + j] = false;
 		} else {
+			wimg.at(i, j).c = c;
 			orig_coor.x = orig_coor.x / img.width() - 0.5;
 			orig_coor.y = orig_coor.y / img.height() - 0.5;
 			wimg.at(i, j).w = std::max(
@@ -34,7 +38,7 @@ void MultiBandBlender::add_image(
 		}
 	}
 	img.release();
-	images.emplace_back(ImageToBlend{range, move(wimg)});
+	images.emplace_back(ImageToBlend{range, move(wimg), move(mask)});
 	target_size.update_max(bottom_right);
 }
 
@@ -43,6 +47,8 @@ Mat32f MultiBandBlender::run() {
 	update_weight_map();
 	Mat32f target(target_size.y, target_size.x, 3);
 	fill(target, Color::NO);
+
+	Mask2D target_mask(target_size.y, target_size.x);
 
 	next_lvl_images.resize(images.size());
 	for (int level = 0; level < band_level; level ++) {
@@ -55,22 +61,29 @@ Mat32f MultiBandBlender::run() {
 			float wsum = 0;
 			REP(imgid, images.size())  {
 				auto& img_cur = images[imgid];
-				if (img_cur.range.contain(i, j)) {
-					auto& ccur = img_cur.color_on_target(j, i);
-					if (ccur.get_min() < 0) continue;
-					auto & img_next = next_lvl_images[imgid];
-					float w = img_cur.weight_on_target(j, i);
-					if (w <= 0) continue;
-					isum += (ccur - img_next.color_on_target(j, i)) * w;
-					wsum += w;
-				}
+				if (not img_cur.range.contain(i, j)) continue;
+				if (not img_cur.valid_on_target(j, i)) continue;
+
+				float w = img_cur.weight_on_target(j, i);
+				if (w <= 0) continue;
+
+				auto& ccur = img_cur.color_on_target(j, i);
+				m_assert(ccur.get_min() >= 0);
+				auto & img_next = next_lvl_images[imgid];
+				auto& cnext = img_next.color_on_target(j, i);
+				m_assert(cnext.get_min() >= 0);
+
+				isum += (ccur - cnext) * w;
+				wsum += w;
 			}
 			if (wsum < EPS)
 				continue;
 			isum /= wsum;
 			float* p = target.ptr(i, j);
-			if (*p == -1) {		// first time to visit *p. Note that *p could be negative after visit.
+			if (not target_mask.get(i, j)) {		// first time to visit *p. Note that *p could be negative after visit.
 				isum.write_to(p);
+#pragma omp critical	// omp walks through rows. optimize?
+				target_mask.set(i, j);
 			} else {
 				p[0] += isum.x, p[1] += isum.y, p[2] += isum.z;
 			}
@@ -80,9 +93,14 @@ Mat32f MultiBandBlender::run() {
 
 	REP(i, target.rows()) REP(j, target.cols()) {
 		float* p = target.ptr(i, j);
-		update_min(p[0], 1.0f);
-		update_min(p[1], 1.0f);
-		update_min(p[2], 1.0f);
+		if (target_mask.get(i, j)) {
+		  // weighted laplacian pyramid might introduce minor over/under flow
+			p[0] = max(min(p[0], 1.0f), 0.f);
+			p[1] = max(min(p[1], 1.0f), 0.f);
+			p[2] = max(min(p[2], 1.0f), 0.f);
+		} else {
+			Color::NO.write_to(p);
+		}
 	}
 	return target;
 }
@@ -127,6 +145,7 @@ void MultiBandBlender::create_next_level(int level) {
 #pragma omp parallel for schedule(dynamic)
 		REP(i, images.size()) {
 			next_lvl_images[i].range = images[i].range;
+			next_lvl_images[i].mask = images[i].mask;
 			next_lvl_images[i].img = blurer.blur(images[i].img);
 		}
 	}
