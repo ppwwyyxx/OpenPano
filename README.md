@@ -86,7 +86,7 @@ Newell-Simon Hall in CMU (this one is hard because objects are closer):
 A full-view pano built from UAV images:
 ![uav](results/uav.jpg)
 
-For more examples, see [results](https://github.com/ppwwyyxx/panorama/tree/master/results).
+For more examples, see [results](results).
 
 ## Speed & Memory:
 Tested on Intel Core i7-6700HQ, with `ESTIMATE_CAMERA` mode:
