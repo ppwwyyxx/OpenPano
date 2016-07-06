@@ -40,6 +40,6 @@ if __name__ == '__main__':
         assert ret == 0
         ret = os.system('tar xzf example-data.tgz')
         assert ret == 0
-    test_final_size('example-data/zijing/*', 6888, 1100)
-    test_final_size('example-data/CMU1-medium/*', 8000, 1349)
+    test_final_size('example-data/zijing/*', 6488, 1100)
+    test_final_size('example-data/CMU1-medium/*', 8000, 1449)
     print "Tests Passed"

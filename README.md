@@ -66,10 +66,10 @@ In cylinder/translation mode, the input file names need to have the correct orde
 ## Examples (All original data available for [__download__](https://github.com/ppwwyyxx/panorama/releases/tag/0.1)):
 
 Zijing Apartment in Tsinghua University:
-![dorm](https://github.com/ppwwyyxx/panorama/raw/master/results/apartment.jpg)
+![dorm](results/apartment.jpg)
 
 "Myselves":
-![myself](https://github.com/ppwwyyxx/panorama/raw/master/results/myself.jpg)
+![myself](results/myself.jpg)
 
 <!--
    -Zijing Playground in Tsinghua University:
@@ -77,11 +77,14 @@ Zijing Apartment in Tsinghua University:
 	 -->
 
 Carnegie Mellon University from 38 images
-![cmu0](https://github.com/ppwwyyxx/panorama/raw/master/results/CMU0-all.jpg)
-![apple](https://github.com/ppwwyyxx/panorama/raw/master/results/apple.jpg)
+![cmu0](results/CMU0-all.jpg)
+![apple](results/apple.jpg)
 
 Newell-Simon Hall in CMU (this one is hard because objects are closer):
-![nsh](https://github.com/ppwwyyxx/panorama/raw/master/results/NSH-all.jpg)
+![nsh](results/NSH-all.jpg)
+
+A full-view pano built from UAV images:
+![uav](results/uav.jpg)
 
 For more examples, see [results](https://github.com/ppwwyyxx/panorama/tree/master/results).
 
