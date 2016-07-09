@@ -12,6 +12,8 @@
 #include "lib/imgproc.hh"
 #include "lib/planedrawer.hh"
 
+using namespace std;
+
 namespace pano {
 
 void LinearBlender::debug_run(int w, int h) {

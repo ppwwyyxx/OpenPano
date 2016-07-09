@@ -13,6 +13,7 @@
 #include "warp.hh"
 
 using namespace config;
+using namespace std;
 
 namespace pano {
 

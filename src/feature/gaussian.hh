@@ -37,7 +37,7 @@ class GaussianBlur {
 			const int center = kw / 2;
 			float * kernel = gcache.kernel;
 
-			vector<T> cur_line_mem(center * 2 + std::max(w, h), 0);
+			std::vector<T> cur_line_mem(center * 2 + std::max(w, h), 0);
 			T *cur_line = cur_line_mem.data() + center;
 
 			// apply to columns

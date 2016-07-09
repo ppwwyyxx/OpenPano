@@ -4,9 +4,9 @@
 
 #include "utils.hh"
 
-string TERM_COLOR(int k) {
+std::string TERM_COLOR(int k) {
 	// k = 0 ~ 4
-	ostringstream ss;
+	std::ostringstream ss;
 	ss << "\x1b[3" << k + 2 << "m";
 	return ss.str();
 }
