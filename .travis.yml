@@ -7,6 +7,7 @@ os:
 
 compiler:
   - gcc
+  - clang
 
 env:
   - TASK=build
@@ -18,6 +19,7 @@ addons:
       - ubuntu-toolchain-r-test
     packages:
       - g++-4.8
+      - clang-3.6
       - libeigen3-dev
 
 before_script:
