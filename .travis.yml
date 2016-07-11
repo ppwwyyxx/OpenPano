@@ -21,6 +21,7 @@ addons:
     packages:
       - g++-4.8
       - clang-3.7
+      - libomp-dev
       - libeigen3-dev
 
 before_script:
