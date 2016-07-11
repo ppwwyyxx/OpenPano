@@ -25,9 +25,9 @@ const real_t GEO_EPS = 1e-7;
 inline float sqr(float x) { return x * x; }
 
 #define between(a, b, c) ((a >= b) && (a <= c - 1))
-#define REP(x, y) for (std::remove_cv<std::remove_reference<decltype(y)>::type>::type x = 0; x < (y); x ++)
-#define REPL(x, y, z) for (std::remove_cv<std::remove_reference<decltype(y)>::type>::type x = y; x < (z); x ++)
-#define REPD(x, y, z) for (std::remove_cv<std::remove_reference<decltype(y)>::type>::type x = y; x >= (z); x --)
+#define REP(x, y) for (typename std::remove_cv<typename std::remove_reference<decltype(y)>::type>::type x = 0; x < (y); x ++)
+#define REPL(x, y, z) for (typename std::remove_cv<typename std::remove_reference<decltype(y)>::type>::type x = y; x < (z); x ++)
+#define REPD(x, y, z) for (typename std::remove_cv<typename std::remove_reference<decltype(y)>::type>::type x = y; x >= (z); x --)
 
 std::string TERM_COLOR(int k);
 

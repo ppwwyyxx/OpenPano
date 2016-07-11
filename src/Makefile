@@ -15,6 +15,12 @@ ifeq ($(UNAME_S),Darwin)
 endif
 INCLUDE_DIR = -I. -isystem $(EIGEN_PATH) -isystem third-party
 
+ifneq (,$(findstring clang,$(CXX)))
+	OMP_FLAG=-fopenmp=libomp
+else
+	OMP_FLAG=-fopenmp
+endif
+
 OPTFLAGS ?= -O3 -msse3 -march=native
 #OPTFLAGS ?= -g -O0
 DEFINES = -DDEBUG  	# comment out this line improves speed
@@ -32,11 +38,11 @@ ifdef MKLROOT
 	DEFINES += -DEIGEN_USE_MKL_ALL
 endif
 
-CXXFLAGS = $(INCLUDE_DIR) -fopenmp -Wall -Wextra
+CXXFLAGS = $(INCLUDE_DIR) $(OMP_FLAG) -Wall -Wextra
 CXXFLAGS += $(DEFINES) -std=c++11 $(OPTFLAGS)
 
 LDFLAGS += $(OPTFLAGS)
-LDFLAGS += -ljpeg -fopenmp
+LDFLAGS += -ljpeg $(OMP_FLAG)
 
 SHELL = bash
 ccSOURCES = $(shell find . -name "*.cc" | sed 's/^\.\///g')
@@ -55,7 +61,7 @@ $(OBJ_DIR)/%.o: %.cc
 	@echo "[cc] $< ..."
 	@$(CXX) -c $< -o $@ $(CXXFLAGS)
 
-$(OBJ_DIR)/%.d: %.cc  Makefile
+$(OBJ_DIR)/%.d: %.cc Makefile
 	@mkdir -p $(dir $@)
 	@echo "[dep] $< ..."
 	@$(CXX) $(CXXFLAGS) $(DEFINES) -MM -MT "$(OBJ_DIR)/$(<:.cc=.o) $(OBJ_DIR)/$(<:.cc=.d)" "$<"  > "$@"
