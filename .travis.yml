@@ -17,10 +17,10 @@ addons:
   apt:
     sources:
       - ubuntu-toolchain-r-test
-      - llvm-toolchain-precise-3.6
+      - llvm-toolchain-precise-3.7
     packages:
       - g++-4.8
-      - clang-3.6
+      - clang-3.7
       - libeigen3-dev
 
 before_script:
