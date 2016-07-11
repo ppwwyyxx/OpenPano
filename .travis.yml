@@ -25,6 +25,7 @@ addons:
 
 before_script:
   - if [ "$CXX" == "g++" ]; then export CXX="g++-4.8"; fi
+  - if [ "$CXX" == "clang++" ]; then export CXX="clang++-3.7"; fi
   - export OMP_NUM_THREADS=4
 
 script:
