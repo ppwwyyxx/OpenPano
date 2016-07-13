@@ -79,6 +79,7 @@ Mat32f read_img(const char* fname) {
 				mat.at(i, j, 0) = mat.at(i, j, 1) = mat.at(i, j, 2) = img(j, i);
 			}
 	}
+	m_assert(mat.rows() > 1 && mat.cols() > 1);
 	return mat;
 }
 
