@@ -105,6 +105,7 @@ ScaleSpace::ScaleSpace(const Mat32f& mat, int num_octave, int num_scale):
 			float factor = pow(SCALE_FACTOR, -i);
 			int neww = ceil(origw * factor),
 					newh = ceil(origh * factor);
+			m_assert(neww > 5 && newh > 5);
 			Mat32f resized(newh, neww, 3);
 			resize(mat, resized);
 			pyramids.emplace_back(resized, nscale);

@@ -74,8 +74,10 @@ vector<Camera> CameraEstimator::estimate() {
 					auto& m = matches[next][i];
 					if (m.match.size() && m.confidence > 0) {
 						iba.add_match(i, next, m);
-						if (MULTIPASS_BA == 2)
+						if (MULTIPASS_BA == 2) {
+							print_debug("MULTIPASS_BA: %d -> %d\n", next, i);
 							iba.optimize();
+						}
 					}
 				}
 				if (MULTIPASS_BA == 1)

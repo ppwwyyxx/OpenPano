@@ -175,7 +175,8 @@ IncrementalBundleAdjuster::ErrorStats IncrementalBundleAdjuster::calcError(
 				to = index_map[pair.to];
 		auto& c_from = cameras[from],
 			& c_to = cameras[to];
-		Homography Hto_to_from = (c_from.K() * c_from.R) * (c_to.Rinv() * c_to.K().inverse());
+		Homography Hto_to_from = (c_from.K() * c_from.R) *
+			(c_to.Rinv() * c_to.K().inverse());
 
 		Vec2D mid_vec_from = shapes[pair.from].center();
 		Vec2D mid_vec_to = shapes[pair.to].center();
@@ -184,6 +185,18 @@ IncrementalBundleAdjuster::ErrorStats IncrementalBundleAdjuster::calcError(
 			Vec2D transformed = Hto_to_from.trans2d(to);
 			ret.residuals[idx] = from.x - transformed.x;
 			ret.residuals[idx+1] = from.y - transformed.y;
+
+			/*
+			 *if (fabs(ret.residuals[idx+1]) > 5000
+			 *    or fabs(ret.residuals[idx]) > 5000) {
+			 *  print_debug("WHAT");
+			 *  PP(from);PP(to);PP(transformed);
+			 *  PP(c_from);
+			 *  PP(c_to);
+			 *  PP(Hto_to_from);
+			 *  exit(1);
+			 *}
+			 */
 			idx += 2;
 		}
 	}
@@ -191,20 +204,23 @@ IncrementalBundleAdjuster::ErrorStats IncrementalBundleAdjuster::calcError(
 	return ret;
 }
 
-void IncrementalBundleAdjuster::ErrorStats::update_stats(int inlier_threshold) {
+void IncrementalBundleAdjuster::ErrorStats::update_stats(int) {
 	// TODO which error func to use?
 	auto error_func = [&](double diff) -> double {
 		return sqr(diff);	// square error is good
-		diff = fabs(diff);
-		if (diff < inlier_threshold)
-			return sqr(diff);
-		return 2.0 * inlier_threshold * diff - sqr(inlier_threshold);
+		/*
+		 *diff = fabs(diff);
+		 *if (diff < inlier_threshold)
+		 *  return sqr(diff);
+		 *return 2.0 * inlier_threshold * diff - sqr(inlier_threshold);
+		 */
 	};
 
 	avg = max = 0;
 	for (auto& e : residuals) {
 		avg += error_func(e);
 		update_max(max, fabs(e));
+		//if (update_max(max, fabs(e))) PP(e);
 	}
 	avg /= residuals.size();
 	avg = sqrt(avg);
