@@ -110,3 +110,11 @@ Peak memory in bytes (assume each input has the same w & h):
 + Optimization: focal estimation, [bundle adjustment](https://en.wikipedia.org/wiki/Bundle_adjustment), and some straightening tricks.
 
 For details, see [my blog post](http://ppwwyyxx.com/2016/How-to-Write-a-Panorama-Stitcher/).
+
+
+## TODOs
++ run bundle adjustment on the sphere instead of the plane
++ use LAZY_READ & 1 byte image in multiband blender to reduce peak memory
++ faster gaussian blur kernel
++ port some hotspot (e.g. `dist.cc`) to neon
++ support EXIF metadata so the pano can be viewed on Facebook
