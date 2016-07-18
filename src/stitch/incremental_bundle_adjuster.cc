@@ -11,6 +11,7 @@
 #include "camera.hh"
 #include "match_info.hh"
 #include "lib/config.hh"
+#include "projection.hh"
 #include "lib/timer.hh"
 using namespace std;
 using namespace pano;
@@ -21,6 +22,7 @@ const static int NR_PARAM_PER_CAMERA = 6;
 const static int NR_TERM_PER_MATCH = 2;
 const static bool SYMBOLIC_DIFF = true;
 const static int LM_MAX_ITER = 100;
+const static float ERROR_IGNORE = 500.f;
 
 inline void camera_to_params(const Camera& c, double* ptr) {
 	ptr[0] = c.focal;
@@ -186,15 +188,21 @@ IncrementalBundleAdjuster::ErrorStats IncrementalBundleAdjuster::calcError(
 			ret.residuals[idx] = from.x - transformed.x;
 			ret.residuals[idx+1] = from.y - transformed.y;
 
+			// TODO for the momentum, ignore circlic error
+			if (fabs(ret.residuals[idx]) > ERROR_IGNORE)
+				ret.residuals[idx] = 0;
+
 			/*
-			 *if (fabs(ret.residuals[idx+1]) > 5000
-			 *    or fabs(ret.residuals[idx]) > 5000) {
+			 *if (fabs(ret.residuals[idx+1]) > 100
+			 *    or fabs(ret.residuals[idx]) > 100) {
+			 *  auto transfed = cylindrical::homo2proj(Hto_to_from.trans(to));
+			 *  auto from3d = cylindrical::homo2proj(Vec{from.x, from.y, 1});
 			 *  print_debug("WHAT");
 			 *  PP(from);PP(to);PP(transformed);
-			 *  PP(c_from);
-			 *  PP(c_to);
 			 *  PP(Hto_to_from);
-			 *  exit(1);
+			 *  PP(transfed);
+			 *  PP(from3d);
+			 *  //exit(1);
 			 *}
 			 */
 			idx += 2;
@@ -294,11 +302,11 @@ void IncrementalBundleAdjuster::calcJacobianSymbolic(const ParamState& state) {
 		const auto& pair = match_pairs[pair_idx];
 		int idx = match_cnt_prefix_sum[pair_idx] * 2;
 		int from = index_map[pair.from],
-				to = index_map[pair.to];
+		to = index_map[pair.to];
 		int param_idx_from = from * NR_PARAM_PER_CAMERA,
 				param_idx_to = to * NR_PARAM_PER_CAMERA;
 		const auto &c_from = cameras[from],
-					&c_to = cameras[to];
+		&c_to = cameras[to];
 		const auto fromK = c_from.K();
 		const auto toKinv = c_to.Kinv();
 		const auto toRinv = c_to.Rinv();
@@ -308,12 +316,26 @@ void IncrementalBundleAdjuster::calcJacobianSymbolic(const ParamState& state) {
 
 		const Homography Hto_to_from = (fromK * c_from.R) * (toRinv * toKinv);
 		Vec2D mid_vec_to = shapes[pair.to].center();
+		Vec2D mid_vec_from = shapes[pair.from].center();
 
 		for (const auto& p : pair.m.match) {
 			Vec2D to = p.first + mid_vec_to;
 			Vec homo = Hto_to_from.trans(to);
 			double hz_sqr_inv = 1.0 / sqr(homo.z);
 			double hz_inv = 1.0 / homo.z;
+
+			// TODO for the momentum, ignore circlic error
+			Vec2D from = p.second + mid_vec_from;
+			if (fabs(from.x - homo.x / homo.z) > ERROR_IGNORE) {
+				REP(i, 6) {
+					J(idx, param_idx_from+i) = 0;
+					J(idx, param_idx_to+i) = 0;
+					J(idx+1, param_idx_from+i) = 0;
+					J(idx+1, param_idx_to+i) = 0;
+				}
+				idx += 2;
+				continue;
+			}
 
 			Vec dhdv;	// d(homo)/d(variable)
 			// calculate d(residual) / d(variable) = -d(point 2d) / d(variable)
