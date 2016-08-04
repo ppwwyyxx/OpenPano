@@ -20,11 +20,14 @@ Eigen, CImg and FLANN are header-only, to simplify the compilation on different 
 CImg and libjpeg are only used to read and write images, so you can easily get rid of them.
 
 ### Compile:
-Linux / OSX:
+Linux / OSX (gcc or clang):
 ```
 $ cd src; make
 ```
-Windows users can try cmake with the given `CMakeLists.txt`.
+The default clang on OSX doesn't contain openmp support.
+You may need a different clang or gcc. See #16.
+
+Windows users can try cmake with the `CMakeLists.txt`.
 
 ### Options:
 
@@ -57,7 +60,7 @@ it might be better to resize your images rather than tune the parameters.
 $ ./image-stitching <file1> <file2> ...
 ```
 
-The default output file is ``out.jpg``. You can play with the example data to start with.
+The output file is ``out.jpg``. You can play with the example data to start with.
 
 Before dealing with very large images (4 megapixels or more), it's better to resize them. (I might add this feature in the future)
 
@@ -111,6 +114,13 @@ Peak memory in bytes (assume each input has the same w & h):
 
 For details, see [my blog post](http://ppwwyyxx.com/2016/How-to-Write-a-Panorama-Stitcher/).
 
+## Quality Guidelines
+
+To get the best stitching quality:
++ While rotating the camera for different shots, try to keep the position of camera lens static.
++ Keep the exposure parameters unchanged.
++ Do not shoot on moving objects.
++ Objects far away will stitch better.
 
 ## TODOs
 + run bundle adjustment on the sphere instead of the plane
