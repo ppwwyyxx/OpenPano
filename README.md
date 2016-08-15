@@ -121,6 +121,8 @@ To get the best stitching quality:
 + Keep the exposure parameters unchanged.
 + Do not shoot on moving objects.
 + Objects far away will stitch better.
++ The algorithm doesn't work well with wide-angle cameras where images are distorted heavily. Camera
+	parameters are needed to undistort the images.
 
 ## TODOs
 + run bundle adjustment on the sphere instead of the plane

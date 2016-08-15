@@ -22,7 +22,7 @@ else
 endif
 
 OPTFLAGS ?= -O3 -msse3 -march=native
-#OPTFLAGS ?= -g -O0
+#OPTFLAGS ?= -g3 -fsanitize=address,undefined -O0
 DEFINES = -DDEBUG  	# comment out this line improves speed
 
 # optional extra packages
