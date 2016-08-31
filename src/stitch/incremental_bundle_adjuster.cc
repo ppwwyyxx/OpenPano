@@ -188,7 +188,7 @@ IncrementalBundleAdjuster::ErrorStats IncrementalBundleAdjuster::calcError(
 			ret.residuals[idx] = from.x - transformed.x;
 			ret.residuals[idx+1] = from.y - transformed.y;
 
-			// TODO for the momentum, ignore circlic error
+			// TODO for the moment, ignore circlic error
 			if (fabs(ret.residuals[idx]) > ERROR_IGNORE)
 				ret.residuals[idx] = 0;
 
@@ -324,7 +324,7 @@ void IncrementalBundleAdjuster::calcJacobianSymbolic(const ParamState& state) {
 			double hz_sqr_inv = 1.0 / sqr(homo.z);
 			double hz_inv = 1.0 / homo.z;
 
-			// TODO for the momentum, ignore circlic error
+			// TODO for the moment, ignore circlic error
 			Vec2D from = p.second + mid_vec_from;
 			if (fabs(from.x - homo.x / homo.z) > ERROR_IGNORE) {
 				REP(i, 6) {
