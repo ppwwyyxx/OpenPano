@@ -32,10 +32,11 @@ Windows users can try cmake with the `CMakeLists.txt`.
 ### Options:
 
 Three modes are available (set/unset the options in ``config.cfg``):
-+ __cylinder__ mode. When the following conditions satisfied, this mode usually yields better results:
-	+ Images are taken with almost-pure single-direction rotation. (as common panoramas)
++ __cylinder__ mode. Give better results if:
+	+ You are __only__ turning left (or right) when taking the images (as is usually done), no
+		translations or other type of rotations allowed.
+	+ Images are taken with the same camera, with a known ``FOCAL_LENGTH`` set in config.
 	+ Images are given in the left-to-right order. (I might fix this in the future)
-	+ Images are taken with the same camera, and a good ``FOCAL_LENGTH`` is set.
 
 + __camera estimation mode__. No translation is the only requirement on cameras.
   It can usually work well as long as you don't have too few images.
@@ -46,7 +47,7 @@ Three modes are available (set/unset the options in ``config.cfg``):
 
 Some options you may care:
 + __FOCAL_LENGTH__: focal length of your camera in [35mm equivalent](https://en.wikipedia.org/wiki/35_mm_equivalent_focal_length). Only useful in cylinder mode.
-+ __ORDERED_INPUT__: whether input images are ordered. has to be `1` in CYLINDER and TRANS mode.
++ __ORDERED_INPUT__: whether input images are ordered sequentially. has to be `1` in CYLINDER and TRANS mode.
 + __CROP__: whether to crop the final image to avoid irregular white border.
 
 Other parameters are quality-related.
