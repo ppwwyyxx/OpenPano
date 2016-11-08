@@ -189,22 +189,15 @@ IncrementalBundleAdjuster::ErrorStats IncrementalBundleAdjuster::calcError(
 			ret.residuals[idx+1] = from.y - transformed.y;
 
 			// TODO for the moment, ignore circlic error
-			if (fabs(ret.residuals[idx]) > ERROR_IGNORE)
+			if (fabs(ret.residuals[idx]) > ERROR_IGNORE) {
+				/*
+				 *auto transfed = spherical::homo2proj(Hto_to_from.trans(to));
+				 *auto from3d = spherical::homo2proj(Vec{from.x, from.y, 1});
+				 *PP(from);PP(to);PP(transformed);
+				 *PP(transfed); PP(from3d);
+				 */
 				ret.residuals[idx] = 0;
-
-			/*
-			 *if (fabs(ret.residuals[idx+1]) > 100
-			 *    or fabs(ret.residuals[idx]) > 100) {
-			 *  auto transfed = cylindrical::homo2proj(Hto_to_from.trans(to));
-			 *  auto from3d = cylindrical::homo2proj(Vec{from.x, from.y, 1});
-			 *  print_debug("WHAT");
-			 *  PP(from);PP(to);PP(transformed);
-			 *  PP(Hto_to_from);
-			 *  PP(transfed);
-			 *  PP(from3d);
-			 *  //exit(1);
-			 *}
-			 */
+			}
 			idx += 2;
 		}
 	}
@@ -252,13 +245,13 @@ Eigen::VectorXd IncrementalBundleAdjuster::get_param_update(
 
 	REP(i, nr_img * NR_PARAM_PER_CAMERA) {
 		// use different lambda for different param? from Lowe.
+		// *= (1+lambda) ?
 		if (i % NR_PARAM_PER_CAMERA >= 3) {
 			JtJ(i, i) += lambda;
 		} else {
-			JtJ(i, i) += lambda / 10;
+			JtJ(i, i) += lambda / 10.f;
 		}
 	}
-	//return JtJ.jacobiSvd(ComputeThinU | ComputeThinV).solve(b);
 	//return JtJ.partialPivLu().solve(b).eval();
 	return JtJ.colPivHouseholderQr().solve(b).eval();
 }
@@ -337,9 +330,10 @@ void IncrementalBundleAdjuster::calcJacobianSymbolic(const ParamState& state) {
 				continue;
 			}
 
+			// TODO use spherical projection instead of flat projection
 			Vec dhdv;	// d(homo)/d(variable)
 			// calculate d(residual) / d(variable) = -d(point 2d) / d(variable)
-			// d(point 2d coor) / d(variable) = d(p)/d(homo) * d(homo)/d(variable)
+			// d(point 2d coor) / d(variable) = d(p2d)/d(homo3d) * d(homo3d)/d(variable)
 #define drdv(xx) \
 			(dhdv = xx, Vec2D{ \
 			 -dhdv.x * hz_inv + dhdv.z * homo.x * hz_sqr_inv, \
