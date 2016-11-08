@@ -188,6 +188,24 @@ IncrementalBundleAdjuster::ErrorStats IncrementalBundleAdjuster::calcError(
 			ret.residuals[idx] = from.x - transformed.x;
 			ret.residuals[idx+1] = from.y - transformed.y;
 
+			/*
+			 *Vec2D pfrom = spherical::homo2proj(Vec{from.x, from.y, 1});
+			 *Vec2D ptransformed = spherical::homo2proj(Hto_to_from.trans(to));
+			 *auto dx = pfrom.x - ptransformed.x;
+			 *auto dy = pfrom.y - ptransformed.y;
+			 *if (dx < -M_PI)  dx += 2 * M_PI;
+			 *else if (dx >= M_PI)  dx -= 2 * M_PI;
+			 *if (dy < -M_PI_2)  dy += M_PI;
+			 *else if (dy >= M_PI_2) dy -= M_PI;
+			 *if (fabs(dx) > 3) {
+			 *  PP(ret.residuals[idx]);
+			 *  PP(dx);
+			 *}
+			 *ret.residuals[idx] = dx;
+			 *ret.residuals[idx+1] = dy;
+			 */
+
+
 			// TODO for the moment, ignore circlic error
 			if (fabs(ret.residuals[idx]) > ERROR_IGNORE) {
 				/*
@@ -338,6 +356,7 @@ void IncrementalBundleAdjuster::calcJacobianSymbolic(const ParamState& state) {
 			(dhdv = xx, Vec2D{ \
 			 -dhdv.x * hz_inv + dhdv.z * homo.x * hz_sqr_inv, \
 			 -dhdv.y * hz_inv + dhdv.z * homo.y * hz_sqr_inv})
+//#define drdv(xx) -flat::gradproj(homo, xx)
 
 			array<Vec2D, NR_PARAM_PER_CAMERA> dfrom, dto;
 

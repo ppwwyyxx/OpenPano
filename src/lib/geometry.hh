@@ -184,6 +184,9 @@ class Vector2D {
 		Vector2D<T> operator - (const Vector2D<T> &v) const
 		{ return Vector2D<T>(x - v.x, y - v.y); }
 
+		Vector2D<T> operator - () const
+		{ return Vector2D<T>(-x, -y); }
+
 		Vector2D<T>& operator -= (const Vector2D<T> &v)
 		{ x -= v.x; y -= v.y; return *this; }
 

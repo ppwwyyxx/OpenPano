@@ -11,35 +11,57 @@ namespace pano {
 	typedef Vec (*proj2homo_t)(const Vec2D&);
 
 	namespace flat {
-		static inline Vec2D homo2proj(const Vec &coord) {
-			return Vec2D(coord.x / coord.z, coord.y / coord.z);
+		static inline Vec2D homo2proj(const Vec &homo) {
+			return Vec2D(homo.x / homo.z, homo.y / homo.z);
 		}
 
-		static inline Vec proj2homo(const Vec2D &coord) {
-			return Vec(coord.x, coord.y, 1);
+		// input & gradInput
+		// given h & dh/dx, return dp/dx = dp/dh * dh/dx
+		static inline Vec2D gradproj(const Vec &homo, const Vec& gradhomo) {
+			double hz_inv = 1.0 / homo.z;
+			double hz_sqr_inv = 1.0 / sqr(homo.z);
+			return Vec2D{gradhomo.x * hz_inv - gradhomo.z * homo.x * hz_sqr_inv,
+									 gradhomo.y * hz_inv - gradhomo.z * homo.y * hz_sqr_inv };
+		}
+
+		static inline Vec proj2homo(const Vec2D &proj) {
+			return Vec(proj.x, proj.y, 1);
 		}
 	}
 
 	namespace cylindrical {
-		static inline Vec2D homo2proj(const Vec &coord) {
-			return Vec2D(atan2(coord.x, coord.z),
-					coord.y / (hypot(coord.x, coord.z)));
+		static inline Vec2D homo2proj(const Vec &homo) {
+			return Vec2D(atan2(homo.x, homo.z),
+					homo.y / (hypot(homo.x, homo.z)));
 		}
 
-		static inline Vec proj2homo(const Vec2D &coord) {
-			return Vec(sin(coord.x), coord.y, cos(coord.x));
+		static inline Vec proj2homo(const Vec2D &proj) {
+			return Vec(sin(proj.x), proj.y, cos(proj.x));
 		}
 	}
 
 
 	namespace spherical {
-		static inline Vec2D homo2proj(const Vec &coord) {
-			return Vec2D(atan2(coord.x, coord.z),
-					atan2(coord.y, hypot(coord.x, coord.z)));
+		static inline Vec2D homo2proj(const Vec &homo) {
+			return Vec2D(atan2(homo.x, homo.z),
+					atan2(homo.y, hypot(homo.x, homo.z)));
 		}
 
-		static inline Vec proj2homo(const Vec2D &coord) {
-			return Vec(sin(coord.x), tan(coord.y), cos(coord.x));
+		// input & gradInput
+		// given h & dh/dx, return dp/dx = dp/dh * dh/dx
+		static inline Vec2D gradproj(const Vec &homo, const Vec& gradhomo) {
+			double h_xz = homo.x * homo.x + homo.z * homo.z,
+						 h_xz_r = sqrt(h_xz),
+						 h_xyz_inv = 1.0 / (h_xz + homo.y * homo.y),
+						 h_xz_inv = 1.0 / h_xz;
+			return Vec2D{gradhomo.x * homo.z * h_xz_inv - gradhomo.z * homo.x * h_xz_inv,
+									 -gradhomo.x * homo.x * homo.y * h_xyz_inv / h_xz_r
+									 +gradhomo.y * h_xz_r * h_xyz_inv
+									 -gradhomo.z * homo.y * homo.z * h_xyz_inv / h_xz_r};
+		}
+
+		static inline Vec proj2homo(const Vec2D &proj) {
+			return Vec(sin(proj.x), tan(proj.y), cos(proj.x));
 		}
 	}
 }
