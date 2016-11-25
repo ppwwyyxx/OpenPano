@@ -27,7 +27,7 @@ $ cd src; make
 The default clang on OSX doesn't contain openmp support.
 You may need a different clang or gcc. See #16.
 
-Windows users can try cmake with the `CMakeLists.txt`.
+The project doesn't intend to support Windows, but WSL should work fine, and VS users can also try cmake with the `CMakeLists.txt`.
 
 ### Options:
 

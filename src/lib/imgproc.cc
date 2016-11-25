@@ -188,6 +188,15 @@ void fill(Mat32f& mat, const Color& c) {
 	}
 }
 
+void fill(Mat32f& mat, float c) {
+	float* ptr = mat.ptr();
+	int n = mat.pixels();
+	REP(i, n) {
+		*ptr = c;
+		ptr ++;
+	}
+}
+
 Mat32f crop(const Mat32f& mat) {
 	int w = mat.width(), h = mat.height();
 	vector<int> height(w, 0),

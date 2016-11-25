@@ -195,12 +195,14 @@ IncrementalBundleAdjuster::ErrorStats IncrementalBundleAdjuster::calcError(
 			 *auto dy = pfrom.y - ptransformed.y;
 			 *if (dx < -M_PI)  dx += 2 * M_PI;
 			 *else if (dx >= M_PI)  dx -= 2 * M_PI;
+			 *if (fabs(dx) > 3) {
+			 *  PP(dx);
+			 *  PP(pfrom.y);
+			 *  PP(ptransformed.y);
+			 *  dx -= M_PI;
+			 *}
 			 *if (dy < -M_PI_2)  dy += M_PI;
 			 *else if (dy >= M_PI_2) dy -= M_PI;
-			 *if (fabs(dx) > 3) {
-			 *  PP(ret.residuals[idx]);
-			 *  PP(dx);
-			 *}
 			 *ret.residuals[idx] = dx;
 			 *ret.residuals[idx+1] = dy;
 			 */

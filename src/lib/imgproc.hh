@@ -34,6 +34,7 @@ Matrix getPerspectiveTransform(const std::vector<Vec2D>& p1, const std::vector<V
 Matrix getAffineTransform(const std::vector<Vec2D>& p1, const std::vector<Vec2D>& p2);
 
 void fill(Mat32f& mat, const Color& c);
+void fill(Mat32f& mat, float c);
 
 template <typename T>
 void resize(const Mat<T> &src, Mat<T> &dst);
