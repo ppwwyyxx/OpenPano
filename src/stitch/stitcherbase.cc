@@ -12,7 +12,7 @@ void StitcherBase::calc_feature() {
 	keypoints.resize(imgs.size());
 	// detect feature
 #pragma omp parallel for schedule(dynamic)
-	REP(k, imgs.size()) {
+	REP(k, (int)imgs.size()) {
 		imgs[k].load();
 		feats[k] = feature_det->detect_feature(*imgs[k].img);
 		if (config::LAZY_READ)
