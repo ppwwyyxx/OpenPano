@@ -8,8 +8,13 @@ data/
 output
 *.pyc
 build/
+CMakeCache.txt
+CMakeFiles/
+src/CMakeFiles/
 src/*.jpg
 src/image-stitching
+MakeFile
+src/MakeFile
 log
 *~
 *.o
