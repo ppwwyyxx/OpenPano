@@ -11,7 +11,7 @@
 
 #include "lib/mat.h"
 #include "lib/utils.hh"
-
+#include "common/common.hh"
 
 namespace pano {
 class Camera;

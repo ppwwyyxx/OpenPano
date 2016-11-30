@@ -7,6 +7,7 @@
 
 #include "lib/geometry.hh"
 #include "homography.hh"
+#include "common/common.hh"
 
 namespace pano {
 

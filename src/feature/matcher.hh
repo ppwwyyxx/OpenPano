@@ -7,6 +7,7 @@
 #include <flann/flann.hpp>
 #include "feature.hh"
 #include "dist.hh"
+#include "common/common.hh"
 
 namespace pano {
 

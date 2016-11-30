@@ -8,6 +8,7 @@
 #include "lib/mat.h"
 #include "lib/geometry.hh"
 #include "feature/dist.hh"
+#include "common/common.hh"
 #include <cstring>
 
 namespace pano {

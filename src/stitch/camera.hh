@@ -4,7 +4,7 @@
 #pragma once
 #include <vector>
 #include "homography.hh"
-
+#include "common/common.hh"
 namespace pano {
 struct MatchInfo;
 

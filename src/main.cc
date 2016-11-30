@@ -20,6 +20,7 @@
 #include "stitch/stitcher.hh"
 #include "stitch/transform_estimate.hh"
 #include "stitch/warp.hh"
+#include "common/common.hh"
 #include <ctime>
 #include <cassert>
 

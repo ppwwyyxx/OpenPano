@@ -7,7 +7,7 @@
 #include "lib/mat.h"
 #include "lib/debugutils.hh"
 #include "lib/config.hh"
-
+#include "common/common.hh"
 namespace pano {
 
 // Given an image, build an octave with different blurred version

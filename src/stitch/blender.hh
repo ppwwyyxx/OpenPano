@@ -8,7 +8,7 @@
 #include "lib/geometry.hh"
 #include "lib/color.hh"
 #include "imageref.hh"
-
+#include "common/common.hh"
 namespace pano {
 
 class BlenderBase {

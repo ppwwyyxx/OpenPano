@@ -8,6 +8,7 @@
 #include "projection.hh"
 #include "homography.hh"
 #include "imageref.hh"
+#include "common/common.hh"
 
 namespace pano {
 

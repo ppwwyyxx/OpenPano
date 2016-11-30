@@ -9,6 +9,7 @@
 #include "lib/utils.hh"
 #include "stitcher_image.hh"
 #include "stitcherbase.hh"
+#include "common/common.hh"
 
 namespace pano {
 

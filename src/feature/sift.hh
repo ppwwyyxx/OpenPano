@@ -3,6 +3,7 @@
 
 #pragma once
 #include "feature.hh"
+#include "common/common.hh"
 
 namespace pano {
 

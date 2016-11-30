@@ -8,7 +8,7 @@
 #include "lib/mat.h"
 #include "lib/utils.hh"
 #include "lib/timer.hh"
-
+#include "common/common.hh"
 namespace pano {
 
 class GaussCache {
