@@ -1,0 +1,5 @@
+/home/shawn/Develop/WorkSpace/Pano/panorama/CMakeFiles/rebuild_cache.dir
+/home/shawn/Develop/WorkSpace/Pano/panorama/CMakeFiles/edit_cache.dir
+/home/shawn/Develop/WorkSpace/Pano/panorama/src/CMakeFiles/rebuild_cache.dir
+/home/shawn/Develop/WorkSpace/Pano/panorama/src/CMakeFiles/edit_cache.dir
+/home/shawn/Develop/WorkSpace/Pano/panorama/src/CMakeFiles/image_stitching.dir

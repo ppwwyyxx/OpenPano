@@ -1,0 +1,1 @@
+/home/shawn/Develop/WorkSpace/Pano/panorama/src/CMakeFiles/image_stitching.dir

@@ -10,5 +10,6 @@ build/
 src/*.jpg
 src/image-stitching
 log
-
+*~
+*.o
 *-report
