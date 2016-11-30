@@ -1,11 +1,4 @@
 # Currently this doesn't work for Linux. Use the Makefile instead.
-if (MSVC)
-    # For precompiled header.
-    # Set 
-    # "Precompiled Header" to "Use (/Yu)"
-    # "Precompiled Header File" to "stdafx.h"
-    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /YuMSVC/vs.h")
-endif()
 include_directories(third-party)
 # our sources
 include_directories(.)

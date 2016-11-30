@@ -28,4 +28,5 @@ Win32/
 ipch/
 Debug
 cmake_install.cmake
+src/cmake_install.cmake
 .vs/
