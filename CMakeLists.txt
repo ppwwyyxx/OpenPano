@@ -62,7 +62,7 @@ if(NOT EIGEN3_INCLUDE_DIR )
        message(FATAL_ERROR "Set EIGEN3_INCLUDE_DIR")
     endif()
 endif()
-include_directories(${EIGEN3_INCLUDE_DIR})
+include_directories(SYSTEM ${EIGEN3_INCLUDE_DIR})
 
 if(MSVC)
 
