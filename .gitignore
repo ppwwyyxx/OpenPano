@@ -12,7 +12,7 @@ CMakeCache.txt
 CMakeFiles/
 src/CMakeFiles/
 src/*.jpg
-src/image-stitching
+src/image_stitching
 MakeFile
 src/MakeFile
 log
