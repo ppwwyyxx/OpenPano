@@ -19,3 +19,12 @@ log
 *~
 *.o
 *-report
+*.vcxproj
+*.vcxproj.*
+*.VC
+*.VC.*
+*.sln
+Win32/
+ipch/
+Debug
+cmake_install.cmake
