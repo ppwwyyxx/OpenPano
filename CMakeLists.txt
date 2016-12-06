@@ -58,8 +58,8 @@ if(MSVC)
   # /Zo makes debug symbol in pdb in release mode in VS2015
   add_definitions(/fp:fast /GR- /Os /Zo /arch:AVX /openmp)
 else()
-  add_definitions(-O3 -g -march=native -fopenmp -Wall -Wextra)
-  set(CMAKE_CXX_COMPILER g++-5)
+  add_definitions(-O3 -march=native -fopenmp -Wall -Wextra)
+  set(CMAKE_CXX_COMPILER g++)
 endif()
 
 add_subdirectory(src)

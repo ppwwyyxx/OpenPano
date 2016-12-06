@@ -85,6 +85,7 @@ void PairWiseMatcher::build() {
 }
 
 MatchData PairWiseMatcher::match(int i, int j) const {
+  // TODO can use a bidirectional rejection to improve robustness
 	static const float REJECT_RATIO_SQR = MATCH_REJECT_NEXT_RATIO * MATCH_REJECT_NEXT_RATIO;
 	MatchData ret;
 	auto source = feats.at(i),
