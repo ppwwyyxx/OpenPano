@@ -126,8 +126,12 @@ To get the best stitching quality:
 	parameters are needed to undistort the images.
 
 ## TODOs
-+ run bundle adjustment on the sphere instead of the plane
++ run bundle adjustment on sphere lens instead of perspective lens
 + use LAZY_READ & 1 byte image in multiband blender to reduce peak memory
++ clean up use of copies of `ImageRef`
 + faster gaussian blur kernel
 + port some hotspot (e.g. `dist.cc`) to neon
-+ support EXIF metadata so the pano can be viewed on Facebook
++ support read/write EXIF metadata to:
+	+ get focal length, distortion, etc
+	+ pano can be viewed on Facebook
++ python bindings
