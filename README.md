@@ -1,5 +1,7 @@
 # OpenPano
 
+![cmu0](results/CMU0-all.jpg)
+
 ## Introduction
 
 OpenPano is an panorama stitching program written in C++ from scratch. It mainly follows the routine
@@ -81,7 +83,6 @@ Zijing Apartment in Tsinghua University:
 	 -->
 
 Carnegie Mellon University from 38 images
-![cmu0](results/CMU0-all.jpg)
 ![apple](results/apple.jpg)
 
 Newell-Simon Hall in CMU (this one is hard because objects are closer):
@@ -133,5 +134,5 @@ To get the best stitching quality:
 + port some hotspot (e.g. `dist.cc`) to neon
 + support read/write EXIF metadata to:
 	+ get focal length, distortion, etc
-	+ pano can be viewed on Facebook
+	+ allow pano to be viewed on Facebook
 + python bindings
