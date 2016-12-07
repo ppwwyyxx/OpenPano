@@ -99,13 +99,10 @@ static const Homography dKdppy({
 namespace pano {
 
 IncrementalBundleAdjuster::IncrementalBundleAdjuster(
-    const std::vector<Shape2D>& shapes,
     std::vector<Camera>& cameras):
-  shapes(shapes), result_cameras(cameras),
-  index_map(shapes.size())
-{
-  m_assert(shapes.size() == cameras.size());
-}
+  result_cameras(cameras),
+  index_map(cameras.size())
+{ }
 
 
 void IncrementalBundleAdjuster::add_match(

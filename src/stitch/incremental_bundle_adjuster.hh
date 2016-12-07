@@ -32,7 +32,6 @@ class IncrementalBundleAdjuster {
 		};
 
 		IncrementalBundleAdjuster(
-				const std::vector<Shape2D>& shapes,
 				std::vector<Camera>& cameras);
 
 		IncrementalBundleAdjuster(const IncrementalBundleAdjuster&) = delete;
@@ -50,7 +49,6 @@ class IncrementalBundleAdjuster {
 		}
 
 	protected:
-		const std::vector<Shape2D>& shapes;
 		std::vector<Camera>& result_cameras;
 
 		struct MatchPair {

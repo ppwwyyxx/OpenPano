@@ -44,7 +44,7 @@ vector<Camera> CameraEstimator::estimate() {
     }
   }
 
-  IncrementalBundleAdjuster iba(shapes, cameras);
+  IncrementalBundleAdjuster iba(cameras);
   vector<bool> vst(n, false);
   traverse(
       [&](int node) {
