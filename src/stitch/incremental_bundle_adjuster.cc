@@ -180,10 +180,9 @@ IncrementalBundleAdjuster::ErrorStats IncrementalBundleAdjuster::calcError(
 		Homography Hto_to_from = (c_from.K() * c_from.R) *
 			(c_to.Rinv() * c_to.K().inverse());
 
-		Vec2D mid_vec_from = shapes[pair.from].center();
-		Vec2D mid_vec_to = shapes[pair.to].center();
 		for (auto& p: pair.m.match) {
-			Vec2D to = p.first + mid_vec_to, from = p.second + mid_vec_from;
+      Vec2D to = p.first, from = p.second;
+      // we are estimating Hs that work on [-w/2,w/2] coordinate
 			Vec2D transformed = Hto_to_from.trans2d(to);
 			ret.residuals[idx] = from.x - transformed.x;
 			ret.residuals[idx+1] = from.y - transformed.y;
@@ -256,9 +255,12 @@ Eigen::VectorXd IncrementalBundleAdjuster::get_param_update(
 	if (! SYMBOLIC_DIFF) {
 		calcJacobianNumerical(state);
 	} else {
+		//calcJacobianNumerical(state);
+    //auto Jcopy = J;
 		calcJacobianSymbolic(state);
 		// check correctness
-		// PP((JtJ - J.transpose() * J).eval().maxCoeff());
+		//PP((JtJ - J.transpose() * J).eval().maxCoeff());
+    //PP((J - Jcopy).eval().maxCoeff());
 	}
 	Map<const VectorXd> err_vec(residual.data(), NR_TERM_PER_MATCH * nr_pointwise_match);
 	auto b = J.transpose() * err_vec;
@@ -312,14 +314,14 @@ void IncrementalBundleAdjuster::calcJacobianSymbolic(const ParamState& state) {
 		all_dRdvi[i] = dRdvi(cameras[i].R);
 
 	REP(pair_idx, match_pairs.size()) {
-		const auto& pair = match_pairs[pair_idx];
+		const MatchPair& pair = match_pairs[pair_idx];
 		int idx = match_cnt_prefix_sum[pair_idx] * 2;
 		int from = index_map[pair.from],
-		to = index_map[pair.to];
+		    to = index_map[pair.to];
 		int param_idx_from = from * NR_PARAM_PER_CAMERA,
 				param_idx_to = to * NR_PARAM_PER_CAMERA;
 		const auto &c_from = cameras[from],
-		&c_to = cameras[to];
+		           &c_to = cameras[to];
 		const auto fromK = c_from.K();
 		const auto toKinv = c_to.Kinv();
 		const auto toRinv = c_to.Rinv();
@@ -328,17 +330,14 @@ void IncrementalBundleAdjuster::calcJacobianSymbolic(const ParamState& state) {
 		for (auto& m: dRtodviT) m = m.transpose();
 
 		const Homography Hto_to_from = (fromK * c_from.R) * (toRinv * toKinv);
-		Vec2D mid_vec_to = shapes[pair.to].center();
-		Vec2D mid_vec_from = shapes[pair.from].center();
 
 		for (const auto& p : pair.m.match) {
-			Vec2D to = p.first + mid_vec_to;
+      Vec2D to = p.first, from = p.second;
 			Vec homo = Hto_to_from.trans(to);
 			double hz_sqr_inv = 1.0 / sqr(homo.z);
 			double hz_inv = 1.0 / homo.z;
 
 			// TODO for the moment, ignore circlic error
-			Vec2D from = p.second + mid_vec_from;
 			if (fabs(from.x - homo.x / homo.z) > ERROR_IGNORE) {
 				REP(i, 6) {
 					J(idx, param_idx_from+i) = 0;

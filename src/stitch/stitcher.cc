@@ -68,7 +68,7 @@ bool Stitcher::match_image(
 	auto match = pwmatcher.match(i, j);
 	//auto match = FeatureMatcher(feats[i], feats[j]).match();	// slow
 	TransformEstimation transf(match, keypoints[i], keypoints[j],
-			imgs[i].shape(), imgs[j].shape());	// from j to i
+			imgs[i].shape(), imgs[j].shape());	// from j to i. H(p_j) ~= p_i
 	MatchInfo info;
 	bool succ = transf.get_transform(&info);
 	if (!succ) {
@@ -138,7 +138,7 @@ void Stitcher::estimate_camera() {
 	for (auto& m: imgs) shapes.emplace_back(m.shape());
 	auto cameras = CameraEstimator{pairwise_matches, shapes}.estimate();
 
-	// produced homo operates on [0,w] coordinate
+	// produced homo operates on [-w/2,w/2] coordinate
 	REP(i, imgs.size()) {
 		bundle.component[i].homo_inv = cameras[i].K() * cameras[i].R;
 		bundle.component[i].homo = cameras[i].Rinv() * cameras[i].K().inverse();
@@ -165,8 +165,6 @@ void Stitcher::build_linear_simple() {
 			comp[k].homo = comp[k + 1].homo * pairwise_matches[k+1][k].homo;
 	}
 	// now, comp[k]: from k to identity
-
-	bundle.shift_all_homo();
 	bundle.calc_inverse_homo();
 }
 

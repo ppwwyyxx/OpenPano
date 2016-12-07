@@ -24,7 +24,7 @@ class Stitcher : public StitcherBase {
 		ConnectedImages bundle;
 
 		// 2d array of all matches
-		// pairwise_matches[i][j].homo transform j to i
+		// pairwise_matches[i][j].homo transform j to i, with coor in [-w/2,w/2]
 		std::vector<std::vector<MatchInfo>> pairwise_matches;
 
 		// match two images

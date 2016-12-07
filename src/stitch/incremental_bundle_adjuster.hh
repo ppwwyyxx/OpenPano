@@ -54,7 +54,7 @@ class IncrementalBundleAdjuster {
 		std::vector<Camera>& result_cameras;
 
 		struct MatchPair {
-			int from, to;		// the original index
+			int from, to;		// the original image index
 			MatchInfo& m;
 			MatchPair(int i, int j, MatchInfo& m):
 				from(i), to(j), m(m){}
@@ -67,7 +67,7 @@ class IncrementalBundleAdjuster {
 		// original indices that have appeared so far
 		std::set<int> idx_added;
 
-		// map from original image index to index added
+		// map from original image index to index being added
 		std::vector<int> index_map;
 		// map from index in match_pairs to the index of its first error term
 		std::vector<int> match_cnt_prefix_sum;

@@ -42,7 +42,7 @@ void ConnectedImages::update_proj_range() {
 	vector<Vec2D> corner;
 	const static int CORNER_SAMPLE = 100;
 	REP(i, CORNER_SAMPLE) REP(j, CORNER_SAMPLE)
-		corner.emplace_back((double)i / CORNER_SAMPLE, (double)j / CORNER_SAMPLE);
+		corner.emplace_back((double)i / CORNER_SAMPLE - 0.5, (double)j / CORNER_SAMPLE - 0.5);
 
 	auto homo2proj = get_homo2proj();
 
@@ -69,20 +69,16 @@ void ConnectedImages::update_proj_range() {
 }
 
 Vec2D ConnectedImages::get_final_resolution() const {
+	cout << "projmin:" << proj_range.min << ", projmax" << proj_range.max << endl;
+
 	int refw = component[identity_idx].imgptr->width(),
 			refh = component[identity_idx].imgptr->height();
 	auto homo2proj = get_homo2proj();
 
-	Vec2D id_img_range = homo2proj(Vec(refw, refh, 1)) - homo2proj(Vec(0, 0, 1));
-	cout << "projmin:" << proj_range.min << "projmax" << proj_range.max << endl;
-	if (proj_method != ProjectionMethod::flat) {
-		id_img_range = homo2proj(Vec(1,1,1)) - homo2proj(Vec(0,0,1));
-		//id_img_range.x *= refw, id_img_range.y *= refh;
-		// this yields better aspect ratio in the result.
-		id_img_range.x *= (refw * 1.0 / refh);
-	}
+  // the range of the identity image
+  Vec2D id_img_range = homo2proj(Vec(refw/2,refh/2,1)) - homo2proj(Vec(-refw/2,-refh/2,1));
 
-	Vec2D resolution = id_img_range / Vec2D(refw, refh),		// x-per-pixel, y-per-pixel
+	Vec2D resolution = id_img_range / Vec2D(refw, refh),		// output-x-per-input-pixel, y-per-pixel
 				target_size = proj_range.size() / resolution;
 	double max_edge = max(target_size.x, target_size.y);
   print_debug("Target Image Size: (%lf, %lf)\n", target_size.x, target_size.y);
@@ -129,7 +125,8 @@ Mat32f ConnectedImages::blend() const {
 					if (ret.z < 0)
 						return Vec2D{-10, -10};	// was projected to the other side of the lens, discard
 					double denom = 1.0 / ret.z;
-					return Vec2D{ret.x*denom, ret.y*denom};
+					return Vec2D{ret.x*denom, ret.y*denom}
+                + cur.imgptr->shape().center();
 				});
 	}
 	//dynamic_cast<LinearBlender*>(blender.get())->debug_run(size.x, size.y);	// for debug

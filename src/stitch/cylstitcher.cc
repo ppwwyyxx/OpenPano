@@ -83,8 +83,6 @@ void CylinderStitcher::build_warp() {;
 	}
 	REPD(i, mid - 2, 0)
 		bundle.component[i].homo = bundle.component[i + 1].homo * bundle.component[i].homo;
-
-	bundle.shift_all_homo();
 	bundle.calc_inverse_homo();
 }
 
@@ -151,7 +149,6 @@ Mat32f CylinderStitcher::perspective_correction(const Mat32f& img) {
 		v.x *= cur->imgptr->width(), v.y *= cur->imgptr->height();
 		Vec homo = cur->homo.trans(v);
 		homo.x /= refw, homo.y /= refh;
-		homo.x += 0.5 * homo.z, homo.y += 0.5 * homo.z;
 		Vec2D t_corner = homo2proj(homo);
 		t_corner.x *= refw, t_corner.y *= refh;
 		t_corner = t_corner - proj_min;

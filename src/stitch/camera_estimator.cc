@@ -50,21 +50,20 @@ vector<Camera> CameraEstimator::estimate() {
 		[&](int node) {
 			// set the starting point to identity
 			cameras[node].R = Homography::I();
-			cameras[node].ppx = shapes[node].halfw();
-			cameras[node].ppy = shapes[node].halfh();
+      cameras[node].ppx = cameras[node].ppy = 0;
 		},
 		[&](int now, int next) {
 			print_debug("Best edge from %d to %d\n", now, next);
 			auto Kfrom = cameras[now].K();
 			auto Kto = cameras[next].K();
 			auto Hinv = matches[now][next].homo;	// from next to now
-			Kfrom[2] = Kfrom[5] = 0;		// set K to zero, because homo operates on zero-based index
+      // principal point is at image center, i.e. (0,0)
+      // TODO do we need to add this contrain for better initialization?
+			Kfrom[2] = Kfrom[5] = 0;
 			auto Mat = Kfrom.inverse() * Hinv * Kto;
 			// this is camera extrincis R, i.e. going from identity to this image
 			cameras[next].R = (cameras[now].Rinv() * Mat).transpose();
-			cameras[next].ppx = shapes[next].halfw();
-			cameras[next].ppy = shapes[next].halfh();
-
+      cameras[next].ppx = cameras[next].ppy = 0;
 			//cameras[next] = cameras[now];	 // initialize by the last camera. seems better?
 
 			if (MULTIPASS_BA > 0) {

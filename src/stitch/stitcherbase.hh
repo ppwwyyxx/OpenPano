@@ -29,6 +29,8 @@ class StitcherBase {
 		std::vector<ImageRef> imgs;
 
 		// feature and keypoints of each image
+    // feats[k][i].coor == keypoints[k][i]
+    // keypoints only work as a storage of feats, because feats will be freed
 		std::vector<std::vector<Descriptor>> feats;	// [-w/2,w/2]
 		std::vector<std::vector<Vec2D>> keypoints;	// store coordinates in [-w/2,w/2]
 
