@@ -74,9 +74,13 @@ Vec2D ConnectedImages::get_final_resolution() const {
 	int refw = component[identity_idx].imgptr->width(),
 			refh = component[identity_idx].imgptr->height();
 	auto homo2proj = get_homo2proj();
+  const Homography& identity_H = component[identity_idx].homo;
 
+  Vec id_img_corner2 = identity_H.trans(Vec2D{refw/2.0, refh/2.0}),
+      id_img_corner1 = identity_H.trans(Vec2D{-refw/2.0, -refh/2.0});
   // the range of the identity image
-  Vec2D id_img_range = homo2proj(Vec(refw/2,refh/2,1)) - homo2proj(Vec(-refw/2,-refh/2,1));
+  Vec2D id_img_range = homo2proj(id_img_corner2) - homo2proj(id_img_corner1);
+  cout << id_img_range << endl;
 
 	Vec2D resolution = id_img_range / Vec2D(refw, refh),		// output-x-per-input-pixel, y-per-pixel
 				target_size = proj_range.size() / resolution;
@@ -89,6 +93,7 @@ Vec2D ConnectedImages::get_final_resolution() const {
 		float ratio = max_edge / MAX_OUTPUT_SIZE;
 		resolution *= ratio;
 	}
+  print_debug("Resolution: %lf,%lf\n", resolution.x, resolution.y);
 	return resolution;
 }
 
