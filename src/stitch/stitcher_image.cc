@@ -69,7 +69,7 @@ void ConnectedImages::update_proj_range() {
 }
 
 Vec2D ConnectedImages::get_final_resolution() const {
-	cout << "projmin:" << proj_range.min << ", projmax" << proj_range.max << endl;
+	cout << "projmin: " << proj_range.min << ", projmax: " << proj_range.max << endl;
 
 	int refw = component[identity_idx].imgptr->width(),
 			refh = component[identity_idx].imgptr->height();
@@ -80,7 +80,13 @@ Vec2D ConnectedImages::get_final_resolution() const {
       id_img_corner1 = identity_H.trans(Vec2D{-refw/2.0, -refh/2.0});
   // the range of the identity image
   Vec2D id_img_range = homo2proj(id_img_corner2) - homo2proj(id_img_corner1);
-  cout << id_img_range << endl;
+  cout << "Identity projection range: " << id_img_range << endl;
+  if (proj_method != ProjectionMethod::flat) {
+    if (id_img_range.x < 0)
+      id_img_range.x = 2 * M_PI + id_img_range.x;
+    if (id_img_range.y < 0)
+      id_img_range.y = M_PI + id_img_range.y;
+  }
 
 	Vec2D resolution = id_img_range / Vec2D(refw, refh),		// output-x-per-input-pixel, y-per-pixel
 				target_size = proj_range.size() / resolution;
