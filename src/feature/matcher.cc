@@ -96,33 +96,50 @@ void PairWiseMatcher::build() {
     trees[i].buildIndex();
 }
 
-MatchData PairWiseMatcher::match(int i, int j) const {
+MatchData PairWiseMatcher::match(int id1, int id2) const {
   static const float REJECT_RATIO_SQR = MATCH_REJECT_NEXT_RATIO * MATCH_REJECT_NEXT_RATIO;
 	// loop over the smaller one to speed up
-  bool rev = feats[i].size() > feats[j].size();
-  if (rev) swap(i, j);
+  bool rev = feats[id1].size() > feats[id2].size();
+  if (rev) swap(id1, id2);
 
-  auto source = feats[i], target = feats[j];
-  auto& t = trees[j];
+  auto source = feats[id1], target = feats[id2];
 
-  const flann::Matrix<float> query(feature_bufs[i], source.size(), D);
+  const flann::Matrix<float> query(feature_bufs[id1], source.size(), D);
   flann::Matrix<int> indices(new int[source.size() * 2], source.size(), 2);
   flann::Matrix<float> dists(new float[source.size() * 2], source.size(), 2);
-  t.knnSearch(query, indices, dists, 2, flann::SearchParams(128));	// TODO param
+  trees[id2].knnSearch(query, indices, dists, 2, flann::SearchParams(128));	// TODO param
 
   MatchData ret;
+  float* buf = new float[D];
+  flann::Matrix<int> indices_inv(new int[2], 1, 2);
+  flann::Matrix<float> dists_inv(new float[2], 1, 2);
   REP(i, source.size()) {
     int mini = indices[i][0];
     float mind = dists[i][0], mind2 = dists[i][1];
+    // 1-way rejection:
     if (mind > REJECT_RATIO_SQR * mind2)
       continue;
+
+    // bidirectional rejection:
+    //memcpy(buf, target[mini].descriptor.data(), D * sizeof(float));
+    flann::Matrix<float> query(target[mini].descriptor.data(), 1, D);
+    trees[id1].knnSearch(query, indices_inv, dists_inv, 2, flann::SearchParams(128));
+    size_t bidirectional_mini = indices_inv[0][0];
+    mind2 = dists_inv[0][1];
+    if (bidirectional_mini != i)
+      continue;
+    if (mind > REJECT_RATIO_SQR * mind2)
+      continue;
+
     ret.data.emplace_back(i, mini);
   }
   if (rev)
     ret.reverse();
   delete[] indices.ptr();
   delete[] dists.ptr();
-  //delete[] buf;
+  delete[] indices_inv.ptr();
+  delete[] dists_inv.ptr();
+  delete[] buf;
   return ret;
 }
 

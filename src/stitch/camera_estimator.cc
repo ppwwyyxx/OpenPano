@@ -58,13 +58,15 @@ vector<Camera> CameraEstimator::estimate() {
         auto Kto = cameras[next].K();
         auto Hinv = matches[now][next].homo;	// from next to now
         // principal point is at image center, i.e. (0,0)
-        // TODO do we need to add this contrain for better initialization?
-        Kfrom[2] = Kfrom[5] = 0;
+        // but adding this manual contraint seems harmful to initialization
+        //Kfrom[2] = Kfrom[5] = 0;
         auto Mat = Kfrom.inverse() * Hinv * Kto;
         // this is camera extrincis R, i.e. going from identity to this image
         cameras[next].R = (cameras[now].Rinv() * Mat).transpose();
         cameras[next].ppx = cameras[next].ppy = 0;
-        //cameras[next] = cameras[now];	 // initialize by the last camera. seems better?
+        // initialize by the last camera. It fails but it did, may be deficiency in BA, or because
+        // of ignoring large error for now
+        //cameras[next] = cameras[now];
 
         if (MULTIPASS_BA > 0) {
           // add next to BA
