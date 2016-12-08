@@ -1,24 +1,42 @@
-# Currently this doesn't work for Linux. Use the Makefile instead.
-find_package(jpeg)
+cmake_minimum_required(VERSION 2.8)
+find_package(JPEG REQUIRED)
+find_package(Eigen3 REQUIRED)
+find_package(OpenMP)
+
 include_directories(${JPEG_INCLUDE_DIR})
-include_directories(third-party)
+include_directories(SYSTEM ${EIGEN3_INCLUDE_DIR})
+
+include_directories(SYSTEM third-party)
+include_directories(.)
 
 # our sources
-include_directories(.)
-file(GLOB SOURCES *.[c,h]* feature/*.[c,h]* stitch/*.[c.h]* lib/*.[c,h]*)
+file(GLOB SOURCES main.cc feature/*.[c,h]* stitch/*.[c.h]* lib/*.[c,h]*)
 list(APPEND SOURCES
  ${CMAKE_CURRENT_SOURCE_DIR}/third-party/lodepng/lodepng.cc
 )
 
+if (OPENMP_FOUND)
+	set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+endif()
+
 add_definitions(-DDEBUG)
 
-add_executable(image_stitching ${SOURCES})
-target_link_libraries(image_stitching ${JPEG_LIBRARY})
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -march=native")
+
+if (CMAKE_VERSION VERSION_LESS "3.1")
+	set (CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
+else()
+	set (CMAKE_CXX_STANDARD 11)
+endif()
+
+add_executable(image-stitching ${SOURCES})
+target_link_libraries(image-stitching ${JPEG_LIBRARIES})
 
 # Visual Studio handling of file glob
+# This part is not maintained.. I don't know what it is
 if(MSVC)
   set_target_properties(
-    image_stitching
+    image-stitching
     PROPERTIES
     GENERATED true
     EXTERNAL_OBJECT true
