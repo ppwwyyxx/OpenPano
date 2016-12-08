@@ -106,8 +106,8 @@ Also, setting `LAZY_READ` to 1 can save memory at the cost of a minor slow down.
 
 Peak memory in bytes (assume each input has the same w & h):
 
-+ Without `LAZY_READ` option: finalw \* finalh \* 12 + #photos \* w \* h \* 12
-+ With `LAZY_READ` option: finalw \* finalh \* 16 + #threads \* w \* h \* 12
++ Without `LAZY_READ` option: max(finalw \* finalh \* 12, #photos \* w \* h \* 12)
++ With `LAZY_READ` option: max(finalw \* finalh \* 16, #threads \* w \* h \* 12)
 
 ## Algorithms
 + Features: [SIFT](http://en.wikipedia.org/wiki/Scale-invariant_feature_transform)
@@ -128,7 +128,7 @@ To get the best stitching quality:
 
 ## TODOs
 + run bundle adjustment on sphere lens instead of perspective lens
-+ use LAZY_READ & 1 byte image in multiband blender to reduce peak memory
++ use LAZY_READ & 1 byte image in both blender to reduce peak memory
 + clean up use of copies of `ImageRef`
 + faster gaussian blur kernel
 + port some hotspot (e.g. `dist.cc`) to neon

@@ -219,7 +219,7 @@ void work(int argc, char* argv[]) {
 	if (CROP) {
 		int oldw = res.width(), oldh = res.height();
 		res = crop(res);
-		print_debug("Crop from %dx%d to %dx%d\n", oldh, oldw, res.height(), res.width());
+		print_debug("Crop from %dx%d to %dx%d\n", oldw, oldh, res.width(), res.height());
 	}
 	{
 		GuardedTimer tm("Writing image");
