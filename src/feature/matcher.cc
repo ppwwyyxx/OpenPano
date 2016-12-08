@@ -40,13 +40,14 @@ MatchData FeatureMatcher::match() const {
 
 #pragma omp parallel for schedule(dynamic)
 	REP(k, l1) {
-		const Descriptor& i = (*pf1)[k];
+		const Descriptor& dsc1 = (*pf1)[k];
 		int min_idx = -1;
 
 		float min = numeric_limits<float>::max(),
 					next_min = min;
+    // find top-2 NN of dsc1 from feat2
 		REP(kk, l2) {
-			float dist = i.euclidean_sqr((*pf2)[kk], next_min);
+			float dist = dsc1.euclidean_sqr((*pf2)[kk], next_min);
 			if (dist < min) {
 				next_min = min;
 				min = dist;
@@ -55,64 +56,78 @@ MatchData FeatureMatcher::match() const {
 				update_min(next_min, dist);
 			}
 		}
+    /// bidirectional rejection:
+    // fix k, see if min_idx is distinctive among feat2
 		if (min > REJECT_RATIO_SQR * next_min)
 			continue;
 
-		m_assert(min_idx != -1);
+    // fix min_idx, see if k is distinctive among feat1
+    // next_min remains a large-enough number here, don't need to re-initialize
+    const Descriptor& dsc2 = (*pf2)[min_idx];
+    REP(kk, l1) if (kk != k) {
+      float dist = dsc2.euclidean_sqr((*pf1)[kk], next_min);
+      update_min(next_min, dist);
+    }
+    if (min > REJECT_RATIO_SQR * next_min)
+      continue;
+
 #pragma omp critical
-		ret.data.emplace_back(k, min_idx);
-	}
-	if (rev)
-		ret.reverse();
-	return ret;
+    ret.data.emplace_back(k, min_idx);
+  }
+  if (rev)
+    ret.reverse();
+  return ret;
 }
 
 void PairWiseMatcher::build() {
-	GuardedTimer tm("BuildTrees");
-	for (auto& feat: feats)	{
-		float* buf = new float[feat.size() * D];
-		bufs.emplace_back(buf);
-		REP(i, feat.size()) {
-			float* row = buf + D * i;
-			memcpy(row, feat[i].descriptor.data(), D * sizeof(float));
-		}
-		flann::Matrix<float> points(buf, feat.size(), D);
-		trees.emplace_back(points, flann::KDTreeIndexParams(FLANN_NR_KDTREE));	// TODO param
-	}
+  GuardedTimer tm("BuildTrees");
+  for (auto& feat: feats)	{
+    float* buf = new float[feat.size() * D];
+    bufs.emplace_back(buf);
+    REP(i, feat.size()) {
+      float* row = buf + D * i;
+      memcpy(row, feat[i].descriptor.data(), D * sizeof(float));
+    }
+    flann::Matrix<float> points(buf, feat.size(), D);
+    trees.emplace_back(points, flann::KDTreeIndexParams(FLANN_NR_KDTREE));	// TODO param
+  }
 #pragma omp parallel for schedule(dynamic)
-	REP(i, (int)trees.size())
-		trees[i].buildIndex();
+  REP(i, (int)trees.size())
+    trees[i].buildIndex();
 }
 
 MatchData PairWiseMatcher::match(int i, int j) const {
-  // TODO can use a bidirectional rejection to improve robustness
-	static const float REJECT_RATIO_SQR = MATCH_REJECT_NEXT_RATIO * MATCH_REJECT_NEXT_RATIO;
-	MatchData ret;
-	auto source = feats.at(i),
-			 target = feats.at(j);
-	auto& t = trees[j];
+  static const float REJECT_RATIO_SQR = MATCH_REJECT_NEXT_RATIO * MATCH_REJECT_NEXT_RATIO;
+  bool rev = feats[i].size() > feats[j].size();
+  if (rev)
+    swap(i, j);
+  auto source = feats[i], target = feats[j];
+  auto& t = trees[j];
 
-	float* buf = new float[source.size() * D];
-	REP(i, source.size()) {
-		float* row = buf + D * i;
-		memcpy(row, source[i].descriptor.data(), D * sizeof(float));
-	}
-	flann::Matrix<float> query(buf, source.size(), D);
+  float* buf = new float[source.size() * D];
+  REP(i, source.size()) {
+    float* row = buf + D * i;
+    memcpy(row, source[i].descriptor.data(), D * sizeof(float));
+  }
+  flann::Matrix<float> query(buf, source.size(), D);
+  flann::Matrix<int> indices(new int[source.size() * 2], source.size(), 2);
+  flann::Matrix<float> dists(new float[source.size() * 2], source.size(), 2);
+  t.knnSearch(query, indices, dists, 2, flann::SearchParams(128));	// TODO param
 
-	flann::Matrix<int> indices(new int[source.size() * 2], source.size(), 2);
-	flann::Matrix<float> dists(new float[source.size() * 2], source.size(), 2);
-	t.knnSearch(query, indices, dists, 2, flann::SearchParams(128));	// TODO param
-	REP(i, source.size()) {
-		int mini = indices[i][0];
-		float mind = dists[i][0], mind2 = dists[i][1];
-		if (mind > REJECT_RATIO_SQR * mind2)
-			continue;
-		ret.data.emplace_back(i, mini);
-	}
-	delete[] indices.ptr();
-	delete[] dists.ptr();
-	delete[] buf;
-	return ret;
+  MatchData ret;
+  REP(i, source.size()) {
+    int mini = indices[i][0];
+    float mind = dists[i][0], mind2 = dists[i][1];
+    if (mind > REJECT_RATIO_SQR * mind2)
+      continue;
+    ret.data.emplace_back(i, mini);
+  }
+  if (rev)
+    ret.reverse();
+  delete[] indices.ptr();
+  delete[] dists.ptr();
+  delete[] buf;
+  return ret;
 }
 
 }

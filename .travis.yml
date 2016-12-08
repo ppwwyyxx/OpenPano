@@ -24,6 +24,7 @@ addons:
         #- clang-3.7
         #- libomp-dev
       - libeigen3-dev
+      - libjpeg-dev
 
 before_script:
   - if [ "$CXX" == "g++" ]; then export CXX="g++-4.8"; fi
