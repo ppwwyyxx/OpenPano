@@ -50,7 +50,7 @@ class PairWiseMatcher {
 		MatchData match(int i, int j) const;
 
 		~PairWiseMatcher() {
-			for (auto& p: bufs) delete[] p;
+			for (auto& p: feature_bufs) delete[] p;
 		}
 
 	protected:
@@ -58,7 +58,9 @@ class PairWiseMatcher {
 		const std::vector<std::vector<Descriptor>> &feats;
 
 		std::vector<flann::Index<pano::L2SSE>> trees;
-		std::vector<float*> bufs;	// index buffer is managed manually
+
+    // feature_bufs[i] is a buffer of size feats[i].size() * D
+		std::vector<float*> feature_bufs;
 
 		void build();
 };

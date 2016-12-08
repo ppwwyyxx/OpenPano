@@ -83,7 +83,7 @@ void PairWiseMatcher::build() {
   GuardedTimer tm("BuildTrees");
   for (auto& feat: feats)	{
     float* buf = new float[feat.size() * D];
-    bufs.emplace_back(buf);
+    feature_bufs.emplace_back(buf);
     REP(i, feat.size()) {
       float* row = buf + D * i;
       memcpy(row, feat[i].descriptor.data(), D * sizeof(float));
@@ -98,18 +98,14 @@ void PairWiseMatcher::build() {
 
 MatchData PairWiseMatcher::match(int i, int j) const {
   static const float REJECT_RATIO_SQR = MATCH_REJECT_NEXT_RATIO * MATCH_REJECT_NEXT_RATIO;
+	// loop over the smaller one to speed up
   bool rev = feats[i].size() > feats[j].size();
-  if (rev)
-    swap(i, j);
+  if (rev) swap(i, j);
+
   auto source = feats[i], target = feats[j];
   auto& t = trees[j];
 
-  float* buf = new float[source.size() * D];
-  REP(i, source.size()) {
-    float* row = buf + D * i;
-    memcpy(row, source[i].descriptor.data(), D * sizeof(float));
-  }
-  flann::Matrix<float> query(buf, source.size(), D);
+  const flann::Matrix<float> query(feature_bufs[i], source.size(), D);
   flann::Matrix<int> indices(new int[source.size() * 2], source.size(), 2);
   flann::Matrix<float> dists(new float[source.size() * 2], source.size(), 2);
   t.knnSearch(query, indices, dists, 2, flann::SearchParams(128));	// TODO param
@@ -126,7 +122,7 @@ MatchData PairWiseMatcher::match(int i, int j) const {
     ret.reverse();
   delete[] indices.ptr();
   delete[] dists.ptr();
-  delete[] buf;
+  //delete[] buf;
   return ret;
 }
 
