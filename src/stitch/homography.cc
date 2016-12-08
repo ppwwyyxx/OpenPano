@@ -39,7 +39,6 @@ Homography Homography::inverse(bool* succ) const {
 }
 
 Homography Homography::operator * (const Homography& r) const {
-	using namespace Eigen;
 	Homography ret;
 	auto m1 = to_eigenmap(*this),
 			 m2 = to_eigenmap(r),

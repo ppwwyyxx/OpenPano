@@ -10,7 +10,7 @@ namespace pano {
 struct Shape2D;
 class Homography;
 
-// return a polygon in [-w/2,w/2] coor
+// return a polygon in [-w/2,w/2] coor in image1
 // homo: from 2 to 1
 std::vector<Vec2D> overlap_region(
 		const Shape2D& shape1, const Shape2D& shape2,
