@@ -184,36 +184,16 @@ IncrementalBundleAdjuster::ErrorStats IncrementalBundleAdjuster::calcError(
       ret.residuals[idx] = from.x - transformed.x;
       ret.residuals[idx+1] = from.y - transformed.y;
 
-      /*
-       *Vec2D pfrom = spherical::homo2proj(Vec{from.x, from.y, 1});
-       *Vec2D ptransformed = spherical::homo2proj(Hto_to_from.trans(to));
-       *auto dx = pfrom.x - ptransformed.x;
-       *auto dy = pfrom.y - ptransformed.y;
-       *if (dx < -M_PI)  dx += 2 * M_PI;
-       *else if (dx >= M_PI)  dx -= 2 * M_PI;
-       *if (fabs(dx) > 3) {
-       *  PP(dx);
-       *  PP(pfrom.y);
-       *  PP(ptransformed.y);
-       *  dx -= M_PI;
-       *}
-       *if (dy < -M_PI_2)  dy += M_PI;
-       *else if (dy >= M_PI_2) dy -= M_PI;
-       *ret.residuals[idx] = dx;
-       *ret.residuals[idx+1] = dy;
-       */
-
-
       // TODO for the moment, ignore circlic error
-      if (fabs(ret.residuals[idx]) > ERROR_IGNORE) {
-        /*
-         *auto transfed = spherical::homo2proj(Hto_to_from.trans(to));
-         *auto from3d = spherical::homo2proj(Vec{from.x, from.y, 1});
-         *PP(from);PP(to);PP(transformed);
-         *PP(transfed); PP(from3d);
-         */
-        ret.residuals[idx] = 0;
-      }
+      /*
+       *if (fabs(ret.residuals[idx]) > ERROR_IGNORE) {
+       *  auto transfed = spherical::homo2proj(Hto_to_from.trans(to));
+       *  auto from3d = spherical::homo2proj(Vec{from.x, from.y, 1});
+       *  PP(from);PP(transformed);
+       *  PP(transfed); PP(from3d);
+       *  //ret.residuals[idx] = 0;
+       *}
+       */
       idx += 2;
     }
   }
@@ -334,19 +314,20 @@ void IncrementalBundleAdjuster::calcJacobianSymbolic(const ParamState& state) {
       double hz_sqr_inv = 1.0 / sqr(homo.z);
       double hz_inv = 1.0 / homo.z;
 
-      // TODO for the moment, ignore circlic error
-      if (fabs(from.x - homo.x / homo.z) > ERROR_IGNORE) {
-        REP(i, 6) {
-          J(idx, param_idx_from+i) = 0;
-          J(idx, param_idx_to+i) = 0;
-          J(idx+1, param_idx_from+i) = 0;
-          J(idx+1, param_idx_to+i) = 0;
-        }
-        idx += 2;
-        continue;
-      }
-
       // TODO use spherical projection instead of flat projection
+      /*
+       *if (fabs(from.x - homo.x / homo.z) > ERROR_IGNORE) {
+       *  REP(i, 6) {
+       *    J(idx, param_idx_from+i) = 0;
+       *    J(idx, param_idx_to+i) = 0;
+       *    J(idx+1, param_idx_from+i) = 0;
+       *    J(idx+1, param_idx_to+i) = 0;
+       *  }
+       *  idx += 2;
+       *  continue;
+       *}
+       */
+
       Vec dhdv;	// d(homo)/d(variable)
       // calculate d(residual) / d(variable) = -d(point 2d) / d(variable)
       // d(point 2d coor) / d(variable) = d(p2d)/d(homo3d) * d(homo3d)/d(variable)
@@ -354,7 +335,7 @@ void IncrementalBundleAdjuster::calcJacobianSymbolic(const ParamState& state) {
       (dhdv = xx, Vec2D{ \
        -dhdv.x * hz_inv + dhdv.z * homo.x * hz_sqr_inv, \
        -dhdv.y * hz_inv + dhdv.z * homo.y * hz_sqr_inv})
-      //#define drdv(xx) -flat::gradproj(homo, xx)
+//#define drdv(xx) -flat::gradproj(homo, xx)
 
       array<Vec2D, NR_PARAM_PER_CAMERA> dfrom, dto;
 

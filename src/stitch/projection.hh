@@ -42,7 +42,10 @@ namespace pano {
 
 
 	namespace spherical {
-		// not scale-invariant! tx ~ tx-pi, ty ~ pi-ty
+		// not scale-invariant!
+    // after mult by -1
+    // y <-  -pi - y if (x<0) else pi - y
+    // x <- x \pm pi
 		static inline Vec2D homo2proj(const Vec &homo) {
 			return Vec2D(atan2(homo.x, homo.z),
 					atan2(homo.y, hypot(homo.x, homo.z)));
