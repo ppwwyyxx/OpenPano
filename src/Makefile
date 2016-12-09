@@ -38,20 +38,28 @@ ifdef MKLROOT
 	DEFINES += -DEIGEN_USE_MKL_ALL
 endif
 
-CXXFLAGS = $(INCLUDE_DIR) $(OMP_FLAG) -Wall -Wextra
+CXXFLAGS ?=
+CXXFLAGS += $(INCLUDE_DIR) $(OMP_FLAG) -Wall -Wextra
 CXXFLAGS += $(DEFINES) -std=c++11 $(OPTFLAGS)
 
 LDFLAGS += $(OPTFLAGS)
 LDFLAGS += -ljpeg $(OMP_FLAG)
 
+SOFLAGS = $(shell python-config --includes --ldflags)
+
 SHELL = bash
-ccSOURCES = $(shell find . -name "*.cc" | sed 's/^\.\///g')
+# sources to include
+SRCDIRS = lib feature stitch third-party/lodepng
+ccSOURCES = $(shell find $(SRCDIRS) -name "*.cc" | sed 's/^\.\///g')
 OBJS = $(addprefix $(OBJ_DIR)/,$(ccSOURCES:.cc=.o))
 DEPFILES = $(OBJS:.o=.d)
+
+SO = python/openpano.so
 
 .PHONY: all clean run
 
 all: $(TARGET)
+py: $(SO)
 
 ifneq ($(MAKECMDGOALS), clean)
 sinclude $(DEPFILES)
@@ -64,12 +72,16 @@ $(OBJ_DIR)/%.o: %.cc
 $(OBJ_DIR)/%.d: %.cc Makefile
 	@mkdir -p $(dir $@)
 	@echo "[dep] $< ..."
-	@$(CXX) $(CXXFLAGS) $(DEFINES) -MM -MT "$(OBJ_DIR)/$(<:.cc=.o) $(OBJ_DIR)/$(<:.cc=.d)" "$<"  > "$@"
+	@$(CXX) $(CXXFLAGS) -MM -MT "$(OBJ_DIR)/$(<:.cc=.o) $(OBJ_DIR)/$(<:.cc=.d)" "$<"  > "$@"
 
-
-$(TARGET): $(OBJS)
+$(TARGET): main.cc $(OBJS)
 	@echo "Linking ..."
-	@$(CXX) $(OBJS) -o $@ $(LDFLAGS)
+	@$(CXX) $^ -o $@ $(CXXFLAGS) $(LDFLAGS)
+	@echo "done."
+
+$(SO): $(OBJS) python/pybind.cc
+	@echo "[so] $@ ..."
+	@$(CXX) $^ -fPIC -shared -o $@ $(CXXFLAGS) $(LDFLAGS) $(SOFLAGS)
 	@echo "done."
 
 clean:

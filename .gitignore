@@ -12,3 +12,4 @@ src/image-stitching
 log
 
 *-report
+*.so

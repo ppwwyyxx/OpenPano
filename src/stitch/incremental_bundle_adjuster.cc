@@ -309,7 +309,7 @@ void IncrementalBundleAdjuster::calcJacobianSymbolic(const ParamState& state) {
     const Homography Hto_to_from = (fromK * c_from.R) * (toRinv * toKinv);
 
     for (const auto& p : pair.m.match) {
-      Vec2D to = p.first, from = p.second;
+      Vec2D to = p.first;//, from = p.second;
       Vec homo = Hto_to_from.trans(to);
       double hz_sqr_inv = 1.0 / sqr(homo.z);
       double hz_inv = 1.0 / homo.z;
