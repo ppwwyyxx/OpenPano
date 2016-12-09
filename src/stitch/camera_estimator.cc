@@ -29,20 +29,23 @@ CameraEstimator::CameraEstimator(
 
 CameraEstimator::~CameraEstimator() = default;
 
+void CameraEstimator::estimate_focal() {
+  // assign an initial focal length
+  double focal = Camera::estimate_focal(matches);
+  if (focal > 0) {
+    for (auto& c : cameras)
+      c.focal = focal;
+    print_debug("Estimated focal: %lf\n", focal);
+  } else {
+    print_debug("Cannot estimate focal. Will use a naive one.\n");
+    REP(i, n) // hack focal
+      cameras[i].focal = (shapes[i].w + shapes[i].h) * 0.5;
+  }
+}
+
 vector<Camera> CameraEstimator::estimate() {
   GuardedTimer tm("Estimate Camera");
-  { // assign an initial focal length
-    double focal = Camera::estimate_focal(matches);
-    if (focal > 0) {
-      for (auto& c : cameras)
-        c.focal = focal;
-      print_debug("Estimated focal: %lf\n", focal);
-    } else {
-      print_debug("Cannot estimate focal. Will use a naive one.\n");
-      REP(i, n) // hack focal
-        cameras[i].focal = (shapes[i].w + shapes[i].h) * 0.5;
-    }
-  }
+  estimate_focal();
 
   IncrementalBundleAdjuster iba(cameras);
   vector<bool> vst(n, false);
@@ -55,17 +58,16 @@ vector<Camera> CameraEstimator::estimate() {
       [&](int now, int next) {
         print_debug("Best edge from %d to %d\n", now, next);
         auto Kfrom = cameras[now].K();
+
+        // initialize camera[next]:
         auto Kto = cameras[next].K();
         auto Hinv = matches[now][next].homo;	// from next to now
-        // principal point is at image center, i.e. (0,0)
-        // but adding this manual contraint seems harmful to initialization
-        //Kfrom[2] = Kfrom[5] = 0;
         auto Mat = Kfrom.inverse() * Hinv * Kto;
         // this is camera extrincis R, i.e. going from identity to this image
         cameras[next].R = (cameras[now].Rinv() * Mat).transpose();
         cameras[next].ppx = cameras[next].ppy = 0;
-        // initialize by the last camera. It fails but it did, may be deficiency in BA, or because
-        // of ignoring large error for now
+        // initialize by the last camera. It shouldn't fail but it did,
+        // may be deficiency in BA, or because of ignoring large error for now
         //cameras[next] = cameras[now];
 
         if (MULTIPASS_BA > 0) {

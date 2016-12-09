@@ -201,12 +201,10 @@ bool TransformEstimation::fill_inliers_to_matchinfo(
 	// fill in result
 	info->homo = homo;
 	info->match.clear();
-	for (auto& idx : inliers) {
+	for (auto& idx : inliers)
 		info->match.emplace_back(
 				kp1[match.data[idx].first],
-				kp2[match.data[idx].second]
-				);
-	}
+				kp2[match.data[idx].second]);
 	return true;
 }
 

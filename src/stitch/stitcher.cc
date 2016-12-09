@@ -66,8 +66,8 @@ Mat32f Stitcher::build() {
 bool Stitcher::match_image(
     const PairWiseMatcher& pwmatcher, int i, int j) {
   auto match = pwmatcher.match(i, j);
-  //auto match = FeatureMatcher(feats[i], feats[j]).match();	// slow
-  TransformEstimation transf(match, keypoints[i], keypoints[j],
+  TransformEstimation transf(
+      match, keypoints[i], keypoints[j],
       imgs[i].shape(), imgs[j].shape());	// from j to i. H(p_j) ~= p_i
   MatchInfo info;
   bool succ = transf.get_transform(&info);

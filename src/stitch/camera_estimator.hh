@@ -24,6 +24,8 @@ class CameraEstimator {
 
 		std::vector<Camera> estimate();
 
+    void estimate_focal();
+
 	private:
 		typedef std::vector<std::vector<int>> Graph;
 
@@ -32,6 +34,7 @@ class CameraEstimator {
 		std::vector<std::vector<MatchInfo>>& matches;
 		const std::vector<Shape2D>& shapes;
 
+    // hold a copy of all cameras
 		std::vector<Camera> cameras;
 
 		void traverse(

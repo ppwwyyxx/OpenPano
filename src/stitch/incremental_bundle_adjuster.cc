@@ -22,7 +22,7 @@ const static int NR_PARAM_PER_CAMERA = 6;
 const static int NR_TERM_PER_MATCH = 2;
 const static bool SYMBOLIC_DIFF = true;
 const static int LM_MAX_ITER = 100;
-const static float ERROR_IGNORE = 500.f;
+const static float ERROR_IGNORE = 800.f;
 
 inline void camera_to_params(const Camera& c, double* ptr) {
   ptr[0] = c.focal;
@@ -116,7 +116,7 @@ void IncrementalBundleAdjuster::add_match(
 
 void IncrementalBundleAdjuster::optimize() {
   if (idx_added.empty())
-    return;
+    error_exit("Calling optimize() without adding any matches!");
   using namespace Eigen;
   update_index_map();
   int nr_img = idx_added.size();
@@ -127,7 +127,7 @@ void IncrementalBundleAdjuster::optimize() {
   for (auto& idx : idx_added)
     state.cameras.emplace_back(result_cameras[idx]);
   state.ensure_params();
-  state.cameras.clear();		// why do I need this
+  state.cameras.clear();		// TODO why do I need this
   auto err_stat = calcError(state);
   double best_err = err_stat.avg;
   print_debug("BA: init err: %lf\n", best_err);

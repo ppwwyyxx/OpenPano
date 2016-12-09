@@ -37,6 +37,7 @@ class IncrementalBundleAdjuster {
 		IncrementalBundleAdjuster(const IncrementalBundleAdjuster&) = delete;
 		IncrementalBundleAdjuster& operator = (const IncrementalBundleAdjuster&) = delete;
 
+    // m is matches[j][i] in stitcher (i.e. from i to j)
 		void add_match(int i, int j, MatchInfo& m);
 
 		void optimize();
