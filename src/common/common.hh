@@ -1,3 +1,3 @@
 #ifdef MSVC
-#include "MSVC\vs.h"
+#define not !
 #endif
