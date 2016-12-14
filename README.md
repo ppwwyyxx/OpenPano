@@ -23,13 +23,13 @@ CImg and libjpeg are only used to read and write images, so you can easily get r
 ### Steps
 
 * Download Cmake and install the cmake
-* Download Eigen and unzip it in panorama/Eigen, please ensure that panorama/Eigen/Eigen/Dense exists.
+* If the environment variable EIGEN3_INCLUDE_DIR is set, please make sure the Eigen/Dense exists in the ${EIGEN3_INCLUDE_DIR}
+* else Download Eigen and unzip it in panorama/Eigen, please ensure that panorama/Eigen/Eigen/Dense exists.
 
 ### Compile:
 Linux / OSX (gcc or clang):
 ```
-$ cmake .
-$ make
+$ cd src;make
 ```
 Windows(VS2015)
 ```
