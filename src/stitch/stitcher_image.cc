@@ -75,6 +75,7 @@ Vec2D ConnectedImages::get_final_resolution() const {
 			refh = component[identity_idx].imgptr->height();
 	auto homo2proj = get_homo2proj();
   const Homography& identity_H = component[identity_idx].homo;
+  // transform corners to point in space to estimate range
 
   Vec id_img_corner2 = identity_H.trans(Vec2D{refw/2.0, refh/2.0}),
       id_img_corner1 = identity_H.trans(Vec2D{-refw/2.0, -refh/2.0});

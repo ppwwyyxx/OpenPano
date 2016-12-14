@@ -35,8 +35,9 @@ struct ConnectedImages {
 	// -- image transformations and metadata
 
 	struct ImageComponent {
-		Homography homo,			// from me to identity
-							 homo_inv;	// from identity to me
+		Homography homo,			// from me (point in image plane, 2d) to point in space (P,3D)
+							 homo_inv;	// transform from point in space to me (point in plane):
+                          // p = K * R * P
 
 		// point to the original image
 		ImageRef* imgptr;
@@ -44,7 +45,7 @@ struct ConnectedImages {
 		// range after projected to identity frame
 		Range range;
 
-		ImageComponent(){}
+		ImageComponent() {}
 		ImageComponent(ImageRef* img):imgptr(img) {}
 	};
 
