@@ -9,8 +9,8 @@ include_directories(SYSTEM ${EIGEN3_INCLUDE_DIR})
 include_directories(SYSTEM third-party)
 include_directories(.)
 
-# our sources
 file(GLOB SOURCES main.cc feature/*.[c,h]* stitch/*.[c.h]* lib/*.[c,h]*)
+
 list(APPEND SOURCES
  ${CMAKE_CURRENT_SOURCE_DIR}/third-party/lodepng/lodepng.cc
 )
@@ -20,6 +20,7 @@ if (OPENMP_FOUND)
 endif()
 
 add_definitions(-DDEBUG)
+
 
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -march=native")
 
@@ -31,6 +32,7 @@ endif()
 
 add_executable(image-stitching ${SOURCES})
 target_link_libraries(image-stitching ${JPEG_LIBRARIES})
+
 
 # Visual Studio handling of file glob
 # This part is not maintained.. I don't know what it is

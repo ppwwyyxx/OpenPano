@@ -20,6 +20,7 @@
 #include "stitch/stitcher.hh"
 #include "stitch/transform_estimate.hh"
 #include "stitch/warp.hh"
+#include "common/common.hh"
 #include <ctime>
 #include <cassert>
 
@@ -52,7 +53,7 @@ void test_extrema(const char* fname, int mode) {
 			pld.cross(c, LABEL_LEN / 2);
 		}
 	}
-	write_rgb("extrema.jpg", mat);
+	write_rgb("extrema.png", mat);
 }
 
 void test_orientation(const char* fname) {
@@ -70,7 +71,7 @@ void test_orientation(const char* fname) {
 	cout << "FeaturePoint size: " << oriented_keypoint.size() << endl;
 	for (auto &i : oriented_keypoint)
 		pld.arrow(Coor(i.real_coor.x * mat.width(), i.real_coor.y * mat.height()), i.dir, LABEL_LEN);
-	write_rgb("orientation.jpg", mat);
+	write_rgb("orientation.png", mat);
 }
 
 // draw feature and their match
@@ -103,7 +104,7 @@ void test_match(const char* f1, const char* f2) {
 		pld.circle(icoor2, LABEL_LEN);
 		pld.line(icoor1, icoor2);
 	}
-	write_rgb("match.jpg", concatenated);
+	write_rgb("match.png", concatenated);
 }
 
 // draw inliers of the estimated homography
@@ -182,7 +183,7 @@ void test_inlier(const char* f1, const char* f2) {
 	for (auto& v: p) v += offset2;
 	pld.polygon(p);
 
-	write_rgb("inlier.jpg", concatenated);
+	write_rgb("inlier.png", concatenated);
 }
 
 void test_warp(int argc, char* argv[]) {
@@ -190,7 +191,7 @@ void test_warp(int argc, char* argv[]) {
 	REPL(i, 2, argc) {
 		Mat32f mat = read_img(argv[i]);
 		warp.warp(mat);
-		write_rgb(("warp" + to_string(i) + ".jpg").c_str(), mat);
+		write_rgb(("warp" + to_string(i) + ".png").c_str(), mat);
 	}
 }
 
@@ -223,7 +224,7 @@ void work(int argc, char* argv[]) {
 	}
 	{
 		GuardedTimer tm("Writing image");
-		write_rgb("out.jpg", res);
+		write_rgb("out.png", res);
 	}
 }
 
@@ -320,7 +321,7 @@ void planet(const char* fname) {
 		float* p = ret.ptr(i, j);
 		c.write_to(p);
 	}
-	write_rgb("planet.jpg", ret);
+	write_rgb("planet.png", ret);
 }
 
 int main(int argc, char* argv[]) {

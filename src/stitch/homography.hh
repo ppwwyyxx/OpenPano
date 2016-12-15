@@ -4,7 +4,7 @@
 #pragma once
 #include "lib/matrix.hh"
 #include "lib/geometry.hh"
-
+#include "common/common.hh"
 namespace pano {
 
 struct Shape2D;

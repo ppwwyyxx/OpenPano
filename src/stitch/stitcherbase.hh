@@ -8,6 +8,7 @@
 #include "lib/geometry.hh"
 #include "feature/feature.hh"
 #include "imageref.hh"
+#include "common/common.hh"
 
 namespace pano {
 

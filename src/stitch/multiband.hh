@@ -5,6 +5,7 @@
 
 #include "blender.hh"
 #include "lib/matrix.hh"
+#include "common/common.hh"
 
 namespace pano {
 
