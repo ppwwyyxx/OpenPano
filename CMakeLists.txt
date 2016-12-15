@@ -53,10 +53,29 @@ add_definitions( -DUNICODE -D_UNICODE)
 #################################################################################################################
 # ============================================ General build definitions ====================================== #
 #################################################################################################################
-if(DEFINED ENV{EIGEN3_INCLUDE_DIR})
-    set(EIGEN3_INCLUDE_DIR "$ENV{EIGEN3_INCLUDE_DIR}")
-elseif(NOT DEFINED EIGEN3_INCLUDE_DIR)
-    message(WARNING "You do not specify the EIGEN3_INCLUDE_DIR, the cmake will try to use find_package to find the Eigen.")
+find_package(JPEG)
+if(NOT JPEG_FOUND)
+ set(JPEG_INCLUDE_DIR "$ENV{JPEG_INCLUDE_DIR}")
+ if(NOT JPEG_INCLUDE_DIR)
+  message(WARNING "Can not find the jpeg include directory, ignore the jpeg.")
+ endif()
+ set(JPEG_LIBRARY "$ENV{JPEG_LIBRARY}")
+ if(NOT JPEG_LIBRARY)
+  message(WARNING "Can not find the jpeg lib directory, ignore the jpeg.")
+ endif()
+ #find again.
+ find_package(JPEG)
+ if(NOT JPEG_FOUND)
+  message(WARNING "Can not find the jpeg ")
+ endif()
+endif()
+
+find_package(Eigen3)
+if(NOT EIGEN3_FOUND)
+ set(EIGEN3_INCLUDE_DIR "$ENV{EIGEN3_INCLUDE_DIR}")
+ if(NOT EIGEN3_INCLUDE_DIR)
+   message(FATAL_ERROR "Can not find the eigen3 directory, please set the EIGEN3_INCLUDE_DIR as an environment variable, and make it point to the folder of eigen3(Make sure the file Eigen/Dense exist in it).")
+ endif()
 endif()
 
 if(MSVC)
