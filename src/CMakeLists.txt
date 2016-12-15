@@ -1,6 +1,5 @@
 cmake_minimum_required(VERSION 2.8)
 find_package(JPEG REQUIRED)
-find_package(Eigen3 REQUIRED)
 find_package(OpenMP)
 
 include_directories(${JPEG_INCLUDE_DIR})

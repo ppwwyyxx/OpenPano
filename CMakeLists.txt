@@ -53,16 +53,11 @@ add_definitions( -DUNICODE -D_UNICODE)
 #################################################################################################################
 # ============================================ General build definitions ====================================== #
 #################################################################################################################
-if(NOT EIGEN3_INCLUDE_DIR )
-    if($ENV{EIGEN3_INCLUDE_DIR})
-       set(EIGEN3_INCLUDE_DIR $ENV{EIGEN3_INCLUDE_DIR})
-    elseif(EXISTS ${CMAKE_CURRENT_LIST_DIR}/Eigen)
-       set(EIGEN3_INCLUDE_DIR ${CMAKE_CURRENT_LIST_DIR}/Eigen)
-    else()
-       message(FATAL_ERROR "Set EIGEN3_INCLUDE_DIR")
-    endif()
+if(DEFINED ENV{EIGEN3_INCLUDE_DIR})
+    set(EIGEN3_INCLUDE_DIR "$ENV{EIGEN3_INCLUDE_DIR}")
+else(NOT DEFINED EIGEN3_INCLUDE_DIR)
+    message(WARNING "You do not specify the EIGEN3_INCLUDE_DIR, the cmake will try to use find_package to find the Eigen.")
 endif()
-include_directories(SYSTEM ${EIGEN3_INCLUDE_DIR})
 
 if(MSVC)
 
