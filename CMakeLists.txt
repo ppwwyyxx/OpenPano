@@ -55,7 +55,7 @@ add_definitions( -DUNICODE -D_UNICODE)
 #################################################################################################################
 if(DEFINED ENV{EIGEN3_INCLUDE_DIR})
     set(EIGEN3_INCLUDE_DIR "$ENV{EIGEN3_INCLUDE_DIR}")
-else(NOT DEFINED EIGEN3_INCLUDE_DIR)
+elseif(NOT DEFINED EIGEN3_INCLUDE_DIR)
     message(WARNING "You do not specify the EIGEN3_INCLUDE_DIR, the cmake will try to use find_package to find the Eigen.")
 endif()
 
