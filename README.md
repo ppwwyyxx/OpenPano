@@ -22,6 +22,9 @@ which is also the one used by [AutoStitch](http://matthewalunbrown.com/autostitc
 Eigen, CImg and FLANN are header-only, to simplify the compilation on different platforms.
 CImg and libjpeg are only used to read and write images, so you can easily get rid of them.
 
+On ArchLinux, install dependencies by: `sudo pacman -S gcc sed cmake make libjpeg eigen`
+On Ubuntu, install dependencies by: `sudo apt install build-essential sed cmake libjpeg-dev libeigen3-dev`
+
 ### Compile:
 #### Linux / OSX / WSL (bash on windows)
 ```
@@ -38,11 +41,11 @@ You may need gcc or different clang. See #16.
 #### Windows (VS2015)
 * Install cmake
 * Set environment variable `EIGEN3_INCLUDE_DIR` so that `${EIGEN3_INCLUDE_DIR}/Eigen/Dense` exists
-* Open "Developer Command Prompt" in windows , refer to https://msdn.microsoft.com/zh-cn/library/ms229859(v=vs.110).aspx
-* `cd /path/to/panorama`
+* Open visual studio [Developer Command Prompt](https://msdn.microsoft.com/en-us/library/ms229859(v=vs.110).aspx).
+* `cd path/to/panorama`
 * `cmake .`
-* Open the vs2015 project and compile the project.
-* copy `config.cfg` to the directory containing `image_stitching.exe`
+* Open the VS2015 project and compile the project
+* copy `config.cfg` to the directory containing `image-stitching.exe`
 
 ### Options:
 
