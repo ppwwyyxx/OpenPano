@@ -7,13 +7,13 @@ TARGET = image-stitching
 UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S),Linux)
 	CXX ?= g++
-	EIGEN_PATH ?= /usr/include/eigen3
+	EIGEN3_INCLUDE_DIR ?= /usr/include/eigen3
 endif
 ifeq ($(UNAME_S),Darwin)
 	CXX ?= g++
-	EIGEN_PATH ?= /usr/local/include/eigen3
+	EIGEN3_INCLUDE_DIR ?= /usr/local/include/eigen3
 endif
-INCLUDE_DIR = -I. -isystem $(EIGEN_PATH) -isystem third-party
+INCLUDE_DIR = -I. -isystem $(EIGEN3_INCLUDE_DIR) -isystem third-party
 
 ifneq (,$(findstring clang,$(CXX)))
 	OMP_FLAG=-fopenmp=libomp

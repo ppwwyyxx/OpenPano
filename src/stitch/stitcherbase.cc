@@ -18,8 +18,8 @@ void StitcherBase::calc_feature() {
 		if (config::LAZY_READ)
 			imgs[k].release();
 		if (feats[k].size() == 0)
-			error_exit(ssprintf("Cannot find feature in image %lu!\n", k));
-		print_debug("Image %lu has %lu features\n", k, feats[k].size());
+			error_exit(ssprintf("Cannot find feature in image %d!\n", k));
+		print_debug("Image %d has %lu features\n", k, feats[k].size());
 		keypoints[k].resize(feats[k].size());
 		REP(i, feats[k].size())
 			keypoints[k][i] = feats[k][i].coor;

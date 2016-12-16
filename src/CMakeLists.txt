@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 2.8)
-find_package(OpenMP)
 
+if (OPENMP_FOUND)
+	set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+endif()
 include_directories(${JPEG_INCLUDE_DIR})
 include_directories(SYSTEM ${EIGEN3_INCLUDE_DIR})
 
@@ -13,15 +15,6 @@ list(APPEND SOURCES
  ${CMAKE_CURRENT_SOURCE_DIR}/third-party/lodepng/lodepng.cc
 )
 
-if (OPENMP_FOUND)
-	set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-endif()
-
-add_definitions(-DDEBUG)
-
-
-set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -march=native")
-
 if (CMAKE_VERSION VERSION_LESS "3.1")
 	set (CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
 else()
@@ -30,7 +23,6 @@ endif()
 
 add_executable(image-stitching ${SOURCES})
 target_link_libraries(image-stitching ${JPEG_LIBRARIES})
-
 
 # Visual Studio handling of file glob
 # This part is not maintained.. I don't know what it is

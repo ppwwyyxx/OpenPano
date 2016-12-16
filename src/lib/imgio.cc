@@ -5,9 +5,12 @@
 #include <vector>
 #include "common/common.hh"
 #define cimg_display 0
-#ifndef NOT_USE_JPEG_IN_WINDOWS
+
+// jpeg can be disabled by compiling with -DDISABLE_JPEG
+#ifndef DISABLE_JPEG
 #define cimg_use_jpeg
 #endif
+
 #include "CImg.h"
 
 #include "imgproc.hh"
