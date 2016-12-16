@@ -24,6 +24,12 @@
 #include <ctime>
 #include <cassert>
 
+#ifdef DISABLE_JPEG
+#define IMGFILE(x) #x ".png"
+#else
+#define IMGFILE(x) #x ".jpg"
+#endif
+
 using namespace std;
 using namespace pano;
 using namespace config;
@@ -53,7 +59,7 @@ void test_extrema(const char* fname, int mode) {
 			pld.cross(c, LABEL_LEN / 2);
 		}
 	}
-	write_rgb("extrema.png", mat);
+	write_rgb(IMGFILE(extrema), mat);
 }
 
 void test_orientation(const char* fname) {
@@ -71,7 +77,7 @@ void test_orientation(const char* fname) {
 	cout << "FeaturePoint size: " << oriented_keypoint.size() << endl;
 	for (auto &i : oriented_keypoint)
 		pld.arrow(Coor(i.real_coor.x * mat.width(), i.real_coor.y * mat.height()), i.dir, LABEL_LEN);
-	write_rgb("orientation.png", mat);
+	write_rgb(IMGFILE(orientation), mat);
 }
 
 // draw feature and their match
@@ -104,7 +110,7 @@ void test_match(const char* f1, const char* f2) {
 		pld.circle(icoor2, LABEL_LEN);
 		pld.line(icoor1, icoor2);
 	}
-	write_rgb("match.png", concatenated);
+	write_rgb(IMGFILE(match), concatenated);
 }
 
 // draw inliers of the estimated homography
@@ -183,7 +189,7 @@ void test_inlier(const char* f1, const char* f2) {
 	for (auto& v: p) v += offset2;
 	pld.polygon(p);
 
-	write_rgb("inlier.png", concatenated);
+	write_rgb(IMGFILE(inlier), concatenated);
 }
 
 void test_warp(int argc, char* argv[]) {
@@ -191,7 +197,7 @@ void test_warp(int argc, char* argv[]) {
 	REPL(i, 2, argc) {
 		Mat32f mat = read_img(argv[i]);
 		warp.warp(mat);
-		write_rgb(("warp" + to_string(i) + ".png").c_str(), mat);
+		write_rgb(("warp" + to_string(i) + ".jpg").c_str(), mat);
 	}
 }
 
@@ -224,7 +230,7 @@ void work(int argc, char* argv[]) {
 	}
 	{
 		GuardedTimer tm("Writing image");
-		write_rgb("out.png", res);
+		write_rgb(IMGFILE(out), res);
 	}
 }
 
@@ -321,7 +327,7 @@ void planet(const char* fname) {
 		float* p = ret.ptr(i, j);
 		c.write_to(p);
 	}
-	write_rgb("planet.png", ret);
+	write_rgb(IMGFILE(planet), ret);
 }
 
 int main(int argc, char* argv[]) {
