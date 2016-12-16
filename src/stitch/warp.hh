@@ -7,6 +7,7 @@
 #include "lib/mat.h"
 #include "feature/feature.hh"
 #include "match_info.hh"
+#include "common/common.hh"
 
 namespace pano {
 

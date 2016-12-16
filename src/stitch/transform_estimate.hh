@@ -7,6 +7,7 @@
 #include "lib/matrix.hh"
 #include "lib/geometry.hh"
 #include "match_info.hh"
+#include "common/common.hh"
 
 namespace pano {
 class MatchData;

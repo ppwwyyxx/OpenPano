@@ -7,7 +7,7 @@
 #include "dog.hh"
 #include "lib/mat.h"
 #include "lib/geometry.hh"
-
+#include "common/common.hh"
 namespace pano {
 
 struct SSPoint;

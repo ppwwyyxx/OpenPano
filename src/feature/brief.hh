@@ -5,7 +5,7 @@
 #include <vector>
 #include <utility>
 #include "feature.hh"
-
+#include "common/common.hh"
 // BRIEF: Binary Robust Independent Elementary Features
 
 namespace pano {

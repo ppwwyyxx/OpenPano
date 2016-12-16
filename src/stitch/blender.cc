@@ -42,7 +42,7 @@ Mat32f LinearBlender::run() {
 		memset(weight.ptr(), 0, target_size.y * target_size.x * sizeof(float));
 		fill(target, Color::BLACK);
 #pragma omp parallel for schedule(dynamic)
-		REP(k, images.size()) {
+		REP(k, (int)images.size()) {
 			auto& img = images[k];
 			img.imgref.load();
 			auto& range = img.range;

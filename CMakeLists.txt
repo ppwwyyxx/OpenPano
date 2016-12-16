@@ -43,22 +43,49 @@ else()
   set(OBJ_EXT o)
 endif()
 
+find_package(OpenMP)
+if (OPENMP_FOUND)
+    set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+endif()
+
+add_definitions( -DUNICODE -D_UNICODE)
 #################################################################################################################
 # ============================================ General build definitions ====================================== #
 #################################################################################################################
-if(NOT EIGEN3_INCLUDE_DIR )
-    message(FATAL_ERROR "Set EIGEN3_INCLUDE_DIR")
+find_package(JPEG)
+if(NOT JPEG_FOUND)
+ set(JPEG_INCLUDE_DIR "$ENV{JPEG_INCLUDE_DIR}")
+ if(NOT JPEG_INCLUDE_DIR)
+  message(WARNING "Can not find the jpeg include directory, ignore the jpeg.")
+ endif()
+ set(JPEG_LIBRARY "$ENV{JPEG_LIBRARY}")
+ if(NOT JPEG_LIBRARY)
+  message(WARNING "Can not find the jpeg lib directory, ignore the jpeg.")
+ endif()
+ #find again.
+ find_package(JPEG)
+ if(NOT JPEG_FOUND)
+  message(WARNING "Can not find the jpeg ")
+ endif()
 endif()
-include_directories(${EIGEN3_INCLUDE_DIR})
+
+find_package(Eigen3)
+if(NOT EIGEN3_FOUND)
+ set(EIGEN3_INCLUDE_DIR "$ENV{EIGEN3_INCLUDE_DIR}")
+ if(NOT EIGEN3_INCLUDE_DIR)
+   message(FATAL_ERROR "Can not find the eigen3 directory, please set the EIGEN3_INCLUDE_DIR as an environment variable, and make it point to the folder of eigen3(Make sure the file Eigen/Dense exist in it).")
+ endif()
+endif()
 
 if(MSVC)
 
-  add_definitions(-D_CRT_SECURE_NO_WARNINGS -D_CRT_NONSTDC_NO_DEPRECATE -DWIN32_LEAN_AND_MEAN -DVC_EXTRALEAN)
+  add_definitions(-D_CRT_SECURE_NO_WARNINGS -D_CRT_NONSTDC_NO_DEPRECATE -DWIN32_LEAN_AND_MEAN -DVC_EXTRALEAN -DMSVC)
 
   # /Zo makes debug symbol in pdb in release mode in VS2015
   add_definitions(/fp:fast /GR- /Os /Zo /arch:AVX /openmp)
 else()
-  add_definitions(-O3 -march=native -fopenmp -Wall -Wextra)
+  add_definitions(-O3 -g -march=native -fopenmp -Wall -Wextra)
   set(CMAKE_CXX_COMPILER g++)
 endif()
 

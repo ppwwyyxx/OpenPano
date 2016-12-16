@@ -12,7 +12,8 @@ which is also the one used by [AutoStitch](http://matthewalunbrown.com/autostitc
 
 ### Compile Dependencies:
 
-* gcc >= 4.7
+* cmake >= 3.7(https://cmake.org/)
+* gcc >= 4.7 (Or VS2015)
 * [Eigen](http://eigen.tuxfamily.org/index.php?title=Main_Page)
 * [FLANN](http://www.cs.ubc.ca/research/flann/) (already included in the repository, slightly modified)
 * [CImg](http://cimg.eu/) (optional. already included in the repository)
@@ -21,10 +22,25 @@ which is also the one used by [AutoStitch](http://matthewalunbrown.com/autostitc
 Eigen, CImg and FLANN are header-only, to simplify the compilation on different platforms.
 CImg and libjpeg are only used to read and write images, so you can easily get rid of them.
 
+### Steps
+
+* Download Cmake and install the cmake
+* If the environment variable EIGEN3_INCLUDE_DIR is set, please make sure the Eigen/Dense exists in the ${EIGEN3_INCLUDE_DIR}
+* else Download Eigen and unzip it in panorama/Eigen, please ensure that panorama/Eigen/Eigen/Dense exists.
+
 ### Compile:
 Linux / OSX (gcc or clang):
 ```
-$ cd src; make
+$ cd src;make
+```
+Windows(VS2015)
+```
+Open "Developer Command Prompt" in windows , refer to https://msdn.microsoft.com/zh-cn/library/ms229859(v=vs.110).aspx
+cd folder of panorama
+cmake .
+open the vs2015 project.
+compile the project.
+copy the config.cfg to the folder of image_stitching.exe
 ```
 The default clang on OSX doesn't contain openmp support.
 You may need gcc or different clang. See #16.

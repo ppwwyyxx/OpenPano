@@ -5,7 +5,7 @@
 
 #include "stitcherbase.hh"
 #include "stitcher_image.hh"
-
+#include "common/common.hh"
 namespace pano {
 
 // forward declaration

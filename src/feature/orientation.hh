@@ -5,6 +5,7 @@
 #pragma once
 #include <vector>
 #include "dog.hh"
+#include "common/common.hh"
 
 namespace pano {
 struct SSPoint;

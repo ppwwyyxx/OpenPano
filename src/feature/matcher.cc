@@ -14,7 +14,7 @@ using namespace config;
 // necessary to define here since flann doesn't provide serialization for size_t as unsigned long long
 namespace flann {
   namespace serialization {
-    BASIC_TYPE_SERIALIZER(size_t);
+    //BASIC_TYPE_SERIALIZER(size_t);
   }
 }
 #endif
