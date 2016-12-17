@@ -52,9 +52,8 @@ Mat32f Stitcher::build() {
   else
     build_linear_simple();		// naive mode
   pairwise_matches.clear();
-  // TODO automatically determine projection method
+  // TODO automatically determine projection method even in naive mode
   if (ESTIMATE_CAMERA)
-    //bundle.proj_method = ConnectedImages::ProjectionMethod::cylindrical;
     bundle.proj_method = ConnectedImages::ProjectionMethod::spherical;
   else
     bundle.proj_method = ConnectedImages::ProjectionMethod::flat;
@@ -164,7 +163,23 @@ void Stitcher::build_linear_simple() {
     REPD(k, mid - 2, 0)
       comp[k].homo = comp[k + 1].homo * pairwise_matches[k+1][k].homo;
   }
-  // now, comp[k]: from k to identity
+  // comp[k]: from k to identity. [-w/2,w/2]
+
+  // when estimate_camera is not used, homo is KRRK(2d-2d), not KR(2d-3d)
+  // need to somehow normalize(guess) focal length to make non-flat projection work
+  double f = Camera::estimate_focal(pairwise_matches);
+  if (f < 0) {
+    print_debug("Cannot estimate focal. Will use a naive one.\n");
+    f = 0.5 * (imgs[mid].width() + imgs[mid].height());
+  }
+  REP(i, n) {
+    auto M = Homography{{
+        1.0/f, 0,     0,
+        0,     1.0/f, 0,
+        0,     0,     1
+    }};
+    comp[i].homo = M * comp[i].homo;
+  }
   bundle.calc_inverse_homo();
 }
 
