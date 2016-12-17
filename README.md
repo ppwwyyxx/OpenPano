@@ -62,7 +62,7 @@ Three modes are available (set/unset the options in ``config.cfg``):
   But it's slower because it needs to perform pairwise matches.
 
 + __translation mode__. Simply stitch images together by affine transformation.
-  It works when camera performs pure translation.  It also requires ordered input.
+  It works when camera performs pure translation and scene points are roughly at the same depth.  It also requires ordered input.
 
 Some options you may care:
 + __FOCAL_LENGTH__: focal length of your camera in [35mm equivalent](https://en.wikipedia.org/wiki/35_mm_equivalent_focal_length). Only useful in cylinder mode.

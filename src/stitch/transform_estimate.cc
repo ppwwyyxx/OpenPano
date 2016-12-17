@@ -165,6 +165,7 @@ bool TransformEstimation::fill_inliers_to_matchinfo(
 		return cnt;
 	};
 	// get the number of keypoint in the polygon
+  // TODO shouldn't count undistinctive keypoints as keypoints. They should get filtered out earlier
 	auto get_keypoint_cnt = [&](vector<Vec2D>& poly, bool first) {
 		auto pip = PointInPolygon{poly};
 		int cnt = 0;
