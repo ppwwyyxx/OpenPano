@@ -181,16 +181,17 @@ bool TransformEstimation::fill_inliers_to_matchinfo(
 	Homography inv = homo.inverse(&succ);
 	if (not succ)	// cannot inverse. ill-formed.
 		return false;
+  // TODO guess if two images are identical
 	auto overlap = overlap_region(shape1, shape2, homoM, inv);
 	float r1m = inliers.size() * 1.0f / get_match_cnt(overlap, true);
-	if (r1m < INLIER_IN_MATCH_RATIO || r1m > 1) return false;
+	if (r1m < INLIER_IN_MATCH_RATIO) return false;
 	float r1p = inliers.size() * 1.0f / get_keypoint_cnt(overlap, true);
 	if (r1p < 0.01 || r1p > 1) return false;
 
 	Matrix invM = inv.to_matrix();
 	overlap = overlap_region(shape2, shape1, invM, homo);
 	float r2m = inliers.size() * 1.0f / get_match_cnt(overlap, false);
-	if (r2m < INLIER_IN_MATCH_RATIO|| r2m > 1) return false;
+	if (r2m < INLIER_IN_MATCH_RATIO) return false;
 	float r2p = inliers.size() * 1.0f / get_keypoint_cnt(overlap, false);
 	if (r2p < 0.01 || r2p > 1) return false;
 	print_debug("r1mr1p: %lf,%lf, r2mr2p: %lf,%lf\n", r1m, r1p, r2m, r2p);

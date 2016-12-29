@@ -16,7 +16,7 @@ which is also the one used by [AutoStitch](http://matthewalunbrown.com/autostitc
 * [Eigen](http://eigen.tuxfamily.org/index.php?title=Main_Page)
 * [FLANN](http://www.cs.ubc.ca/research/flann/) (already included in the repository, slightly modified)
 * [CImg](http://cimg.eu/) (optional. already included in the repository)
-* libjpeg (optional)
+* libjpeg (optional if you only work with png files)
 * cmake or make
 
 Eigen, CImg and FLANN are header-only, to simplify the compilation on different platforms.

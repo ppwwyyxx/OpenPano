@@ -39,7 +39,7 @@ ifdef MKLROOT
 endif
 
 CXXFLAGS ?=
-CXXFLAGS += $(INCLUDE_DIR) $(OMP_FLAG) -Wall -Wextra
+CXXFLAGS += $(INCLUDE_DIR) $(OMP_FLAG) -Wall -Wextra -Wnon-virtual-dtor
 CXXFLAGS += $(DEFINES) -std=c++11 $(OPTFLAGS)
 
 LDFLAGS += $(OPTFLAGS)
@@ -70,7 +70,7 @@ $(OBJ_DIR)/%.o: %.cc
 	@$(CXX) -c $< -o $@ $(CXXFLAGS)
 
 $(OBJ_DIR)/%.d: %.cc Makefile
-	@mkdir -p $(dir $@)
+	@mkdir -pv $(dir $@)
 	@echo "[dep] $< ..."
 	@$(CXX) $(CXXFLAGS) -MM -MT "$(OBJ_DIR)/$(<:.cc=.o) $(OBJ_DIR)/$(<:.cc=.d)" "$<"  > "$@"
 
