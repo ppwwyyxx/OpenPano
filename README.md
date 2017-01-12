@@ -123,8 +123,8 @@ Also, setting `LAZY_READ` to 1 can save memory at the cost of a minor slow down.
 
 Peak memory in bytes (assume each input has the same w & h):
 
-+ Without `LAZY_READ` option: max(finalw \* finalh \* 12, #photos \* w \* h \* 12)
-+ With `LAZY_READ` option: max(finalw \* finalh \* 16, #threads \* w \* h \* 12)
++ Without `LAZY_READ` option: max(finalw \* finalh \* 12, #photos \* w \* h \* 12 + #photos \* #matched\_pairs * 96 + #keypoints * 520)
++ With `LAZY_READ` option: max(finalw \* finalh \* 16, #threads \* w \* h \* 12, #photos \* #matched\_pairs * 96 + #keypoints * 520)
 
 ## Algorithms
 + Features: [SIFT](http://en.wikipedia.org/wiki/Scale-invariant_feature_transform)

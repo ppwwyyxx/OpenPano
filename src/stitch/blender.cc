@@ -36,8 +36,8 @@ Mat32f LinearBlender::run() {
 					color *= w
 
 	if (LAZY_READ) {
-		// use weighted pixel, to iterate over images (and free them) instead of target
-		// will be a little bit slower
+		// Use weighted pixel, to iterate over images (and free them) instead of target.
+		// Will be a little bit slower
 		Mat<float> weight(target_size.y, target_size.x, 1);
 		memset(weight.ptr(), 0, target_size.y * target_size.x * sizeof(float));
 		fill(target, Color::BLACK);

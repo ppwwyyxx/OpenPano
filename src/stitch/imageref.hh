@@ -13,6 +13,11 @@ namespace pano {
 struct ImageRef {
   std::string fname;
   Mat32f* img = nullptr;
+  int _width, _height;
+
+  ImageRef(const std::string& fname): fname(fname) {}
+  //ImageRef(const ImageRef& ) = delete;  // TODO make it work
+  ~ImageRef() { if (img) delete img; }
 
   void load() {
     if (img) return;
@@ -27,10 +32,6 @@ struct ImageRef {
   int height() const { return _height; }
   Shape2D shape() const { return {_width, _height}; }
 
-  ImageRef(const std::string& fname): fname(fname) {}
-
-  ~ImageRef() { if (img) delete img; }
-  int _width, _height;
 };
 
 }

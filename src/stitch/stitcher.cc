@@ -99,11 +99,17 @@ void Stitcher::pairwise_match() {
   REP(i, n) REPL(j, i + 1, n) tasks.emplace_back(i, j);
 
   PairWiseMatcher pwmatcher(feats);
+
+  int total_nr_match = 0;
+
 #pragma omp parallel for schedule(dynamic)
   REP(k, (int)tasks.size()) {
     int i = tasks[k].first, j = tasks[k].second;
-    match_image(pwmatcher, i, j);
+    bool succ = match_image(pwmatcher, i, j);
+    if (succ)
+      total_nr_match += pairwise_matches[i][j].match.size();
   }
+  print_debug("Total number of matched keypoint pairs: %d\n", total_nr_match);
 }
 
 void Stitcher::linear_pairwise_match() {

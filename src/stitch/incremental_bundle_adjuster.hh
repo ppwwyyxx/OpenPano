@@ -38,7 +38,7 @@ class IncrementalBundleAdjuster {
 		IncrementalBundleAdjuster& operator = (const IncrementalBundleAdjuster&) = delete;
 
     // m is matches[j][i] in stitcher (i.e. from i to j)
-		void add_match(int i, int j, MatchInfo& m);
+		void add_match(int i, int j, const MatchInfo& m);
 
 		void optimize();
 
@@ -54,8 +54,8 @@ class IncrementalBundleAdjuster {
 
 		struct MatchPair {
 			int from, to;		// the original image index
-			MatchInfo& m;
-			MatchPair(int i, int j, MatchInfo& m):
+			const MatchInfo& m;
+			MatchPair(int i, int j, const MatchInfo& m):
 				from(i), to(j), m(m){}
 		};
 

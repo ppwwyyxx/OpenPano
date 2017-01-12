@@ -74,7 +74,7 @@ vector<Camera> CameraEstimator::estimate() {
           // add next to BA
           vst[now] = vst[next] = true;
           REP(i, n) if (vst[i] && i != next) {
-            auto& m = matches[next][i];
+            const auto& m = matches[next][i];
             if (m.match.size() && m.confidence > 0) {
               iba.add_match(i, next, m);
               if (MULTIPASS_BA == 2) {

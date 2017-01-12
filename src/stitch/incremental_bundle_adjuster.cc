@@ -106,7 +106,7 @@ IncrementalBundleAdjuster::IncrementalBundleAdjuster(
 
 
 void IncrementalBundleAdjuster::add_match(
-    int i, int j, MatchInfo& match) {
+    int i, int j, const MatchInfo& match) {
   match_pairs.emplace_back(i, j, match);
   match_cnt_prefix_sum.emplace_back(nr_pointwise_match);
   nr_pointwise_match += match.match.size();
@@ -177,7 +177,7 @@ IncrementalBundleAdjuster::ErrorStats IncrementalBundleAdjuster::calcError(
     Homography Hto_to_from = (c_from.K() * c_from.R) *
       (c_to.Rinv() * c_to.K().inverse());
 
-    for (auto& p: pair.m.match) {
+    for (const auto& p: pair.m.match) {
       Vec2D to = p.first, from = p.second;
       // we are estimating Hs that work on [-w/2,w/2] coordinate
       Vec2D transformed = Hto_to_from.trans2d(to);
@@ -282,7 +282,7 @@ void IncrementalBundleAdjuster::calcJacobianSymbolic(const ParamState& state) {
   // Symbolic Differentiation of Residual w.r.t all parameters
   // See Section 4 of: Automatic Panoramic Image Stitching using Invariant Features - David Lowe,IJCV07.pdf
   TotalTimer tm("calcJacobianSymbolic");
-  J.setZero();	// this took 1/3 time. J.rows() could reach 130000
+  J.setZero();	// this took 1/3 time. J.rows() could reach 700000 sometimes.
   JtJ.setZero();
   const auto& cameras = state.get_cameras();
   // pre-calculate all derivatives of R

@@ -41,9 +41,11 @@ void __print_debug__(const char *file, const char *func, int line, const char *f
   std::tr2::sys::path _fbase(file);
   auto fbase = _fbase.stem().c_str();
 #else
-  char *fbase = basename(strdup(file));
+  char *fdup = strdup(file);
+  char *fbase = basename(fdup);
 #endif
   c_fprintf(colormap[line].c_str(), stderr, "[%s@%s:%d] ", func, fbase, line);
+  free(fdup);
 
 	va_list ap;
 	va_start(ap, fmt);
