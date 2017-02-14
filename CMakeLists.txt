@@ -37,7 +37,7 @@ if (NOT OPENMP_FOUND)
 	message(WARNING "OpenMP is not found. Will be slow.")
 endif()
 
-#find_package(JPEG)
+find_package(JPEG)
 if(NOT JPEG_FOUND)
 	set(JPEG_INCLUDE_DIR "$ENV{JPEG_INCLUDE_DIR}")
 	set(JPEG_LIBRARY "$ENV{JPEG_LIBRARY}")

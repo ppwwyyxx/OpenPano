@@ -22,7 +22,7 @@ else()
 endif()
 
 add_executable(image-stitching ${SOURCES})
-target_link_libraries(image-stitching ${JPEG_LIBRARIES})
+target_link_libraries(image-stitching ${JPEG_LIBRARY})
 
 # Visual Studio handling of file glob
 # This part is not maintained.. I don't know what it is
