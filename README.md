@@ -8,7 +8,7 @@ OpenPano is an panorama stitching program written in C++ from scratch. It mainly
 described in the paper [Automatic Panoramic Image Stitching using Invariant Features](http://matthewalunbrown.com/papers/ijcv2007.pdf),
 which is also the one used by [AutoStitch](http://matthewalunbrown.com/autostitch/autostitch.html).
 
-[![Build Status](https://travis-ci.org/ppwwyyxx/panorama.svg?branch=master)](https://travis-ci.org/ppwwyyxx/panorama)
+[![Build Status](https://travis-ci.org/ppwwyyxx/OpenPano.svg?branch=master)](https://travis-ci.org/ppwwyyxx/OpenPano)
 
 ### Compile Dependencies:
 
@@ -43,7 +43,7 @@ You may need gcc or different clang. See #16.
 * Install cmake
 * Set environment variable `EIGEN3_INCLUDE_DIR` so that `${EIGEN3_INCLUDE_DIR}/Eigen/Dense` exists
 * Open visual studio [Developer Command Prompt](https://msdn.microsoft.com/en-us/library/ms229859(v=vs.110).aspx).
-* `cd path/to/panorama`
+* `cd path/to/OpenPano`
 * `cmake .`
 * Open the VS2015 project and compile the project
 * copy `config.cfg` to the directory containing `image-stitching.exe`
@@ -80,13 +80,13 @@ it might be better to resize your images rather than tune the parameters.
 $ ./image-stitching <file1> <file2> ...
 ```
 
-The output file is ``out.jpg``. You can play with the [example data](https://github.com/ppwwyyxx/panorama/releases/tag/0.1) to start with.
+The output file is ``out.jpg``. You can play with the [example data](https://github.com/ppwwyyxx/OpenPano/releases/tag/0.1) to start with.
 
 Before dealing with very large images (4 megapixels or more), it's better to resize them. (I might add this feature in the future)
 
 In cylinder/translation mode, the input file names need to have the correct order.
 
-## Examples ([All original data available for __download__](https://github.com/ppwwyyxx/panorama/releases/tag/0.1)):
+## Examples ([All original data available for __download__](https://github.com/ppwwyyxx/OpenPano/releases/tag/0.1)):
 
 Zijing Apartment in Tsinghua University:
 ![dorm](results/apartment.jpg)
