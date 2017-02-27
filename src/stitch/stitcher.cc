@@ -125,6 +125,7 @@ void Stitcher::linear_pairwise_match() {
       else
         error_exit(ssprintf("Image %d and %d don't match\n", i, next));
     }
+    continue; // TODO FIXME a->b, b->a
     do {
       next = (next + 1) % n;
       if (next == i)
@@ -173,8 +174,10 @@ void Stitcher::build_linear_simple() {
 
   // when estimate_camera is not used, homo is KRRK(2d-2d), not KR(2d-3d)
   // need to somehow normalize(guess) focal length to make non-flat projection work
-  double f = Camera::estimate_focal(pairwise_matches);
-  if (f < 0) {
+  double f = -1;
+  if (not TRANS)    // the estimation method only works under fixed-center projection
+    f = Camera::estimate_focal(pairwise_matches);
+  if (f <= 0) {
     print_debug("Cannot estimate focal. Will use a naive one.\n");
     f = 0.5 * (imgs[mid].width() + imgs[mid].height());
   }
