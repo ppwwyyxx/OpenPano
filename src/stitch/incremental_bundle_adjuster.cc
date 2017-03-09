@@ -184,16 +184,6 @@ IncrementalBundleAdjuster::ErrorStats IncrementalBundleAdjuster::calcError(
       ret.residuals[idx] = from.x - transformed.x;
       ret.residuals[idx+1] = from.y - transformed.y;
 
-      // TODO for the moment, ignore circlic error
-      /*
-       *if (fabs(ret.residuals[idx]) > ERROR_IGNORE) {
-       *  auto transfed = spherical::homo2proj(Hto_to_from.trans(to));
-       *  auto from3d = spherical::homo2proj(Vec{from.x, from.y, 1});
-       *  PP(from);PP(transformed);
-       *  PP(transfed); PP(from3d);
-       *  //ret.residuals[idx] = 0;
-       *}
-       */
       idx += 2;
     }
   }
@@ -313,20 +303,6 @@ void IncrementalBundleAdjuster::calcJacobianSymbolic(const ParamState& state) {
       Vec homo = Hto_to_from.trans(to);
       double hz_sqr_inv = 1.0 / sqr(homo.z);
       double hz_inv = 1.0 / homo.z;
-
-      // TODO use spherical projection instead of flat projection
-      /*
-       *if (fabs(from.x - homo.x / homo.z) > ERROR_IGNORE) {
-       *  REP(i, 6) {
-       *    J(idx, param_idx_from+i) = 0;
-       *    J(idx, param_idx_to+i) = 0;
-       *    J(idx+1, param_idx_from+i) = 0;
-       *    J(idx+1, param_idx_to+i) = 0;
-       *  }
-       *  idx += 2;
-       *  continue;
-       *}
-       */
 
       Vec dhdv;	// d(homo)/d(variable)
       // calculate d(residual) / d(variable) = -d(point 2d) / d(variable)
