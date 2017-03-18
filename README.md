@@ -118,7 +118,7 @@ Tested on Intel Core i7-6700HQ, with `ESTIMATE_CAMERA` mode:
 + 38 unordered images of size 1300x867 (high vertical FOV): 51s.
 
 Memory consumption is known to be huge with default libc allocator.
-Simply using a modern allocator (e.g. tcmalloc, hoard) can help a lot.
+Simply using a modern allocator (e.g. tcmalloc, jemalloc) can help a lot.
 Also, setting `LAZY_READ` to 1 can save memory at the cost of a minor slow down.
 
 Peak memory in bytes (assume each input has the same w & h):
