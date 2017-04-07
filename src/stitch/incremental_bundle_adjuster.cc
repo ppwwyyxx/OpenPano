@@ -56,7 +56,7 @@ std::array<Homography, 3> dRdvi(const Homography& R) {
   double vsqr = vvec.sqr();
   if (vsqr < GEO_EPS_SQR)
     return std::array<Homography, 3>{
-      cross_product_matrix(1,0,0),
+        cross_product_matrix(1,0,0),
         cross_product_matrix(0,1,0),
         cross_product_matrix(0,0,1)};
   Homography r = cross_product_matrix(v[0], v[1], v[2]);
