@@ -1,5 +1,5 @@
 //File: incremental_bundle_adjuster.hh
-//Date:
+//Date: Wed May 03 05:19:14 2017 -0700
 //Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
@@ -49,6 +49,8 @@ class IncrementalBundleAdjuster {
 			return calcError(state);
 		}
 
+    void set_identity_idx(int idx) { identity_idx = idx; }
+
 	protected:
 		std::vector<Camera>& result_cameras;
 
@@ -63,7 +65,11 @@ class IncrementalBundleAdjuster {
 		int inlier_threshold = std::numeric_limits<int>::max();
 		std::vector<MatchPair> match_pairs;
 
-		// original indices that have appeared so far
+    // original idx of the identity image
+    int identity_idx = -1;
+		// Original indices that have appeared so far.
+    // Sorted so that in the end can output directly to
+    // the camera vector of original indices
 		std::set<int> idx_added;
 
 		// map from original image index to index being added

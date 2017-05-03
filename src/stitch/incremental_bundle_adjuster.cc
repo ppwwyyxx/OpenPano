@@ -135,13 +135,17 @@ void IncrementalBundleAdjuster::optimize() {
   int itr = 0;
   int nr_non_decrease = 0;// number of non-decreasing iteration
   inlier_threshold = std::numeric_limits<int>::max();
+  size_t idt = index_map[identity_idx];
   while (itr++ < LM_MAX_ITER) {
     auto update = get_param_update(state, err_stat.residuals, LM_LAMBDA);
 
     ParamState new_state;
     new_state.params = state.get_params();
-    REP(i, new_state.params.size())
-      new_state.params[i] -= update(i);
+    REP(i, new_state.params.size()) {
+      // 3~6 of parameters is R
+      if (i < idt * 6 + 3 or i >= idt * 6 + 6)  // do not update R of identity image
+        new_state.params[i] -= update(i);
+    }
     err_stat = calcError(new_state);
     print_debug("BA: average err: %lf, max: %lf\n", err_stat.avg, err_stat.max);
 
@@ -159,6 +163,7 @@ void IncrementalBundleAdjuster::optimize() {
 
   auto results = state.get_cameras();
   int now = 0;
+  // idx_added is sorted
   for (auto& i : idx_added)
     result_cameras[i] = results[now++];
 }

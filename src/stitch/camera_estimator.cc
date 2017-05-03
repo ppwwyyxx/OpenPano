@@ -1,5 +1,5 @@
 //File: camera_estimator.cc
-//Date:
+//Date: Wed May 03 05:20:02 2017 -0700
 //Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "camera_estimator.hh"
@@ -54,6 +54,7 @@ vector<Camera> CameraEstimator::estimate() {
         // set the starting point to identity
         cameras[node].R = Homography::I();
         cameras[node].ppx = cameras[node].ppy = 0;
+        iba.set_identity_idx(node);
       },
       [&](int now, int next) {
         print_debug("Best edge from %d to %d\n", now, next);

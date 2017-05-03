@@ -37,7 +37,7 @@ struct ConnectedImages {
 
 	struct ImageComponent {
 		Homography homo,			// from me (point in image plane, 2d) to point in space (P,3D)
-							 homo_inv;	// transform from point in space to me (point in plane):
+							 homo_inv;	// transform from point in space (P) to me (point in plane):
                           // p = K * R * P
 
 		// point to the original image
