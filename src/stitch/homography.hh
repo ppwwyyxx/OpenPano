@@ -5,6 +5,7 @@
 #include "lib/matrix.hh"
 #include "lib/geometry.hh"
 #include "common/common.hh"
+
 namespace pano {
 
 struct Shape2D;
@@ -103,23 +104,25 @@ class Homography {
 		//http://answers.opencv.org/question/2588/check-if-homography-is-good/
 		//http://stackoverflow.com/questions/14954220/how-to-check-if-obtained-homography-matrix-is-good
 		static bool health(const double* mat) {
+      constexpr const static float
+        HOMO_MAX_PERSPECTIVE = 2e-3;
 			// perspective test
-			if (fabs(mat[6]) > 2e-3)
+			if (fabs(mat[6]) > HOMO_MAX_PERSPECTIVE)
 				return false;
-			if (fabs(mat[7]) > 2e-3)
+			if (fabs(mat[7]) > HOMO_MAX_PERSPECTIVE)
 				return false;
 			// flip test
-			Vec x0{mat[2], mat[5], mat[8]},	// trans(0,0)
-					x1{mat[1]+mat[2],
-						 mat[4]+mat[5],
-						 mat[7]+mat[8]};	// trans(0,1)
-			if (x1.y <= x0.y)
-				return false;
-			Vec x2{mat[0]+mat[1]+mat[2],
-						 mat[3]+mat[4]+mat[5],
-						 mat[6]+mat[7]+mat[8]};	// trans(1, 1);
-			if (x2.x <= x1.x)
-				return false;
+      Vec x0{mat[2], mat[5], mat[8]},	// trans(0,0)
+          x1{mat[1]+mat[2],
+             mat[4]+mat[5],
+             mat[7]+mat[8]};	// trans(0,1)
+      if (x1.y <= x0.y)
+        return false;
+      Vec x2{mat[0]+mat[1]+mat[2],
+             mat[3]+mat[4]+mat[5],
+             mat[6]+mat[7]+mat[8]};	// trans(1, 1);
+      if (x2.x <= x1.x)
+        return false;
 			return true;
 		}
 

@@ -1,5 +1,5 @@
 // File: matcher.cc
-// Date: Fri May 03 17:02:09 2013 +0800
+// Date: Tue May 09 06:08:06 2017 -0700
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include <limits>
@@ -9,15 +9,6 @@
 #include "feature.hh"
 using namespace std;
 using namespace config;
-
-#ifdef _MSC_VER
-// necessary to define here since flann doesn't provide serialization for size_t as unsigned long long
-namespace flann {
-  namespace serialization {
-    //BASIC_TYPE_SERIALIZER(size_t);
-  }
-}
-#endif
 
 namespace pano {
 
