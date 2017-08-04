@@ -9,8 +9,8 @@ namespace py = pybind11;
 using namespace pano;
 
 
-PYBIND11_PLUGIN(openpano) {
-  py::module m("openpano", "docs");
+PYBIND11_PLUGIN(libpyopenpano) {
+  py::module m("libpyopenpano", "docs");
 
   // rgb image
   py::class_<Mat32f>(m, "Mat32f").def_buffer([](Mat32f &m) -> py::buffer_info {

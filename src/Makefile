@@ -1,5 +1,5 @@
 # $File: Makefile
-# $Date: Wed Jun 17 20:52:38 2015 +0800
+# $Date: Thu Aug 03 17:42:32 2017 -0700
 
 OBJ_DIR = obj
 TARGET = image-stitching
@@ -55,7 +55,7 @@ ccSOURCES = $(shell find $(SRCDIRS) -name "*.cc" | sed 's/^\.\///g')
 OBJS = $(addprefix $(OBJ_DIR)/,$(ccSOURCES:.cc=.o))
 DEPFILES = $(OBJS:.o=.d)
 
-SO = python/openpano.so
+SO = python/pyopenpano.so
 
 .PHONY: all clean run
 
