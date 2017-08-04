@@ -41,7 +41,7 @@ You may need gcc or different clang. See #16.
 
 #### Windows (VS2015)
 * Install cmake
-* Set environment variable `EIGEN3_INCLUDE_DIR` so that `${EIGEN3_INCLUDE_DIR}/Eigen/Dense` exists
+* Set environment variable `Eigen3_DIR` to `{YOUR_EIGEN3_DIRECTORY}/eigen3/cmake`.
 * Open visual studio [Developer Command Prompt](https://msdn.microsoft.com/en-us/library/ms229859(v=vs.110).aspx).
 * `cd path/to/OpenPano`
 * `cmake .`
