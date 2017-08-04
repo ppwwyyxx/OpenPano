@@ -65,6 +65,7 @@ struct ConnectedImages {
 				return spherical::homo2proj;
 		}
 		assert(false);
+    return flat::homo2proj;
 	}
 	proj2homo_t get_proj2homo() const {
 		switch (proj_method) {
@@ -76,6 +77,7 @@ struct ConnectedImages {
 				return spherical::proj2homo;
 		}
 		assert(false);
+    return flat::proj2homo;
 	}
 
 
