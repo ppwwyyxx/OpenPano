@@ -25,15 +25,3 @@ target_link_libraries(openpano ${JPEG_LIBRARY} lodepng Eigen3::Eigen)
 
 add_executable(image-stitching main.cc)
 target_link_libraries(image-stitching openpano)
-
-# Visual Studio handling of file glob
-# This part is not maintained.. I don't know what it is
-if(MSVC)
-  set_target_properties(
-    image-stitching
-    PROPERTIES
-    GENERATED true
-    EXTERNAL_OBJECT true
-    LINK_FLAGS "setargv.obj"
-    )
-endif()
