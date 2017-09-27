@@ -26,6 +26,11 @@ target_link_libraries(openpano ${JPEG_LIBRARY} lodepng Eigen3::Eigen)
 add_executable(image-stitching main.cc)
 target_link_libraries(image-stitching openpano)
 
+if (NOT JPEG_FOUND)
+	target_compile_definitions(openpano PUBLIC DISABLE_JPEG)
+	target_compile_definitions(image-stitching PUBLIC DISABLE_JPEG)
+endif()
+
 find_package(PythonLibs)
 if(PYTHONLIBS_FOUND AND BUILD_SHARED_LIBS)
 	add_library(pyopenpano SHARED python/pybind.cc)
