@@ -4,7 +4,7 @@
 
 ## Introduction
 
-OpenPano is an panorama stitching program written in C++ from scratch. It mainly follows the routine
+OpenPano is a panorama stitching program written in C++ from scratch (without any vision libraries). It mainly follows the routine
 described in the paper [Automatic Panoramic Image Stitching using Invariant Features](http://matthewalunbrown.com/papers/ijcv2007.pdf),
 which is also the one used by [AutoStitch](http://matthewalunbrown.com/autostitch/autostitch.html).
 
@@ -145,6 +145,7 @@ To get the best stitching quality:
 
 ## TODOs
 + run bundle adjustment on sphere lens instead of perspective lens
++ improve feature detector and matching
 + use LAZY_READ & 1 byte image in both blender to reduce peak memory
 + clean up use of copies of `ImageRef`
 + faster gaussian blur kernel
