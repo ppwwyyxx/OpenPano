@@ -1,5 +1,5 @@
 // File: gaussian.hh
-// Date: Sat May 04 01:33:12 2013 +0800
+// Date: Wed Nov 22 14:38:30 2017 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
@@ -77,7 +77,7 @@ class GaussianBlur {
 						cur_line[-j] = v0;
 					v0 = cur_line[w - 1];
 					for (int j = 0; j < center; j ++)
-						cur_line[center + j] = v0;
+						cur_line[w + j] = v0;
 				}
 				REP(j, w) {
 					T tmp{0};
