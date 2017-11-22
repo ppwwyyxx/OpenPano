@@ -45,6 +45,20 @@ Polygon convex_hull(vector<Vec2D>& pts) {
 	return ret;
 }
 
+double polygon_area(const std::vector<Vec2D>& poly) {
+// https://www.wikiwand.com/en/Shoelace_formula
+  int n = poly.size();
+
+  double sum = 0;
+  for (int i = 0; i < n; ++i) {
+    double xi = poly[i].x;
+    double yi_next = poly[(i + 1) % n].y;
+    double yi_prev = poly[(i + n - 1) % n].y;
+    sum += xi * (yi_next - yi_prev);
+  }
+  return 0.5 * fabs(sum);
+}
+
 bool PointInPolygon::in_polygon(Vec2D p) const {
 	float k = atan2((p.y - com.y), (p.x - com.x));
 	auto itr = lower_bound(begin(slopes), end(slopes), make_pair(k, 0));

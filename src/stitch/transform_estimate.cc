@@ -1,5 +1,5 @@
 // File: transform_estimate.cc
-// Date: Fri May 03 23:04:58 2013 +0800
+// Date: Wed Nov 22 15:18:53 2017 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "transform_estimate.hh"
@@ -165,7 +165,8 @@ bool TransformEstimation::fill_inliers_to_matchinfo(
 		return cnt;
 	};
 	// get the number of keypoint in the polygon
-  // TODO shouldn't count undistinctive keypoints as keypoints. They should get filtered out earlier
+  // TODO shouldn't count undistinctive keypoints as keypoints.
+  // They should get filtered out earlier
 	auto get_keypoint_cnt = [&](vector<Vec2D>& poly, bool first) {
 		auto pip = PointInPolygon{poly};
 		int cnt = 0;
@@ -199,6 +200,12 @@ bool TransformEstimation::fill_inliers_to_matchinfo(
 	info->confidence = (r1p + r2p) * 0.5;
 	if (info->confidence < INLIER_IN_POINTS_RATIO)
 		return false;
+
+  double area = polygon_area(overlap);
+  double area1 = shape1.w * shape1.h, area2 = shape2.w * shape2.h;
+  print_debug("OverlapArea=%lf, ImageArea=%lf\n", area, max(area1, area2));
+  if (area / max(area1, area2) < 0.15)
+    return false;
 
 	// fill in result
 	info->homo = homo;

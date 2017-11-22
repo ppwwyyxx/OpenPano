@@ -24,6 +24,8 @@ typedef std::vector<Vec2D> Polygon;
 // will modify the order of the input
 Polygon convex_hull(std::vector<Vec2D>&);
 
+double polygon_area(const std::vector<Vec2D>&);
+
 // a structure to store polygon for fast Point-In-Polygon(PIP) query
 class PointInPolygon {
 	public:
