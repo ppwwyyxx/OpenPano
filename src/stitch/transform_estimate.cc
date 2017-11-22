@@ -1,5 +1,5 @@
 // File: transform_estimate.cc
-// Date: Wed Nov 22 15:18:53 2017 +0800
+// Date: Wed Nov 22 15:23:42 2017 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #include "transform_estimate.hh"
@@ -203,7 +203,7 @@ bool TransformEstimation::fill_inliers_to_matchinfo(
 
   double area = polygon_area(overlap);
   double area1 = shape1.w * shape1.h, area2 = shape2.w * shape2.h;
-  print_debug("OverlapArea=%lf, ImageArea=%lf\n", area, max(area1, area2));
+  print_debug("OverlapArea=%.0lf, ImageArea=%.0lf\n", area, max(area1, area2));
   if (area / max(area1, area2) < 0.15)
     return false;
 

@@ -1,5 +1,5 @@
 // File: stitcher.cc
-// Date: Wed May 03 05:25:53 2017 -0700
+// Date: Wed Nov 22 15:45:13 2017 +0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 
