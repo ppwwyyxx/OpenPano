@@ -231,7 +231,7 @@ void work(int argc, char* argv[]) {
 	{
 		GuardedTimer tm("Writing image");
 		std::string output_name = string(argv[2]);
-		write_rgb(("/home/grace/cmr/Superproject/data/" + output_name + ".jpg").c_str(), res);
+		write_rgb(("/Superproject/data/" + output_name + ".jpg").c_str(), res);
 	}
 }
 
