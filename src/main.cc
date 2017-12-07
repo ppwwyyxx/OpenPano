@@ -213,7 +213,7 @@ void work(int argc, char* argv[]) {
  *  }
  */
 	vector<string> imgs;
-	REPL(i, 1, argc) imgs.emplace_back(argv[i]);
+	REPL(i, 3, argc) imgs.emplace_back(argv[i]);
 	Mat32f res;
 	if (CYLINDER) {
 		CylinderStitcher p(move(imgs));
@@ -230,14 +230,15 @@ void work(int argc, char* argv[]) {
 	}
 	{
 		GuardedTimer tm("Writing image");
-		write_rgb(IMGFILE(out), res);
+		std::string output_name = string(argv[2]);
+		write_rgb(("/home/grace/cmr/Superproject/data/" + output_name + ".jpg").c_str(), res);
 	}
 }
 
-void init_config() {
+void init_config(const char* filename) {
 #define CFG(x) \
 	x = Config.get(#x)
-	const char* config_file = "config.cfg";
+	const char* config_file = filename;
 	ConfigParser Config(config_file);
 	CFG(CYLINDER);
 	CFG(TRANS);
@@ -331,27 +332,27 @@ void planet(const char* fname) {
 }
 
 int main(int argc, char* argv[]) {
-	if (argc <= 2)
-		error_exit("Need at least two images to stitch.\n");
+	if (argc <= 4)
+		error_exit("Need a config file, output destination, and at least two images to stitch.\n");
 	TotalTimerGlobalGuard _g;
 	srand(time(NULL));
-	init_config();
-	string command = argv[1];
-	if (command == "raw_extrema")
-		test_extrema(argv[2], 0);
-	else if (command == "keypoint")
-		test_extrema(argv[2], 1);
-	else if (command == "orientation")
-		test_orientation(argv[2]);
-	else if (command == "match")
-		test_match(argv[2], argv[3]);
-	else if (command == "inlier")
-		test_inlier(argv[2], argv[3]);
-	else if (command == "warp")
-		test_warp(argc, argv);
-	else if (command == "planet")
-		planet(argv[2]);
-	else
+	init_config(argv[1]);
+	string command = argv[3];
+	// if (command == "raw_extrema")
+	// 	test_extrema(argv[2], 0);
+	// else if (command == "keypoint")
+	// 	test_extrema(argv[2], 1);
+	// else if (command == "orientation")
+	// 	test_orientation(argv[2]);
+	// else if (command == "match")
+	// 	test_match(argv[2], argv[3]);
+	// else if (command == "inlier")
+	// 	test_inlier(argv[2], argv[3]);
+	// else if (command == "warp")
+	// 	test_warp(argc, argv);
+	// else if (command == "planet")
+	// 	planet(argv[2]);
+	// else
 		// the real routine
 		work(argc, argv);
 }
