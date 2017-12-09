@@ -20,7 +20,7 @@ include_directories(
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/third-party/)
 
 # find sources
-file(GLOB SOURCES feature/*.cc stitch/*.cc lib/*.cc)
+file(GLOB SOURCES feature/*.cc stitch/*.cc lib/*.cc openpano.cc)
 
 add_library(openpano ${SOURCES})	# TODO shared?
 target_link_libraries(openpano
