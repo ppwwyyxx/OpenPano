@@ -96,11 +96,11 @@ void init_config(const char* filename) {
 }
 
 void stitch(
-  const char* config_file,
-  const char* outfile,
+  const std::string& config_file,
+  const std::string& outfile,
   const std::vector<std::string>& infiles){
 
-  	init_config(config_file);
+  	init_config(config_file.c_str());
   	Mat32f res;
   	if (CYLINDER) {
   		CylinderStitcher p(move(infiles));
