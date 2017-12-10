@@ -22,12 +22,12 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/third-party/)
 # find sources
 file(GLOB SOURCES feature/*.cc stitch/*.cc lib/*.cc openpano.cc)
 
-add_library(openpano ${SOURCES})	# TODO shared?
+add_library(openpano STATIC ${SOURCES})	# TODO shared?
 target_link_libraries(openpano
 	${JPEG_LIBRARY}
 	lodepng
-	# Eigen3::Eigen
 )
+set_target_properties(openpano PROPERTIES PUBLIC_HEADER "openpano.h")
 
 add_executable(image-stitching main.cc)
 target_link_libraries(image-stitching openpano)
@@ -45,3 +45,14 @@ if(PYTHONLIBS_FOUND AND BUILD_SHARED_LIBS)
 		PRIVATE ${PYTHON_INCLUDE_DIRS}
 	)
 endif()
+
+install(TARGETS openpano
+	EXPORT openpano_export
+	ARCHIVE DESTINATION /usr/lib
+	PUBLIC_HEADER DESTINATION /usr/include
+)
+
+install(EXPORT openpano_export DESTINATION /usr/lib)
+
+# export(TARGETS openpano lodepng FILE ${CMAKE_BINARY_DIR}/openpano-config.cmake)
+# export(PACKAGE openpano)

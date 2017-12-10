@@ -21,6 +21,7 @@
 #include "stitch/transform_estimate.hh"
 #include "stitch/warp.hh"
 #include "common/common.hh"
+#include "openpano.h"
 #include <ctime>
 #include <cassert>
 
@@ -95,7 +96,7 @@ void init_config(const char* filename) {
 #undef CFG
 }
 
-void stitch(
+void openpano::stitch(
   const std::string& config_file,
   const std::string& outfile,
   const std::vector<std::string>& infiles){
