@@ -1,5 +1,5 @@
 // File: stitcher.hh
-// Date: Sat May 04 22:36:30 2013 +0800
+// Date: Mon Jan 08 11:49:29 2018 -0800
 // Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
@@ -9,14 +9,12 @@
 #include "lib/utils.hh"
 #include "stitcher_image.hh"
 #include "stitcherbase.hh"
+#include "match_info.hh"
 #include "common/common.hh"
 
 namespace pano {
 
 // forward declaration
-class Homography;
-class MatchData;
-struct MatchInfo;
 class PairWiseMatcher;
 
 class Stitcher : public StitcherBase {

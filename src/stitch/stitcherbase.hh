@@ -12,11 +12,6 @@
 
 namespace pano {
 
-// forward declaration
-class Homography;
-class MatchData;
-struct MatchInfo;
-
 class StitcherBase {
 	protected:
 		// helper template to prevent generic constructor being used as copy constructor

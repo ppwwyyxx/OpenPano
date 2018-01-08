@@ -11,7 +11,6 @@ namespace pano {
 // forward declaration
 class Homography;
 class MatchData;
-struct MatchInfo;
 
 // a stitcher which warps images to cyilnder before stitching
 class CylinderStitcher : public StitcherBase {

@@ -1,5 +1,5 @@
 //File: incremental_bundle_adjuster.hh
-//Date: Wed May 03 05:19:14 2017 -0700
+//Date: Mon Jan 08 11:48:06 2018 -0800
 //Author: Yuxin Wu <ppwwyyxxc@gmail.com>
 
 #pragma once
@@ -12,11 +12,10 @@
 #include "lib/mat.h"
 #include "lib/utils.hh"
 #include "common/common.hh"
+#include "camera.hh"
+#include "match_info.hh"
 
 namespace pano {
-class Camera;
-struct MatchInfo;
-struct Shape2D;
 
 class IncrementalBundleAdjuster {
 	public:
