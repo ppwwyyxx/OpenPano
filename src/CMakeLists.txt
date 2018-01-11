@@ -47,12 +47,13 @@ if(PYTHONLIBS_FOUND AND BUILD_SHARED_LIBS)
 endif()
 
 install(TARGETS openpano
-	EXPORT openpano_export
+	EXPORT openpano
 	ARCHIVE DESTINATION /usr/lib
 	PUBLIC_HEADER DESTINATION /usr/include
 )
 
-install(EXPORT openpano_export DESTINATION /usr/lib)
+install(EXPORT openpano DESTINATION /usr/lib/cmake/openpano)
+install(FILES openpano-config.cmake DESTINATION /usr/lib/cmake/openpano)
 
-# export(TARGETS openpano lodepng FILE ${CMAKE_BINARY_DIR}/openpano-config.cmake)
+# export(TARGETS openpano FILE /usr/lib/cmake/openpano/openpano-config.cmake)
 # export(PACKAGE openpano)

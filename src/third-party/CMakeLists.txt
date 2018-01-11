@@ -5,13 +5,13 @@ target_include_directories(lodepng SYSTEM PUBLIC
 )
 
 install(TARGETS lodepng
-	EXPORT lodepng_export
+	EXPORT lodepng
 	ARCHIVE DESTINATION /usr/lib
 	PUBLIC_HEADER DESTINATION /usr/include
 )
 
-install(EXPORT lodepng_export DESTINATION /usr/lib)
-
+install(EXPORT lodepng DESTINATION /usr/lib/cmake/lodepng)
+install(FILES lodepng-config.cmake DESTINATION /usr/lib/cmake/lodepng)
 
 add_library(flann INTERFACE)
 target_include_directories(flann SYSTEM INTERFACE
