@@ -6,14 +6,17 @@
 
 namespace pano {
 
-void StitcherBase::calc_feature() {
+bool StitcherBase::calc_feature() {
   GuardedTimer tm("calc_feature()");
   feats.resize(imgs.size());
   keypoints.resize(imgs.size());
+  bool success;
   // detect feature
 #pragma omp parallel for schedule(dynamic)
   REP(k, (int)imgs.size()) {
-    imgs[k].load();
+    if(success == true){
+      success = imgs[k].load();
+    }
     feats[k] = feature_det->detect_feature(*imgs[k].img);
     if (config::LAZY_READ)
       imgs[k].release();
@@ -24,6 +27,7 @@ void StitcherBase::calc_feature() {
     REP(i, feats[k].size())
       keypoints[k][i] = feats[k][i].coor;
   }
+  return success;
 }
 
 void StitcherBase::free_feature() {

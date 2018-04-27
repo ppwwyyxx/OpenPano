@@ -39,7 +39,7 @@ class StitcherBase {
 		std::unique_ptr<FeatureDetector> feature_det;
 
 		// get feature descriptor and keypoints for each image
-		void calc_feature();
+		bool calc_feature();
 
 		void free_feature();
 
@@ -61,7 +61,7 @@ class StitcherBase {
 		StitcherBase(const StitcherBase&) = delete;
 		StitcherBase& operator = (const StitcherBase&) = delete;
 
-		virtual Mat32f build() = 0;
+		virtual Mat32f build(bool& success) = 0;
 
 		virtual ~StitcherBase() = default;
 };
