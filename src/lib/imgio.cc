@@ -64,9 +64,12 @@ Mat32f read_png(const char* fname) {
 
 namespace pano {
 
-Mat32f read_img(const char* fname) {
-	if (! exists_file(fname))
+Mat32f read_img(const char* fname, bool& success) {
+	success = true;
+	if (! exists_file(fname)){
+		success = false;
 		error_exit(ssprintf("File \"%s\" not exists!", fname));
+	}
 	if (endswith(fname, ".png"))
 		return read_png(fname);
 	CImg<unsigned char> img(fname);
@@ -91,7 +94,8 @@ Mat32f read_img(const char* fname) {
 
 // TODO a hack for the moment
 Matuc read_img_uc(const char* fname) {
-	return cvt_f2uc(read_img(fname));
+	bool success;
+	return cvt_f2uc(read_img(fname, success));
 }
 
 
