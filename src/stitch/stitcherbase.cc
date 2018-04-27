@@ -10,7 +10,7 @@ bool StitcherBase::calc_feature() {
   GuardedTimer tm("calc_feature()");
   feats.resize(imgs.size());
   keypoints.resize(imgs.size());
-  bool success;
+  bool success = true;
   // detect feature
 #pragma omp parallel for schedule(dynamic)
   REP(k, (int)imgs.size()) {
