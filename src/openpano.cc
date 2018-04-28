@@ -111,6 +111,9 @@ void openpano::stitch(
   		Stitcher p(move(infiles));
   		res = p.build(success);
   	}
+		if(!success){
+			return;
+		}
 
   	if (CROP) {
   		int oldw = res.width(), oldh = res.height();
