@@ -96,14 +96,14 @@ void init_config(const char* filename) {
 #undef CFG
 }
 
-bool openpano::stitch(
+void openpano::stitch(
   const std::string& config_file,
   const std::string& outfile,
-  const std::vector<std::string>& infiles){
+  const std::vector<std::string>& infiles,
+	bool& success){
 
   	init_config(config_file.c_str());
   	Mat32f res;
-		bool success;
   	if (CYLINDER) {
   		CylinderStitcher p(move(infiles));
   		res = p.build(success);
@@ -121,7 +121,6 @@ bool openpano::stitch(
   		GuardedTimer tm("Writing image");
   		write_rgb(("/data/" + outfile + ".jpg").c_str(), res);
   	}
-		return success;
   }
 
 

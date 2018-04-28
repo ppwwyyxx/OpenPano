@@ -24,7 +24,8 @@ void MultiBandBlender::create_first_level() {
 #pragma omp parallel for schedule(dynamic)
 	REP(k, nr_image) {
 		ImageToAdd& img = images_to_add[k];
-		img.imgref.load();
+		bool success;
+		img.imgref.load(success);
 
 		auto& range = img.range;
 		Mat<WeightedPixel> wimg(range.height(), range.width(), 1);

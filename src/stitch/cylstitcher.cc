@@ -18,7 +18,7 @@ using namespace std;
 namespace pano {
 
 Mat32f CylinderStitcher::build(bool& success) {
-	success = calc_feature();
+	calc_feature(success);
 	bundle.identity_idx = imgs.size() >> 1;
 	build_warp();
 	free_feature();
@@ -62,7 +62,8 @@ void CylinderStitcher::build_warp() {;
 	}
 	print_debug("Best hfactor: %lf\n", bestfactor);
 	CylinderWarper warper(bestfactor);
-	REP(k, n) imgs[k].load();
+	bool success;
+	REP(k, n) imgs[k].load(success);
 #pragma omp parallel for schedule(dynamic)
 	REP(k, n) warper.warp(*imgs[k].img, keypoints[k]);
 

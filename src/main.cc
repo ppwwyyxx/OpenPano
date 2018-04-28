@@ -48,5 +48,6 @@ int main(int argc, char* argv[]) {
 		error_exit("Need a config file, output destination, and at least two images to stitch.\n");
 	vector<string> imgs;
 	REPL(i, 3, argc) imgs.emplace_back(argv[i]);
-	openpano::stitch(argv[1], argv[2], imgs);
+	bool success;
+	openpano::stitch(argv[1], argv[2], imgs, success);
 }
