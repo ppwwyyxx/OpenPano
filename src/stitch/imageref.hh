@@ -21,9 +21,11 @@ struct ImageRef {
 
   void load(bool& success) {
     if (img) return;
-    img = new Mat32f{read_img(fname.c_str(), success)};
-//    Mat32f tmp = read_img(fname.c_str(), success);
-//    img = &tmp;
+    Mat32f* temp = new Mat32f{read_img(fname.c_str(), success)};
+    if(!success){
+      return;
+    }
+    img = temp;
     _width = img->width();
     _height = img->height();
   }

@@ -68,7 +68,8 @@ Mat32f read_img(const char* fname, bool& success) {
 	success = true;
 	if (! exists_file(fname)){
 		success = false;
-		error_exit(ssprintf("File \"%s\" not exists!", fname));
+		print_debug("File \"%s\" not exists!", fname);
+		return Mat32f();
 	}
 	if (endswith(fname, ".png"))
 		return read_png(fname);
