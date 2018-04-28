@@ -11,12 +11,15 @@ void StitcherBase::calc_feature(bool& success) {
   feats.resize(imgs.size());
   keypoints.resize(imgs.size());
   success = true;
+  for(int i = 0; i < imgs.size(); i++){
+      imgs[i].load(success);
+      if(!success){
+        return;
+      }
+  }
   // detect feature
 #pragma omp parallel for schedule(dynamic)
   REP(k, (int)imgs.size()) {
-    if(success == true){
-      imgs[k].load(success);
-    }
     feats[k] = feature_det->detect_feature(*imgs[k].img);
     if (config::LAZY_READ)
       imgs[k].release();
