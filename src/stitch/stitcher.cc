@@ -29,8 +29,11 @@ namespace pano {
 const static bool DEBUG_OUT = false;
 const static char* MATCHINFO_DUMP = "log/matchinfo.txt";
 
-Mat32f Stitcher::build() {
-  calc_feature();
+Mat32f Stitcher::build(bool& success) {
+  calc_feature(success);
+  if(!success){
+    return Mat32f();
+  }
   // TODO choose a better starting point by MST use centrality
 
   pairwise_matches.resize(imgs.size());
@@ -195,4 +198,3 @@ void Stitcher::build_linear_simple() {
 }
 
 }	// namepsace pano
-

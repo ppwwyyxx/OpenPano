@@ -20,7 +20,8 @@ void LinearBlender::debug_run(int w, int h) {
 #pragma omp parallel for schedule(dynamic)
 	REP(k, (int)images.size()) {
 		auto& img = images[k];
-		img.imgref.load();
+		bool success;
+		img.imgref.load(success);
 		Mat32f target(h, w, 3);
 		fill(target, Color::NO);
 		for (int i = 0; i < target.height(); i ++) {
@@ -67,7 +68,8 @@ void MultiBandBlender::debug_level(int level) const {
 
 void Stitcher::draw_matchinfo() {
 	int n = imgs.size();
-	REP(i, n) imgs[i].load();
+	bool success;
+	REP(i, n) imgs[i].load(success);
 #pragma omp parallel for schedule(dynamic)
 	REP(i, n) REPL(j, i+1, n) {
 		Vec2D offset1(imgs[i].width()/2, imgs[i].height()/2);

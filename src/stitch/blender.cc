@@ -44,7 +44,8 @@ Mat32f LinearBlender::run() {
 #pragma omp parallel for schedule(dynamic)
 		REP(k, (int)images.size()) {
 			auto& img = images[k];
-			img.imgref.load();
+			bool success;
+			img.imgref.load(success);
 			auto& range = img.range;
 			for (int i = range.min.y; i < range.max.y; ++i) {
 				float *row = target.ptr(i);
