@@ -39,14 +39,16 @@ The default clang on OSX doesn't contain openmp support.
 You may need gcc or different clang. See #16.
 
 
-#### Windows (NOT officially supported. Contributions are welcome)
+#### Windows
 * Install cmake, VS2015
 * Set environment variable `Eigen3_DIR` to `{YOUR_EIGEN3_DIRECTORY}/eigen3/cmake`.
-* Open visual studio [Developer Command Prompt](https://msdn.microsoft.com/en-us/library/ms229859(v=vs.110).aspx).
+* Open Visual Studio [Developer Command Prompt](https://msdn.microsoft.com/en-us/library/ms229859(v=vs.110).aspx).
 * `cd path/to/OpenPano`
 * `cmake .`
 * Open the VS2015 project and compile the project
 * copy `config.cfg` to the directory containing `image-stitching.exe`
+* The author have never used Visual Studio and this windows build process may not work for you. Feel
+	free to submit PR to improve the build process.
 
 ### Options:
 
