@@ -1,6 +1,6 @@
 // File: transform_estimate.cc
 // Date: Wed Nov 22 15:23:42 2017 +0800
-// Author: Yuxin Wu <ppwwyyxxc@gmail.com>
+// Author: Yuxin Wu
 
 #include "transform_estimate.hh"
 

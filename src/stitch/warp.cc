@@ -1,6 +1,6 @@
 // File: warp.cc
 // Date: Thu Jul 04 11:43:00 2013 +0800
-// Author: Yuxin Wu <ppwwyyxxc@gmail.com>
+// Author: Yuxin Wu
 
 
 #include "warp.hh"

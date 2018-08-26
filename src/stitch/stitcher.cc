@@ -1,6 +1,6 @@
 // File: stitcher.cc
 // Date: Wed Nov 22 15:45:13 2017 +0800
-// Author: Yuxin Wu <ppwwyyxxc@gmail.com>
+// Author: Yuxin Wu
 
 
 #include "stitcher.hh"

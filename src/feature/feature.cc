@@ -1,6 +1,6 @@
 //File: feature.cc
 //Date:
-//Author: Yuxin Wu <ppwwyyxxc@gmail.com>
+//Author: Yuxin Wu
 
 #include "feature.hh"
 

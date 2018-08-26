@@ -1,6 +1,6 @@
 // File: matcher.cc
 // Date: Tue May 09 06:08:06 2017 -0700
-// Author: Yuxin Wu <ppwwyyxxc@gmail.com>
+// Author: Yuxin Wu
 
 #include <limits>
 #include <flann/flann.hpp>

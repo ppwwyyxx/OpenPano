@@ -1,6 +1,6 @@
 // File: gaussian.cc
 // Date: Thu Jul 04 11:05:14 2013 +0800
-// Author: Yuxin Wu <ppwwyyxxc@gmail.com>
+// Author: Yuxin Wu
 
 #include <algorithm>
 #include <cmath>

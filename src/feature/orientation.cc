@@ -1,6 +1,6 @@
 //File: orientation.cc
 //Date:
-//Author: Yuxin Wu <ppwwyyxxc@gmail.com>
+//Author: Yuxin Wu
 
 #define _USE_MATH_DEFINES
 #include <cmath>

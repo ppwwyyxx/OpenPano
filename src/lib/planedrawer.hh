@@ -1,6 +1,6 @@
 // File: planedrawer.hh
 // Date: Fri May 03 04:52:58 2013 +0800
-// Author: Yuxin Wu <ppwwyyxxc@gmail.com>
+// Author: Yuxin Wu
 
 #pragma once
 #include "color.hh"

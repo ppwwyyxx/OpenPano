@@ -1,6 +1,6 @@
 // File: config.cc
 // Date: Sat May 04 22:22:20 2013 +0800
-// Author: Yuxin Wu <ppwwyyxxc@gmail.com>
+// Author: Yuxin Wu
 
 #include "config.hh"
 #include "debugutils.hh"

@@ -1,6 +1,6 @@
 // File: feature.hh
 // Date: Fri May 03 03:36:57 2013 +0800
-// Author: Yuxin Wu <ppwwyyxxc@gmail.com>
+// Author: Yuxin Wu
 
 #pragma once
 

@@ -1,6 +1,6 @@
 // File: planedrawer.cc
 // Date: Tue Apr 16 11:10:44 2013 +0800
-// Author: Yuxin Wu <ppwwyyxxc@gmail.com>
+// Author: Yuxin Wu
 
 #include "planedrawer.hh"
 

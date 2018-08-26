@@ -1,6 +1,6 @@
 // File: stitcher.hh
-// Date: Mon Jan 08 11:49:29 2018 -0800
-// Author: Yuxin Wu <ppwwyyxxc@gmail.com>
+// Date: Sat May 04 22:36:30 2013 +0800
+// Author: Yuxin Wu
 
 #pragma once
 #include <memory>

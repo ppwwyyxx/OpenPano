@@ -1,6 +1,6 @@
 //File: incremental_bundle_adjuster.hh
-//Date: Mon Jan 08 11:48:06 2018 -0800
-//Author: Yuxin Wu <ppwwyyxxc@gmail.com>
+//Date: Wed May 03 05:19:14 2017 -0700
+//Author: Yuxin Wu
 
 #pragma once
 

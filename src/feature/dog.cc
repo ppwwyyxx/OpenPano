@@ -1,6 +1,6 @@
 // File: dog.cc
 // Date: Thu Jul 04 11:51:48 2013 +0800
-// Author: Yuxin Wu <ppwwyyxxc@gmail.com>
+// Author: Yuxin Wu
 
 #define _USE_MATH_DEFINES
 #include <cmath>

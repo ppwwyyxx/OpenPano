@@ -1,5 +1,5 @@
 //File: incremental_bundle_adjuster.cc
-//Author: Yuxin Wu <ppwwyyxxc@gmail.com>
+//Author: Yuxin Wu
 
 #include "incremental_bundle_adjuster.hh"
 

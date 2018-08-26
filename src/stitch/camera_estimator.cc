@@ -1,6 +1,6 @@
 //File: camera_estimator.cc
 //Date: Wed May 03 05:20:02 2017 -0700
-//Author: Yuxin Wu <ppwwyyxxc@gmail.com>
+//Author: Yuxin Wu
 
 #include "camera_estimator.hh"
 #include <queue>

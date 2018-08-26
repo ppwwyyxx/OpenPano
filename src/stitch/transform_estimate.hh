@@ -1,6 +1,6 @@
 // File: transform_estimate.hh
 // Date: Fri May 03 04:50:30 2013 +0800
-// Author: Yuxin Wu <ppwwyyxxc@gmail.com>
+// Author: Yuxin Wu
 
 #pragma once
 #include <vector>

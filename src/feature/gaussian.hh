@@ -1,6 +1,6 @@
 // File: gaussian.hh
 // Date: Wed Nov 22 14:38:30 2017 +0800
-// Author: Yuxin Wu <ppwwyyxxc@gmail.com>
+// Author: Yuxin Wu
 
 #pragma once
 #include <memory>

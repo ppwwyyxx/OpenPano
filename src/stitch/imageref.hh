@@ -1,5 +1,5 @@
 //File: imageref.hh
-//Author: Yuxin Wu <ppwwyyxxc@gmail.com>
+//Author: Yuxin Wu
 
 #pragma once
 #include <string>

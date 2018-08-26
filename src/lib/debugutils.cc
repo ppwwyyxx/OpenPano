@@ -1,6 +1,6 @@
 // File: debugutils.cc
 // Date: Wed May 01 10:12:46 2013 +0800
-// Author: Yuxin Wu <ppwwyyxxc@gmail.com>
+// Author: Yuxin Wu
 
 
 #include <cstdlib>

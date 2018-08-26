@@ -1,6 +1,6 @@
 // File: config.hh
 // Date: Sat May 04 22:22:25 2013 +0800
-// Author: Yuxin Wu <ppwwyyxxc@gmail.com>
+// Author: Yuxin Wu
 
 #pragma once
 #define _USE_MATH_DEFINES

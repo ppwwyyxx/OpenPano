@@ -1,6 +1,6 @@
 // File: matrix.hh
 // Date: Sat May 04 01:32:05 2013 +0800
-// Author: Yuxin Wu <ppwwyyxxc@gmail.com>
+// Author: Yuxin Wu
 
 #pragma once
 #include <ostream>

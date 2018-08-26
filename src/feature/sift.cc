@@ -1,5 +1,5 @@
 //File: sift.cc
-//Author: Yuxin Wu <ppwwyyxxc@gmail.com>
+//Author: Yuxin Wu
 
 #include "sift.hh"
 #include <algorithm>

@@ -1,6 +1,6 @@
 //File: dist.cc
 //Date:
-//Author: Yuxin Wu <ppwwyyxxc@gmail.com>
+//Author: Yuxin Wu
 
 #include "dist.hh"
 #include "lib/debugutils.hh"

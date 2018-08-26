@@ -1,6 +1,6 @@
 // File: warp.hh
 // Date: Tue Apr 30 23:49:42 2013 +0800
-// Author: Yuxin Wu <ppwwyyxxc@gmail.com>
+// Author: Yuxin Wu
 
 #pragma once
 #include "lib/geometry.hh"

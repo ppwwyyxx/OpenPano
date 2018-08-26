@@ -1,6 +1,6 @@
 // File: matrix.cc
 // Date: Thu Jun 18 04:36:58 2015 +0800
-// Author: Yuxin Wu <ppwwyyxxc@gmail.com>
+// Author: Yuxin Wu
 
 #include "matrix.hh"
 

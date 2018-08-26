@@ -1,5 +1,5 @@
 //File: imgproc.cc
-//Author: Yuxin Wu <ppwwyyxxc@gmail.com>
+//Author: Yuxin Wu
 
 #include "imgproc.hh"
 

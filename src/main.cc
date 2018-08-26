@@ -1,6 +1,6 @@
 // File: main.cc
 // Date: Wed Jun 17 20:29:58 2015 +0800
-// Author: Yuxin Wu <ppwwyyxxc@gmail.com>
+// Author: Yuxin Wu
 
 #define _USE_MATH_DEFINES
 #include <cmath>

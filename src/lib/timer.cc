@@ -1,6 +1,6 @@
 //File: timer.cc
 //Date: Fri Apr 17 15:45:45 2015 +0800
-//Author: Yuxin Wu <ppwwyyxxc@gmail.com>
+//Author: Yuxin Wu
 
 #include "timer.hh"
 #include "debugutils.hh"
