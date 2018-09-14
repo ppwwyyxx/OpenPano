@@ -9,6 +9,8 @@ described in the paper [Automatic Panoramic Image Stitching using Invariant Feat
 which is also the one used by [AutoStitch](http://matthewalunbrown.com/autostitch/autostitch.html).
 
 [![Build Status](https://travis-ci.org/ppwwyyxx/OpenPano.svg?branch=master)](https://travis-ci.org/ppwwyyxx/OpenPano)
+[![Code Quality: Cpp](https://img.shields.io/lgtm/grade/cpp/g/ppwwyyxx/OpenPano.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/ppwwyyxx/OpenPano/context:cpp)
+[![Total Alerts](https://img.shields.io/lgtm/alerts/g/ppwwyyxx/OpenPano.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/ppwwyyxx/OpenPano/alerts)
 
 ### Compile Dependencies:
 
