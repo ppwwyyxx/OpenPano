@@ -75,7 +75,7 @@ bool PointInPolygon::in_polygon(Vec2D p) const {
 	}
 	Vec2D p1 = poly[idx1], p2 = poly[idx2];
 	// see if com, p are on the same side to line(p1,p2)
-	float o1 = side(p1, p2, com), o2 = side(p1, p2, p);
+	double o1 = side(p1, p2, com), o2 = side(p1, p2, p);
 	if (o1 * o2 < -EPS)
 		return false;
 	return true;

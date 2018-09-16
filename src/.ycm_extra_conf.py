@@ -50,7 +50,7 @@ flags = [
 'feature',
 '-I',
 'stitch',
-'-isystem'
+'-isystem',
 'third-party',
 '-isystem',
 '/usr/include/eigen3',
