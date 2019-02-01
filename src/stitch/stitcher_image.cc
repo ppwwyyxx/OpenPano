@@ -73,7 +73,11 @@ void ConnectedImages::update_proj_range() {
         m.range.min.x, m.range.min.y,
         m.range.max.x, m.range.max.y);
   }
+#if 0
   proj_range.min = proj_min, proj_range.max = proj_max;
+#else
+  proj_range.min = Vec2D(-M_PI, -M_PI_2), proj_range.max = Vec2D(M_PI, M_PI_2);
+#endif
 }
 
 Vec2D ConnectedImages::get_final_resolution() const {
@@ -114,12 +118,17 @@ Vec2D ConnectedImages::get_final_resolution() const {
 
 Mat32f ConnectedImages::blend() const {
   GuardedTimer tm("blend()");
-  // it's hard to do coordinates.......
   auto proj2homo = get_proj2homo();
+#if 0
+  // it's hard to do coordinates.......
   Vec2D resolution = get_final_resolution();
-
   Vec2D size_d = proj_range.size() / resolution;
   Coor size(size_d.x, size_d.y);
+#else
+  // not if you hard-code them.......
+  Coor size(2*MAX_OUTPUT_SIZE, MAX_OUTPUT_SIZE);
+  Vec2D resolution(2*M_PI/size.x, M_PI/size.y); // should be equivalent
+#endif
   print_debug("Final Image Size: (%d, %d)\n", size.x, size.y);
 
   auto scale_coor_to_img_coor = [&](Vec2D v) {
@@ -150,7 +159,7 @@ Mat32f ConnectedImages::blend() const {
         });
   }
   //dynamic_cast<LinearBlender*>(blender.get())->debug_run(size.x, size.y);  // for debug
-  return blender->run();
+  return blender->run(size);
 }
 
 }

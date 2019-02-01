@@ -56,7 +56,7 @@ void MultiBandBlender::create_first_level() {
 	images_to_add.clear();
 }
 
-Mat32f MultiBandBlender::run() {
+Mat32f MultiBandBlender::run(Coor size) {
 	create_first_level();
 	update_weight_map();
 	Mat32f target(target_size.y, target_size.x, 3);

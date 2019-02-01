@@ -21,7 +21,8 @@ void LinearBlender::add_image(
 	target_size.update_max(bottom_right);
 }
 
-Mat32f LinearBlender::run() {
+Mat32f LinearBlender::run(Coor size) {
+	target_size.update_max(size);
 	Mat32f target(target_size.y, target_size.x, 3);
 
 #define GET_COLOR_AND_W \

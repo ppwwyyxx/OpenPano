@@ -55,7 +55,7 @@ class BlenderBase {
 				ImageRef &img,
 				std::function<Vec2D(Coor)> coor_func) = 0;
 
-		virtual Mat32f run() = 0;
+		virtual Mat32f run(Coor size=Coor(0,0)) = 0;
 };
 
 class LinearBlender : public BlenderBase {
@@ -70,7 +70,7 @@ class LinearBlender : public BlenderBase {
 			ImageRef &img,
 			std::function<Vec2D(Coor)>) override;
 
-	Mat32f run() override;
+	Mat32f run(Coor size=Coor(0,0)) override;
 
 	// render each component, for debug
 	void debug_run(int w, int h);

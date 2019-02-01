@@ -89,7 +89,7 @@ class MultiBandBlender : public BlenderBase {
 			ImageRef &img,
 			std::function<Vec2D(Coor)>) override;
 
-	Mat32f run() override;
+	Mat32f run(Coor size=Coor(0,0)) override;
 };
 
 }	// namespace pano
