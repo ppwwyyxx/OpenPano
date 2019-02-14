@@ -146,6 +146,7 @@ To get the best stitching quality:
 	parameters are needed to undistort the images.
 
 ## TODOs
++ apply pairwise matching for translation mode as well
 + run bundle adjustment on sphere lens instead of perspective lens
 + improve feature detector and matching
 + use LAZY_READ & 1 byte image in both blender to reduce peak memory

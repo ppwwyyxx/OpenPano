@@ -97,7 +97,8 @@ Vec2D ConnectedImages::get_final_resolution() const {
       id_img_range.y = M_PI + id_img_range.y;
   }
 
-  Vec2D resolution = id_img_range / Vec2D(refw, refh),    // output-x-per-input-pixel, y-per-pixel
+  // the range can be negative (when the image is flipped)
+  Vec2D resolution = Vec2D(abs(id_img_range.x), abs(id_img_range.y)) / Vec2D(refw, refh),    // output-x-per-input-pixel, y-per-pixel
         target_size = proj_range.size() / resolution;
   double max_edge = max(target_size.x, target_size.y);
   print_debug("Target Image Size: (%lf, %lf)\n", target_size.x, target_size.y);
