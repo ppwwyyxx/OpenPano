@@ -70,7 +70,7 @@ class GaussianBlur {
 			// apply to rows
 			REP(i, h) {
 				T *dest = ret.ptr(i);
-				memcpy(cur_line, dest, sizeof(T) * w);
+				memcpy((void *)cur_line, (void *)dest, sizeof(T) * w);
 				{	// pad the border
 					T v0 = cur_line[0];
 					for (int j = 1; j <= center; j ++)

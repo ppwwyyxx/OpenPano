@@ -37,6 +37,8 @@ class Vector {
 		constexpr explicit Vector(T m_x = 0, T m_y = 0, T m_z = 0):
 			x(m_x), y(m_y), z(m_z) {}
 
+		constexpr Vector(const Vector<T> &rhs) = default;
+
 		Vector(const Vector &p0, const Vector &p1):
 			x(p1.x - p0.x), y(p1.y -p0.y), z(p1.z - p0.z) {}
 
