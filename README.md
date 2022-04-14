@@ -53,18 +53,22 @@ You may need gcc or different clang. See #16.
 ### Options:
 
 Three modes are available (set/unset the options in ``config.cfg``):
-+ __cylinder__ mode. Give better results if:
-	+ You are __only__ turning left (or right) when taking the images (as is usually done), no
++ __cylinder__ mode. Requirements:
+	+ You stay at the same spot and __only__ turn left (or right) when taking the images (as is usually done), no
 		translations or other type of rotations allowed.
 	+ Images are taken with the same camera, with a known ``FOCAL_LENGTH`` set in config.
 	+ Images are given in the left-to-right order. (I might fix this in the future)
 
-+ __camera estimation mode__. No translation is the only requirement on cameras.
-  It can usually work well as long as you don't have too few images.
-  But it's slower because it needs to perform pairwise matches.
++ __camera estimation mode__. Requirements:
+  * You stay at the same spot when taking the images, and can turn your camera left-right or
+    up-down.
+  * Don't use too few images.
+  * It runs slower because it needs to perform pairwise matches.
 
-+ __translation mode__. Simply stitch images together by affine transformation.
-  It works when camera performs pure translation and scene points are roughly at the same depth.  It also requires ordered input.
++ __translation mode__. Simply stitch images together by affine transformation. Requirements:
+  * Camera performs pure translation.
+  * The images are roughly at the same depth.
+  * Input images are ordered according to the translation movement.
 
 Some options you may care:
 + __FOCAL_LENGTH__: focal length of your camera in [35mm equivalent](https://en.wikipedia.org/wiki/35_mm_equivalent_focal_length). Only useful in cylinder mode.
