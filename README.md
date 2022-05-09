@@ -36,7 +36,7 @@ or
 $ mkdir build && cd build && cmake .. && make
 ```
 The default clang on OSX doesn't contain openmp support.
-You may need gcc or different clang. See #16.
+You may need gcc or different clang. See [#16](https://github.com/ppwwyyxx/OpenPano/issues/16).
 
 
 #### Windows
