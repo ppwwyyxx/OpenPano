@@ -1,6 +1,7 @@
 cmake_minimum_required (VERSION 3.1)
 project (OpenPano LANGUAGES CXX)
 
+option(BUILD_SHARED_LIBS "Build using shared libraries" ON)
 # set a default build type if none was provided
 # this has to be done before the project() instruction!
 if(NOT CMAKE_BUILD_TYPE)
