@@ -28,11 +28,13 @@ On Ubuntu, install dependencies by: `sudo apt install build-essential sed cmake 
 #### Linux / OSX / WSL (bash on windows)
 Use cmake (a good default to try):
 ```
-$ mkdir build && cd build && cmake .. && make
+$ mkdir build && cmake -B build && make -C build
+# Binary will be found at ./build/src/image-stitching
 ```
 or, use make (more customizable. You can modify Makefile when you run into problems.):
 ```
 $ make -C src
+# Binary will be found at ./src/image-stitching
 ```
 The default clang on OSX doesn't contain openmp support.
 You may need gcc or different clang. See [#16](https://github.com/ppwwyyxx/OpenPano/issues/16).

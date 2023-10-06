@@ -1,0 +1,47 @@
+name: UnitTest
+
+on:
+  - push
+  - pull_request
+  - workflow_call
+
+jobs:
+  test:
+    name: Test on ${{ matrix.os }}, ${{ matrix.install_from }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest] #, windows-latest, macos-latest]
+        install_from: [make, cmake]
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.x"
+
+      - name: Cache files
+        uses: actions/cache@v3
+        with:
+          path: |
+            example-data/
+          key: ${{ runner.os }}-20231096
+
+      - name: Install dependency
+        if: matrix.os == 'ubuntu-latest'
+        run: sudo apt-get install libeigen3-dev libjpeg-dev
+
+      - name: Build with make
+        if: matrix.install_from == 'make'
+        run:
+          make -j -C src
+          cp src/image-stitching ./
+
+      - name: Build with cmake
+        if: matrix.install_from == 'cmake'
+        run:
+          mkdir build && cmake -B build && make -C build
+          cp build/src/image-stitching ./
+
+      - name: Run Unittests
+        run: python src/run_test.py
