@@ -30,7 +30,7 @@ def test_final_size(image_globs, w, h):
     print(outputs)
     for line in outputs.split('\n'):
         if 'Final Image Size' in line:
-            m = re.match(rb'.*\(([0-9]+), ([0-9]+)\)', line)
+            m = re.match(r'.*\(([0-9]+), ([0-9]+)\)', line)
             ww, hh = map(int, m.group(1, 2))
             if good_size(ww, w) and good_size(hh, h):
                 return
