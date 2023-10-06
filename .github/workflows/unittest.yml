@@ -33,13 +33,13 @@ jobs:
 
       - name: Build with make
         if: matrix.install_from == 'make'
-        run:
+        run: |
           make -j -C src
           cp src/image-stitching ./
 
       - name: Build with cmake
         if: matrix.install_from == 'cmake'
-        run:
+        run: |
           mkdir build && cmake -B build && make -C build
           cp build/src/image-stitching ./
 
