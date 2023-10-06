@@ -21,7 +21,7 @@ else
 	OMP_FLAG=-fopenmp
 endif
 
-OPTFLAGS ?= -O3 -msse3 -march=native
+OPTFLAGS ?= -O3 -march=native
 #OPTFLAGS ?= -g3 -fsanitize=address,undefined -O2 -lasan
 #OPTFLAGS ?= -g3 -fsanitize=leak -O2 -lubsan
 DEFINES = -DDEBUG  	# comment out this line improves speed
@@ -31,7 +31,7 @@ DEFINES = -DDEBUG  	# comment out this line improves speed
 #INCLUDE_DIR += $(shell pkg-config --cflags $(LIBS))
 #LDFLAGS += $(shell pkg-config $(LIBS) --libs)
 
-# use mkl for eigen
+# Use mkl for eigen. Note that this requires gcc, clang does not work.
 ifdef MKLROOT
 	INCLUDE_DIR += -I$(MKLROOT)/include
 	LDFLAGS += -m64 -L$(MKLROOT)/lib/intel64 -L$(MKLROOT)/../compiler/lib/intel64

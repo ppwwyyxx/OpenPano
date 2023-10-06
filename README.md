@@ -8,11 +8,9 @@ OpenPano is a panorama stitching program written in C++ from scratch (without an
 described in the paper [Automatic Panoramic Image Stitching using Invariant Features](http://matthewalunbrown.com/papers/ijcv2007.pdf),
 which is also the one used by [AutoStitch](http://matthewalunbrown.com/autostitch/autostitch.html).
 
-[![Build Status](https://travis-ci.org/ppwwyyxx/OpenPano.svg?branch=master)](https://travis-ci.org/ppwwyyxx/OpenPano)
-
 ### Compile Dependencies:
 
-* gcc >= 4.7 (Or VS2015)
+* gcc >= 5, clang >= 10 or visual studio >= 2015.
 * [Eigen](http://eigen.tuxfamily.org/index.php?title=Main_Page)
 * [FLANN](http://www.cs.ubc.ca/research/flann/) (already included in the repository, slightly modified)
 * [CImg](http://cimg.eu/) (optional. already included in the repository)
@@ -28,18 +26,19 @@ On Ubuntu, install dependencies by: `sudo apt install build-essential sed cmake 
 
 ### Compile:
 #### Linux / OSX / WSL (bash on windows)
-```
-$ make -C src
-```
-or
+Use cmake (a good default to try):
 ```
 $ mkdir build && cd build && cmake .. && make
+```
+or, use make (more customizable. You can modify Makefile when you run into problems.):
+```
+$ make -C src
 ```
 The default clang on OSX doesn't contain openmp support.
 You may need gcc or different clang. See [#16](https://github.com/ppwwyyxx/OpenPano/issues/16).
 
 
-#### Windows
+#### Windows (for VS2015)
 * Install cmake, VS2015
 * Set environment variable `Eigen3_DIR` to `{YOUR_EIGEN3_DIRECTORY}/eigen3/cmake`.
 * Open Visual Studio [Developer Command Prompt](https://msdn.microsoft.com/en-us/library/ms229859(v=vs.110).aspx).
