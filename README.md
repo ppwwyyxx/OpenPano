@@ -8,14 +8,14 @@ OpenPano is a panorama stitching program written in C++ from scratch (without an
 described in the paper [Automatic Panoramic Image Stitching using Invariant Features](http://matthewalunbrown.com/papers/ijcv2007.pdf),
 which is also the one used by [AutoStitch](http://matthewalunbrown.com/autostitch/autostitch.html).
 
-### Compile Dependencies:
+## Installation
 
-* gcc >= 5, clang >= 10 or visual studio >= 2015.
+We need the following dependencies:
+* gcc >= 5, clang >= 10 or visual studio >= 2015. CMake >= 3.20
 * [Eigen](http://eigen.tuxfamily.org/index.php?title=Main_Page)
+* libjpeg (optional, if you only need png format)
 * [FLANN](http://www.cs.ubc.ca/research/flann/) (already included in the repository, slightly modified)
 * [CImg](http://cimg.eu/) (optional. already included in the repository)
-* libjpeg (optional if you only work with png files)
-* cmake or make
 
 Eigen, CImg and FLANN are header-only, to simplify the compilation on different platforms.
 CImg and libjpeg are only used to read and write images, so you can easily get rid of them.
@@ -49,7 +49,19 @@ You may need gcc or different clang. See [#16](https://github.com/ppwwyyxx/OpenP
 * The author have never used Visual Studio and this windows build process may not work for you. Feel
 	free to submit PR to improve the build process.
 
-### Options:
+## Usage
+
+```
+$ ./image-stitching <file1> <file2> ...
+```
+
+The output file is ``out.jpg``. You can play with the [example data](https://github.com/ppwwyyxx/OpenPano/releases/tag/0.1) to start with.
+
+Before dealing with very large images (4 megapixels or more), it's better to manually downscale them to save time.
+
+In cylinder/translation mode, the input file names need to have the correct order.
+
+### Configuration:
 
 Three modes are available (set/unset the options in ``config.cfg``):
 + __cylinder__ mode. Requirements:
@@ -79,19 +91,8 @@ The default values are generally good for images with more than 0.7 megapixels.
 If your images are too small and cannot produce satisfactory results,
 it might be better to resize your images rather than tune the parameters.
 
-### Run:
 
-```
-$ ./image-stitching <file1> <file2> ...
-```
-
-The output file is ``out.jpg``. You can play with the [example data](https://github.com/ppwwyyxx/OpenPano/releases/tag/0.1) to start with.
-
-Before dealing with very large images (4 megapixels or more), it's better to resize them. (I might add this feature in the future)
-
-In cylinder/translation mode, the input file names need to have the correct order.
-
-## Examples ([All original data available for __download__](https://github.com/ppwwyyxx/OpenPano/releases/tag/0.1)):
+## Examples ([All original data available for __download__](https://github.com/ppwwyyxx/OpenPano/releases/tag/0.1))
 
 Zijing Apartment in Tsinghua University:
 ![dorm](results/apartment.jpg)
@@ -115,7 +116,7 @@ A full-view pano built from UAV images:
 
 For more examples, see [results](results).
 
-## Speed & Memory:
+## Speed & Memory
 Tested on Intel Core i7-6700HQ, with `ESTIMATE_CAMERA` mode:
 
 + 11 ordered images of size 600x400: 3.2s.
