@@ -11,7 +11,7 @@ std::map<std::string, std::pair<int, double>> TotalTimer::rst;
 
 void TotalTimer::print() {
 	for (auto& itr : rst)
-		print_debug("%s spent %lf secs in total, called %d times.\n",
+		print_debug("%s spent %.2lf secs in total, called %d times.\n",
 				itr.first.c_str(), itr.second.second, itr.second.first);
 }
 

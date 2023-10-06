@@ -31,3 +31,6 @@ Debug
 cmake_install.cmake
 src/cmake_install.cmake
 .vs/
+
+example-data
+example-data.tgz

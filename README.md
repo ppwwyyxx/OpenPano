@@ -28,11 +28,13 @@ On Ubuntu, install dependencies by: `sudo apt install build-essential sed cmake 
 #### Linux / OSX / WSL (bash on windows)
 Use cmake (a good default to try):
 ```
-$ mkdir build && cd build && cmake .. && make
+$ cmake -B build && make -C build
+# Binary will be found at ./build/src/image-stitching
 ```
 or, use make (more customizable. You can modify Makefile when you run into problems.):
 ```
 $ make -C src
+# Binary will be found at ./src/image-stitching
 ```
 The default clang on OSX doesn't contain openmp support.
 You may need gcc or different clang. See [#16](https://github.com/ppwwyyxx/OpenPano/issues/16).
@@ -63,7 +65,8 @@ In cylinder/translation mode, the input file names need to have the correct orde
 
 ### Configuration:
 
-Three modes are available (set/unset the options in ``config.cfg``):
+The program expects to find the config file `config.cfg` in the working directory.
+Three modes are available (set/unset them in the top of the config file):
 + __cylinder__ mode. Requirements:
 	+ You stay at the same spot and __only__ turn left (or right) when taking the images (as is usually done), no
 		translations or other type of rotations allowed.
@@ -150,6 +153,7 @@ To get the best stitching quality:
 	parameters are needed to undistort the images.
 
 ## TODOs
++ Github Actions for macOS and Windows
 + apply pairwise matching for translation mode as well
 + run bundle adjustment on sphere lens instead of perspective lens
 + improve feature detector and matching

@@ -3,6 +3,7 @@
 #include <chrono>
 #include <functional>
 #include <map>
+#include <iomanip>
 #include <iostream>
 #include <string>
 
@@ -35,7 +36,7 @@ class GuardedTimer: public Timer {
 	public:
 		GuardedTimer(const std::string& msg,  bool enabled=true):
 			GuardedTimer([msg](double duration){
-					std::cout << msg << ": " << std::to_string(duration * 1000.) << " milliseconds." << std::endl;
+					std::cout << msg << ": " << std::fixed << std::setprecision(1) << duration * 1000. << " milliseconds." << std::endl;
 				})
 		{ enabled_ = enabled; }
 

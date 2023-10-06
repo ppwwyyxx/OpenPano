@@ -34,11 +34,9 @@ if (NOT JPEG_FOUND)
 	target_compile_definitions(image-stitching PUBLIC DISABLE_JPEG)
 endif()
 
-find_package(Python3 COMPONENTS Development)
-if(Python3_Development_FOUND AND BUILD_SHARED_LIBS)
-	add_library(pyopenpano SHARED python/pybind.cc)
-	target_link_libraries(pyopenpano openpano pybind11)
-	target_include_directories(pyopenpano SYSTEM
-		PRIVATE ${Python3_INCLUDE_DIRS}
-	)
+find_package(Python3 COMPONENTS Interpreter Development)
+find_package(pybind11 CONFIG)
+if(Python3_Development_FOUND AND BUILD_SHARED_LIBS AND pybind11_FOUND)
+  pybind11_add_module(pyopenpano python/pybind.cc)
+  target_link_libraries(pyopenpano PRIVATE openpano)
 endif()
