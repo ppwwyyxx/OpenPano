@@ -28,7 +28,7 @@ On Ubuntu, install dependencies by: `sudo apt install build-essential sed cmake 
 #### Linux / OSX / WSL (bash on windows)
 Use cmake (a good default to try):
 ```
-$ mkdir build && cmake -B build && make -C build
+$ cmake -B build && make -C build
 # Binary will be found at ./build/src/image-stitching
 ```
 or, use make (more customizable. You can modify Makefile when you run into problems.):
@@ -153,6 +153,7 @@ To get the best stitching quality:
 	parameters are needed to undistort the images.
 
 ## TODOs
++ Github Actions for macOS and Windows
 + apply pairwise matching for translation mode as well
 + run bundle adjustment on sphere lens instead of perspective lens
 + improve feature detector and matching
