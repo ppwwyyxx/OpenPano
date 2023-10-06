@@ -39,8 +39,4 @@ find_package(pybind11 CONFIG)
 if(Python3_Development_FOUND AND BUILD_SHARED_LIBS AND pybind11_FOUND)
   pybind11_add_module(pyopenpano python/pybind.cc)
   target_link_libraries(pyopenpano PRIVATE openpano)
-	#add_library(pyopenpano SHARED python/pybind.cc)
-	#target_include_directories(pyopenpano SYSTEM
-		#PRIVATE ${Python3_INCLUDE_DIRS}
-	#)
 endif()

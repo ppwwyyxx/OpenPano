@@ -29,7 +29,8 @@ jobs:
 
       - name: Install dependency
         if: matrix.os == 'ubuntu-latest'
-        run: sudo apt-get install --yes libeigen3-dev libjpeg-dev python3-pybind11
+        run: sudo apt-get install --yes libeigen3-dev libjpeg-dev
+        # Didn't test pybind11. Seems to be old and incompatible with the python version.
 
       - name: Build with make
         if: matrix.install_from == 'make'
