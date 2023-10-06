@@ -21,7 +21,11 @@ def test_final_size(image_globs, w, h):
     print ("Testing with {}".format(image_globs))
     images = sorted(glob.glob(image_globs))
     cmd = [EXEC] + images
-    outputs = subprocess.check_output(cmd, stderr=subprocess.STDOUT)
+    try:
+        outputs = subprocess.check_output(cmd, stderr=subprocess.STDOUT)
+    except subprocess.CalledProcessError as e:
+        print("ERROR:\n", e.output.decode('utf-8'))
+        raise
     outputs = outputs.split(b'\n')
     print (b'\n'.join(outputs))
     for line in outputs:

@@ -29,19 +29,18 @@ jobs:
 
       - name: Install dependency
         if: matrix.os == 'ubuntu-latest'
-        run: sudo apt-get install libeigen3-dev libjpeg-dev
+        run: sudo apt-get install --yes libeigen3-dev libjpeg-dev
 
       - name: Build with make
         if: matrix.install_from == 'make'
         run: |
           make -j -C src
-          cp src/image-stitching ./
 
       - name: Build with cmake
         if: matrix.install_from == 'cmake'
         run: |
           mkdir build && cmake -B build && make -C build
-          cp build/src/image-stitching ./
+          cp build/src/image-stitching ./src/
 
       - name: Run Unittests
-        run: python src/run_test.py
+        run: cd src && python run_test.py

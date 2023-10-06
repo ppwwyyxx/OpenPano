@@ -65,7 +65,8 @@ In cylinder/translation mode, the input file names need to have the correct orde
 
 ### Configuration:
 
-Three modes are available (set/unset the options in ``config.cfg``):
+The program expects to find the config file `config.cfg` in the working directory.
+Three modes are available (set/unset them in the top of the config file):
 + __cylinder__ mode. Requirements:
 	+ You stay at the same spot and __only__ turn left (or right) when taking the images (as is usually done), no
 		translations or other type of rotations allowed.
